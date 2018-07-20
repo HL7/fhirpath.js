@@ -11,7 +11,7 @@
     "node": ">=8.9.0"
   },
   "scripts": {
-    "build": "rm -rf ./parser/*; java -Xmx500M -cp \"./antlr-4.7.1-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o parser -Dlanguage=JavaScript FHIRPath.g4"
+    "generateParser": "cd parser; rm -rf ./generated/*; java -Xmx500M -cp \"../antlr-4.7.1-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o generated -Dlanguage=JavaScript FHIRPath.g4"
   },
   "license": "MIT"
 }

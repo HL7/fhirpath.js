@@ -9,19 +9,16 @@ var input = process.argv[2];
 var path = require('path');
 var scriptDir = path.dirname(process.argv[1]);
 process.chdir(path.join(scriptDir, '..'));
-console.log(process.cwd());
-console.log(module.paths);
 var antlr4 = require('antlr4/index');
 var chars = new antlr4.InputStream(input);
-var FHIRPathLexer = require('../parser/FHIRPathLexer');
-var lexer = new FHIRPathLexer.FHIRPathLexer(chars);
+var parserClasses = require('../parser');
+var lexer = new parserClasses.FHIRPathLexer(chars);
 var tokens  = new antlr4.CommonTokenStream(lexer);
-var FHIRPathParser = require('../parser/FHIRPathParser');
-var parser = new FHIRPathParser.FHIRPathParser(tokens);
+var parser = new parserClasses.FHIRPathParser(tokens);
 parser.buildParseTrees = true;
 var tree = parser.expression();
 
-var FHIRPathListener = require('../parser/FHIRPathListener').FHIRPathListener;
+var FHIRPathListener = parserClasses.FHIRPathListener;
 function TreePrinter() {
    FHIRPathListener.call(this); // inherit default listener
    return this;
