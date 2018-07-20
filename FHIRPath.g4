@@ -1,4 +1,4 @@
-grammar fhirpath;
+grammar FHIRPath;
 
 // Grammar rules
 
