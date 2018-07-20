@@ -1,0 +1,22 @@
+# The following is the standard bashrc file for the LForms
+# development team for this repository.
+
+NODE=node-v8.11.3-npm-5.7.1
+#
+# Set path
+PATH=~/${NODE}/bin:/bin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/etc
+
+# Add node_modules/.bin to the path. We can find that from `npm bin`, but that
+# takes a second or two, and slows things down.
+dir=`dirname ${BASH_SOURCE}`
+dir=`readlink -f ${dir}`
+
+if [[ -e "$dir/node_modules" ]]
+then
+  PATH=${dir}/node_modules/.bin:${PATH}
+fi
+
+umask 022
+
+alias antlr4="java -Xmx500M -cp \"${dir}/antlr-4.7.1-complete.jar:$CLASSPATH\" org.antlr.v4.Tool"
+alias grun="java -cp \"${dir}/antlr-4.7.1-complete.jar\" org.antlr.v4.gui.TestRig"

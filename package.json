@@ -1,0 +1,17 @@
+{
+  "name": "fhirpath",
+  "version": "0.0.1",
+  "description": "A FHIRPath engine",
+  "main": "tbd.js",
+  "dependencies": {
+    "antlr4": "^4.7.1"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=8.9.0"
+  },
+  "scripts": {
+    "build": "rm -rf ./parser/*; java -Xmx500M -cp \"./antlr-4.7.1-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o parser -Dlanguage=JavaScript FHIRPath.g4"
+  },
+  "license": "MIT"
+}
