@@ -1,5 +1,4 @@
 const subj = require('../src/fhirpath');
-
 const yaml = require('js-yaml');
 const fs   = require('fs');
 
@@ -7,7 +6,10 @@ const fs   = require('fs');
 const testcase = yaml.safeLoad(fs.readFileSync( __dirname + '/cases/simple.yaml', 'utf8'));
 
 testcase.tests.forEach((t)=>{
+    // console.log(yaml.dump(subj.parse(t.expression)));
     test((t.desc || t.expression) , () => {
-        expect(subj.evaluate(testcase.subject, t.expression)).toBe(t.result);
+        var res = subj.evaluate(testcase.subject, t.expression);
+        // console.log(yaml.dump(res));
+        expect(res).toEqual(t.result);
     });
 });

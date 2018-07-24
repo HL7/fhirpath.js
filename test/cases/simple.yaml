@@ -1,14 +1,19 @@
 tests:
-  - expression: Patient.name
+  - expression: Patient.name.family
     result:
-      - family: Joe 
-  - desc: access by index
-    expression: Patient.address.0.user
+      - Chalmers
+      - Windsor
+  - expression: Patient.id
     result:
-      - home
-  - expression: Patient.managingOrganization.reference
-    result:
-      -  Organization/1
+      example
+
+  # - desc: access by index
+  #   expression: Patient.address.0.user
+  #   result:
+  #     - home
+  # - expression: Patient.managingOrganization.reference
+  #   result:
+  #     -  Organization/1
 subject:
   resourceType: Patient
   id: example
