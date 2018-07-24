@@ -1,4 +1,4 @@
-grammar fluentpath;
+grammar FHIRPath;
 
 // Grammar rules
 
@@ -46,11 +46,11 @@ externalConstant
 
 invocation                          // Terms that can be used after the function/member invocation '.'
         : identifier                                            #memberInvocation
-        | function                                              #functionInvocation
+        | functn                                              #functionInvocation
         | '$this'                                               #thisInvocation
         ;
 
-function
+functn
         : identifier '(' paramList? ')'
         ;
 
@@ -141,7 +141,7 @@ QUOTEDIDENTIFIER
         ;
 
 STRING
-        : '\'' (ESC | ~[\'])* '\''
+        : '\'' (ESC | ~['])* '\''
         ;
 
 // Also allows leading zeroes now (just like CQL and XSD)
