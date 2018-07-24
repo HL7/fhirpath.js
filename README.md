@@ -16,7 +16,7 @@ $ node bin/evaluate.js '{"resourceType": "Patient", "name": {"given": "Fred"}}' 
 
 Fred
 ```
-   * bin/parseAndDisplay.js:  Prints a parse tree for a FHIRPath expression (mostly
+   * bin/parse-and-display.js:  Prints a parse tree for a FHIRPath expression (mostly
 useful for debugging).
 
 
