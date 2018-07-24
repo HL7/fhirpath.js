@@ -2,7 +2,7 @@
   "name": "fhirpath",
   "version": "0.0.1",
   "description": "A FHIRPath engine",
-  "main": "tbd.js",
+  "main": "interpreter/index.js",
   "dependencies": {
     "antlr4": "^4.7.1"
   },
