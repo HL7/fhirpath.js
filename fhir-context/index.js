@@ -4,12 +4,14 @@
 // implement their own (and also for the package's test code).
 
 let fs = require('fs');
-let resourceNameList = JSON.parse(fs.readFileSync("./resource-data"));
+let path = require('path');
+let resourceNameList =
+  JSON.parse(fs.readFileSync(path.join(__dirname, "resource-data.json")));
 let resourceNames = new Set(resourceNameList);
 let Context = require ('../interpreter/context');
 
 class FHIRContext extends Context {
-  constructor {
+  constructor(){
     super(resourceNames);
   }
 }

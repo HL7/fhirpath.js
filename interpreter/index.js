@@ -65,16 +65,21 @@ class Interpreter extends FHIRPathListener {
    */
   resolveIndentifier(identifier) {
     var rtn = null;
-    if (!this.parentStack.length && context.resourceNames.has(identifer) && ) {
-      // Then we are at the root node in the tree, and this is a known resource
+    let parent = this.getParent();
+    let data = parent ? parent.data : this.data;
+    if (this.data === data  && this.context.resourceNames.has(identifier)) {
+      // Then we are at the root node in the data tree, and this is a known resource
       // name.
       // Then this is an assertion that the root node is a resource of this
       // type.  Confirm.
-      rtn = (this.data.resourceType == identifer) ? : this.data : [];
+      rtn = (this.data.resourceType == identifier) ? this.data : [];
     }
     else {
-      rtn =
+      rtn = data[identifier];
+      if (rtn === undefined)
+        rtn = [];
     }
+    return rtn;
   }
 }
 
@@ -104,17 +109,18 @@ for (let p of Object.keys(FHIRPathListener.prototype)) {
   else if (p.startsWith('exit')) {
     Interpreter.prototype[p] = function(ctx) {
       let currentNode = this.parentStack.pop();
-      let parentNode = this.getParent();;
-      if (currentNode.type = "MemberInvocation") {
-        console.log(currentNode.data);
-        console.log("%%% currentNode.text = "+currentNode.text);
-        let nodeResult = currentNode.data[currentNode.text];
-        console.log("%%% nodeResult = "+nodeResult);
-        if (!parentNode)
-          this.result = nodeResult;
-        else
-          currentNode.result = nodeResult;
+      if (currentNode.type === "Identifier") {
+        currentNode.result = this.resolveIndentifier(currentNode.text);
       }
+      else {
+        // For the other cases handled, the result is the last child node's result.
+        let children = currentNode.children;
+        if (children)
+          currentNode.result = children[children.length - 1].result;
+      }
+      // If this is the top node, set the final result.
+      if (this.parentStack.length == 0)
+        this.result = currentNode.result;
     }
   }
 };
