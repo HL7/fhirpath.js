@@ -6,7 +6,7 @@
 let fs = require('fs');
 let path = require('path');
 let resourceNameList =
-  JSON.parse(fs.readFileSync(path.join(__dirname, "resource-data.json")));
+  JSON.parse(fs.readFileSync(path.join(__dirname, "generated/resource-data.json")));
 let resourceNames = new Set(resourceNameList);
 let Context = require ('../interpreter/context');
 
