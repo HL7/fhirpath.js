@@ -1,17 +1,22 @@
 {
   "name": "fhirpath",
-  "version": "0.0.1",
+  "_comment": "0.0.0 will be replaced by travis with tag name",
+  "version": "0.0.0",
   "description": "A FHIRPath engine",
   "main": "tbd.js",
   "dependencies": {
     "antlr4": "^4.7.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "jest": "^23.4.1",
+    "js-yaml": ">=3.12.0"
+  },
   "engines": {
     "node": ">=8.9.0"
   },
   "scripts": {
-    "generateParser": "cd parser; rm -rf ./generated/*; java -Xmx500M -cp \"../antlr-4.7.1-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o generated -Dlanguage=JavaScript FHIRPath.g4"
+    "generateParser": "cd parser; rm -rf ./generated/*; java -Xmx500M -cp \"../antlr-4.7.1-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o generated -Dlanguage=JavaScript FHIRPath.g4",
+    "test": "jest"
   },
   "license": "MIT"
 }

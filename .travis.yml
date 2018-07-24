@@ -1,0 +1,24 @@
+sudo: false
+language: node_js
+node_js:
+  - "10.7.0"
+cache:
+  directories:
+  - node_modules
+before_script:
+- yarn install
+script:
+- yarn test
+# TODO: turn it on when we decide on npm account to deploy
+# after_success:
+#   - git config --global user.email "robot@fhirpath.js"
+# - git config --global user.name "Travis CI Deployer"
+# - if [ -n "$TRAVIS_TAG" ]; then sed -i "s/0.0.0/$TRAVIS_TAG/g" package.json; fi
+# deploy:
+#   provider: npm
+#   email: npm@email
+#   api_key:
+#     secure: key
+#   on:
+#     tags: true
+#     repo: FHIR/fhir.js
