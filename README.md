@@ -3,6 +3,8 @@ This will one day be a FHIRPath processing engine.
 Status:  At the moment it is just a parser that can print the parsed tree.  See
 bin/parseAndDisplay.js.
 
+The version of the FHIRPath grammar being used is currently the STU1 Release.
+
 Development Notes:
 If you need to regenerate the parser from the ANTLR4 grammar (which is in
 parser/FHIRPath.g4), first download the
