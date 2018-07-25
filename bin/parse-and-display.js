@@ -2,8 +2,8 @@
 // the parsed tree of nodes to the console.
 // Based on https://github.com/antlr/antlr4/blob/master/doc/javascript-target.md
 
-if (process.argv.length < 2)
-  throw 'Usage:  node parseAndDisplay.js \'[fhirpath expression]\''
+if (process.argv.length < 3)
+  throw 'Usage:  node parse-and-display.js \'[fhirpath expression]\''
 var input = process.argv[2];
 
 var path = require('path');
