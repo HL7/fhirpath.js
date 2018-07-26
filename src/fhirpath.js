@@ -11,6 +11,24 @@ function isCapitalized(x){
   return x && (x[0] === x[0].toUpperCase());
 }
 
+function flatten(x){
+  return x.reduce((acc, x)=> {
+    if(Array.isArray(x)){
+      // todo replace with array modification
+      acc = acc.concat(x);
+    } else {
+      acc.push(x);
+    }
+    return acc;
+  }, []);
+}
+
+function arraify(x){
+  if(Array.isArray(x)){ return x; }
+  if(isSome(x)){ return [x]; }
+  return [];
+}
+
 var InvocationExpression = (ctx, result, expr)=> {
   // console.log('InvocationExpression', expr);
   return expr.children.reduce((acc, ch)=>{
@@ -112,17 +130,6 @@ var Functn = (ctx, result, expr) => {
   });
 };
 
-function flatten(x){
-  return x.reduce((acc, x)=> {
-    if(Array.isArray(x)){
-      // todo replace with array modification
-      acc = acc.concat(x);
-    } else {
-      acc.push(x);
-    }
-    return acc;
-  }, []);
-}
 
 var whereMacro = (ctx, result, expr) => {
   // console.log('whereMacro', result, expr);
@@ -146,8 +153,21 @@ var whereMacro = (ctx, result, expr) => {
   return result;
 };
 
+var selectMacro = (ctx, result, expr) => {
+  // console.log('selectMacro', result, expr);
+  if(result !== false && ! result) { return null; }
+
+  var lambda = expr[0].children[0];
+
+  return flatten(arraify(result).map((x)=> {
+    // console.log('map', doEval(ctx, x, lambda));
+    return doEval(ctx, x, lambda);
+  }));
+};
+
 const macroTable = {
-  where: whereMacro
+  where: whereMacro,
+  select: selectMacro
 };
 
 
@@ -164,9 +184,14 @@ var emptyFn = (x) => {
   }
 };
 
+var countFn = (x)=>{
+  return x && x.length; 
+};
+
 const fnTable = {
   exists:  existsFn,
-  empty: emptyFn
+  empty: emptyFn,
+  count: countFn
 };
 
 var FunctionInvocation = (ctx, result, expr) => {
@@ -189,8 +214,8 @@ var FunctionInvocation = (ctx, result, expr) => {
 };
 
 var ParamList = (ctx, result, expr) => {
-  // we do not eval param list
-  // because it can be lambda/macro like where
+  // we do not eval param list because sometimes it should be passed as
+  // lambda/macro (for example in case of where(...)
   return expr;
 };
 
@@ -208,20 +233,28 @@ var EqualityExpression = (ctx, result, expr) => {
   return doCompare(left, right);
 };
 
+var UnionExpression = (ctx, result, expr) => {
+  // console.log("EqualityExpression", expr);
+  var left = doEval(ctx, result, expr.children[0]);
+  var right = doEval(ctx, result, expr.children[1]);
+  return arraify(left).concat(arraify(right));
+};
+
 const evalTable = {
-  InvocationExpression: InvocationExpression,
-  TermExpression: TermExpression,
-  MemberInvocation: MemberInvocation,
-  IndexerExpression: IndexerExpression,
-  InvocationTerm: InvocationTerm,
-  Identifier: Identifier,
-  LiteralTerm: LiteralTerm,
-  NumberLiteral: NumberLiteral,
-  StringLiteral: StringLiteral,
+  EqualityExpression: EqualityExpression,
   FunctionInvocation: FunctionInvocation,
   Functn: Functn,
+  Identifier: Identifier,
+  IndexerExpression: IndexerExpression,
+  InvocationExpression: InvocationExpression,
+  InvocationTerm: InvocationTerm,
+  LiteralTerm: LiteralTerm,
+  MemberInvocation: MemberInvocation,
+  NumberLiteral: NumberLiteral,
   ParamList: ParamList,
-  EqualityExpression: EqualityExpression
+  StringLiteral: StringLiteral,
+  TermExpression: TermExpression,
+  UnionExpression: UnionExpression
 };
 
 var doEval = (ctx, result, expr) => {

@@ -60,11 +60,34 @@ tests:
   - expression: Patient.ups.empty()
     result: true
 
+  - desc: count
+    expression: Patient.name.given.count()
+    result: 5
+
+  - desc: count
+    expression: Patient.name.given.count() = 5
+    result: true
+
   - expression: Patient.name.where(use ='official').family
     result: ["Chalmers"]
 
   - expression: Patient.name.where(use ='official').given
     result: ["Peter", "James"]
+
+  - expression: "'a' | 'b'"
+    result: ["a", "b"]
+
+  - expression: Patient.name.select(given)
+    result: ["Peter", "James", "Jim", "Peter", "James"]
+
+  - expression:
+      - Patient.name.given | Patient.name.family
+    result: ["Peter", "James", "Jim", "Peter", "James", "Chalmers", "Windsor"]
+
+  - expression:
+      - Patient.name.select(given | family)
+    result: ["Peter", "James", "Chalmers", "Jim", "Peter", "James", "Windsor"]
+
 
 subject:
   resourceType: Patient
