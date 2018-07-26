@@ -27,7 +27,17 @@ function pp (x) {
 
 // console.log(fp.evaluate({resourceType: 'Patient', a: {b: 1}}, 'Patient."a"'))
 
-pp(fp.parse('Patient.name.exists(2)'));
-pp(fp.parse('Patient.name.exists()'));
+// pp(fp.parse('Patient.name.exists(2)'));
+// pp(fp.parse('Patient.name.exists()'));
 
-pp('res', fp.evaluate({resourceType: 'Patient', a: [{b: 1}]}, 'Patient.a.exists()'))
+// pp('res', fp.evaluate({resourceType: 'Patient', a: [{b: 1}]}, 'Patient.a.exists()'))
+
+// pp(fp.parse("Patient.name.fn(1,2,3)"));
+console.log('res', fp.evaluate({resourceType: 'Patient', a: [{b: 1}]}, 'Patient.a.where( b = 1 )'))
+
+
+// pp(fp.parse("Patient.name.where(use = 'home')exists()"));
+// pp(fp.parse("Patient.name.where(use = 1)exists()"));
+var b = [1,3]; 
+var a = b.concat([2,4]);
+console.log(a, b);

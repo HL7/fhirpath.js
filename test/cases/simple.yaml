@@ -7,6 +7,10 @@ tests:
       - Chalmers
       - Windsor
 
+  - desc: mapcat arrays
+    expression: Patient.name.given
+    result: ["Peter", "James", "Jim", "Peter", "James"]
+
   - expression:
       - Patient.id
       - id
@@ -40,6 +44,7 @@ tests:
     expression: Patient.name[1].given[0]
     result: Jim
 
+
   - expression: Patient.managingOrganization.reference
     result: Organization/1
 
@@ -54,6 +59,12 @@ tests:
 
   - expression: Patient.ups.empty()
     result: true
+
+  - expression: Patient.name.where(use ='official').family
+    result: ["Chalmers"]
+
+  - expression: Patient.name.where(use ='official').given
+    result: ["Peter", "James"]
 
 subject:
   resourceType: Patient
