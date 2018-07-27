@@ -80,13 +80,14 @@ tests:
   - expression: Patient.name.select(given)
     result: ["Peter", "James", "Jim", "Peter", "James"]
 
-  - expression:
-      - Patient.name.given | Patient.name.family
+  - expression: Patient.name.given | Patient.name.family
     result: ["Peter", "James", "Jim", "Peter", "James", "Chalmers", "Windsor"]
 
-  - expression:
-      - Patient.name.select(given | family)
+  - expression: Patient.name.select(given | family)
     result: ["Peter", "James", "Chalmers", "Jim", "Peter", "James", "Windsor"]
+
+  - expression: Patient.name.trace('tracing').given[0]
+    result: "Peter"
 
 
 subject:

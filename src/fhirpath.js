@@ -165,9 +165,31 @@ var selectMacro = (ctx, result, expr) => {
   }));
 };
 
+var repeatMacro = (ctx, result, expr) => {
+  // console.log('selectMacro', result, expr);
+  if(result !== false && ! result) { return null; }
+
+  var lambda = expr[0].children[0];
+  var res = [];
+  var items = arraify(result);
+
+  var next = null;
+  var lres = null;
+  while (items.length != 0) {
+    next = items.shift();
+    lres = flatten(arraify(doEval(ctx, next, lambda)));
+    if(lres){
+      res = res.concat(lres);
+      items = items.concat(lres);
+    }
+  }
+  return res;
+};
+
 const macroTable = {
   where: whereMacro,
-  select: selectMacro
+  select: selectMacro,
+  repeat: repeatMacro
 };
 
 
@@ -184,14 +206,26 @@ var emptyFn = (x) => {
   }
 };
 
+// 5.1.13. count() : integer Returns a collection with a single value which is
+// the integer count of the number of items in the input collection. Returns 0
+// when the input collection is empty.
+
 var countFn = (x)=>{
   return x && x.length; 
 };
 
+var traceFn = (x, args)=>{
+  // console.log('TRACE:[' + JSON.stringify(args) + ']', x);
+  console.log('TRACE:', x);
+  return x;
+};
+
+
 const fnTable = {
   exists:  existsFn,
   empty: emptyFn,
-  count: countFn
+  count: countFn,
+  trace: traceFn
 };
 
 var FunctionInvocation = (ctx, result, expr) => {
@@ -205,7 +239,8 @@ var FunctionInvocation = (ctx, result, expr) => {
   } else {
     var fn = fnTable[fnName];
     if(fn){
-      return fn.apply(this, result, args); 
+      //TODO: eval args before calling function
+      return fn.call(this, result, args); 
     } else {
       throw new Error("No function [" + fnName + "] defined ");
     }
