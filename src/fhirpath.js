@@ -1,3 +1,20 @@
+// This is fhirpath interpreter
+// everything starts at evaluate function,
+// which is passed  fhirpath AST and resource.
+//
+// We reduce/eval recursively each node in AST
+// passing the context and current data
+//
+// each AST node has eval function, which should be registered in evalTable
+// and named after node type
+// if node needs to eval father it's children it has to call `doEval` function
+//
+// For FunctionInvocation node there is two lookup tables - fnTable & macroTable
+// difference between fn and macro - should we eval argument or pass AST.
+// in case of function: we eval args and pass to function with current data 
+// in case of macro (like where or select): we pass expression (lambda), which should
+// be evaluated inside macro
+
 const parser = require('./parser');
 
 function isSome(x){
