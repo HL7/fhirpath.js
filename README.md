@@ -1,4 +1,8 @@
-This will one day be a FHIRPath processing engine.
+# fhirpath.js
+
+[![Build Status](https://travis-ci.org/niquola/fhirpath.js-1.svg?branch=master)](https://travis-ci.org/niquola/fhirpath.js-1)
+
+FHIRPath implementation in javascript.
 
 ## Status
 Currently this only able to handle very simple FHIRPath expressions,
