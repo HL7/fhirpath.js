@@ -211,22 +211,81 @@ var emptyFn = (x) => {
 // when the input collection is empty.
 
 var countFn = (x)=>{
-  return x && x.length; 
+  if (x && x.length) {
+    return x.length;
+  } else {
+    return 0;
+  }
 };
 
-var traceFn = (x, args)=>{
-  // console.log('TRACE:[' + JSON.stringify(args) + ']', x);
-  console.log('TRACE:', x);
+var traceFn = (x, label)=>{
+  console.log('TRACE:[' + (label || '') + ']', JSON.stringify(x, null, ' '));
   return x;
 };
 
+
+//TODO: behavior on object?
+var singleFn = (x)=>{
+  if (x && x.length) {
+    if(x.length == 1){
+      return x[0];
+    } else if (x.length == 0) {
+      return [];
+    } else {
+      return {$status: "error", $error: "Expected single"};
+    }
+  } else {
+    return [];
+  }
+};
+
+
+var firstFn = (x)=>{
+  if(isSome(x)){
+    if(x.length){
+      return x[0];
+    } else {
+      return x;
+    }
+  } else {
+    return null;
+  }
+};
+
+
+var skipFn = (x, num)=>{
+  if(Array.isArray(x)){
+    if(x.length >= num){
+      x.splice(0, num);
+      return x;
+    } else {
+      return [];
+    }
+  } else {
+    return [];
+  }
+};
 
 const fnTable = {
   exists:  existsFn,
   empty: emptyFn,
   count: countFn,
+  single: singleFn,
+  first: firstFn,
+  skip: skipFn,
   trace: traceFn
 };
+
+var realizeParams = (ctx, result, args) => {
+  if(args && args[0] && args[0].children) {
+    return args[0].children.map((x)=>{
+      return doEval(ctx, result, x);
+    });
+    return res;
+  } else {
+    return [];
+  }
+}
 
 var FunctionInvocation = (ctx, result, expr) => {
   var args = doEval(ctx, result, expr.children[0]);
@@ -239,8 +298,9 @@ var FunctionInvocation = (ctx, result, expr) => {
   } else {
     var fn = fnTable[fnName];
     if(fn){
-      //TODO: eval args before calling function
-      return fn.call(this, result, args); 
+      var params = realizeParams(ctx, result, args);
+      params.unshift(result);
+      return fn.apply(ctx, params); 
     } else {
       throw new Error("No function [" + fnName + "] defined ");
     }

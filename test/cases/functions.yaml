@@ -1,0 +1,175 @@
+tests:
+# 5.1.1. empty() : boolean
+# Returns true if the input collection is empty ({ }) and false otherwise.
+
+# 5.1.2. not() : boolean
+# Returns true if the input collection evaluates to false, and false if it evaluates to true. Otherwise, the result is empty ({ }):
+
+#  	not
+# true
+
+# false
+
+# false
+
+# true
+
+# empty ({ })
+
+# empty ({ })
+
+# 5.1.3. exists([criteria : expression]) : boolean
+# Returns true if the collection has any elements, and false otherwise. This is the opposite of empty(), and as such is a shorthand for empty().not(). If the input collection is empty ({ }), the result is false.
+
+# The operator can also take an optional criteria to be applied to the collection prior to the determination of the exists. In this case, the operation is shorthand for where(criteria).exists().
+
+# 5.1.4. all(criteria : expression) : boolean
+# Returns true if for every element in the input collection, criteria evaluates to true. Otherwise, the result is false. If the input collection is empty ({ }), the result is true.
+
+# 5.1.5. allTrue() : boolean
+# Takes a collection of boolean values and returns true if all the items are true. If any items are false, the result is false. If the input is empty ({ }), the result is true.
+
+# 5.1.6. anyTrue() : boolean
+# Takes a collection of boolean values and returns true if any of the items are true. If all the items are false, or if the input is empty ({ }), the result is false.
+
+# 5.1.7. allFalse() : boolean
+# Takes a collection of boolean values and returns true if all the items are false. If any items are true, the result is false. If the input is empty ({ }), the result is true.
+
+# 5.1.8. anyFalse() : boolean
+# Takes a collection of boolean values and returns true if any of the items are false. If all the items are true, or if the input is empty ({ }), the result is false.
+
+# 5.1.9. subsetOf(other : collection) : boolean
+# Returns true if all items in the input collection are members of the collection passed as the other argument. Membership is determined using the equals (=) operation (see below).
+
+# Conceptually, this function is evaluated by testing each element in the input collection for membership in the other collection, with a default of true. This means that if the input collection is empty ({ }), the result is true, otherwise if the other collection is empty ({ }), the result is false.
+
+# 5.1.10. supersetOf(other : collection) : boolean
+# Returns true if all items in the collection passed as the other argument are members of the input collection. Membership is determined using the equals (=) operation (see below).
+
+# Conceptually, this function is evaluated by testing each element in the other collection for membership in the input collection, with a default of false. This means that if the input collection is empty ({ }), the result is false, otherwise if the other collection is empty ({ }), the result is true.
+
+# 5.1.11. isDistinct() : boolean
+# Returns true if all the items in the input collection are distinct. To determine whether two items are distinct, the equals (=) operator is used, as defined below.
+
+# Conceptually, this function is shorthand for a comparison of the count() of the input collection against the count() of the distinct() of the input collection:
+
+# X.count() = X.distinct().count()
+# This means that if the input collection is empty ({ }), the result is true.
+
+# 5.1.12. distinct() : collection
+# Returns a collection containing only the unique items in the input collection. To determine whether two items are the same, the equals (=) operator is used, as defined below.
+
+# If the input collection is empty ({ }), the result is empty.
+
+# 5.1.13. count() : integer
+# Returns a collection with a single value which is the integer count of the number of items in the input collection. Returns 0 when the input collection is empty.
+
+  - desc: count
+    expression: Functions.coll1.count()
+    result: 2
+
+  - desc: nested count
+    expression: Functions.coll1.coll2.count()
+    result: 5
+
+  - desc: 0 if nothing
+    expression: Functions.ups.count()
+    result: 0
+
+# 5.3. Subsetting 5.3.1. [ index : integer ] : collection The indexer operation
+# returns a collection with only the index-th item (0-based index). If the input
+# collection is empty ({ }), or the index lies outside the boundaries of the
+# input collection, an empty collection is returned.
+
+# Example:
+
+# Patient.name[0]
+
+  - desc: [index]
+    expression: Functions.coll1[1].coll2[0].attr
+    result: 4
+
+  - desc: [big index]
+    expression: Functions.coll1[100].coll2[0].attr
+    result: null 
+
+# 5.3.2. single() : collection Will return the single item in the input if there
+# is just one item. If the input collection is empty ({ }), the result is empty.
+# If there are multiple items, an error is signaled to the evaluation
+# environment. This operation is useful for ensuring that an error is returned
+# if an assumption about cardinality is violated at run-time.
+  - desc: single
+    expression: Functions.attrsingle.single()
+    result: 1
+
+  - desc: single on nothing
+    expression: Functions.ups.single()
+    result: []
+
+  - desc: single on empty
+    expression: Functions.attrempty.single()
+    result: []
+
+  - desc: single on manu
+    expression: Functions.attrdouble.single()
+    result:
+      $status: error
+      $error: Expected single
+
+# 5.3.3. first() : collection Returns a collection containing only the first
+# item in the input collection. This function is equivalent to item(0), so it
+# will return an empty collection if the input collection has no items.
+  - desc: first
+    expression: Functions.attrdouble.first()
+    result: 1
+
+  - desc: first nothing
+    expression: Functions.nothing.first()
+    result: null
+
+# 5.3.4. last() : collection Returns a collection containing only the last item
+# in the input collection. Will return an empty collection if the input
+# collection has no items.
+
+# 5.3.5. tail() : collection Returns a collection containing all but the first
+# item in the input collection. Will return an empty collection if the input
+# collection has no items, or only one item.
+
+# 5.3.6. skip(num : integer) : collection Returns a collection containing all
+# but the first num items in the input collection. Will return an empty
+# collection if there are no items remaining after the indicated number of items
+# have been skipped, or if the input collection is empty. If num is less than or
+# equal to zero, the input collection is simply returned.
+  - desc: skip
+    expression: Functions.attrdouble.skip(1)
+    result:
+      - 2
+
+  - desc: skip
+    expression: Functions.attrsingle.skip(1)
+    result: []
+
+# 5.3.7. take(num : integer) : collection Returns a collection containing the
+# first num items in the input collection, or less if there are less than num
+# items. If num is less than or equal to 0, or if the input collection is empty
+# ({ }), take returns an empty collection.
+
+subject:
+  resourceType: Functions
+  attrempty: []
+  attrsingle:
+    - 1
+  attrdouble:
+    - 1
+    - 2
+  attrobject:
+    a: 1
+    b: 2
+  coll1:
+    - coll2:
+        - attr: 1
+        - attr: 2
+        - attr: 3
+    - coll2:
+        - attr: 4
+        - attr: 5
