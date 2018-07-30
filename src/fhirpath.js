@@ -219,13 +219,13 @@ var emptyFn = (x) => {
   if(x){
     return x.length == 0;
   } else {
-    return true;
+    if(isSome(x)){
+      return false;
+    } else {
+      return true;
+    }
   }
 };
-
-// 5.1.13. count() : integer Returns a collection with a single value which is
-// the integer count of the number of items in the input collection. Returns 0
-// when the input collection is empty.
 
 var countFn = (x)=>{
   if (x && x.length) {
