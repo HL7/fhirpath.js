@@ -39,6 +39,9 @@ fhirpath 'Patient.name.given' pt.json
 >  "Donald"
 > ]
 ```
+fhirpath 'Patient.name.given'
+
+> ... will print fhirpath ast in yaml
 
 ## Development Notes
 

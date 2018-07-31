@@ -97,9 +97,7 @@ var MemberInvocation = (ctx, parentData ,node )=> {
         }
       }
     } else {
-      if(parentData[key]) {
-        return parentData[key];
-      } else if (Array.isArray(parentData)) {
+      if (Array.isArray(parentData)) {
         return parentData.reduce((acc, res)=> {
           var toAdd = res[key];
           if(isSome(toAdd)) {
@@ -114,6 +112,8 @@ var MemberInvocation = (ctx, parentData ,node )=> {
             return acc;
           }
         }, []);
+      } else if(parentData[key]) {
+          return parentData[key];
       } else {
         return [];
       }
@@ -127,11 +127,17 @@ var IndexerExpression = (ctx, parentData, node) => {
   const coll_node = node.children[0];
   const idx_node = node.children[1];
   var coll = doEval(ctx, parentData, coll_node);
-  var idx = doEval(ctx, parentData, idx_node);
-  idx = idx && parseInt(idx);
+  var idx = arraify(doEval(ctx, parentData, idx_node));
 
-  if(coll) {
-    return coll[idx] || [];
+
+  if(isEmpty(idx)) {
+    return [];
+  }
+
+  idxNum = parseInt(idx[0]);
+
+  if(coll && isSome(idxNum)) {
+    return coll[idxNum];
   } else {
     return []; 
   }
@@ -370,6 +376,11 @@ var evaluate = (resource, path) => {
   return doEval({}, resource, node.children[0]);
 };
 
+var parse = (path)=> {
+  return parser.parse(path);
+};
+
+
 var compile = (path)=> {
   console.log("Compile " + path);
   return (resource)=>{
@@ -378,7 +389,7 @@ var compile = (path)=> {
 };
 
 module.exports = {
-  parse: parser.parse,
+  parse: parse,
   compile: compile,
   evaluate: evaluate
 };
