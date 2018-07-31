@@ -47,60 +47,60 @@ function arraify(x){
   return [];
 }
 
-var InvocationExpression = (ctx, result, expr)=> {
-  return expr.children.reduce((acc, ch)=>{
+var InvocationExpression = (ctx, parentData, node)=> {
+  return node.children.reduce((acc, ch)=>{
     return doEval(ctx, acc, ch);
-  }, result);
+  }, parentData);
 };
 
-var TermExpression = (ctx, result, expr)=> {
-  return doEval(ctx,result, expr.children[0]);
+var TermExpression = (ctx, parentData, node)=> {
+  return doEval(ctx,parentData, node.children[0]);
 };
 
-var LiteralTerm = (ctx, result, expr)=> {
-  var term = expr.children[0];
+var LiteralTerm = (ctx, parentData, node)=> {
+  var term = node.children[0];
   if(term){
-    return doEval(ctx, result, term); 
+    return doEval(ctx, parentData, term); 
   } else {
-    return expr.text;
+    return node.text;
   }
 };
 
-var StringLiteral = (ctx, result, expr)=> {
-  return expr.text.replace(/(^['"]|['"]$)/g, "");
+var StringLiteral = (ctx, parentData, node)=> {
+  return node.text.replace(/(^['"]|['"]$)/g, "");
 };
 
-var NumberLiteral = (ctx, result, expr)=> {
-  return parseInt(expr.text);
+var NumberLiteral = (ctx, parentData, node)=> {
+  return parseInt(node.text);
 };
 
-var Identifier = (ctx, result, expr)=> {
-  return expr.text.replace(/(^"|"$)/g, "");
+var Identifier = (ctx, parentData, node)=> {
+  return node.text.replace(/(^"|"$)/g, "");
 };
 
-var InvocationTerm = (ctx, result, expr)=> {
-  return doEval(ctx,result, expr.children[0]);
+var InvocationTerm = (ctx, parentData, node)=> {
+  return doEval(ctx,parentData, node.children[0]);
 };
 
-var MemberInvocation = (ctx, result ,expr )=> {
-  const key = doEval(ctx, result, expr.children[0]);
+var MemberInvocation = (ctx, parentData ,node )=> {
+  const key = doEval(ctx, parentData, node.children[0]);
 
-  if (result) {
+  if (parentData) {
     if(isCapitalized(key)) {
-      if(Array.isArray(result)){
-        return result.filter((x)=> { return x.resourceType === key; });
+      if(Array.isArray(parentData)){
+        return parentData.filter((x)=> { return x.resourceType === key; });
       } else {
-        if(result.resourceType === key){
-          return result;
+        if(parentData.resourceType === key){
+          return parentData;
         } else {
           return [];
         }
       }
     } else {
-      if(result[key]) {
-        return result[key];
-      } else if (Array.isArray(result)) {
-        return result.reduce((acc, res)=> {
+      if(parentData[key]) {
+        return parentData[key];
+      } else if (Array.isArray(parentData)) {
+        return parentData.reduce((acc, res)=> {
           var toAdd = res[key];
           if(isSome(toAdd)) {
             if(Array.isArray(toAdd)) {
@@ -123,11 +123,11 @@ var MemberInvocation = (ctx, result ,expr )=> {
   }
 };
 
-var IndexerExpression = (ctx, result, expr) => {
-  const coll_expr = expr.children[0];
-  const idx_expr = expr.children[1];
-  var coll = doEval(ctx, result, coll_expr);
-  var idx = doEval(ctx, result, idx_expr);
+var IndexerExpression = (ctx, parentData, node) => {
+  const coll_node = node.children[0];
+  const idx_node = node.children[1];
+  var coll = doEval(ctx, parentData, coll_node);
+  var idx = doEval(ctx, parentData, idx_node);
   idx = idx && parseInt(idx);
 
   if(coll) {
@@ -137,49 +137,49 @@ var IndexerExpression = (ctx, result, expr) => {
   }
 };
 
-var Functn = (ctx, result, expr) => {
-  return expr.children.map((x)=> {
-    return doEval(ctx, result, x);
+var Functn = (ctx, parentData, node) => {
+  return node.children.map((x)=> {
+    return doEval(ctx, parentData, x);
   });
 };
 
 
-var whereMacro = (ctx, result, expr) => {
-  if(result !== false && ! result) { return []; }
+var whereMacro = (ctx, parentData, node) => {
+  if(parentData !== false && ! parentData) { return []; }
 
-  var lambda = expr[0].children[0];
+  var lambda = node[0].children[0];
 
-  if(Array.isArray(result)){
-    return flatten(result.filter((x)=> {
+  if(Array.isArray(parentData)){
+    return flatten(parentData.filter((x)=> {
       var exprRes = doEval(ctx, x, lambda);
       return exprRes; 
     }));
-  } else if (result) {
-    if(doEval(ctx, result, lambda)) {
-      return result;
+  } else if (parentData) {
+    if(doEval(ctx, parentData, lambda)) {
+      return parentData;
     } else {
       return [];
     }
   }
-  return result;
+  return parentData;
 };
 
-var selectMacro = (ctx, result, expr) => {
-  if(result !== false && ! result) { return []; }
+var selectMacro = (ctx, parentData, node) => {
+  if(parentData !== false && ! parentData) { return []; }
 
-  var lambda = expr[0].children[0];
+  var lambda = node[0].children[0];
 
-  return flatten(arraify(result).map((x)=> {
+  return flatten(arraify(parentData).map((x)=> {
     return doEval(ctx, x, lambda);
   }));
 };
 
-var repeatMacro = (ctx, result, expr) => {
-  if(result !== false && ! result) { return []; }
+var repeatMacro = (ctx, parentData, node) => {
+  if(parentData !== false && ! parentData) { return []; }
 
-  var lambda = expr[0].children[0];
+  var lambda = node[0].children[0];
   var res = [];
-  var items = arraify(result);
+  var items = arraify(parentData);
 
   var next = null;
   var lres = null;
@@ -283,28 +283,28 @@ const fnTable = {
   trace: traceFn
 };
 
-var realizeParams = (ctx, result, args) => {
+var realizeParams = (ctx, parentData, args) => {
   if(args && args[0] && args[0].children) {
     return args[0].children.map((x)=>{
-      return doEval(ctx, result, x);
+      return doEval(ctx, parentData, x);
     });
   } else {
     return [];
   }
 };
 
-var FunctionInvocation = (ctx, result, expr) => {
-  var args = doEval(ctx, result, expr.children[0]);
+var FunctionInvocation = (ctx, parentData, node) => {
+  var args = doEval(ctx, parentData, node.children[0]);
   const fnName = args[0];
   args.shift();
   var macro = macroTable[fnName];
   if(macro){
-    return macro.call(this, ctx, result, args);
+    return macro.call(this, ctx, parentData, args);
   } else {
     var fn = fnTable[fnName];
     if(fn){
-      var params = realizeParams(ctx, result, args);
-      params.unshift(result);
+      var params = realizeParams(ctx, parentData, args);
+      params.unshift(parentData);
       return fn.apply(ctx, params); 
     } else {
       throw new Error("No function [" + fnName + "] defined ");
@@ -312,10 +312,10 @@ var FunctionInvocation = (ctx, result, expr) => {
   }
 };
 
-var ParamList = (ctx, result, expr) => {
+var ParamList = (ctx, parentData, node) => {
   // we do not eval param list because sometimes it should be passed as
   // lambda/macro (for example in case of where(...)
-  return expr;
+  return node;
 };
 
 function doCompare(x,y){
@@ -323,15 +323,15 @@ function doCompare(x,y){
   return x == y;
 }
 
-var EqualityExpression = (ctx, result, expr) => {
-  var left = doEval(ctx, result, expr.children[0]);
-  var right = doEval(ctx, result, expr.children[1]);
+var EqualityExpression = (ctx, parentData, node) => {
+  var left = doEval(ctx, parentData, node.children[0]);
+  var right = doEval(ctx, parentData, node.children[1]);
   return doCompare(left, right);
 };
 
-var UnionExpression = (ctx, result, expr) => {
-  var left = doEval(ctx, result, expr.children[0]);
-  var right = doEval(ctx, result, expr.children[1]);
+var UnionExpression = (ctx, parentData, node) => {
+  var left = doEval(ctx, parentData, node.children[0]);
+  var right = doEval(ctx, parentData, node.children[1]);
   return arraify(left).concat(arraify(right));
 };
 
@@ -352,18 +352,22 @@ const evalTable = {
   UnionExpression: UnionExpression
 };
 
-var doEval = (ctx, result, expr) => {
-  const evaluator = evalTable[expr.type];
+var doEval = (ctx, parentData, node) => {
+  const evaluator = evalTable[node.type];
   if(evaluator){
-    return evaluator(ctx, result, expr);
+    return evaluator(ctx, parentData, node);
   } else {
-    throw new Error("No " + expr.type + " evaluator ");
+    throw new Error("No " + node.type + " evaluator ");
   }
 };
 
+/**
+* @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
+* @param {string} path - fhirpath expression, sample 'Patient.name.given' 
+*/
 var evaluate = (resource, path) => {
-  const expr = parser.parse(path);
-  return doEval({}, resource, expr.children[0]);
+  const node = parser.parse(path);
+  return doEval({}, resource, node.children[0]);
 };
 
 var compile = (path)=> {

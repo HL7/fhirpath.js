@@ -19,8 +19,8 @@ const fhirpath = require('fhirpath');
 fhirpath('{"resourceType": "Patient", ...}', 'Patient.name.given');
 
 // precompile fhirpath
-const path = fhirpath.compile('Patient.name.given')
-var res2 = path('{"resourceType": "Patient", ...}', 'Patient.name.given')
+const path = fhirpath.compile('Patient.name.given');
+var res2 = path('{"resourceType": "Patient", ...}');
 
 ```
 
