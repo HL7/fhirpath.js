@@ -1,6 +1,6 @@
 # fhirpath.js
 
-[![Build Status](https://travis-ci.org/niquola/fhirpath.js-1.svg?branch=master)](https://travis-ci.org/niquola/fhirpath.js-1)
+[![Build Status](https://travis-ci.org/lhncbc/fhirpath.js.svg?branch=master)](https://travis-ci.org/lhncbc/fhirpath.js)
 
 FHIRPath implementation in javascript.
 
