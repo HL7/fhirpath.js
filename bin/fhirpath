@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const fp = require('../src/fhirpath');
 const fs = require('fs');
 const yaml = require('js-yaml');
