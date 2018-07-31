@@ -15,14 +15,11 @@
 // in case of macro (like where or select): we pass expression (lambda), which should
 // be evaluated inside macro
 
-const parser = require('./parser');
+const parser = require("./parser");
 
 function isSome(x){
   return x !== null && x !== undefined;
 }
-// console.log(isSome(null))
-// console.log(isSome(undefined))
-// console.log(isSome(false))
 
 function isCapitalized(x){
   return x && (x[0] === x[0].toUpperCase());
@@ -47,14 +44,12 @@ function arraify(x){
 }
 
 var InvocationExpression = (ctx, result, expr)=> {
-  // console.log('InvocationExpression', expr);
   return expr.children.reduce((acc, ch)=>{
     return doEval(ctx, acc, ch);
   }, result);
 };
 
 var TermExpression = (ctx, result, expr)=> {
-  // console.log('TermExpression', expr.text, expr);
   return doEval(ctx,result, expr.children[0]);
 };
 
@@ -68,7 +63,7 @@ var LiteralTerm = (ctx, result, expr)=> {
 };
 
 var StringLiteral = (ctx, result, expr)=> {
-  return expr.text.replace(/(^['"]|['"]$)/g, '');
+  return expr.text.replace(/(^['"]|['"]$)/g, "");
 };
 
 var NumberLiteral = (ctx, result, expr)=> {
@@ -76,17 +71,15 @@ var NumberLiteral = (ctx, result, expr)=> {
 };
 
 var Identifier = (ctx, result, expr)=> {
-  return expr.text.replace(/(^"|"$)/g, '');
+  return expr.text.replace(/(^"|"$)/g, "");
 };
 
 var InvocationTerm = (ctx, result, expr)=> {
-  // console.log('InvocationTerm', expr.text, expr);
   return doEval(ctx,result, expr.children[0]);
 };
 
 var MemberInvocation = (ctx, result ,expr )=> {
   const key = doEval(ctx, result, expr.children[0]);
-  // console.log('MemberInvocation', key, expr);
 
   if (result) {
     if(isCapitalized(key)) {
@@ -131,8 +124,8 @@ var IndexerExpression = (ctx, result, expr) => {
   const idx_expr = expr.children[1];
   var coll = doEval(ctx, result, coll_expr);
   var idx = doEval(ctx, result, idx_expr);
-  var idx = idx && parseInt(idx);
-  // console.log('IndexerExpression', expr,"\ncoll\n", coll, "\n", idx);
+  idx = idx && parseInt(idx);
+
   if(coll) {
     return coll[idx] || null;
   } else {
@@ -141,7 +134,6 @@ var IndexerExpression = (ctx, result, expr) => {
 };
 
 var Functn = (ctx, result, expr) => {
-  // console.log('Funcn', expr);
   return expr.children.map((x)=> {
     return doEval(ctx, result, x);
   });
@@ -149,7 +141,6 @@ var Functn = (ctx, result, expr) => {
 
 
 var whereMacro = (ctx, result, expr) => {
-  // console.log('whereMacro', result, expr);
   if(result !== false && ! result) { return null; }
 
   var lambda = expr[0].children[0];
@@ -157,7 +148,6 @@ var whereMacro = (ctx, result, expr) => {
   if(Array.isArray(result)){
     return flatten(result.filter((x)=> {
       var exprRes = doEval(ctx, x, lambda);
-      // console.log('filter expr', exprRes, x, lambda);
       return exprRes; 
     }));
   } else if (result) {
@@ -171,19 +161,16 @@ var whereMacro = (ctx, result, expr) => {
 };
 
 var selectMacro = (ctx, result, expr) => {
-  // console.log('selectMacro', result, expr);
   if(result !== false && ! result) { return null; }
 
   var lambda = expr[0].children[0];
 
   return flatten(arraify(result).map((x)=> {
-    // console.log('map', doEval(ctx, x, lambda));
     return doEval(ctx, x, lambda);
   }));
 };
 
 var repeatMacro = (ctx, result, expr) => {
-  // console.log('selectMacro', result, expr);
   if(result !== false && ! result) { return null; }
 
   var lambda = expr[0].children[0];
@@ -211,7 +198,6 @@ const macroTable = {
 
 
 var existsFn  = (x) => {
-  // console.log('exits', x, !!x);
   return !!x;
 };
 
@@ -236,7 +222,7 @@ var countFn = (x)=>{
 };
 
 var traceFn = (x, label)=>{
-  console.log('TRACE:[' + (label || '') + ']', JSON.stringify(x, null, ' '));
+  console.log("TRACE:[" + (label || "") + "]", JSON.stringify(x, null, " "));
   return x;
 };
 
@@ -298,17 +284,15 @@ var realizeParams = (ctx, result, args) => {
     return args[0].children.map((x)=>{
       return doEval(ctx, result, x);
     });
-    return res;
   } else {
     return [];
   }
-}
+};
 
 var FunctionInvocation = (ctx, result, expr) => {
   var args = doEval(ctx, result, expr.children[0]);
   const fnName = args[0];
   args.shift();
-  // console.log('FunctionInvocation', expr.text, fnName, args);
   var macro = macroTable[fnName];
   if(macro){
     return macro.call(this, ctx, result, args);
@@ -322,7 +306,6 @@ var FunctionInvocation = (ctx, result, expr) => {
       throw new Error("No function [" + fnName + "] defined ");
     }
   }
-  return null;
 };
 
 var ParamList = (ctx, result, expr) => {
@@ -332,21 +315,17 @@ var ParamList = (ctx, result, expr) => {
 };
 
 function doCompare(x,y){
-  // console.log('comapre', x, '=', y, x == y );
   // TODO: should be smart to compare list monads :0
   return x == y;
 }
 
 var EqualityExpression = (ctx, result, expr) => {
-  // console.log("EqualityExpression", expr);
-
   var left = doEval(ctx, result, expr.children[0]);
   var right = doEval(ctx, result, expr.children[1]);
   return doCompare(left, right);
 };
 
 var UnionExpression = (ctx, result, expr) => {
-  // console.log("EqualityExpression", expr);
   var left = doEval(ctx, result, expr.children[0]);
   var right = doEval(ctx, result, expr.children[1]);
   return arraify(left).concat(arraify(right));
@@ -384,7 +363,10 @@ var evaluate = (resource, path) => {
 };
 
 var compile = (path)=> {
-  return (resource)=>{};
+  console.log("Compile " + path);
+  return (resource)=>{
+    return resource;
+  };
 };
 
 module.exports = {
