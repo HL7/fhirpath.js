@@ -18,7 +18,7 @@ tests:
 
   - expression:
       - Encounter.id
-    result: null
+    result: []
 
   - desc: access by index
     expression: Patient.address[0].use
@@ -30,7 +30,7 @@ tests:
 
   - desc: access by index unexisting
     expression: Patient.name[1].family
-    result: null
+    result: []
 
   - desc: access by index
     expression: Patient.name[2].family
@@ -38,7 +38,7 @@ tests:
 
   - desc: access by index unexisting
     expression: Patient.name[3].family
-    result: null
+    result: []
 
   - desc: access by index
     expression: Patient.name[1].given[0]

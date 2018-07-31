@@ -125,7 +125,7 @@ tests:
 
   - desc: [big index]
     expression: Functions.coll1[100].coll2[0].attr
-    result: null 
+    result: [] 
 
 # 5.3.2. single() : collection Will return the single item in the input if there
 # is just one item. If the input collection is empty ({ }), the result is empty.
@@ -159,7 +159,7 @@ tests:
 
   - desc: first nothing
     expression: Functions.nothing.first()
-    result: null
+    result: []
 
 # 5.3.4. last() : collection Returns a collection containing only the last item
 # in the input collection. Will return an empty collection if the input

@@ -15,19 +15,13 @@ for (var i=0; i<items.length; i++) {
   describe(fileName, ()=> {
     testcase.tests.forEach((t)=>{
       // console.log(yaml.dump(subj.parse(t.expression)));
-      if(Array.isArray(t.expression)) {
-        t.expression.forEach((e)=>{
-          it(((t.desc || '') + ': ' + e) , () => {
-            var res = subj.evaluate(testcase.subject, e);
-            expect(res).toEqual(t.result);
-          });
-        });
-      } else {
-        it(((t.desc || '') + ': ' +  t.expression) , () => {
-          var res = subj.evaluate(testcase.subject, t.expression);
+      let exprs = Array.isArray(t.expression) ? t.expression : [t.expression];
+      exprs.forEach((e)=>{
+        it(((t.desc || '') + ': ' + e) , () => {
+          var res = subj.evaluate(testcase.subject, e);
           expect(res).toEqual(t.result);
         });
-      }
+      });
     });
 
   });

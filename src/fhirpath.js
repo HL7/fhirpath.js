@@ -17,8 +17,12 @@
 
 const parser = require("./parser");
 
+function isEmpty(x){
+  return Array.isArray(x) && x.length == 0;
+}
+
 function isSome(x){
-  return x !== null && x !== undefined;
+  return x !== null && x !== undefined && !isEmpty(x);
 }
 
 function isCapitalized(x){
@@ -89,7 +93,7 @@ var MemberInvocation = (ctx, result ,expr )=> {
         if(result.resourceType === key){
           return result;
         } else {
-          return null;
+          return [];
         }
       }
     } else {
@@ -111,11 +115,11 @@ var MemberInvocation = (ctx, result ,expr )=> {
           }
         }, []);
       } else {
-        return null;
+        return [];
       }
     }
   } else {
-    return null;
+    return [];
   }
 };
 
@@ -127,9 +131,9 @@ var IndexerExpression = (ctx, result, expr) => {
   idx = idx && parseInt(idx);
 
   if(coll) {
-    return coll[idx] || null;
+    return coll[idx] || [];
   } else {
-    return null; 
+    return []; 
   }
 };
 
@@ -141,7 +145,7 @@ var Functn = (ctx, result, expr) => {
 
 
 var whereMacro = (ctx, result, expr) => {
-  if(result !== false && ! result) { return null; }
+  if(result !== false && ! result) { return []; }
 
   var lambda = expr[0].children[0];
 
@@ -154,14 +158,14 @@ var whereMacro = (ctx, result, expr) => {
     if(doEval(ctx, result, lambda)) {
       return result;
     } else {
-      return null;
+      return [];
     }
   }
   return result;
 };
 
 var selectMacro = (ctx, result, expr) => {
-  if(result !== false && ! result) { return null; }
+  if(result !== false && ! result) { return []; }
 
   var lambda = expr[0].children[0];
 
@@ -171,7 +175,7 @@ var selectMacro = (ctx, result, expr) => {
 };
 
 var repeatMacro = (ctx, result, expr) => {
-  if(result !== false && ! result) { return null; }
+  if(result !== false && ! result) { return []; }
 
   var lambda = expr[0].children[0];
   var res = [];
@@ -198,7 +202,7 @@ const macroTable = {
 
 
 var existsFn  = (x) => {
-  return !!x;
+  return isSome(x);
 };
 
 var emptyFn = (x) => {
@@ -251,7 +255,7 @@ var firstFn = (x)=>{
       return x;
     }
   } else {
-    return null;
+    return [];
   }
 };
 

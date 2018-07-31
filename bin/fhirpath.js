@@ -1,6 +1,9 @@
 const fp = require('../src/fhirpath');
 const fs = require('fs');
 
+// this cli util is part of public interface of fhirpath
+// it can be extended with understading urls and files
+// TODO: introduce subcommands to inspect, eval fhirpath etc
 
 if (process.argv.length < 4) {
 

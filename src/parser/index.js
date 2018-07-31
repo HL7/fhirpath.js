@@ -1,8 +1,7 @@
-const antlr4 = require('antlr4');
-
-const  Lexer = require('./generated/FHIRPathLexer').FHIRPathLexer;
-const  Parser = require('./generated/FHIRPathParser').FHIRPathParser;
-const  Listener = require('./generated/FHIRPathListener').FHIRPathListener;
+const antlr4 = require("antlr4");
+const Lexer = require("./generated/FHIRPathLexer").FHIRPathLexer;
+const Parser = require("./generated/FHIRPathParser").FHIRPathParser;
+const Listener = require("./generated/FHIRPathListener").FHIRPathListener;
 
 
 var ErrorListener = function(errors) {
@@ -36,50 +35,49 @@ var parse = function(path){
 
   var tree = parser.expression();
 
-    function PathListener() {
-        Listener.call(this); // inherit default listener
-        return this;
-    };
-    // inherit default listener
-    PathListener.prototype = Object.create(Listener.prototype);
-    PathListener.prototype.constructor = PathListener;
+  function PathListener() {
+    Listener.call(this); // inherit default listener
+    return this;
+  }
+  // inherit default listener
+  PathListener.prototype = Object.create(Listener.prototype);
+  PathListener.prototype.constructor = PathListener;
 
-    var jsonRep = {}; // we'll build a JSON representation
-    var node;
-    var parentStack = [jsonRep];
-    for (let p of Object.keys(Listener.prototype)) {
-        if (p.startsWith('enter')) {
-            PathListener.prototype[p] = function(ctx) {
-                let parentNode = parentStack[parentStack.length - 1];
-                let nodeType = p.slice(5); // remove "enter"
-                node = {type: nodeType};
-                node.text = ctx.getText();
-                if (!parentNode.children)
-                    parentNode.children = [];
-                parentNode.children.push(node);
-                parentStack.push(node);
-                // console.log(nodeType + ": " + ctx.getText());
-            };
-        }
-        else if (p.startsWith('exit')) {
-            PathListener.prototype[p] = function(ctx) {
-                parentStack.pop();
-            };
-        }
-    };
+  var ast = {};
+  var node;
+  var parentStack = [ast];
+  for (let p of Object.keys(Listener.prototype)) {
+    if (p.startsWith("enter")) {
+      PathListener.prototype[p] = function(ctx) {
+        let parentNode = parentStack[parentStack.length - 1];
+        let nodeType = p.slice(5); // remove "enter"
+        node = {type: nodeType};
+        node.text = ctx.getText();
+        if (!parentNode.children)
+          parentNode.children = [];
+        parentNode.children.push(node);
+        parentStack.push(node);
+      };
+    }
+    else if (p.startsWith("exit")) {
+      PathListener.prototype[p] = function() {
+        parentStack.pop();
+      };
+    }
+  }
 
-    var printer = new PathListener();
-    antlr4.tree.ParseTreeWalker.DEFAULT.walk(printer, tree);
+  var printer = new PathListener();
+  antlr4.tree.ParseTreeWalker.DEFAULT.walk(printer, tree);
 
   if (errors.length > 0) {
     var e = new Error();
     e.errors = errors;
     throw e;
   }
-  return jsonRep;
-}
+  return ast;
+};
 
 
 module.exports = {
-    parse: parse
+  parse: parse
 };
