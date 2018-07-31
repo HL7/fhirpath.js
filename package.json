@@ -20,5 +20,8 @@
     "test": "jest",
     "lint": "eslint src/fhirpath.js"
   },
+  "bin": {
+    "fhirpath": "node bin/fhirpath.js"
+  },
   "license": "MIT"
 }
