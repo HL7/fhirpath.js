@@ -1,0 +1,10 @@
+{
+  "name": "fhirpath demo",
+  "version": "1.0.0",
+  "main": "app.js",
+  "dependencies": {},
+  "devDependencies": {
+    "webpack": "^4.16.3",
+    "webpack-cli": "^3.1.0"
+  }
+}
