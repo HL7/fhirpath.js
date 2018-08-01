@@ -1,7 +1,7 @@
 {
   "name": "fhirpath",
   "_comment": "0.0.0 will be replaced by travis with tag name",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A FHIRPath engine",
   "main": "interpreter/index.js",
   "dependencies": {
