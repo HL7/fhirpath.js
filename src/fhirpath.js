@@ -113,7 +113,7 @@ var MemberInvocation = (ctx, parentData ,node )=> {
           }
         }, []);
       } else if(parentData[key]) {
-          return parentData[key];
+        return parentData[key];
       } else {
         return [];
       }
@@ -134,7 +134,7 @@ var IndexerExpression = (ctx, parentData, node) => {
     return [];
   }
 
-  idxNum = parseInt(idx[0]);
+  var idxNum = parseInt(idx[0]);
 
   if(coll && isSome(idxNum)) {
     return coll[idxNum];
@@ -368,9 +368,9 @@ var doEval = (ctx, parentData, node) => {
 };
 
 /**
-* @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
-* @param {string} path - fhirpath expression, sample 'Patient.name.given' 
-*/
+ * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
+ * @param {string} path - fhirpath expression, sample 'Patient.name.given' 
+ */
 var evaluate = (resource, path) => {
   const node = parser.parse(path);
   return doEval({}, resource, node.children[0]);
