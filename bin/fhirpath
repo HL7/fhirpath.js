@@ -29,7 +29,6 @@ if (process.argv.length < 3) {
     let res = fp.parse(path);
     console.log('AST for fhirpath(' + path + ') =>');
     console.log(yaml.dump(res));
-    // console.log(JSON.stringify(res, null, " "));
   }
   
 }

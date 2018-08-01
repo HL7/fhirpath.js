@@ -153,6 +153,8 @@ var Functn = (ctx, parentData, node) => {
 var whereMacro = (ctx, parentData, node) => {
   if(parentData !== false && ! parentData) { return []; }
 
+  // lambda means branch of not evaluated AST 
+  // for example an EqualityExpression.
   var lambda = node[0].children[0];
 
   if(Array.isArray(parentData)){
