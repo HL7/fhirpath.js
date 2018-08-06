@@ -292,7 +292,6 @@ var tailFn = (x)=>{
 };
 
 var takeFn = (x, n)=>{
-  console.log('take', n);
   if(isSome(x)){
     if(x.length){
       return x.slice(0, n);
