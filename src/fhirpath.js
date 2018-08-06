@@ -351,15 +351,15 @@ function AdditiveExpression(ctx, parentData, node) {
   let leftIsArray = Array.isArray(left);
   let rightIsArray = Array.isArray(right);
   if (leftIsArray && left.length != 1)
-    throw 'AdditiveExpression:  Was expecting one element but got ' +JSON.stringify(left);
+    throw "AdditiveExpression:  Was expecting one element but got " +JSON.stringify(left);
   if (rightIsArray && right.length != 1)
-    throw 'AdditiveExpression:  Was expecting one element but got ' +JSON.stringify(right);
+    throw "AdditiveExpression:  Was expecting one element but got " +JSON.stringify(right);
   left = leftIsArray ? left[0] : left;
   right = rightIsArray ? right[0] : right;
   if (Number.isNaN(left))
-    throw 'AdditiveExpression:  Was expecting a number but got ' +JSON.stringify(left);
+    throw "AdditiveExpression:  Was expecting a number but got " +JSON.stringify(left);
   if (Number.isNaN(right))
-    throw 'AdditiveExpression:  Was expecting a number but got ' +JSON.stringify(right);
+    throw "AdditiveExpression:  Was expecting a number but got " +JSON.stringify(right);
   return [left + right];
 }
 // End of Math functions
