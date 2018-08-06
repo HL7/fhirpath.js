@@ -272,6 +272,31 @@ tests:
     expression: Functions.coll1.coll2.attr.take(5)
     result: [1, 2 , 3, 4, 5]
 
+# 5.5.1. iif(criterium: expression, true-result: collection [, otherwise-result:
+# collection]) : collection If criterium is true, the function returns the value
+# of true-result parameter.
+
+# If criterium is false or an empty collection, the function returns
+# otherwise-result, unless the optional otherwise-expression is not given, in
+# which case the function returns an empty collection.
+
+  - desc: iif
+    expression: Functions.iif(true, 'a', 'b')
+    result: a
+
+  - desc: iif
+    expression: Functions.iif(false, 'a', 'b')
+    result: b
+
+  - desc: iif
+    expression: Functions.iif(false, 'a', 'b')
+    result: b
+
+  - desc: iif
+    expression: Functions.iif(coll1[0].coll2[0].attr = 1, coll1[0].coll2[0].attr, coll1[0].coll2[1].attr)
+    result: 1
+
+
 subject:
   resourceType: Functions
   attrempty: []
