@@ -267,12 +267,49 @@ var firstFn = (x)=>{
   }
 };
 
+var lastFn = (x)=>{
+  if(isSome(x)){
+    if(x.length){
+      return x[x.length - 1];
+    } else {
+      return x;
+    }
+  } else {
+    return [];
+  }
+};
+
+var tailFn = (x)=>{
+  if(isSome(x)){
+    if(x.length){
+      return x.slice(1, x.length);
+    } else {
+      return x;
+    }
+  } else {
+    return [];
+  }
+};
+
+var takeFn = (x, n)=>{
+  console.log('take', n);
+  if(isSome(x)){
+    if(x.length){
+      return x.slice(0, n);
+    } else {
+      return x;
+    }
+  } else {
+    return [];
+  }
+};
+
+console.log(takeFn([1,2], 2));
 
 var skipFn = (x, num)=>{
   if(Array.isArray(x)){
     if(x.length >= num){
-      x.splice(0, num);
-      return x;
+      return x.slice(num, x.length);
     } else {
       return [];
     }
@@ -287,6 +324,9 @@ const fnTable = {
   count: countFn,
   single: singleFn,
   first: firstFn,
+  last: lastFn,
+  tail: tailFn,
+  take: takeFn,
   skip: skipFn,
   trace: traceFn
 };
