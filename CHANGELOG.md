@@ -7,6 +7,7 @@ This log documents significant changes for each release.  This project follows
 ### Added
  - Handles addition, subtraction, concatenation.
  - take, last, tail
+ - iif
 ### Fixed
  - skip
 
