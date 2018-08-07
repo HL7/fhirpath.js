@@ -70,6 +70,15 @@ var StringLiteral = (ctx, parentData, node)=> {
   return node.text.replace(/(^['"]|['"]$)/g, "");
 };
 
+var BooleanLiteral = (ctx, parentData, node)=> {
+  if(node.text  === "true") {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+
 var NumberLiteral = (ctx, parentData, node)=> {
   return Number(node.text);
 };
@@ -202,10 +211,27 @@ var repeatMacro = (ctx, parentData, node) => {
   return res;
 };
 
+var iifMacro = (ctx, parentData, node) => {
+
+  var exprs = node[0].children;
+  var cond = exprs[0];
+  var succ = exprs[1];
+  var fail = exprs[2];
+
+  var res = flatten(arraify(doEval(ctx, parentData, cond)));
+  if(res[0]){
+    return doEval(ctx, parentData, succ);
+  } else {
+    return doEval(ctx, parentData, fail);
+  }
+};
+
+
 const macroTable = {
   where: whereMacro,
   select: selectMacro,
-  repeat: repeatMacro
+  repeat: repeatMacro,
+  iif: iifMacro
 };
 
 
@@ -302,8 +328,6 @@ var takeFn = (x, n)=>{
     return [];
   }
 };
-
-console.log(takeFn([1,2], 2));
 
 var skipFn = (x, num)=>{
   if(Array.isArray(x)){
@@ -440,6 +464,7 @@ const evalTable = {
   NumberLiteral: NumberLiteral,
   ParamList: ParamList,
   StringLiteral: StringLiteral,
+  BooleanLiteral: BooleanLiteral,
   TermExpression: TermExpression,
   UnionExpression: UnionExpression,
   AdditiveExpression: AdditiveExpression
