@@ -358,7 +358,7 @@ function AdditiveExpression(ctx, parentData, node) {
   right = rightIsArray ? right[0] : right;
   let operator = node.terminalNodeText[0];
   if (operator === "&") {
-    if (typeof left !== 'string' || typeof right !== 'string') {
+    if (typeof left !== "string" || typeof right !== "string") {
       throw "AdditiveExpression:  Was expecting strings two strings but got " +
         typeof left + " and " + typeof right;
     }
@@ -375,7 +375,7 @@ function AdditiveExpression(ctx, parentData, node) {
     else if (operator === "-")
       return [left - right];
     else // should never reach here, per the grammar
-      throw "AdditiveExpression: Unexpected operator: " +operator
+      throw "AdditiveExpression: Unexpected operator: " +operator;
   }
 }
 // End of Math functions
