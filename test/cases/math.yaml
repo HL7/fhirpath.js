@@ -1,0 +1,25 @@
+tests:
+  - desc: Can add two numbers
+    expression: MathTestData.n1 + MathTestData.n2
+    result: [7]
+  - desc: Error adding array of numbers
+    expression: MathTestData.n1 + MathTestData.a3
+    error: true
+  - desc: Error adding missing numbers
+    expression: MathTestData.n1 + MathTestData.n4
+    error: true
+  - desc: Error adding non-number
+    expression: MathTestData.n1 + MathTestData.s5
+    error: true
+
+
+
+subject:
+  resourceType: MathTestData
+  n1: 2
+  n2: 5
+  a3:
+    - 1
+    - 2
+  n4: []
+  s5: "hi"

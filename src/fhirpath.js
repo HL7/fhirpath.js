@@ -11,7 +11,7 @@
 //
 // For FunctionInvocation node there is two lookup tables - fnTable & macroTable
 // difference between fn and macro - should we eval argument or pass AST.
-// in case of function: we eval args and pass to function with current data 
+// in case of function: we eval args and pass to function with current data
 // in case of macro (like where or select): we pass expression (lambda), which should
 // be evaluated inside macro
 
@@ -60,7 +60,7 @@ var TermExpression = (ctx, parentData, node)=> {
 var LiteralTerm = (ctx, parentData, node)=> {
   var term = node.children[0];
   if(term){
-    return doEval(ctx, parentData, term); 
+    return doEval(ctx, parentData, term);
   } else {
     return node.text;
   }
@@ -139,7 +139,7 @@ var IndexerExpression = (ctx, parentData, node) => {
   if(coll && isSome(idxNum)) {
     return coll[idxNum];
   } else {
-    return []; 
+    return [];
   }
 };
 
@@ -153,14 +153,14 @@ var Functn = (ctx, parentData, node) => {
 var whereMacro = (ctx, parentData, node) => {
   if(parentData !== false && ! parentData) { return []; }
 
-  // lambda means branch of not evaluated AST 
+  // lambda means branch of not evaluated AST
   // for example an EqualityExpression.
   var lambda = node[0].children[0];
 
   if(Array.isArray(parentData)){
     return flatten(parentData.filter((x)=> {
       var exprRes = doEval(ctx, x, lambda);
-      return exprRes; 
+      return exprRes;
     }));
   } else if (parentData) {
     if(doEval(ctx, parentData, lambda)) {
@@ -352,7 +352,7 @@ var FunctionInvocation = (ctx, parentData, node) => {
     if(fn){
       var params = realizeParams(ctx, parentData, args);
       params.unshift(parentData);
-      return fn.apply(ctx, params); 
+      return fn.apply(ctx, params);
     } else {
       throw new Error("No function [" + fnName + "] defined ");
     }
@@ -382,6 +382,28 @@ var UnionExpression = (ctx, parentData, node) => {
   return arraify(left).concat(arraify(right));
 };
 
+
+// Start of Math functions
+function AdditiveExpression(ctx, parentData, node) {
+  let left = doEval(ctx, parentData, node.children[0]);
+  let right = doEval(ctx, parentData, node.children[1]);
+  let leftIsArray = Array.isArray(left);
+  let rightIsArray = Array.isArray(right);
+  if (leftIsArray && left.length != 1)
+    throw "AdditiveExpression:  Was expecting one element but got " +JSON.stringify(left);
+  if (rightIsArray && right.length != 1)
+    throw "AdditiveExpression:  Was expecting one element but got " +JSON.stringify(right);
+  left = leftIsArray ? left[0] : left;
+  right = rightIsArray ? right[0] : right;
+  if (Number.isNaN(left))
+    throw "AdditiveExpression:  Was expecting a number but got " +JSON.stringify(left);
+  if (Number.isNaN(right))
+    throw "AdditiveExpression:  Was expecting a number but got " +JSON.stringify(right);
+  return [left + right];
+}
+// End of Math functions
+
+
 const evalTable = {
   EqualityExpression: EqualityExpression,
   FunctionInvocation: FunctionInvocation,
@@ -396,7 +418,8 @@ const evalTable = {
   ParamList: ParamList,
   StringLiteral: StringLiteral,
   TermExpression: TermExpression,
-  UnionExpression: UnionExpression
+  UnionExpression: UnionExpression,
+  AdditiveExpression: AdditiveExpression
 };
 
 var doEval = (ctx, parentData, node) => {
@@ -410,7 +433,7 @@ var doEval = (ctx, parentData, node) => {
 
 /**
  * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
- * @param {string} path - fhirpath expression, sample 'Patient.name.given' 
+ * @param {string} path - fhirpath expression, sample 'Patient.name.given'
  */
 var evaluate = (resource, path) => {
   const node = parser.parse(path);
