@@ -144,7 +144,7 @@ tests:
     expression: Functions.attrempty.single()
     result: []
 
-  - desc: single on manu
+  - desc: single on many
     expression: Functions.attrdouble.single()
     result:
       $status: error
@@ -165,9 +165,45 @@ tests:
 # in the input collection. Will return an empty collection if the input
 # collection has no items.
 
+  - desc: last
+    expression: Functions.attrdouble.last()
+    result: 2
+
+  - desc: last
+    expression: Functions.attrsingle.last()
+    result: 1
+
+  - desc: last on empty
+    expression: Functions.attrempty.last()
+    result: []
+
+  - desc: last nothing
+    expression: Functions.nothing.last()
+    result: []
+
 # 5.3.5. tail() : collection Returns a collection containing all but the first
 # item in the input collection. Will return an empty collection if the input
 # collection has no items, or only one item.
+
+  - desc: tail
+    expression: Functions.attrdouble.tail()
+    result: [ 2 ]
+
+  - desc: tail on one
+    expression: Functions.attrsingle.tail()
+    result:  [ ]
+
+  - desc: tail on empty
+    expression: Functions.attrempty.tail()
+    result: []
+
+  - desc: tail nothing
+    expression: Functions.nothing.tail()
+    result: []
+
+  - desc: tail
+    expression: Functions.coll1.coll2.attr.tail()
+    result: [2 , 3 , 4 , 5]
 
 # 5.3.6. skip(num : integer) : collection Returns a collection containing all
 # but the first num items in the input collection. Will return an empty
@@ -183,10 +219,58 @@ tests:
     expression: Functions.attrsingle.skip(1)
     result: []
 
+  - desc: skip
+    expression: Functions.coll1.coll2.attr.skip(3)
+    result: [4, 5]
+
+  - desc: skip
+    expression: Functions.coll1.coll2.attr.skip(4)
+    result: [5]
+
+  - desc: skip
+    expression: Functions.coll1.coll2.attr.skip(5)
+    result: [ ]
+
+  - desc: skip
+    expression: Functions.coll1.coll2.attr.skip(6)
+    result: [ ]
+
 # 5.3.7. take(num : integer) : collection Returns a collection containing the
 # first num items in the input collection, or less if there are less than num
 # items. If num is less than or equal to 0, or if the input collection is empty
 # ({ }), take returns an empty collection.
+
+  - desc: take
+    expression: Functions.attrdouble.take(1)
+    result: [ 1 ]
+
+  - desc: take
+    expression: Functions.attrdouble.take(2)
+    result: [ 1 , 2 ]
+
+  - desc: take more then has
+    expression: Functions.attrsingle.take(2)
+    result:  [ 1 ]
+
+  - desc: take on empty
+    expression: Functions.attrempty.take(1)
+    result: []
+
+  - desc: take nothing
+    expression: Functions.nothing.take(2)
+    result: []
+
+  - desc: take
+    expression: Functions.coll1.coll2.attr.take(3)
+    result: [1, 2 , 3]
+
+  - desc: take
+    expression: Functions.coll1.coll2.attr.take(4)
+    result: [1, 2 , 3, 4]
+
+  - desc: take
+    expression: Functions.coll1.coll2.attr.take(5)
+    result: [1, 2 , 3, 4, 5]
 
 subject:
   resourceType: Functions
