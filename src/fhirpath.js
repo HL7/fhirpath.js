@@ -385,18 +385,16 @@ var UnionExpression = (ctx, parentData, node) => {
 
 // Start of Math functions
 function AdditiveExpression(ctx, parentData, node) {
-  let left = doEval(ctx, parentData, node.children[0]);
-  let right = doEval(ctx, parentData, node.children[1]);
-  let leftIsArray = Array.isArray(left);
-  let rightIsArray = Array.isArray(right);
-  if (leftIsArray && left.length != 1)
+  let left = arraify(doEval(ctx, parentData, node.children[0]));
+  let right = arraify(doEval(ctx, parentData, node.children[1]));
+  if (left.length > 1)
     throw "AdditiveExpression:  Was expecting one element but got " +JSON.stringify(left);
-  if (rightIsArray && right.length != 1)
+  if (right.length > 1)
     throw "AdditiveExpression:  Was expecting one element but got " +JSON.stringify(right);
-  left = leftIsArray ? left[0] : left;
-  right = rightIsArray ? right[0] : right;
   let operator = node.terminalNodeText[0];
   if (operator === "&") {
+    left = left.length > 0 ? left[0] : "";
+    right = right.length > 0 ? right[0] : "";
     if (typeof left !== "string" || typeof right !== "string") {
       throw "AdditiveExpression:  Was expecting strings two strings but got " +
         typeof left + " and " + typeof right;
@@ -405,16 +403,25 @@ function AdditiveExpression(ctx, parentData, node) {
       return [left + right];
   }
   else { // + or -
-    if (Number.isNaN(left))
-      throw "AdditiveExpression:  Was expecting a number but got " +JSON.stringify(left);
-    if (Number.isNaN(right))
-      throw "AdditiveExpression:  Was expecting a number but got " +JSON.stringify(right);
-    if (operator === "+")
-      return [left + right];
-    else if (operator === "-")
-      return [left - right];
-    else // should never reach here, per the grammar
-      throw "AdditiveExpression: Unexpected operator: " +operator;
+    if (left.length === 0 || right.length === 0)
+      return [];
+    else {
+      left = left[0];
+      right = right[0];
+      if (typeof left !== typeof right)
+        throw "AdditiveExpression:  Mismatched types, "+typeof left +" and "+ typeof right;
+      if (operator === "+")
+        return [left + right];
+      else if (operator === "-") {
+        if (Number.isNaN(left))
+          throw "AdditiveExpression:  Was expecting a number but got " +JSON.stringify(left);
+        if (Number.isNaN(right))
+          throw "AdditiveExpression:  Was expecting a number but got " +JSON.stringify(right);
+        return [left - right];
+      }
+      else // should never reach here, per the grammar
+        throw "AdditiveExpression: Unexpected operator: " +operator;
+    }
   }
 }
 // End of Math functions
