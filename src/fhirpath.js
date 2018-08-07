@@ -11,7 +11,7 @@
 //
 // For FunctionInvocation node there is two lookup tables - fnTable & macroTable
 // difference between fn and macro - should we eval argument or pass AST.
-// in case of function: we eval args and pass to function with current data 
+// in case of function: we eval args and pass to function with current data
 // in case of macro (like where or select): we pass expression (lambda), which should
 // be evaluated inside macro
 
@@ -60,7 +60,7 @@ var TermExpression = (ctx, parentData, node)=> {
 var LiteralTerm = (ctx, parentData, node)=> {
   var term = node.children[0];
   if(term){
-    return doEval(ctx, parentData, term); 
+    return doEval(ctx, parentData, term);
   } else {
     return node.text;
   }
@@ -69,6 +69,15 @@ var LiteralTerm = (ctx, parentData, node)=> {
 var StringLiteral = (ctx, parentData, node)=> {
   return node.text.replace(/(^['"]|['"]$)/g, "");
 };
+
+var BooleanLiteral = (ctx, parentData, node)=> {
+  if(node.text  === "true") {
+    return true;
+  } else {
+    return false;
+  }
+};
+
 
 var NumberLiteral = (ctx, parentData, node)=> {
   return Number(node.text);
@@ -139,7 +148,7 @@ var IndexerExpression = (ctx, parentData, node) => {
   if(coll && isSome(idxNum)) {
     return coll[idxNum];
   } else {
-    return []; 
+    return [];
   }
 };
 
@@ -153,14 +162,14 @@ var Functn = (ctx, parentData, node) => {
 var whereMacro = (ctx, parentData, node) => {
   if(parentData !== false && ! parentData) { return []; }
 
-  // lambda means branch of not evaluated AST 
+  // lambda means branch of not evaluated AST
   // for example an EqualityExpression.
   var lambda = node[0].children[0];
 
   if(Array.isArray(parentData)){
     return flatten(parentData.filter((x)=> {
       var exprRes = doEval(ctx, x, lambda);
-      return exprRes; 
+      return exprRes;
     }));
   } else if (parentData) {
     if(doEval(ctx, parentData, lambda)) {
@@ -202,10 +211,27 @@ var repeatMacro = (ctx, parentData, node) => {
   return res;
 };
 
+var iifMacro = (ctx, parentData, node) => {
+
+  var exprs = node[0].children;
+  var cond = exprs[0];
+  var succ = exprs[1];
+  var fail = exprs[2];
+
+  var res = flatten(arraify(doEval(ctx, parentData, cond)));
+  if(res[0]){
+    return doEval(ctx, parentData, succ);
+  } else {
+    return doEval(ctx, parentData, fail);
+  }
+};
+
+
 const macroTable = {
   where: whereMacro,
   select: selectMacro,
-  repeat: repeatMacro
+  repeat: repeatMacro,
+  iif: iifMacro
 };
 
 
@@ -267,12 +293,46 @@ var firstFn = (x)=>{
   }
 };
 
+var lastFn = (x)=>{
+  if(isSome(x)){
+    if(x.length){
+      return x[x.length - 1];
+    } else {
+      return x;
+    }
+  } else {
+    return [];
+  }
+};
+
+var tailFn = (x)=>{
+  if(isSome(x)){
+    if(x.length){
+      return x.slice(1, x.length);
+    } else {
+      return x;
+    }
+  } else {
+    return [];
+  }
+};
+
+var takeFn = (x, n)=>{
+  if(isSome(x)){
+    if(x.length){
+      return x.slice(0, n);
+    } else {
+      return x;
+    }
+  } else {
+    return [];
+  }
+};
 
 var skipFn = (x, num)=>{
   if(Array.isArray(x)){
     if(x.length >= num){
-      x.splice(0, num);
-      return x;
+      return x.slice(num, x.length);
     } else {
       return [];
     }
@@ -287,6 +347,9 @@ const fnTable = {
   count: countFn,
   single: singleFn,
   first: firstFn,
+  last: lastFn,
+  tail: tailFn,
+  take: takeFn,
   skip: skipFn,
   trace: traceFn
 };
@@ -313,7 +376,7 @@ var FunctionInvocation = (ctx, parentData, node) => {
     if(fn){
       var params = realizeParams(ctx, parentData, args);
       params.unshift(parentData);
-      return fn.apply(ctx, params); 
+      return fn.apply(ctx, params);
     } else {
       throw new Error("No function [" + fnName + "] defined ");
     }
@@ -343,6 +406,28 @@ var UnionExpression = (ctx, parentData, node) => {
   return arraify(left).concat(arraify(right));
 };
 
+
+// Start of Math functions
+function AdditiveExpression(ctx, parentData, node) {
+  let left = doEval(ctx, parentData, node.children[0]);
+  let right = doEval(ctx, parentData, node.children[1]);
+  let leftIsArray = Array.isArray(left);
+  let rightIsArray = Array.isArray(right);
+  if (leftIsArray && left.length != 1)
+    throw "AdditiveExpression:  Was expecting one element but got " +JSON.stringify(left);
+  if (rightIsArray && right.length != 1)
+    throw "AdditiveExpression:  Was expecting one element but got " +JSON.stringify(right);
+  left = leftIsArray ? left[0] : left;
+  right = rightIsArray ? right[0] : right;
+  if (Number.isNaN(left))
+    throw "AdditiveExpression:  Was expecting a number but got " +JSON.stringify(left);
+  if (Number.isNaN(right))
+    throw "AdditiveExpression:  Was expecting a number but got " +JSON.stringify(right);
+  return [left + right];
+}
+// End of Math functions
+
+
 const evalTable = {
   EqualityExpression: EqualityExpression,
   FunctionInvocation: FunctionInvocation,
@@ -356,8 +441,10 @@ const evalTable = {
   NumberLiteral: NumberLiteral,
   ParamList: ParamList,
   StringLiteral: StringLiteral,
+  BooleanLiteral: BooleanLiteral,
   TermExpression: TermExpression,
-  UnionExpression: UnionExpression
+  UnionExpression: UnionExpression,
+  AdditiveExpression: AdditiveExpression
 };
 
 var doEval = (ctx, parentData, node) => {
@@ -371,7 +458,7 @@ var doEval = (ctx, parentData, node) => {
 
 /**
  * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
- * @param {string} path - fhirpath expression, sample 'Patient.name.given' 
+ * @param {string} path - fhirpath expression, sample 'Patient.name.given'
  */
 var evaluate = (resource, path) => {
   const node = parser.parse(path);
