@@ -18,7 +18,6 @@ tests:
     expression: MathTestData.s5 & MathTestData.s6
     result: ["onetwo"]
 
-
 subject:
   resourceType: MathTestData
   n1: 2
@@ -29,4 +28,5 @@ subject:
   n4: []
   s5: "one"
   s6: "two"
+
 
