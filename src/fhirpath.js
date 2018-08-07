@@ -71,7 +71,7 @@ var StringLiteral = (ctx, parentData, node)=> {
 };
 
 var NumberLiteral = (ctx, parentData, node)=> {
-  return parseInt(node.text);
+  return Number(node.text);
 };
 
 var Identifier = (ctx, parentData, node)=> {
