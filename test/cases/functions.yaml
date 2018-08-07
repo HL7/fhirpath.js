@@ -280,13 +280,17 @@ tests:
 # otherwise-result, unless the optional otherwise-expression is not given, in
 # which case the function returns an empty collection.
 
+  - desc: boolean - true
+    expression: 'true'
+    result: true
+
+  - desc: boolean - false
+    expression: 'false'
+    result: false
+
   - desc: iif
     expression: Functions.iif(true, 'a', 'b')
     result: a
-
-  - desc: iif
-    expression: Functions.iif(false, 'a', 'b')
-    result: b
 
   - desc: iif
     expression: Functions.iif(false, 'a', 'b')
