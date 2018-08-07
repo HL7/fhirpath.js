@@ -189,7 +189,7 @@ tests:
     expression: Functions.attrdouble.tail()
     result: [ 2 ]
 
-  - desc: last
+  - desc: tail on one
     expression: Functions.attrsingle.tail()
     result:  [ ]
 
