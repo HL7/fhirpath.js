@@ -1,0 +1,33 @@
+.container {
+    margin: 10px 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+#pane {
+    display: flex;
+    flex-direction: row;
+}
+#input {
+    flex: 1;
+}
+
+#input .CodeMirror {
+    border: 1px solid #ddd;
+    height: auto;
+}
+#path {
+    font-size: 20px;
+    padding: 4px;
+    margin: 0;
+    margin-bottom: 10px;
+}
+#output {
+    flex: 0.3;
+    padding: 20px;
+    background: #f9f9f9;
+}
+
+h1 {
+    margin: 10px;
+}
