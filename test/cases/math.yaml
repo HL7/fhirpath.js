@@ -26,6 +26,9 @@ tests:
   - desc: Empty result if one or both operands is empty (1)
     expression: n1 + n4
     result: []
+  - desc: Empty result if one or both operands is empty (1b)
+    expression: s5 + n4
+    result: []
   - desc: Empty result if one or both operands is empty (2)
     expression: n4 + n1
     result: []
