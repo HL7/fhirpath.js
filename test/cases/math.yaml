@@ -11,7 +11,12 @@ tests:
   - desc: Error adding non-number
     expression: MathTestData.n1 + MathTestData.s5
     error: true
-
+  - desc: Can subtract two numbers
+    expression: MathTestData.n1 - MathTestData.n2
+    result: [-3]
+  - desc: Can concatenate two strings
+    expression: MathTestData.s5 & MathTestData.s6
+    result: ["onetwo"]
 
 
 subject:
@@ -22,4 +27,6 @@ subject:
     - 1
     - 2
   n4: []
-  s5: "hi"
+  s5: "one"
+  s6: "two"
+

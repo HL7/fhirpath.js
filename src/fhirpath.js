@@ -356,11 +356,27 @@ function AdditiveExpression(ctx, parentData, node) {
     throw "AdditiveExpression:  Was expecting one element but got " +JSON.stringify(right);
   left = leftIsArray ? left[0] : left;
   right = rightIsArray ? right[0] : right;
-  if (Number.isNaN(left))
-    throw "AdditiveExpression:  Was expecting a number but got " +JSON.stringify(left);
-  if (Number.isNaN(right))
-    throw "AdditiveExpression:  Was expecting a number but got " +JSON.stringify(right);
-  return [left + right];
+  let operator = node.terminalNodeText[0];
+  if (operator === "&") {
+    if (typeof left !== 'string' || typeof right !== 'string') {
+      throw "AdditiveExpression:  Was expecting strings two strings but got " +
+        typeof left + " and " + typeof right;
+    }
+    else
+      return [left + right];
+  }
+  else { // + or -
+    if (Number.isNaN(left))
+      throw "AdditiveExpression:  Was expecting a number but got " +JSON.stringify(left);
+    if (Number.isNaN(right))
+      throw "AdditiveExpression:  Was expecting a number but got " +JSON.stringify(right);
+    if (operator === "+")
+      return [left + right];
+    else if (operator === "-")
+      return [left - right];
+    else // should never reach here, per the grammar
+      throw "AdditiveExpression: Unexpected operator: " +operator
+  }
 }
 // End of Math functions
 
