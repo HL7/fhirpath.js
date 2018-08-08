@@ -5,7 +5,7 @@ This log documents significant changes for each release.  This project follows
 
 ## [0.2.0] - 2018-08-07
 ### Added
- - Handles addition, subtraction, concatenation.
+ - Handles all math operations defined in 6.6 of the FHIRPath specification.
  - take, last, tail
  - iif
 ### Fixed
