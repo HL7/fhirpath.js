@@ -31,6 +31,30 @@ tests:
 
 # empty ({ })
 
+  - desc: not true is false
+    expression: Functions.attrtrue.not()
+    result: false
+
+  - desc: not false is true
+    expression: Functions.attrfalse.not()
+    result: true
+
+  - desc: double not true is true
+    expression: Functions.attrtrue.not().not()
+    result: true
+
+  - desc: empty coll with not() is empty coll 
+    expression: Functions.attrempty.not()
+    result: []
+
+  - desc: not empty coll with not() is false
+    expression: Functions.attrdouble.not()
+    result: true
+
+  - desc: not nothing is empty coll
+    expression: Functions.nothing.not()
+    result: []
+
 # 5.1.3. exists([criteria : expression]) : boolean Returns true if the
 # collection has any elements, and false otherwise. This is the opposite of
 # empty(), and as such is a shorthand for empty().not(). If the input collection
@@ -304,6 +328,8 @@ tests:
 subject:
   resourceType: Functions
   attrempty: []
+  attrtrue: true
+  attrfalse: false
   attrsingle:
     - 1
   attrdouble:
