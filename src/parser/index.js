@@ -62,7 +62,11 @@ var parse = function(path){
         // "-", which we need.
         node.terminalNodeText = [];
         for (let c of ctx.children) {
-          if (c.constructor.name === "TerminalNodeImpl")
+          // Test for node type "TerminalNodeImpl".  Minimized code no longer
+          // has the original function names, so we can't rely on
+          // c.constructor.name.  It appears the TerminalNodeImpl is the only
+          // node with a "symbol" property, so test for that.
+          if (c.symbol)
             node.terminalNodeText.push(c.getText());
         }
       };
