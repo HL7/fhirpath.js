@@ -26,4 +26,4 @@ deploy:
     github-token: $GITHUB_TOKEN
     keep-history: true
     on:
-      branch: demo # todo replace with master after merge
+      branch: master
