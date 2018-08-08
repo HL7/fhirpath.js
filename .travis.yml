@@ -10,12 +10,20 @@ before_script:
 script:
 - npm run lint
 - npm run test
+- npm run build && cd demo && npm install && npm run build
 deploy:
-  provider: npm
-  email: plynch@mail.nih.gov
-  api_key:
-    secure: O6oZrnhNTU7aDhb1pCu/cwBESANefg0gWfae8L80Q0/89NA6bYbd0g1Y5+pit7GhMaGhy6vFu/qa2fwnobWmifcdPuEMkj5LDbNTT9JtLPxs7fDbYCJDHFBvNW7uYJjploXaOGa3gOoilnJI5H6ynbzIapNVqNj8ZdSUY802rVeLiz1LuEjqtXZiYpn0wICCLUxWEK0MBuuVj0PUpyUwDMu5/riMDV9a72i4fjqYErFV3SIODCYSatqzcsm9igJYoTLeRIww7rttm36I4bQshQ179EdIJf5jgm2AE/VLosHys5e/VIM0CBq0PsaJj7NA6Fj0cKj85dTCA/b8CoIrYEo6ncBYUytQnRYgl1Bn+M2I0Ao+BNlj9v1YXy9fpT16uL0THwiSGGK5dffZzeQmItEcTvlbjfow0P5OFRb6jlEQPvDGfe81AqpSrdRPrNMIMZvWFCKHOu1OLpvzu7kRzvxysEHIk48pKkeqj6Wl6wt2rqt9MgZmXFc3HbxjddRqWwEN71KuG2WNJwZHXg1bgrAOOTIlyZzH9pym3NDrGbjaNsF+Kk1X8CJEthSLrzzXlUXwgcuapvEQ3Q2Ytscy8hb6PxuhGxriAS0sqWv2W3yb16ryX8tRpQnElQrvUSvI8Q5C6IrSKJSX5J49KIUmCoHmznw8sRfEEPUh8xPW58A=
-  on:
-    branch: master
-    tags: true
-    repo: lhncbc/fhirpath.js
+  - provider: npm
+    email: plynch@mail.nih.gov
+    api_key:
+      secure: O6oZrnhNTU7aDhb1pCu/cwBESANefg0gWfae8L80Q0/89NA6bYbd0g1Y5+pit7GhMaGhy6vFu/qa2fwnobWmifcdPuEMkj5LDbNTT9JtLPxs7fDbYCJDHFBvNW7uYJjploXaOGa3gOoilnJI5H6ynbzIapNVqNj8ZdSUY802rVeLiz1LuEjqtXZiYpn0wICCLUxWEK0MBuuVj0PUpyUwDMu5/riMDV9a72i4fjqYErFV3SIODCYSatqzcsm9igJYoTLeRIww7rttm36I4bQshQ179EdIJf5jgm2AE/VLosHys5e/VIM0CBq0PsaJj7NA6Fj0cKj85dTCA/b8CoIrYEo6ncBYUytQnRYgl1Bn+M2I0Ao+BNlj9v1YXy9fpT16uL0THwiSGGK5dffZzeQmItEcTvlbjfow0P5OFRb6jlEQPvDGfe81AqpSrdRPrNMIMZvWFCKHOu1OLpvzu7kRzvxysEHIk48pKkeqj6Wl6wt2rqt9MgZmXFc3HbxjddRqWwEN71KuG2WNJwZHXg1bgrAOOTIlyZzH9pym3NDrGbjaNsF+Kk1X8CJEthSLrzzXlUXwgcuapvEQ3Q2Ytscy8hb6PxuhGxriAS0sqWv2W3yb16ryX8tRpQnElQrvUSvI8Q5C6IrSKJSX5J49KIUmCoHmznw8sRfEEPUh8xPW58A=
+    on:
+      branch: master
+      tags: true
+      repo: lhncbc/fhirpath.js
+  - provider: pages
+    local-dir: demo/build
+    skip-cleanup: true
+    github-token: $GITHUB_TOKEN
+    keep-history: true
+    on:
+      branch: demo # todo replace with master after merge
