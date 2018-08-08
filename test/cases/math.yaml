@@ -1,18 +1,82 @@
 tests:
   - desc: Can add two numbers
-    expression: MathTestData.n1 + MathTestData.n2
+    expression: n1 + n2
     result: [7]
   - desc: Error adding array of numbers
-    expression: MathTestData.n1 + MathTestData.a3
+    expression: n1 + a3
     error: true
   - desc: Error adding missing numbers
-    expression: MathTestData.n1 + MathTestData.n4
+    expression: n1 + n4
     error: true
-  - desc: Error adding non-number
-    expression: MathTestData.n1 + MathTestData.s5
+  - desc: Error adding non-matching types
+    expression: n1 + s5
     error: true
-
-
+  - desc: Error adding non-matching types (2)
+    expression: s5 + n1
+    error: true
+  - desc: Can subtract two numbers
+    expression: n1 - n2
+    result: [-3]
+  - desc: Can concatenate two strings
+    expression: s5 & s6
+    result: ["onetwo"]
+  - desc: Can concatenate two strings with +
+    expression: s5 + s6
+    result: ["onetwo"]
+  - desc: Empty result if one or both operands is empty (1)
+    expression: n1 + n4
+    result: []
+  - desc: Empty result if one or both operands is empty (1b)
+    expression: s5 + n4
+    result: []
+  - desc: Empty result if one or both operands is empty (2)
+    expression: n4 + n1
+    result: []
+  - desc: Empty result if one or both operands is empty (3)
+    expression: n4 + n4
+    result: []
+  - desc: Empty collection in concatenation is empty string (1)
+    expression: n4 & s5
+    result: ["one"]
+  - desc: Empty collection in concatenation is empty string (2)
+    expression: s5 & n4
+    result: ["one"]
+  - desc: Empty collection in concatenation is empty string (3)
+    expression: n4 & n4
+    result: [""]
+  - desc: Can multiply two numbers
+    expression: n1 * n2
+    result: [10]
+  - desc: Error multiplying string (1)
+    expression: s5 * n2
+    error: true
+  - desc: Error multiplying string (2)
+    expression: n2 * s5
+    error: true
+  - desc: Error multiplying string (3)
+    expression: s5 * s5
+    error: true
+  - desc: Error multiplying multi-valued collection (1)
+    expression: n1 * a3
+    error: true
+  - desc: Error multiplying multi-valued collection (2)
+    expression: a3 * n1
+    error: true
+  - desc: Empty result multiplying empty collection (1)
+    expression: n1 * n4
+    result: []
+  - desc: Empty result multiplying empty collection (2)
+    expression: n4 * n1
+    result: []
+  - desc: Can divide two numbers
+    expression: n2/n1
+    result: [2.5]
+  - desc: Can mod two numbers
+    expression: n2 mod n1
+    result: [1]
+  - desc: Can div two numbers
+    expression: n2 div n1
+    result: [2]
 
 subject:
   resourceType: MathTestData
@@ -22,4 +86,6 @@ subject:
     - 1
     - 2
   n4: []
-  s5: "hi"
+  s5: "one"
+  s6: "two"
+
