@@ -9,7 +9,7 @@ require("codemirror/mode/yaml/yaml.js");
 require("codemirror/addon/lint/yaml-lint.js");
 require("codemirror/lib/codemirror.css");
 
-const example = require("json-loader!yaml-loader!./example.yaml");
+const example = require("json-loader!yaml-loader!./patient-example.yaml");
 
 const debounce = (func, delay) => {
   let inDebounce;

@@ -1,7 +1,23 @@
+body {
+    padding: 0;
+    background-color: #f9f9f9;
+    
+}
 .container {
-    margin: 10px 20px;
+    margin: 0;
     display: flex;
     flex-direction: column;
+    padding-bottom: 30px;
+}
+
+#header {
+    padding: 10px 0px;
+}
+#header a {
+    font-size: 20px;
+    font-weight: 400;
+    color: #666;
+    text-decoration: none;
 }
 
 #pane {
@@ -18,7 +34,7 @@
 }
 #path {
     font-size: 20px;
-    padding: 4px;
+    padding: 6px 8px;
     margin: 0;
     margin-bottom: 10px;
 }
@@ -30,4 +46,18 @@
 
 h1 {
     margin: 10px;
+}
+
+#footer {
+    position: fixed;
+    text-align: right;
+    bottom: 0px;
+    left:0px;
+    right: 0px;
+    padding: 5px 20px;
+    background: #eee;
+    opacity: 0.8;
+    z-index: 100;
+    font-size: 13px;
+    border-top: 1px solid #ddd;
 }

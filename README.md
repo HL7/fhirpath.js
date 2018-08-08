@@ -4,6 +4,8 @@
 
 FHIRPath implementation in javascript.
 
+[Demo Page](https://lhncbc.github.io/fhirpath.js/)
+
 
 ## Usage
 
