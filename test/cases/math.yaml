@@ -13,6 +13,75 @@ tests:
     error: true
 
 
+  - desc: Can sub two numbers
+    expression: MathTestData.n1 - MathTestData.n2
+    result: [-3]
+  - desc: Error sub array of numbers
+    expression: MathTestData.n1 - MathTestData.a3
+    error: true
+  - desc: Error sub missing numbers
+    expression: MathTestData.n1 - MathTestData.n4
+    error: true
+  - desc: Error sub  non-number
+    expression: MathTestData.n1 - MathTestData.s5
+    error: true
+
+
+  - desc: Can multiple two numbers
+    expression: MathTestData.n1 * MathTestData.n2
+    result: [10]
+  - desc: Error multiple array of numbers
+    expression: MathTestData.n1 * MathTestData.a3
+    error: true
+  - desc: Error multiple missing numbers
+    expression: MathTestData.n1 * MathTestData.n4
+    error: true
+  - desc: Error multiple non-number
+    expression: MathTestData.n1 * MathTestData.s5
+    error: true
+
+
+  - desc: Can divide two numbers
+    expression: MathTestData.n1 / MathTestData.n2
+    result: [0.4]
+  - desc: Error divide array of numbers
+    expression: MathTestData.n1 / MathTestData.a3
+    error: true
+  - desc: Error divide missing numbers
+    expression: MathTestData.n1 / MathTestData.n4
+    error: true
+  - desc: Error divide non-number
+    expression: MathTestData.n1 / MathTestData.s5
+    error: true
+
+
+  - desc: Can truncated divide two numbers
+    expression: MathTestData.n2 div MathTestData.n1
+    result: [2]
+  - desc: Error truncated divide array of numbers
+    expression: MathTestData.n1 div MathTestData.a3
+    error: true
+  - desc: Error truncated divide missing numbers
+    expression: MathTestData.n1 div MathTestData.n4
+    error: true
+  - desc: Error truncated divide non-number
+    expression: MathTestData.n1 div MathTestData.s5
+    error: true
+
+
+  - desc: Can compute remainder of truncated division two numbers
+    expression: MathTestData.n2 mod MathTestData.n1
+    result: [1]
+  - desc: Error reminder of truncated division array of numbers
+    expression: MathTestData.n1 mod MathTestData.a3
+    error: true
+  - desc: Error reminder of runcated division missing numbers
+    expression: MathTestData.n1 mod MathTestData.n4
+    error: true
+  - desc: Error reminder of truncated division non-number
+    expression: MathTestData.n1 mod MathTestData.s5
+    error: true
+
 
 subject:
   resourceType: MathTestData
