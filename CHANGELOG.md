@@ -3,9 +3,13 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [] - TBD
+## [0.2.0] - 2018-08-07
 ### Added
- - Handles addition.
+ - Handles addition, subtraction, concatenation.
+ - take, last, tail
+ - iif
+### Fixed
+ - skip
 
 ## [0.1.1] - 2018-08-02
 ### Added

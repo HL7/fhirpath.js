@@ -57,6 +57,14 @@ var parse = function(path){
           parentNode.children = [];
         parentNode.children.push(node);
         parentStack.push(node);
+        // Also collect this node's terminal nodes, if any.  Terminal nodes are
+        // not walked with the rest of the tree, but include things like "+" and
+        // "-", which we need.
+        node.terminalNodeText = [];
+        for (let c of ctx.children) {
+          if (c.constructor.name === "TerminalNodeImpl")
+            node.terminalNodeText.push(c.getText());
+        }
       };
     }
     else if (p.startsWith("exit")) {

@@ -408,27 +408,100 @@ var UnionExpression = (ctx, parentData, node) => {
 
 
 // Start of Math functions
+/**
+ *  Throws an exception if the collection contains more than one value.
+ * @param collection the collection to be checked.
+ * @param errorMsgPrefix An optional prefix for the error message to assist in
+ *  debugging.
+ */
+function assertAtMostOne(collection, errorMsgPrefix) {
+  errorMsgPrefix = errorMsgPrefix ? errorMsgPrefix + ": " : "";
+  if (collection.length > 1) {
+    throw errorMsgPrefix + "Was expecting no more than one element but got " +
+      JSON.stringify(collection);
+  }
+}
+
+/**
+ *  Throws an exception if the data is not one of the expected types.
+ * @param data the value to be checked
+ * @param types an array of the permitted types
+ * @param errorMsgPrefix An optional prefix for the error message to assist in
+ *  debugging.
+ */
+function assertType(data, types, errorMsgPrefix) {
+  errorMsgPrefix = errorMsgPrefix ? errorMsgPrefix + ": " : "";
+  if (types.indexOf(typeof data) < 0) {
+    let typeList = types.length > 1 ? "one of "+types.join(", ") : types[0];
+    throw errorMsgPrefix + "Found type '"+(typeof data)+"' but was expecting " +
+      typeList;
+  }
+}
+
+
 function AdditiveExpression(ctx, parentData, node) {
-  let left = doEval(ctx, parentData, node.children[0]);
-  let right = doEval(ctx, parentData, node.children[1]);
-  let leftIsArray = Array.isArray(left);
-  let rightIsArray = Array.isArray(right);
-  if (leftIsArray && left.length != 1)
-    throw "AdditiveExpression:  Was expecting one element but got " +JSON.stringify(left);
-  if (rightIsArray && right.length != 1)
-    throw "AdditiveExpression:  Was expecting one element but got " +JSON.stringify(right);
-  left = leftIsArray ? left[0] : left;
-  right = rightIsArray ? right[0] : right;
-  if (Number.isNaN(left))
-    throw "AdditiveExpression:  Was expecting a number but got " +JSON.stringify(left);
-  if (Number.isNaN(right))
-    throw "AdditiveExpression:  Was expecting a number but got " +JSON.stringify(right);
-  return [left + right];
+  let left = arraify(doEval(ctx, parentData, node.children[0]));  // TBD - arraify should not be necessary
+  let right = arraify(doEval(ctx, parentData, node.children[1]));
+  assertAtMostOne(left, "AdditiveExpression");
+  assertAtMostOne(right, "AdditiveExpression");
+  let operator = node.terminalNodeText[0];
+  if (operator === "&") {
+    left = left.length > 0 ? left[0] : "";
+    right = right.length > 0 ? right[0] : "";
+    assertType(left, ["string"], "AdditiveExpression");
+    assertType(right, ["string"], "AdditiveExpression");
+    return [left + right];
+  }
+  else { // + or -
+    if (left.length === 0 || right.length === 0)
+      return [];
+    else {
+      left = left[0];
+      right = right[0];
+      if (typeof left !== typeof right)
+        throw "AdditiveExpression:  Mismatched types, "+typeof left +" and "+ typeof right;
+      if (operator === "+")
+        return [left + right];
+      else if (operator === "-") {
+        assertType(left, ["number"], "AdditiveExpression");
+        assertType(right, ["number"], "AdditiveExpression");
+        return [left - right];
+      }
+      else // should never reach here, per the grammar
+        throw "AdditiveExpression: Unexpected operator: " +operator;
+    }
+  }
+}
+
+function MultiplicativeExpression(ctx, parentData, node) {
+  let left = arraify(doEval(ctx, parentData, node.children[0]));
+  let right = arraify(doEval(ctx, parentData, node.children[1]));
+  assertAtMostOne(left, "MultiplicativeExpression");
+  assertAtMostOne(right, "MultiplicativeExpression");
+  if (left.length == 0 || right.length === 0)
+    return [];
+  left = left[0];
+  right = right[0];
+  assertType(left, ["number"], "MultiplicativeExpression");
+  assertType(right, ["number"], "MultiplicativeExpression");
+  let operator = node.terminalNodeText[0];
+  if (operator === "*")
+    return [left * right];
+  else if (operator === "/")
+    return [left / right];
+  else if (operator === "mod")
+    return [left % right];
+  else if (operator === "div")
+    return [Math.floor(left / right)];
+  else // should never reach here, per grammar
+    throw "MultiplicativeExpression: Unexpected operator: " +operator;
 }
 // End of Math functions
 
 
 const evalTable = {
+  AdditiveExpression: AdditiveExpression,
+  BooleanLiteral: BooleanLiteral,
   EqualityExpression: EqualityExpression,
   FunctionInvocation: FunctionInvocation,
   Functn: Functn,
@@ -438,13 +511,12 @@ const evalTable = {
   InvocationTerm: InvocationTerm,
   LiteralTerm: LiteralTerm,
   MemberInvocation: MemberInvocation,
+  MultiplicativeExpression: MultiplicativeExpression,
   NumberLiteral: NumberLiteral,
   ParamList: ParamList,
   StringLiteral: StringLiteral,
-  BooleanLiteral: BooleanLiteral,
   TermExpression: TermExpression,
   UnionExpression: UnionExpression,
-  AdditiveExpression: AdditiveExpression
 };
 
 var doEval = (ctx, parentData, node) => {
