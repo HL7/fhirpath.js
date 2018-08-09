@@ -57,6 +57,18 @@ var parse = function(path){
           parentNode.children = [];
         parentNode.children.push(node);
         parentStack.push(node);
+        // Also collect this node's terminal nodes, if any.  Terminal nodes are
+        // not walked with the rest of the tree, but include things like "+" and
+        // "-", which we need.
+        node.terminalNodeText = [];
+        for (let c of ctx.children) {
+          // Test for node type "TerminalNodeImpl".  Minimized code no longer
+          // has the original function names, so we can't rely on
+          // c.constructor.name.  It appears the TerminalNodeImpl is the only
+          // node with a "symbol" property, so test for that.
+          if (c.symbol)
+            node.terminalNodeText.push(c.getText());
+        }
       };
     }
     else if (p.startsWith("exit")) {
