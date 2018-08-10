@@ -62,29 +62,29 @@ var LiteralTerm = (ctx, parentData, node)=> {
   if(term){
     return doEval(ctx, parentData, term);
   } else {
-    return node.text;
+    return [node.text];
   }
 };
 
 var StringLiteral = (ctx, parentData, node)=> {
-  return node.text.replace(/(^['"]|['"]$)/g, "");
+  return [node.text.replace(/(^['"]|['"]$)/g, "")];
 };
 
 var BooleanLiteral = (ctx, parentData, node)=> {
   if(node.text  === "true") {
-    return true;
+    return [true];
   } else {
-    return false;
+    return [false];
   }
 };
 
 
 var NumberLiteral = (ctx, parentData, node)=> {
-  return Number(node.text);
+  return [Number(node.text)];
 };
 
 var Identifier = (ctx, parentData, node)=> {
-  return node.text.replace(/(^"|"$)/g, "");
+  return [node.text.replace(/(^"|"$)/g, "")];
 };
 
 var InvocationTerm = (ctx, parentData, node)=> {
@@ -92,40 +92,26 @@ var InvocationTerm = (ctx, parentData, node)=> {
 };
 
 var MemberInvocation = (ctx, parentData ,node )=> {
-  const key = doEval(ctx, parentData, node.children[0]);
+  const key = doEval(ctx, parentData, node.children[0])[0];
 
   if (parentData) {
     if(isCapitalized(key)) {
-      if(Array.isArray(parentData)){
-        return parentData.filter((x)=> { return x.resourceType === key; });
-      } else {
-        if(parentData.resourceType === key){
-          return parentData;
-        } else {
-          return [];
-        }
-      }
+      return parentData.filter((x)=> { return x.resourceType === key; });
     } else {
-      if (Array.isArray(parentData)) {
-        return parentData.reduce((acc, res)=> {
-          var toAdd = res[key];
-          if(isSome(toAdd)) {
-            if(Array.isArray(toAdd)) {
-              // replace with array modification
-              acc = acc.concat(toAdd);
-            } else {
-              acc.push(toAdd);
-            }
-            return acc;
+      return parentData.reduce((acc, res)=> {
+        var toAdd = res[key];
+        if(isSome(toAdd)) {
+          if(Array.isArray(toAdd)) {
+            // replace with array modification
+            acc = acc.concat(toAdd);
           } else {
-            return acc;
+            acc.push(toAdd);
           }
-        }, []);
-      } else if(parentData[key]) {
-        return parentData[key];
-      } else {
-        return [];
-      }
+          return acc;
+        } else {
+          return acc;
+        }
+      }, []);
     }
   } else {
     return [];
@@ -136,17 +122,15 @@ var IndexerExpression = (ctx, parentData, node) => {
   const coll_node = node.children[0];
   const idx_node = node.children[1];
   var coll = doEval(ctx, parentData, coll_node);
-  var idx = arraify(doEval(ctx, parentData, idx_node));
-
+  var idx = doEval(ctx, parentData, idx_node);
 
   if(isEmpty(idx)) {
     return [];
   }
 
   var idxNum = parseInt(idx[0]);
-
-  if(coll && isSome(idxNum)) {
-    return coll[idxNum];
+  if(coll && isSome(idxNum) && coll.length>idxNum && idxNum>=0) {
+    return [coll[idxNum]];
   } else {
     return [];
   }
@@ -166,19 +150,9 @@ var whereMacro = (ctx, parentData, node) => {
   // for example an EqualityExpression.
   var lambda = node[0].children[0];
 
-  if(Array.isArray(parentData)){
-    return flatten(parentData.filter((x)=> {
-      var exprRes = doEval(ctx, x, lambda);
-      return exprRes;
-    }));
-  } else if (parentData) {
-    if(doEval(ctx, parentData, lambda)) {
-      return parentData;
-    } else {
-      return [];
-    }
-  }
-  return parentData;
+  return flatten(parentData.filter((x)=> {
+    return doEval(ctx, [x], lambda)[0];
+  }));
 };
 
 var selectMacro = (ctx, parentData, node) => {
@@ -186,8 +160,8 @@ var selectMacro = (ctx, parentData, node) => {
 
   var lambda = node[0].children[0];
 
-  return flatten(arraify(parentData).map((x)=> {
-    return doEval(ctx, x, lambda);
+  return flatten(parentData.map((x)=> {
+    return doEval(ctx, [x], lambda);
   }));
 };
 
@@ -196,13 +170,13 @@ var repeatMacro = (ctx, parentData, node) => {
 
   var lambda = node[0].children[0];
   var res = [];
-  var items = arraify(parentData);
+  var items = parentData;
 
   var next = null;
   var lres = null;
   while (items.length != 0) {
     next = items.shift();
-    lres = flatten(arraify(doEval(ctx, next, lambda)));
+    lres = flatten(doEval(ctx, [next], lambda));
     if(lres){
       res = res.concat(lres);
       items = items.concat(lres);
@@ -218,7 +192,7 @@ var iifMacro = (ctx, parentData, node) => {
   var succ = exprs[1];
   var fail = exprs[2];
 
-  var res = flatten(arraify(doEval(ctx, parentData, cond)));
+  var res = flatten(doEval(ctx, parentData, cond));
   if(res[0]){
     return doEval(ctx, parentData, succ);
   } else {
@@ -236,26 +210,26 @@ const macroTable = {
 
 
 var existsFn  = (x) => {
-  return isSome(x);
+  return [isSome(x)];
 };
 
 var emptyFn = (x) => {
   if(x){
-    return x.length == 0;
+    return [x.length == 0];
   } else {
     if(isSome(x)){
-      return false;
+      return [false];
     } else {
-      return true;
+      return [true];
     }
   }
 };
 
 var countFn = (x)=>{
   if (x && x.length) {
-    return x.length;
+    return [x.length];
   } else {
-    return 0;
+    return [0];
   }
 };
 
@@ -269,7 +243,7 @@ var traceFn = (x, label)=>{
 var singleFn = (x)=>{
   if (x && x.length) {
     if(x.length == 1){
-      return x[0];
+      return [x[0]];
     } else if (x.length == 0) {
       return [];
     } else {
@@ -284,7 +258,7 @@ var singleFn = (x)=>{
 var firstFn = (x)=>{
   if(isSome(x)){
     if(x.length){
-      return x[0];
+      return [x[0]];
     } else {
       return x;
     }
@@ -296,7 +270,7 @@ var firstFn = (x)=>{
 var lastFn = (x)=>{
   if(isSome(x)){
     if(x.length){
-      return x[x.length - 1];
+      return [x[x.length - 1]];
     } else {
       return x;
     }
@@ -310,7 +284,7 @@ var tailFn = (x)=>{
     if(x.length){
       return x.slice(1, x.length);
     } else {
-      return x;
+      return [x];
     }
   } else {
     return [];
@@ -322,7 +296,7 @@ var takeFn = (x, n)=>{
     if(x.length){
       return x.slice(0, n);
     } else {
-      return x;
+      return [x];
     }
   } else {
     return [];
@@ -390,8 +364,10 @@ var ParamList = (ctx, parentData, node) => {
 };
 
 function doCompare(x,y){
-  // TODO: should be smart to compare list monads :0
-  return x == y;
+  let rtn = x.length === y.length;
+  for (let i=0, len=x.length; rtn && i<len; ++i)
+    rtn = x[i] == y[i];
+  return [rtn];
 }
 
 var EqualityExpression = (ctx, parentData, node) => {
@@ -403,7 +379,7 @@ var EqualityExpression = (ctx, parentData, node) => {
 var UnionExpression = (ctx, parentData, node) => {
   var left = doEval(ctx, parentData, node.children[0]);
   var right = doEval(ctx, parentData, node.children[1]);
-  return arraify(left).concat(arraify(right));
+  return left.concat(right);
 };
 
 
@@ -440,8 +416,8 @@ function assertType(data, types, errorMsgPrefix) {
 
 
 function AdditiveExpression(ctx, parentData, node) {
-  let left = arraify(doEval(ctx, parentData, node.children[0]));  // TBD - arraify should not be necessary
-  let right = arraify(doEval(ctx, parentData, node.children[1]));
+  let left = doEval(ctx, parentData, node.children[0]);
+  let right = doEval(ctx, parentData, node.children[1]);
   assertAtMostOne(left, "AdditiveExpression");
   assertAtMostOne(right, "AdditiveExpression");
   let operator = node.terminalNodeText[0];
@@ -474,8 +450,8 @@ function AdditiveExpression(ctx, parentData, node) {
 }
 
 function MultiplicativeExpression(ctx, parentData, node) {
-  let left = arraify(doEval(ctx, parentData, node.children[0]));
-  let right = arraify(doEval(ctx, parentData, node.children[1]));
+  let left = doEval(ctx, parentData, node.children[0]);
+  let right = doEval(ctx, parentData, node.children[1]);
   assertAtMostOne(left, "MultiplicativeExpression");
   assertAtMostOne(right, "MultiplicativeExpression");
   if (left.length == 0 || right.length === 0)
@@ -534,7 +510,7 @@ var doEval = (ctx, parentData, node) => {
  */
 var evaluate = (resource, path) => {
   const node = parser.parse(path);
-  return doEval({}, resource, node.children[0]);
+  return doEval({}, arraify(resource), node.children[0]);
 };
 
 var parse = (path)=> {
