@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.2.2] - 2018-08-10
+### Changed
+ - Revised internal routines so everything is handled as a collection.
+
 ## [0.2.1] - 2018-08-07
 ### Fixed
  - An unexpected (math) operator error that happened when the code was
