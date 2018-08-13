@@ -32,7 +32,7 @@ engine.isCapitalized = function(x){
 };
 
 engine.flatten = function(x){
-  return x.reduce((acc, x)=> {
+  return x.reduce(function(acc, x) {
     if(Array.isArray(x)){
       // todo replace with array modification
       acc = acc.concat(x);
@@ -49,17 +49,17 @@ engine.arraify = function(x){
   return [];
 };
 
-engine.InvocationExpression = (ctx, parentData, node)=> {
-  return node.children.reduce((acc, ch)=>{
+engine.InvocationExpression = function(ctx, parentData, node) {
+  return node.children.reduce(function(acc, ch) {
     return engine.doEval(ctx, acc, ch);
   }, parentData);
 };
 
-engine.TermExpression = (ctx, parentData, node)=> {
+engine.TermExpression = function(ctx, parentData, node) {
   return engine.doEval(ctx,parentData, node.children[0]);
 };
 
-engine.LiteralTerm = (ctx, parentData, node)=> {
+engine.LiteralTerm = function(ctx, parentData, node) {
   var term = node.children[0];
   if(term){
     return engine.doEval(ctx, parentData, term);
@@ -68,11 +68,11 @@ engine.LiteralTerm = (ctx, parentData, node)=> {
   }
 };
 
-engine.StringLiteral = (ctx, parentData, node)=> {
+engine.StringLiteral = function(ctx, parentData, node) {
   return [node.text.replace(/(^['"]|['"]$)/g, "")];
 };
 
-engine.BooleanLiteral = (ctx, parentData, node)=> {
+engine.BooleanLiteral = function(ctx, parentData, node) {
   if(node.text  === "true") {
     return [true];
   } else {
@@ -81,26 +81,26 @@ engine.BooleanLiteral = (ctx, parentData, node)=> {
 };
 
 
-engine.NumberLiteral = (ctx, parentData, node)=> {
+engine.NumberLiteral = function(ctx, parentData, node) {
   return [Number(node.text)];
 };
 
-engine.Identifier = (ctx, parentData, node)=> {
+engine.Identifier = function(ctx, parentData, node) {
   return [node.text.replace(/(^"|"$)/g, "")];
 };
 
-engine.InvocationTerm = (ctx, parentData, node)=> {
+engine.InvocationTerm = function(ctx, parentData, node) {
   return engine.doEval(ctx,parentData, node.children[0]);
 };
 
-engine.MemberInvocation = (ctx, parentData ,node )=> {
+engine.MemberInvocation = function(ctx, parentData ,node ) {
   const key = engine.doEval(ctx, parentData, node.children[0])[0];
 
   if (parentData) {
     if(engine.isCapitalized(key)) {
-      return parentData.filter((x)=> { return x.resourceType === key; });
+      return parentData.filter(function(x) { return x.resourceType === key; });
     } else {
-      return parentData.reduce((acc, res)=> {
+      return parentData.reduce(function(acc, res) {
         var toAdd = res[key];
         if(engine.isSome(toAdd)) {
           if(Array.isArray(toAdd)) {
@@ -120,7 +120,7 @@ engine.MemberInvocation = (ctx, parentData ,node )=> {
   }
 };
 
-engine.IndexerExpression = (ctx, parentData, node) => {
+engine.IndexerExpression = function(ctx, parentData, node) {
   const coll_node = node.children[0];
   const idx_node = node.children[1];
   var coll = engine.doEval(ctx, parentData, coll_node);
@@ -138,36 +138,36 @@ engine.IndexerExpression = (ctx, parentData, node) => {
   }
 };
 
-engine.Functn = (ctx, parentData, node) => {
-  return node.children.map((x)=> {
+engine.Functn = function(ctx, parentData, node) {
+  return node.children.map(function(x) {
     return engine.doEval(ctx, parentData, x);
   });
 };
 
 
-engine.whereMacro = (ctx, parentData, node) => {
+engine.whereMacro = function(ctx, parentData, node) {
   if(parentData !== false && ! parentData) { return []; }
 
   // lambda means branch of not evaluated AST
   // for example an EqualityExpression.
   var lambda = node[0].children[0];
 
-  return engine.flatten(parentData.filter((x)=> {
+  return engine.flatten(parentData.filter(function(x) {
     return engine.doEval(ctx, [x], lambda)[0];
   }));
 };
 
-engine.selectMacro = (ctx, parentData, node) => {
+engine.selectMacro = function(ctx, parentData, node) {
   if(parentData !== false && ! parentData) { return []; }
 
   var lambda = node[0].children[0];
 
-  return engine.flatten(parentData.map((x)=> {
+  return engine.flatten(parentData.map(function(x) {
     return engine.doEval(ctx, [x], lambda);
   }));
 };
 
-engine.repeatMacro = (ctx, parentData, node) => {
+engine.repeatMacro = function(ctx, parentData, node) {
   if(parentData !== false && ! parentData) { return []; }
 
   var lambda = node[0].children[0];
@@ -187,7 +187,7 @@ engine.repeatMacro = (ctx, parentData, node) => {
   return res;
 };
 
-engine.iifMacro = (ctx, parentData, node) => {
+engine.iifMacro = function(ctx, parentData, node) {
 
   var exprs = node[0].children;
   var cond = exprs[0];
@@ -211,11 +211,11 @@ engine.macroTable = {
 };
 
 
-engine.existsFn  = (x) => {
+engine.existsFn  = function(x) {
   return [engine.isSome(x)];
 };
 
-engine.emptyFn = (x) => {
+engine.emptyFn = function(x) {
   if(x){
     return [x.length == 0];
   } else {
@@ -227,7 +227,7 @@ engine.emptyFn = (x) => {
   }
 };
 
-engine.countFn = (x)=>{
+engine.countFn = function(x) {
   if (x && x.length) {
     return [x.length];
   } else {
@@ -235,14 +235,14 @@ engine.countFn = (x)=>{
   }
 };
 
-engine.traceFn = (x, label)=>{
+engine.traceFn = function(x, label) {
   console.log("TRACE:[" + (label || "") + "]", JSON.stringify(x, null, " "));
   return x;
 };
 
 
 //TODO: behavior on object?
-engine.singleFn = (x)=>{
+engine.singleFn = function(x) {
   if (x && x.length) {
     if(x.length == 1){
       return [x[0]];
@@ -257,7 +257,7 @@ engine.singleFn = (x)=>{
 };
 
 
-engine.firstFn = (x)=>{
+engine.firstFn = function(x) {
   if(engine.isSome(x)){
     if(x.length){
       return [x[0]];
@@ -269,7 +269,7 @@ engine.firstFn = (x)=>{
   }
 };
 
-engine.lastFn = (x)=>{
+engine.lastFn = function(x) {
   if(engine.isSome(x)){
     if(x.length){
       return [x[x.length - 1]];
@@ -281,7 +281,7 @@ engine.lastFn = (x)=>{
   }
 };
 
-engine.tailFn = (x)=>{
+engine.tailFn = function(x) {
   if(engine.isSome(x)){
     if(x.length){
       return x.slice(1, x.length);
@@ -293,7 +293,7 @@ engine.tailFn = (x)=>{
   }
 };
 
-engine.takeFn = (x, n)=>{
+engine.takeFn = function(x, n) {
   if(engine.isSome(x)){
     if(x.length){
       return x.slice(0, n);
@@ -305,7 +305,7 @@ engine.takeFn = (x, n)=>{
   }
 };
 
-engine.skipFn = (x, num)=>{
+engine.skipFn = function(x, num) {
   if(Array.isArray(x)){
     if(x.length >= num){
       return x.slice(num, x.length);
@@ -330,9 +330,9 @@ engine.fnTable = {
   trace: engine.traceFn
 };
 
-engine.realizeParams = (ctx, parentData, args) => {
+engine.realizeParams = function(ctx, parentData, args) {
   if(args && args[0] && args[0].children) {
-    return args[0].children.map((x)=>{
+    return args[0].children.map(function(x) {
       return engine.doEval(ctx, parentData, x);
     });
   } else {
@@ -340,7 +340,7 @@ engine.realizeParams = (ctx, parentData, args) => {
   }
 };
 
-engine.FunctionInvocation = (ctx, parentData, node) => {
+engine.FunctionInvocation = function(ctx, parentData, node) {
   var args = engine.doEval(ctx, parentData, node.children[0]);
   const fnName = args[0];
   args.shift();
@@ -359,7 +359,7 @@ engine.FunctionInvocation = (ctx, parentData, node) => {
   }
 };
 
-engine.ParamList = (ctx, parentData, node) => {
+engine.ParamList = function(ctx, parentData, node) {
   // we do not eval param list because sometimes it should be passed as
   // lambda/macro (for example in case of where(...)
   return node;
@@ -372,13 +372,13 @@ engine.doCompare = function(x,y){
   return [rtn];
 };
 
-engine.EqualityExpression = (ctx, parentData, node) => {
+engine.EqualityExpression = function(ctx, parentData, node) {
   var left = engine.doEval(ctx, parentData, node.children[0]);
   var right = engine.doEval(ctx, parentData, node.children[1]);
   return engine.doCompare(left, right);
 };
 
-engine.UnionExpression = (ctx, parentData, node) => {
+engine.UnionExpression = function(ctx, parentData, node) {
   var left = engine.doEval(ctx, parentData, node.children[0]);
   var right = engine.doEval(ctx, parentData, node.children[1]);
   return left.concat(right);
@@ -406,7 +406,7 @@ engine.evalTable = {
   UnionExpression: engine.UnionExpression,
 };
 
-engine.doEval = (ctx, parentData, node) => {
+engine.doEval = function(ctx, parentData, node) {
   const evaluator = engine.evalTable[node.type];
   if(evaluator){
     return evaluator.call(engine, ctx, parentData, node);
@@ -419,19 +419,19 @@ engine.doEval = (ctx, parentData, node) => {
  * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
  * @param {string} path - fhirpath expression, sample 'Patient.name.given'
  */
-var evaluate = (resource, path) => {
+var evaluate = function(resource, path) {
   const node = parser.parse(path);
   return engine.doEval({}, engine.arraify(resource), node.children[0]);
 };
 
-var parse = (path)=> {
+var parse = function(path) {
   return parser.parse(path);
 };
 
 
-var compile = (path)=> {
+var compile = function(path) {
   console.log("Compile " + path);
-  return (resource)=>{
+  return function(resource) {
     return resource;
   };
 };
