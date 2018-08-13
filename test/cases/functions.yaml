@@ -33,15 +33,15 @@ tests:
 
   - desc: not true is false
     expression: Functions.attrtrue.not()
-    result: false
+    result: [false]
 
   - desc: not false is true
     expression: Functions.attrfalse.not()
-    result: true
+    result: [true]
 
   - desc: double not true is true
     expression: Functions.attrtrue.not().not()
-    result: true
+    result: [true]
 
   - desc: empty coll with not() is empty coll 
     expression: Functions.attrempty.not()
@@ -49,7 +49,7 @@ tests:
 
   - desc: not empty coll with not() is false
     expression: Functions.attrdouble.not()
-    result: true
+    result: [true]
 
   - desc: not nothing is empty coll
     expression: Functions.nothing.not()
@@ -62,18 +62,18 @@ tests:
 
   - desc: exists for not empty coll should return true
     expression: functions.coll1.exists()
-    result: true
+    result: [true]
 
  
   - desc: exists for empty coll should return false
     expression: functions.attrempty.exists()
-    result: false
+    result: [false]
 
 # The operator can also take an optional criteria to be applied to the collection prior to the determination of the exists. In this case, the operation is shorthand for where(criteria).exists().
 
   - desc: exists with createria should work
     expression: functions.coll1.coll2.exists($this > 0)
-    result: true
+    result: [true]
 
  
 # The operator can also take an optional criteria to be applied to the collection prior to the determination of the exists. In this case, the operation is shorthand for where(criteria).exists().
@@ -85,17 +85,17 @@ tests:
 
   - desc: all for empty coll is true
     expression: functions.attrempty.all()
-    result: true
+    result: [true]
 
  
   - desc: all evaluations is true
     expression: functions.coll1.coll2.all($this > 0)
-    result: true
+    result: [true]
 
  
   - desc: not all evaluations is true
     expression: functions.coll1.coll2.all($this = 5)
-    result: false
+    result: [false]
 
 
 # 5.1.5. allTrue() : boolean Takes a collection of boolean values and returns
@@ -105,17 +105,17 @@ tests:
 
   - desc: allTrue for empty coll is true
     expression: functions.attrempty.allTrue()
-    result: true
+    result: [true]
 
  
   - desc: allTrue for coll with all true items is true
     expression: functions.coll1.colltrue.allTrue()
-    result: true
+    result: [true]
 
  
   - desc: allTrue for coll with false value
     expression: functions.coll1.collwithfalse.allTrue()
-    result: false
+    result: [false]
 
 
 # 5.1.6. anyTrue() : boolean Takes a collection of boolean values and returns
@@ -124,17 +124,17 @@ tests:
 
   - desc: anyTrue for empty coll is false
     expression: functions.attrempty.anyTrue()
-    result: false
+    result: [false]
 
  
   - desc: anyTrue for coll with true value
     expression: functions.coll1.collwithfalse.anyTrue()
-    result: true
+    result: [true]
 
  
   - desc: anyTrue for coll with all false values
     expression: functions.coll1.collfalse.anyTrue()
-    result: false
+    result: [false]
 
 
 # 5.1.7. allFalse() : boolean Takes a collection of boolean values and returns
@@ -143,17 +143,17 @@ tests:
 
   - desc: allFalse for empty coll is true
     expression: functions.attrempty.allFalse()
-    result: true
+    result: [true]
 
  
   - desc: allFalse for coll with all false items is true
     expression: functions.coll1.collfalse.allFalse()
-    result: true
+    result: [true]
 
  
   - desc: allFalse for coll with true value
     expression: functions.coll1.collwithfalse.allFalse()
-    result: false
+    result: [false]
 
 
 # 5.1.8. anyFalse() : boolean Takes a collection of boolean values and returns
@@ -162,17 +162,17 @@ tests:
 
   - desc: anyFalse for empty coll is false
     expression: functions.attrempty.anyFalse()
-    result: false
+    result: [false]
 
  
   - desc: anyFalse for coll with false value
     expression: functions.coll1.collwithfalse.anyFalse()
-    result: true
+    result: [true]
 
  
   - desc: anyFalse for coll with all true values
     expression: functions.coll1.colltrue.anyFalse()
-    result: false
+    result: [false]
 
 
 # 5.1.9. subsetOf(other : collection) : boolean Returns true if all items in the
