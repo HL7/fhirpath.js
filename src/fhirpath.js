@@ -215,18 +215,6 @@ engine.existsFn  = function(x) {
   return [engine.isSome(x)];
 };
 
-engine.emptyFn = function(x) {
-  if(x){
-    return [x.length == 0];
-  } else {
-    if(engine.isSome(x)){
-      return [false];
-    } else {
-      return [true];
-    }
-  }
-};
-
 engine.countFn = function(x) {
   if (x && x.length) {
     return [x.length];
@@ -384,6 +372,7 @@ engine.UnionExpression = function(ctx, parentData, node) {
   return left.concat(right);
 };
 
+require("./existence")(engine);
 require("./math")(engine);
 
 engine.evalTable = {
