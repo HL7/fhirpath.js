@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.3.0] - 2018-08-15
+### Added
+ - Support for $this
+ - all/any True/False.
+
 ## [0.2.3] - 2018-08-13
 ### Changed
  - Reorgnanized math functions into a separate file.
