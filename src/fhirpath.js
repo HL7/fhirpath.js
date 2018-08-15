@@ -367,6 +367,11 @@ engine.UnionExpression = function(ctx, parentData, node) {
   return left.concat(right);
 };
 
+engine.ThisInvocation = function(ctx, parentData) {
+  // Assumption:  parentData is set to the current node for $this.
+  return [parentData[0]];
+};
+
 engine.evalTable = {
   BooleanLiteral: engine.BooleanLiteral,
   EqualityExpression: engine.EqualityExpression,
@@ -382,6 +387,7 @@ engine.evalTable = {
   ParamList: engine.ParamList,
   StringLiteral: engine.StringLiteral,
   TermExpression: engine.TermExpression,
+  ThisInvocation: engine.ThisInvocation,
   UnionExpression: engine.UnionExpression,
 };
 
