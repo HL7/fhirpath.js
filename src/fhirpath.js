@@ -211,10 +211,6 @@ engine.macroTable = {
 };
 
 
-engine.existsFn  = function(x) {
-  return [engine.isSome(x)];
-};
-
 engine.countFn = function(x) {
   if (x && x.length) {
     return [x.length];
@@ -306,7 +302,6 @@ engine.skipFn = function(x, num) {
 };
 
 engine.fnTable = {
-  exists:  engine.existsFn,
   empty: engine.emptyFn,
   count: engine.countFn,
   single: engine.singleFn,
@@ -372,11 +367,7 @@ engine.UnionExpression = function(ctx, parentData, node) {
   return left.concat(right);
 };
 
-require("./existence")(engine);
-require("./math")(engine);
-
 engine.evalTable = {
-  AdditiveExpression: engine.AdditiveExpression,
   BooleanLiteral: engine.BooleanLiteral,
   EqualityExpression: engine.EqualityExpression,
   FunctionInvocation: engine.FunctionInvocation,
@@ -387,13 +378,15 @@ engine.evalTable = {
   InvocationTerm: engine.InvocationTerm,
   LiteralTerm: engine.LiteralTerm,
   MemberInvocation: engine.MemberInvocation,
-  MultiplicativeExpression: engine.MultiplicativeExpression,
   NumberLiteral: engine.NumberLiteral,
   ParamList: engine.ParamList,
   StringLiteral: engine.StringLiteral,
   TermExpression: engine.TermExpression,
   UnionExpression: engine.UnionExpression,
 };
+
+require("./existence")(engine);
+require("./math")(engine);
 
 engine.doEval = function(ctx, parentData, node) {
   const evaluator = engine.evalTable[node.type];

@@ -65,6 +65,10 @@ function mathFunctionInit(engine) {
     else // should never reach here, per grammar
       throw "MultiplicativeExpression: Unexpected operator: " +operator;
   }
+
+  var evalTable = engine.evalTable;
+  evalTable.AdditiveExpression = engine.AdditiveExpression;
+  evalTable.MultiplicativeExpression = engine.MultiplicativeExpression;
 }
 
 module.exports = mathFunctionInit
