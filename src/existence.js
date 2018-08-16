@@ -20,16 +20,16 @@ function engineBuilder(engine) {
   };
 
   engine.notFn = function(x) {
-    util.assertAtMostOne(x, "not");
-    util.assertType(x, ["boolean"], "not");
-    return [!x[0]];
+    return (x.length === 1 && typeof x[0] === 'boolean') ? [!x[0]] : [];
   }
 
-  engine.existsFn  = function(x, criteria) {
- //   TBD
- //   if (criteria)
- //     x = engine.whereMacro(ctx, x, node);
-    return [engine.isSome(x)];
+  engine.existsMacro  = function(ctx, parentData, node) {
+    let col = parentData;
+    if (node.length && node[0].children && node[0].children.length) {
+      // Then there is a criteria.  Use the result of where.
+      col = engine.whereMacro(ctx, parentData, node);
+    }
+    return [engine.isSome(col)];
   };
 
   engine.allFn = function(x, criteria) {
@@ -40,7 +40,7 @@ function engineBuilder(engine) {
   engine.allTrueFn  = function(x) {
     let rtn = true;
     for (let i=0, len=x.length; i<len && rtn; ++i) {
-      util.assertType(x, ["boolean"], "allTrue");
+      util.assertType(x[i], ["boolean"], "allTrue");
       rtn = x[i] === true;
     }
     return rtn;
@@ -49,7 +49,7 @@ function engineBuilder(engine) {
   engine.anyTrueFn  = function(x) {
     let rtn = false;
     for (let i=0, len=x.length; i<len && !rtn; ++i) {
-      util.assertType(x, ["boolean"], "anyTrue");
+      util.assertType(x[i], ["boolean"], "anyTrue");
       rtn = x[i] === true;
     }
     return rtn;
@@ -58,7 +58,7 @@ function engineBuilder(engine) {
   engine.allFalseFn  = function(x) {
     let rtn = true;
     for (let i=0, len=x.length; i<len && rtn; ++i) {
-      util.assertType(x, ["boolean"], "allFalse");
+      util.assertType(x[i], ["boolean"], "allFalse");
       rtn = x[i] === false;
     }
     return rtn;
@@ -67,19 +67,21 @@ function engineBuilder(engine) {
   engine.anyFalseFn  = function(x) {
     let rtn = false;
     for (let i=0, len=x.length; i<len && !rtn; ++i) {
-      util.assertType(x, ["boolean"], "anyFalse");
+      util.assertType(x[i], ["boolean"], "anyFalse");
       rtn = x[i] === false;
     }
     return rtn;
   };
 
   var fnTable = engine.fnTable;
-  var existenceFns = ["empty", "not", "exists", "all", "allTrue", "anyTrue",
+  var existenceFns = ["empty", "not", "all", "allTrue", "anyTrue",
     'allFalse', 'anyTrue'];
   for (let i=0, len=existenceFns.length; i<len; ++i) {
     let name=existenceFns[i];
     fnTable[name] = engine[name+"Fn"];
   }
+
+  engine.macroTable.exists = engine.existsMacro;
 }
 
 module.exports = engineBuilder;

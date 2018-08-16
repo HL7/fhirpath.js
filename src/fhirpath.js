@@ -16,6 +16,7 @@
 // be evaluated inside macro
 
 const parser = require("./parser");
+var util = require("./utilities");
 
 let engine = {}; // the object with all FHIRPath functions and operations
 
@@ -147,7 +148,6 @@ engine.Functn = function(ctx, parentData, node) {
 
 engine.whereMacro = function(ctx, parentData, node) {
   if(parentData !== false && ! parentData) { return []; }
-
   // lambda means branch of not evaluated AST
   // for example an EqualityExpression.
   var lambda = node[0].children[0];
@@ -361,6 +361,45 @@ engine.EqualityExpression = function(ctx, parentData, node) {
   return engine.doCompare(left, right);
 };
 
+engine.InequalityExpression = function(ctx, parentData, node) {
+  var left = engine.doEval(ctx, parentData, node.children[0]);
+  var right = engine.doEval(ctx, parentData, node.children[1]);
+  let rtn;
+  if (!left.length || ! right.length)
+    rtn = [];
+  else  {
+    util.assertAtMostOne(left, "InequalityExpression");
+    util.assertAtMostOne(right, "InequalityExpression");
+    left = left[0]
+    right = right[0];
+    let lType = typeof left;
+    let rType = typeof right;
+    if (lType != rType) {
+      util.raiseError('Type of "'+left+'" did not match type of "'+right+'"',
+        'InequalityExpression');
+    }
+    // TBD - Check types are "string", "number", or "Date".
+    let operator = node.terminalNodeText[0];
+    switch (operator) {
+      case '<':
+        rtn = [left < right];
+        break;
+      case '>':
+        rtn = [left > right];
+        break;
+      case '<=':
+        rtn = [left <= right];
+        break;
+      case '>=':
+        rtn = [left >= right];
+        break;
+      default:
+        util.raiseError('Invalid operator "'+operator+'"', 'InequalityExpression');
+    }
+  }
+  return rtn;
+};
+
 engine.UnionExpression = function(ctx, parentData, node) {
   var left = engine.doEval(ctx, parentData, node.children[0]);
   var right = engine.doEval(ctx, parentData, node.children[1]);
@@ -379,6 +418,7 @@ engine.evalTable = {
   Functn: engine.Functn,
   Identifier: engine.Identifier,
   IndexerExpression: engine.IndexerExpression,
+  InequalityExpression: engine.InequalityExpression,
   InvocationExpression: engine.InvocationExpression,
   InvocationTerm: engine.InvocationTerm,
   LiteralTerm: engine.LiteralTerm,

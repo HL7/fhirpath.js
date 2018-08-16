@@ -3,16 +3,25 @@
 var util =  {};
 
 /**
+ *  Reports and error to the calling environment and stops processing.
+ * @param message the error message
+ * @param fnName the name of the function raising the error (optional)
+ */
+util.raiseError = function(message, fnName) {
+  fnName = fnName ? fnName + ": " : "";
+  throw fnName + message;
+}
+
+/**
  *  Throws an exception if the collection contains more than one value.
  * @param collection the collection to be checked.
  * @param errorMsgPrefix An optional prefix for the error message to assist in
  *  debugging.
  */
 util.assertAtMostOne = function (collection, errorMsgPrefix) {
-  errorMsgPrefix = errorMsgPrefix ? errorMsgPrefix + ": " : "";
   if (collection.length > 1) {
-    throw errorMsgPrefix + "Was expecting no more than one element but got " +
-      JSON.stringify(collection);
+    util.raiseError("Was expecting no more than one element but got " +
+      JSON.stringify(collection), errorMsgPrefix);
   }
 }
 
@@ -24,11 +33,10 @@ util.assertAtMostOne = function (collection, errorMsgPrefix) {
  *  debugging.
  */
 util.assertType = function(data, types, errorMsgPrefix) {
-  errorMsgPrefix = errorMsgPrefix ? errorMsgPrefix + ": " : "";
   if (types.indexOf(typeof data) < 0) {
     let typeList = types.length > 1 ? "one of "+types.join(", ") : types[0];
-    throw errorMsgPrefix + "Found type '"+(typeof data)+"' but was expecting " +
-      typeList;
+    util.raiseError("Found type '"+(typeof data)+"' but was expecting " +
+      typeList, errorMsgPrefix);
   }
 }
 

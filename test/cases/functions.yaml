@@ -43,13 +43,17 @@ tests:
     expression: Functions.attrtrue.not().not()
     result: [true]
 
-  - desc: empty coll with not() is empty coll 
+  - desc: empty coll with not() is empty coll
     expression: Functions.attrempty.not()
     result: []
 
-  - desc: not empty coll with not() is false
+  - desc: not empty, non-boolean coll with not() is empty
     expression: Functions.attrdouble.not()
-    result: [true]
+    result: []
+
+  - desc: multi-valued boolean coll with not() is empty
+    expression: Functions.attrdouble.not()
+    result: []
 
   - desc: not nothing is empty coll
     expression: Functions.nothing.not()
@@ -61,21 +65,21 @@ tests:
 # is empty ({ }), the result is false.
 
   - desc: exists for not empty coll should return true
-    expression: functions.coll1.exists()
+    expression: Functions.coll1.exists()
     result: [true]
 
- 
+
   - desc: exists for empty coll should return false
-    expression: functions.attrempty.exists()
+    expression: Functions.attrempty.exists()
     result: [false]
 
 # The operator can also take an optional criteria to be applied to the collection prior to the determination of the exists. In this case, the operation is shorthand for where(criteria).exists().
 
-  - desc: exists with createria should work
-    expression: functions.coll1.coll2.exists($this > 0)
+  - desc: exists with criteria should work
+    expression: Functions.coll1.coll2.attr.exists($this > 0)
     result: [true]
 
- 
+
 # The operator can also take an optional criteria to be applied to the collection prior to the determination of the exists. In this case, the operation is shorthand for where(criteria).exists().
 
 # 5.1.4. all(criteria : expression) : boolean Returns true if for every element
@@ -84,17 +88,17 @@ tests:
 
 
   - desc: all for empty coll is true
-    expression: functions.attrempty.all()
+    expression: Functions.attrempty.all()
     result: [true]
 
- 
+
   - desc: all evaluations is true
-    expression: functions.coll1.coll2.all($this > 0)
+    expression: Functions.coll1.coll2.all($this > 0)
     result: [true]
 
- 
+
   - desc: not all evaluations is true
-    expression: functions.coll1.coll2.all($this = 5)
+    expression: Functions.coll1.coll2.all($this = 5)
     result: [false]
 
 
@@ -104,17 +108,17 @@ tests:
 
 
   - desc: allTrue for empty coll is true
-    expression: functions.attrempty.allTrue()
+    expression: Functions.attrempty.allTrue()
     result: [true]
 
- 
+
   - desc: allTrue for coll with all true items is true
-    expression: functions.coll1.colltrue.allTrue()
+    expression: Functions.coll1.colltrue.allTrue()
     result: [true]
 
- 
+
   - desc: allTrue for coll with false value
-    expression: functions.coll1.collwithfalse.allTrue()
+    expression: Functions.coll1.collwithfalse.allTrue()
     result: [false]
 
 
@@ -123,17 +127,17 @@ tests:
 # is empty ({ }), the result is false.
 
   - desc: anyTrue for empty coll is false
-    expression: functions.attrempty.anyTrue()
+    expression: Functions.attrempty.anyTrue()
     result: [false]
 
- 
+
   - desc: anyTrue for coll with true value
-    expression: functions.coll1.collwithfalse.anyTrue()
+    expression: Functions.coll1.collwithfalse.anyTrue()
     result: [true]
 
- 
+
   - desc: anyTrue for coll with all false values
-    expression: functions.coll1.collfalse.anyTrue()
+    expression: Functions.coll1.collfalse.anyTrue()
     result: [false]
 
 
@@ -142,17 +146,17 @@ tests:
 # If the input is empty ({ }), the result is true.
 
   - desc: allFalse for empty coll is true
-    expression: functions.attrempty.allFalse()
+    expression: Functions.attrempty.allFalse()
     result: [true]
 
- 
+
   - desc: allFalse for coll with all false items is true
-    expression: functions.coll1.collfalse.allFalse()
+    expression: Functions.coll1.collfalse.allFalse()
     result: [true]
 
- 
+
   - desc: allFalse for coll with true value
-    expression: functions.coll1.collwithfalse.allFalse()
+    expression: Functions.coll1.collwithfalse.allFalse()
     result: [false]
 
 
@@ -161,17 +165,17 @@ tests:
 # is empty ({ }), the result is false.
 
   - desc: anyFalse for empty coll is false
-    expression: functions.attrempty.anyFalse()
+    expression: Functions.attrempty.anyFalse()
     result: [false]
 
- 
+
   - desc: anyFalse for coll with false value
-    expression: functions.coll1.collwithfalse.anyFalse()
+    expression: Functions.coll1.collwithfalse.anyFalse()
     result: [true]
 
- 
+
   - desc: anyFalse for coll with all true values
-    expression: functions.coll1.colltrue.anyFalse()
+    expression: Functions.coll1.colltrue.anyFalse()
     result: [false]
 
 
