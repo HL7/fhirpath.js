@@ -3,22 +3,22 @@
 tests:
   - desc: less than, expecting true
     expression: a < b
-    result: true
+    result: [true]
   - desc: less than, expecting false
     expression: b < a
-    result: true
+    result: [false]
   - desc: less then, with mismatched types
     expression: c < d
-    raise: true
+    error: true
   - desc: less than with empty value
     expression: c < e
     result: []
   - desc: less than with too many values
     expression: c < g
-    raise: true
+    error: true
 # TBD -- add more tests
 
-testData:
+subject:
   a: 1
   b: 2
   c: 2

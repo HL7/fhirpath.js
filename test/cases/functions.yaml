@@ -88,17 +88,17 @@ tests:
 
 
   - desc: all for empty coll is true
-    expression: Functions.attrempty.all()
+    expression: Functions.attrempty.all($this > 0)
     result: [true]
 
 
   - desc: all evaluations is true
-    expression: Functions.coll1.coll2.all($this > 0)
+    expression: Functions.coll1.coll2.attr.all($this > 0)
     result: [true]
 
 
   - desc: not all evaluations is true
-    expression: Functions.coll1.coll2.all($this = 5)
+    expression: Functions.coll1.coll2.attr.all($this = 5)
     result: [false]
 
 
