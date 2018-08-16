@@ -78,12 +78,12 @@ function engineBuilder(engine) {
       util.assertType(x[i], ["boolean"], "anyFalse");
       rtn = x[i] === false;
     }
-    return rtn;
+    return [rtn];
   };
 
   var fnTable = engine.fnTable;
   var existenceFns = ["empty", "not", "allTrue", "anyTrue",
-    'allFalse', 'anyTrue'];
+    'allFalse', 'anyFalse'];
   for (let i=0, len=existenceFns.length; i<len; ++i) {
     let name=existenceFns[i];
     fnTable[name] = engine[name+"Fn"];

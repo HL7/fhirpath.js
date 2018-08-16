@@ -113,12 +113,12 @@ tests:
 
 
   - desc: allTrue for coll with all true items is true
-    expression: Functions.coll1.colltrue.allTrue()
+    expression: Functions.coll1.colltrue.attr.allTrue()
     result: [true]
 
 
   - desc: allTrue for coll with false value
-    expression: Functions.coll1.collwithfalse.allTrue()
+    expression: Functions.coll1.collwithfalse.attr.allTrue()
     result: [false]
 
 
@@ -132,12 +132,12 @@ tests:
 
 
   - desc: anyTrue for coll with true value
-    expression: Functions.coll1.collwithfalse.anyTrue()
+    expression: Functions.coll1.collwithfalse.attr.anyTrue()
     result: [true]
 
 
   - desc: anyTrue for coll with all false values
-    expression: Functions.coll1.collfalse.anyTrue()
+    expression: Functions.coll1.collfalse.attr.anyTrue()
     result: [false]
 
 
@@ -151,12 +151,12 @@ tests:
 
 
   - desc: allFalse for coll with all false items is true
-    expression: Functions.coll1.collfalse.allFalse()
+    expression: Functions.coll1.collfalse.attr.allFalse()
     result: [true]
 
 
   - desc: allFalse for coll with true value
-    expression: Functions.coll1.collwithfalse.allFalse()
+    expression: Functions.coll1.collwithfalse.attr.allFalse()
     result: [false]
 
 
@@ -170,12 +170,12 @@ tests:
 
 
   - desc: anyFalse for coll with false value
-    expression: Functions.coll1.collwithfalse.anyFalse()
+    expression: Functions.coll1.collwithfalse.attr.anyFalse()
     result: [true]
 
 
   - desc: anyFalse for coll with all true values
-    expression: Functions.coll1.colltrue.anyFalse()
+    expression: Functions.coll1.colltrue.attr.anyFalse()
     result: [false]
 
 
@@ -221,7 +221,7 @@ tests:
 
   - desc: count
     expression: Functions.coll1.count()
-    result: [2]
+    result: [5]
 
   - desc: nested count
     expression: Functions.coll1.coll2.count()

@@ -370,7 +370,7 @@ engine.InequalityExpression = function(ctx, parentData, node) {
   else  {
     util.assertAtMostOne(left, "InequalityExpression");
     util.assertAtMostOne(right, "InequalityExpression");
-    left = left[0]
+    left = left[0];
     right = right[0];
     let lType = typeof left;
     let rType = typeof right;
@@ -381,20 +381,20 @@ engine.InequalityExpression = function(ctx, parentData, node) {
     // TBD - Check types are "string", "number", or "Date".
     let operator = node.terminalNodeText[0];
     switch (operator) {
-      case '<':
-        rtn = [left < right];
-        break;
-      case '>':
-        rtn = [left > right];
-        break;
-      case '<=':
-        rtn = [left <= right];
-        break;
-      case '>=':
-        rtn = [left >= right];
-        break;
-      default:
-        util.raiseError('Invalid operator "'+operator+'"', 'InequalityExpression');
+    case '<':
+      rtn = [left < right];
+      break;
+    case '>':
+      rtn = [left > right];
+      break;
+    case '<=':
+      rtn = [left <= right];
+      break;
+    case '>=':
+      rtn = [left >= right];
+      break;
+    default:
+      util.raiseError('Invalid operator "'+operator+'"', 'InequalityExpression');
     }
   }
   return rtn;
