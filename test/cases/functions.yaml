@@ -31,32 +31,149 @@ tests:
 
 # empty ({ })
 
+  - desc: not true is false
+    expression: Functions.attrtrue.not()
+    result: [false]
+
+  - desc: not false is true
+    expression: Functions.attrfalse.not()
+    result: [true]
+
+  - desc: double not true is true
+    expression: Functions.attrtrue.not().not()
+    result: [true]
+
+  - desc: empty coll with not() is empty coll 
+    expression: Functions.attrempty.not()
+    result: []
+
+  - desc: not empty coll with not() is false
+    expression: Functions.attrdouble.not()
+    result: [true]
+
+  - desc: not nothing is empty coll
+    expression: Functions.nothing.not()
+    result: []
+
 # 5.1.3. exists([criteria : expression]) : boolean Returns true if the
 # collection has any elements, and false otherwise. This is the opposite of
 # empty(), and as such is a shorthand for empty().not(). If the input collection
 # is empty ({ }), the result is false.
 
+  - desc: exists for not empty coll should return true
+    expression: functions.coll1.exists()
+    result: [true]
+
+ 
+  - desc: exists for empty coll should return false
+    expression: functions.attrempty.exists()
+    result: [false]
+
+# The operator can also take an optional criteria to be applied to the collection prior to the determination of the exists. In this case, the operation is shorthand for where(criteria).exists().
+
+  - desc: exists with createria should work
+    expression: functions.coll1.coll2.exists($this > 0)
+    result: [true]
+
+ 
 # The operator can also take an optional criteria to be applied to the collection prior to the determination of the exists. In this case, the operation is shorthand for where(criteria).exists().
 
 # 5.1.4. all(criteria : expression) : boolean Returns true if for every element
 # in the input collection, criteria evaluates to true. Otherwise, the result is
 # false. If the input collection is empty ({ }), the result is true.
 
+
+  - desc: all for empty coll is true
+    expression: functions.attrempty.all()
+    result: [true]
+
+ 
+  - desc: all evaluations is true
+    expression: functions.coll1.coll2.all($this > 0)
+    result: [true]
+
+ 
+  - desc: not all evaluations is true
+    expression: functions.coll1.coll2.all($this = 5)
+    result: [false]
+
+
 # 5.1.5. allTrue() : boolean Takes a collection of boolean values and returns
 # true if all the items are true. If any items are false, the result is false.
 # If the input is empty ({ }), the result is true.
+
+
+  - desc: allTrue for empty coll is true
+    expression: functions.attrempty.allTrue()
+    result: [true]
+
+ 
+  - desc: allTrue for coll with all true items is true
+    expression: functions.coll1.colltrue.allTrue()
+    result: [true]
+
+ 
+  - desc: allTrue for coll with false value
+    expression: functions.coll1.collwithfalse.allTrue()
+    result: [false]
+
 
 # 5.1.6. anyTrue() : boolean Takes a collection of boolean values and returns
 # true if any of the items are true. If all the items are false, or if the input
 # is empty ({ }), the result is false.
 
+  - desc: anyTrue for empty coll is false
+    expression: functions.attrempty.anyTrue()
+    result: [false]
+
+ 
+  - desc: anyTrue for coll with true value
+    expression: functions.coll1.collwithfalse.anyTrue()
+    result: [true]
+
+ 
+  - desc: anyTrue for coll with all false values
+    expression: functions.coll1.collfalse.anyTrue()
+    result: [false]
+
+
 # 5.1.7. allFalse() : boolean Takes a collection of boolean values and returns
 # true if all the items are false. If any items are true, the result is false.
 # If the input is empty ({ }), the result is true.
 
+  - desc: allFalse for empty coll is true
+    expression: functions.attrempty.allFalse()
+    result: [true]
+
+ 
+  - desc: allFalse for coll with all false items is true
+    expression: functions.coll1.collfalse.allFalse()
+    result: [true]
+
+ 
+  - desc: allFalse for coll with true value
+    expression: functions.coll1.collwithfalse.allFalse()
+    result: [false]
+
+
 # 5.1.8. anyFalse() : boolean Takes a collection of boolean values and returns
 # true if any of the items are false. If all the items are true, or if the input
 # is empty ({ }), the result is false.
+
+  - desc: anyFalse for empty coll is false
+    expression: functions.attrempty.anyFalse()
+    result: [false]
+
+ 
+  - desc: anyFalse for coll with false value
+    expression: functions.coll1.collwithfalse.anyFalse()
+    result: [true]
+
+ 
+  - desc: anyFalse for coll with all true values
+    expression: functions.coll1.colltrue.anyFalse()
+    result: [false]
+
 
 # 5.1.9. subsetOf(other : collection) : boolean Returns true if all items in the
 # input collection are members of the collection passed as the other argument.
@@ -304,6 +421,8 @@ tests:
 subject:
   resourceType: Functions
   attrempty: []
+  attrtrue: true
+  attrfalse: false
   attrsingle:
     - 1
   attrdouble:
@@ -320,3 +439,13 @@ subject:
     - coll2:
         - attr: 4
         - attr: 5
+    - colltrue:
+        - attr: true
+        - attr: true
+        - attr: true
+    - collwithfalse:
+        - attr: false
+        - attr: true
+    - collfalse:
+        - attr: false
+        - attr: false
