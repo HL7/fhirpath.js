@@ -16,6 +16,7 @@
 // be evaluated inside macro
 
 const parser = require("./parser");
+var util = require("./utilities");
 
 let engine = {}; // the object with all FHIRPath functions and operations
 
@@ -147,7 +148,6 @@ engine.Functn = function(ctx, parentData, node) {
 
 engine.whereMacro = function(ctx, parentData, node) {
   if(parentData !== false && ! parentData) { return []; }
-
   // lambda means branch of not evaluated AST
   // for example an EqualityExpression.
   var lambda = node[0].children[0];
@@ -210,22 +210,6 @@ engine.macroTable = {
   iif: engine.iifMacro
 };
 
-
-engine.existsFn  = function(x) {
-  return [engine.isSome(x)];
-};
-
-engine.emptyFn = function(x) {
-  if(x){
-    return [x.length == 0];
-  } else {
-    if(engine.isSome(x)){
-      return [false];
-    } else {
-      return [true];
-    }
-  }
-};
 
 engine.countFn = function(x) {
   if (x && x.length) {
@@ -318,7 +302,6 @@ engine.skipFn = function(x, num) {
 };
 
 engine.fnTable = {
-  exists:  engine.existsFn,
   empty: engine.emptyFn,
   count: engine.countFn,
   single: engine.singleFn,
@@ -378,33 +361,78 @@ engine.EqualityExpression = function(ctx, parentData, node) {
   return engine.doCompare(left, right);
 };
 
+engine.InequalityExpression = function(ctx, parentData, node) {
+  var left = engine.doEval(ctx, parentData, node.children[0]);
+  var right = engine.doEval(ctx, parentData, node.children[1]);
+  let rtn;
+  if (!left.length || ! right.length)
+    rtn = [];
+  else  {
+    util.assertAtMostOne(left, "InequalityExpression");
+    util.assertAtMostOne(right, "InequalityExpression");
+    left = left[0];
+    right = right[0];
+    let lType = typeof left;
+    let rType = typeof right;
+    if (lType != rType) {
+      util.raiseError('Type of "'+left+'" did not match type of "'+right+'"',
+        'InequalityExpression');
+    }
+    // TBD - Check types are "string", "number", or "Date".
+    let operator = node.terminalNodeText[0];
+    switch (operator) {
+    case '<':
+      rtn = [left < right];
+      break;
+    case '>':
+      rtn = [left > right];
+      break;
+    case '<=':
+      rtn = [left <= right];
+      break;
+    case '>=':
+      rtn = [left >= right];
+      break;
+    default:
+      util.raiseError('Invalid operator "'+operator+'"', 'InequalityExpression');
+    }
+  }
+  return rtn;
+};
+
 engine.UnionExpression = function(ctx, parentData, node) {
   var left = engine.doEval(ctx, parentData, node.children[0]);
   var right = engine.doEval(ctx, parentData, node.children[1]);
   return left.concat(right);
 };
 
-require("./math")(engine);
+engine.ThisInvocation = function(ctx, parentData) {
+  // Assumption:  parentData is set to the current node for $this.
+  return [parentData[0]];
+};
 
 engine.evalTable = {
-  AdditiveExpression: engine.AdditiveExpression,
   BooleanLiteral: engine.BooleanLiteral,
   EqualityExpression: engine.EqualityExpression,
   FunctionInvocation: engine.FunctionInvocation,
   Functn: engine.Functn,
   Identifier: engine.Identifier,
   IndexerExpression: engine.IndexerExpression,
+  InequalityExpression: engine.InequalityExpression,
   InvocationExpression: engine.InvocationExpression,
   InvocationTerm: engine.InvocationTerm,
   LiteralTerm: engine.LiteralTerm,
   MemberInvocation: engine.MemberInvocation,
-  MultiplicativeExpression: engine.MultiplicativeExpression,
   NumberLiteral: engine.NumberLiteral,
   ParamList: engine.ParamList,
   StringLiteral: engine.StringLiteral,
   TermExpression: engine.TermExpression,
+  ThisInvocation: engine.ThisInvocation,
   UnionExpression: engine.UnionExpression,
 };
+
+require("./existence")(engine);
+require("./math")(engine);
 
 engine.doEval = function(ctx, parentData, node) {
   const evaluator = engine.evalTable[node.type];

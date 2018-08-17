@@ -18,8 +18,11 @@ for (var i=0; i<items.length; i++) {
       testcase.tests.forEach((t)=>{
         // console.log(yaml.dump(subj.parse(t.expression)));
         let exprs = Array.isArray(t.expression) ? t.expression : [t.expression];
+        let console_log = console.log;
         exprs.forEach((e)=>{
           it(((t.desc || '') + ': ' + e) , () => {
+            if (t.disableConsoleLog)
+              console.log = function() {};
             if (!t.error) {
               var res = subj.evaluate(testcase.subject, e);
               expect(res).toEqual(t.result);
@@ -34,6 +37,8 @@ for (var i=0; i<items.length; i++) {
               }
               expect(e).not.toBe(null);
             }
+            if (t.disableConsoleLog)
+              console.log = console.log;
           });
         });
       });

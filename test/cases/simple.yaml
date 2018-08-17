@@ -88,6 +88,18 @@ tests:
 
   - expression: Patient.name.trace('tracing').given[0]
     result: ["Peter"]
+    disableConsoleLog: true
+
+   # $this
+  - expression:  Patient.telecom.where($this.use = 'work')
+    result: [{"use": "work", "rank": 1, "value": "(03) 5555 6473", "system": "phone"}]
+
+  - expression:  identifier.where($this.type.coding.code = 'MR').value
+    result: ['12345']
+
+  - expression:  identifier.where($this.type.coding.code = 'Z').value
+    result: []
+
 
 
 subject:

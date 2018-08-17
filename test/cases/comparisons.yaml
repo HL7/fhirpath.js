@@ -1,0 +1,32 @@
+# Tests for 6.2 Comparisons
+
+tests:
+  - desc: less than, expecting true
+    expression: a < b
+    result: [true]
+  - desc: less than, expecting false
+    expression: b < a
+    result: [false]
+  - desc: less then, with mismatched types
+    expression: c < d
+    error: true
+  - desc: less than with empty value
+    expression: c < e
+    result: []
+  - desc: less than with too many values
+    expression: c < g
+    error: true
+# TBD -- add more tests
+
+subject:
+  a: 1
+  b: 2
+  c: 2
+  d: "Hydrogen"
+  e: []
+  f:
+    - 1
+  g:
+    - 1
+    - 2
+
