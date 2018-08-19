@@ -138,8 +138,8 @@ function init(engine) {
     } else if (op == '~') {
       return equivalence(left, right);
     } else if (op == '!~') {
-      var eq = equivalence(left, right);
-      return eq.length == 1 ? [!eq[0]] : [];
+      var eqv = equivalence(left, right);
+      return eqv.length == 1 ? [!eqv[0]] : [];
     } else {
       throw new Error(op + ' is not impl.');
     }
