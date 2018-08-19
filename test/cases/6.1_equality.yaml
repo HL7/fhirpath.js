@@ -167,9 +167,12 @@ tests:
 
 # integer: exactly equal
 
-# decimal: values must be equal, comparison is done on values rounded to the
-# precision of the least precise operand. Trailing zeroes are ignored in
-# determining precision.
+  - desc: |
+      decimal: values must be equal, comparison is done on values rounded
+      to the precision of the least precise operand.
+      Trailing zeroes are ignored in  determining precision.
+    expression: "1.001 ~ 01.0012"
+    result: [true]
 
 # dateTime and time: values must be equal, except that for partial date/time
 # values, the comparison returns false, not empty ({ }). If one operand has less
@@ -177,9 +180,13 @@ tests:
 
 # boolean: the values must be the same
 
-# For complex types, equivalence requires all child properties to be equivalent, recursively.
+  - desc: '* For complex types, equivalence requires all child properties to be equivalent, recursively.'
+    expression: "Ops.complex ~ Ops.complexsimilar"
+    result: [true]
 
-  - desc: '* TODO: object with equivalence'
+  - desc: '* For complex types, equivalence requires all child properties to be equivalent, recursively.'
+    expression: "Ops.complex ~ Ops.complexother"
+    result: [false]
 
 # If both operands are collections with multiple items:
 
@@ -270,6 +277,28 @@ tests:
   - desc: '6.1.4. !~ (Not Equivalent)'
 # The inverse of the equivalent operator.
 
+
+  - desc: '* collections for equivalence { } !~ { } will result in true.'
+    expression: "Ops.unexists !~ Ops.unexists"
+    result: [false]
+
+# If both operands are collections with a single item:
+
+# For primitives
+
+  - desc: '* string: the strings must be the same while ignoring case and normalizing whitespace.'
+    expression: "'ab c' !~ 'Ab  C'"
+    result: [false]
+
+# integer: exactly equal
+
+  - desc: |
+      decimal: values must be equal, comparison is done on values rounded
+      to the precision of the least precise operand.
+      Trailing zeroes are ignored in  determining precision.
+    expression: "1.001 !~ 01.0012"
+    result: [false]
+
 subject:
   resourceType: Ops
   str1: string1
@@ -301,6 +330,12 @@ subject:
       c: str
     d:
       - e: 1
+  complexsimilar:
+    a: 1
+    b:
+      c: Str
+    d:
+      - e: 1.1
   complexother:
     a: 1
     b:

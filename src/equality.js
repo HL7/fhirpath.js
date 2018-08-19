@@ -13,26 +13,54 @@ function isString(myVar) {
   return (typeof myVar === 'string' || myVar instanceof String); 
 }
 
+function isNumber(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
+function normalizeStr(x) {
+  return x.toUpperCase().replace(/\s+/, ' ');
+}
+
+function getPrecision(x) {
+  return (x.toString().split(".")[1] || "").length;
+}
+
 var deepEqual = function (actual, expected, opts) {
   if (!opts) opts = {};
   // 7.1. All identical values are equivalent, as determined by ===.
+  if(opts.fuzzy && isString(actual) && isString(expected)) {
+    return normalizeStr(actual) == normalizeStr(expected);
+  }
+  if(opts.fuzzy && Number.isInteger(actual) && Number.isInteger(expected)) {
+    return actual === expected;
+  }
+
+  if(opts.fuzzy && isNumber(actual) && isNumber(expected)) {
+    var prec = Math.min(getPrecision(actual), getPrecision(expected));
+    if(prec === 0){
+      return Math.round(actual) === Math.round(expected);
+    } else {
+      return Number.parseFloat(actual).toPrecision(prec) === Number.parseFloat(expected).toPrecision(prec);
+    }
+  }
+
   if (actual === expected) {
     return true;
 
   } else if (actual instanceof Date && expected instanceof Date) {
     return actual.getTime() === expected.getTime();
 
-  // 7.3. Other pairs that do not both pass typeof value == 'object',
-  // equivalence is determined by ==.
+    // 7.3. Other pairs that do not both pass typeof value == 'object',
+    // equivalence is determined by ==.
   } else if (!actual || !expected || typeof actual != 'object' && typeof expected != 'object') {
     return opts.strict ? actual === expected : actual == expected;
 
-  // 7.4. For all other Object pairs, including Array objects, equivalence is
-  // determined by having the same number of owned properties (as verified
-  // with Object.prototype.hasOwnProperty.call), the same set of keys
-  // (although not necessarily the same order), equivalent values for every
-  // corresponding key, and an identical 'prototype' property. Note: this
-  // accounts for both named and indexed properties on Arrays.
+    // 7.4. For all other Object pairs, including Array objects, equivalence is
+    // determined by having the same number of owned properties (as verified
+    // with Object.prototype.hasOwnProperty.call), the same set of keys
+    // (although not necessarily the same order), equivalent values for every
+    // corresponding key, and an identical 'prototype' property. Note: this
+    // accounts for both named and indexed properties on Arrays.
   } else {
     return objEquiv(actual, expected, opts);
   }
@@ -92,21 +120,10 @@ function init(engine) {
     return [deepEqual(x, y)];
   }
 
-  function normalizeStr(x) {
-    return x.toUpperCase().replace(/\s+/, ' ');
-  }
-
   function equivalence(x,y){
     if(engine.isEmpty(x) && engine.isEmpty(y)) { return [true]; }
     if(engine.isEmpty(x) || engine.isEmpty(y)) { return []; }
-    if(deepEqual(x, y)){ return [true]; }
-    if(x.length == 1 && y.length == 1){
-      if(isString(x[0]) && isString(y[0])){
-        return [normalizeStr(x[0]) == normalizeStr(y[0])];
-      }
-    }
-
-    return [false];
+    return [deepEqual(x, y, {fuzzy: true})];
   }
 
   engine.evalTable.EqualityExpression = function(ctx, parentData, node) {
@@ -120,6 +137,9 @@ function init(engine) {
       return eq.length == 1 ? [!eq[0]] : [];
     } else if (op == '~') {
       return equivalence(left, right);
+    } else if (op == '!~') {
+      var eq = equivalence(left, right);
+      return eq.length == 1 ? [!eq[0]] : [];
     } else {
       throw new Error(op + ' is not impl.');
     }
