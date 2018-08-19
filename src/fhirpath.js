@@ -16,7 +16,7 @@
 // be evaluated inside macro
 
 const parser = require("./parser");
-var util = require("./utilities");
+// var util = require("./utilities");
 
 let engine = {}; // the object with all FHIRPath functions and operations
 
@@ -409,9 +409,9 @@ var parse = function(path) {
 
 
 var compile = function(path) {
-  console.log("Compile " + path);
+  const node = parse(path);
   return function(resource) {
-    return resource;
+    return engine.doEval({}, engine.arraify(resource), node.children[0]);
   };
 };
 

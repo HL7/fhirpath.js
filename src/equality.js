@@ -136,8 +136,7 @@ function init(engine) {
       let lType = typeof left;
       let rType = typeof right;
       if (lType != rType) {
-        util.raiseError('Type of "'+left+'" did not match type of "'+right+'"',
-                        'InequalityExpression');
+        util.raiseError('Type of "'+left+'" did not match type of "'+right+'"', 'InequalityExpression');
       }
       // TBD - Check types are "string", "number", or "Date".
       let operator = node.terminalNodeText[0];
