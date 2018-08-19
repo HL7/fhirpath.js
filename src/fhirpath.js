@@ -348,57 +348,7 @@ engine.ParamList = function(ctx, parentData, node) {
   return node;
 };
 
-engine.doCompare = function(x,y){
-  let rtn = x.length === y.length;
-  for (let i=0, len=x.length; rtn && i<len; ++i)
-    rtn = x[i] == y[i];
-  return [rtn];
-};
 
-engine.EqualityExpression = function(ctx, parentData, node) {
-  var left = engine.doEval(ctx, parentData, node.children[0]);
-  var right = engine.doEval(ctx, parentData, node.children[1]);
-  return engine.doCompare(left, right);
-};
-
-engine.InequalityExpression = function(ctx, parentData, node) {
-  var left = engine.doEval(ctx, parentData, node.children[0]);
-  var right = engine.doEval(ctx, parentData, node.children[1]);
-  let rtn;
-  if (!left.length || ! right.length)
-    rtn = [];
-  else  {
-    util.assertAtMostOne(left, "InequalityExpression");
-    util.assertAtMostOne(right, "InequalityExpression");
-    left = left[0];
-    right = right[0];
-    let lType = typeof left;
-    let rType = typeof right;
-    if (lType != rType) {
-      util.raiseError('Type of "'+left+'" did not match type of "'+right+'"',
-        'InequalityExpression');
-    }
-    // TBD - Check types are "string", "number", or "Date".
-    let operator = node.terminalNodeText[0];
-    switch (operator) {
-    case '<':
-      rtn = [left < right];
-      break;
-    case '>':
-      rtn = [left > right];
-      break;
-    case '<=':
-      rtn = [left <= right];
-      break;
-    case '>=':
-      rtn = [left >= right];
-      break;
-    default:
-      util.raiseError('Invalid operator "'+operator+'"', 'InequalityExpression');
-    }
-  }
-  return rtn;
-};
 
 engine.UnionExpression = function(ctx, parentData, node) {
   var left = engine.doEval(ctx, parentData, node.children[0]);
@@ -433,6 +383,7 @@ engine.evalTable = {
 
 require("./existence")(engine);
 require("./math")(engine);
+require("./equality")(engine);
 
 engine.doEval = function(ctx, parentData, node) {
   const evaluator = engine.evalTable[node.type];
