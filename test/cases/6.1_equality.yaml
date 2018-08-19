@@ -179,6 +179,8 @@ tests:
 
 # For complex types, equivalence requires all child properties to be equivalent, recursively.
 
+  - desc: '* TODO: object with equivalence'
+
 # If both operands are collections with multiple items:
 
 # Each item must be equivalent
@@ -190,6 +192,78 @@ tests:
 
 
   - desc: '6.1.3. != (Not Equals)'
+
+  - desc: '* string: comparison is based on Unicode values'
+  - desc: '** strings equals'
+    expression: "'abc' != 'abc'"
+    result: [false]
+
+  - desc: '** strings equals'
+    expression: "Ops.str1 != Ops.str1"
+    result: [false]
+
+  - desc: '** strings not equals'
+    expression: "'abc' != 'abcd'"
+    result: [true]
+
+  - desc: '** strings not equals'
+    expression: "Ops.str1 != Ops.str2"
+    result: [true]
+
+  - desc: '** utf8 strings'
+    expression: "'ɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ ə ɚ ɛ ɜ ɝ ɞ ɟ ɠ' != 'ɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ ə ɚ ɛ ɜ ɝ ɞ ɟ ɠ'"
+    result: [false]
+
+  - desc: '** utf8 strings'
+    expression: "'ɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ ə ɚ ɛ ɜ ɝ ɞ ɟ ɠ' != 'ə ɚ ɛ ɜ ɝ ɞ ɟ ɠɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ '"
+    result: [true]
+
+  - desc: '* integer: values must be exactly equal'
+
+  - desc: '** equal'
+    expression: "1 != 1"
+    result: [false]
+
+  - desc: '** equal'
+    expression: "Ops.int1 != Ops.int1"
+    result: [false]
+
+  - desc: '** not equal'
+    expression: "1 != 2"
+    result: [true]
+
+  - desc: '** not equal'
+    expression: "Ops.int1 != Ops.int2"
+    result: [true]
+
+  - desc: '* decimal: values must be equal, trailing zeroes are ignored'
+  - desc: '** decimals equal'
+    expression: "1.01 != 1.01"
+    result: [false]
+
+  - desc: '** decimals equal, trailing zeroes are ignored'
+    expression: "0.01 != 00.01"
+    result: [false]
+
+  - desc: 'decimal not equal'
+    expression: "1.01 != 1.02"
+    result: [true]
+
+  - desc: '* boolean: values must be the same'
+
+  - desc: '** equal'
+    expression: "true != true"
+    result: [false]
+
+  - desc: '** not equal'
+    expression: "true != false"
+    result: [true]
+
+  - desc: '** propagate empty coll'
+    expression: "true != Ops.unexists"
+    result: []
+
+  - desc: '* TODO: dateTime: must be exactly the same, respecting the timezone (though +24:00 = +00:00 = Z)'
 
 # The inverse of the equals operator.
 

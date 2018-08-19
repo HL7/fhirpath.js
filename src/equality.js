@@ -115,6 +115,9 @@ function init(engine) {
     var right = engine.doEval(ctx, parentData, node.children[1]);
     if(op == '=') {
       return equality(left, right);
+    } else if (op == '!=') {
+      var eq = equality(left, right);
+      return eq.length == 1 ? [!eq[0]] : [];
     } else if (op == '~') {
       return equivalence(left, right);
     } else {
