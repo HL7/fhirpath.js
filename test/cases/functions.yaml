@@ -4,15 +4,15 @@ tests:
 
   - desc: empty
     expression: Functions.attrempty.empty()
-    result: true
+    result: [true]
 
   - desc: not empty
     expression: Functions.attrsingle.empty()
-    result: false
+    result: [false]
 
   - desc: empty nothing
     expression: Functions.nothing.empty()
-    result: true
+    result: [true]
 
 # 5.1.2. not() : boolean Returns true if the input collection evaluates to
 # false, and false if it evaluates to true. Otherwise, the result is empty ({
@@ -33,23 +33,27 @@ tests:
 
   - desc: not true is false
     expression: Functions.attrtrue.not()
-    result: false
+    result: [false]
 
   - desc: not false is true
     expression: Functions.attrfalse.not()
-    result: true
+    result: [true]
 
   - desc: double not true is true
     expression: Functions.attrtrue.not().not()
-    result: true
+    result: [true]
 
-  - desc: empty coll with not() is empty coll 
+  - desc: empty coll with not() is empty coll
     expression: Functions.attrempty.not()
     result: []
 
-  - desc: not empty coll with not() is false
+  - desc: not empty, non-boolean coll with not() is empty
     expression: Functions.attrdouble.not()
-    result: true
+    result: []
+
+  - desc: multi-valued boolean coll with not() is empty
+    expression: Functions.attrdouble.not()
+    result: []
 
   - desc: not nothing is empty coll
     expression: Functions.nothing.not()
@@ -61,40 +65,39 @@ tests:
 # is empty ({ }), the result is false.
 
   - desc: exists for not empty coll should return true
-    expression: functions.coll1.exists()
-    result: true
+    expression: Functions.coll1.exists()
+    result: [true]
 
- 
+
   - desc: exists for empty coll should return false
-    expression: functions.attrempty.exists()
-    result: false
+    expression: Functions.attrempty.exists()
+    result: [false]
 
 # The operator can also take an optional criteria to be applied to the collection prior to the determination of the exists. In this case, the operation is shorthand for where(criteria).exists().
 
-  - desc: exists with createria should work
-    expression: functions.coll1.coll2.exists($this > 0)
-    result: true
+  - desc: exists with criteria should work
+    expression: Functions.coll1.coll2.attr.exists($this > 0)
+    result: [true]
 
- 
+
 # 5.1.4. all(criteria : expression) : boolean Returns true if for every element
 # in the input collection, criteria evaluates to true. Otherwise, the result is
 # false. If the input collection is empty ({ }), the result is true.
 
 
   - desc: all for empty coll is true
-    expression: functions.attrempty.all()
-    result: true
+    expression: Functions.attrempty.all($this > 0)
+    result: [true]
 
- 
+
   - desc: all evaluations is true
-    expression: functions.coll1.coll2.all($this > 0)
-    result: true
+    expression: Functions.coll1.coll2.attr.all($this > 0)
+    result: [true]
 
- 
+
   - desc: not all evaluations is true
-    expression: functions.coll1.coll2.all($this = 5)
-    result: false
-
+    expression: Functions.coll1.coll2.attr.all($this = 5)
+    result: [false]
 
 # 5.1.5. allTrue() : boolean Takes a collection of boolean values and returns
 # true if all the items are true. If any items are false, the result is false.
@@ -102,18 +105,18 @@ tests:
 
 
   - desc: allTrue for empty coll is true
-    expression: functions.attrempty.allTrue()
-    result: true
+    expression: Functions.attrempty.allTrue()
+    result: [true]
 
- 
+
   - desc: allTrue for coll with all true items is true
-    expression: functions.coll1.colltrue.allTrue()
-    result: true
+    expression: Functions.coll1.colltrue.attr.allTrue()
+    result: [true]
 
- 
+
   - desc: allTrue for coll with false value
-    expression: functions.coll1.collwithfalse.allTrue()
-    result: false
+    expression: Functions.coll1.collwithfalse.attr.allTrue()
+    result: [false]
 
 
 # 5.1.6. anyTrue() : boolean Takes a collection of boolean values and returns
@@ -121,18 +124,18 @@ tests:
 # is empty ({ }), the result is false.
 
   - desc: anyTrue for empty coll is false
-    expression: functions.attrempty.anyTrue()
-    result: false
+    expression: Functions.attrempty.anyTrue()
+    result: [false]
 
- 
+
   - desc: anyTrue for coll with true value
-    expression: functions.coll1.collwithfalse.anyTrue()
-    result: true
+    expression: Functions.coll1.collwithfalse.attr.anyTrue()
+    result: [true]
 
- 
+
   - desc: anyTrue for coll with all false values
-    expression: functions.coll1.collfalse.anyTrue()
-    result: false
+    expression: Functions.coll1.collfalse.attr.anyTrue()
+    result: [false]
 
 
 # 5.1.7. allFalse() : boolean Takes a collection of boolean values and returns
@@ -140,18 +143,18 @@ tests:
 # If the input is empty ({ }), the result is true.
 
   - desc: allFalse for empty coll is true
-    expression: functions.attrempty.allFalse()
-    result: true
+    expression: Functions.attrempty.allFalse()
+    result: [true]
 
- 
+
   - desc: allFalse for coll with all false items is true
-    expression: functions.coll1.collfalse.allFalse()
-    result: true
+    expression: Functions.coll1.collfalse.attr.allFalse()
+    result: [true]
 
- 
+
   - desc: allFalse for coll with true value
-    expression: functions.coll1.collwithfalse.allFalse()
-    result: false
+    expression: Functions.coll1.collwithfalse.attr.allFalse()
+    result: [false]
 
 
 # 5.1.8. anyFalse() : boolean Takes a collection of boolean values and returns
@@ -159,18 +162,18 @@ tests:
 # is empty ({ }), the result is false.
 
   - desc: anyFalse for empty coll is false
-    expression: functions.attrempty.anyFalse()
-    result: false
+    expression: Functions.attrempty.anyFalse()
+    result: [false]
 
- 
+
   - desc: anyFalse for coll with false value
-    expression: functions.coll1.collwithfalse.anyFalse()
-    result: true
+    expression: Functions.coll1.collwithfalse.attr.anyFalse()
+    result: [true]
 
- 
+
   - desc: anyFalse for coll with all true values
-    expression: functions.coll1.colltrue.anyFalse()
-    result: false
+    expression: Functions.coll1.colltrue.attr.anyFalse()
+    result: [false]
 
 
 # 5.1.9. subsetOf(other : collection) : boolean Returns true if all items in the
@@ -215,15 +218,15 @@ tests:
 
   - desc: count
     expression: Functions.coll1.count()
-    result: 2
+    result: [5]
 
   - desc: nested count
     expression: Functions.coll1.coll2.count()
-    result: 5
+    result: [5]
 
   - desc: 0 if nothing
     expression: Functions.ups.count()
-    result: 0
+    result: [0]
 
 # 5.3. Subsetting 5.3.1. [ index : integer ] : collection The indexer operation
 # returns a collection with only the index-th item (0-based index). If the input
@@ -236,11 +239,11 @@ tests:
 
   - desc: [index]
     expression: Functions.coll1[1].coll2[0].attr
-    result: 4
+    result: [4]
 
   - desc: [big index]
     expression: Functions.coll1[100].coll2[0].attr
-    result: [] 
+    result: []
 
 # 5.3.2. single() : collection Will return the single item in the input if there
 # is just one item. If the input collection is empty ({ }), the result is empty.
@@ -249,7 +252,7 @@ tests:
 # if an assumption about cardinality is violated at run-time.
   - desc: single
     expression: Functions.attrsingle.single()
-    result: 1
+    result: [1]
 
   - desc: single on nothing
     expression: Functions.ups.single()
@@ -270,7 +273,7 @@ tests:
 # will return an empty collection if the input collection has no items.
   - desc: first
     expression: Functions.attrdouble.first()
-    result: 1
+    result: [1]
 
   - desc: first nothing
     expression: Functions.nothing.first()
@@ -282,11 +285,11 @@ tests:
 
   - desc: last
     expression: Functions.attrdouble.last()
-    result: 2
+    result: [2]
 
   - desc: last
     expression: Functions.attrsingle.last()
-    result: 1
+    result: [1]
 
   - desc: last on empty
     expression: Functions.attrempty.last()
@@ -397,23 +400,23 @@ tests:
 
   - desc: boolean - true
     expression: 'true'
-    result: true
+    result: [true]
 
   - desc: boolean - false
     expression: 'false'
-    result: false
+    result: [false]
 
   - desc: iif
     expression: Functions.iif(true, 'a', 'b')
-    result: a
+    result: ['a']
 
   - desc: iif
     expression: Functions.iif(false, 'a', 'b')
-    result: b
+    result: ['b']
 
   - desc: iif
     expression: Functions.iif(coll1[0].coll2[0].attr = 1, coll1[0].coll2[0].attr, coll1[0].coll2[1].attr)
-    result: 1
+    result: [1]
 
 
 subject:

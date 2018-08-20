@@ -14,7 +14,7 @@ tests:
   - expression:
       - Patient.id
       - id
-    result: example
+    result: ["example"]
 
   - expression:
       - Encounter.id
@@ -22,11 +22,11 @@ tests:
 
   - desc: access by index
     expression: Patient.address[0].use
-    result: home
+    result: ["home"]
 
   - desc: access by index
     expression: Patient.name[0].family
-    result: Chalmers
+    result: ["Chalmers"]
 
   - desc: access by index unexisting
     expression: Patient.name[1].family
@@ -34,7 +34,7 @@ tests:
 
   - desc: access by index
     expression: Patient.name[2].family
-    result: Windsor
+    result: ["Windsor"]
 
   - desc: access by index unexisting
     expression: Patient.name[3].family
@@ -42,31 +42,31 @@ tests:
 
   - desc: access by index
     expression: Patient.name[1].given[0]
-    result: Jim
+    result: ["Jim"]
 
 
   - expression: Patient.managingOrganization.reference
-    result: Organization/1
+    result: ["Organization/1"]
 
   - expression: Patient.name.exists()
-    result: true
+    result: [true]
 
   - expression: Patient.ups.exists()
-    result: false
+    result: [false]
 
   - expression: Patient.name.empty()
-    result: false
+    result: [false]
 
   - expression: Patient.ups.empty()
-    result: true
+    result: [true]
 
   - desc: count
     expression: Patient.name.given.count()
-    result: 5
+    result: [5]
 
   - desc: count
     expression: Patient.name.given.count() = 5
-    result: true
+    result: [true]
 
   - expression: Patient.name.where(use ='official').family
     result: ["Chalmers"]
@@ -87,7 +87,19 @@ tests:
     result: ["Peter", "James", "Chalmers", "Jim", "Peter", "James", "Windsor"]
 
   - expression: Patient.name.trace('tracing').given[0]
-    result: "Peter"
+    result: ["Peter"]
+    disableConsoleLog: true
+
+   # $this
+  - expression:  Patient.telecom.where($this.use = 'work')
+    result: [{"use": "work", "rank": 1, "value": "(03) 5555 6473", "system": "phone"}]
+
+  - expression:  identifier.where($this.type.coding.code = 'MR').value
+    result: ['12345']
+
+  - expression:  identifier.where($this.type.coding.code = 'Z').value
+    result: []
+
 
 
 subject:
