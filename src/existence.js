@@ -21,7 +21,7 @@ function engineBuilder(engine) {
 
   engine.notFn = function(x) {
     return (x.length === 1 && typeof x[0] === 'boolean') ? [!x[0]] : [];
-  }
+  };
 
   engine.existsMacro  = function(ctx, parentData, node) {
     let col = parentData;
@@ -36,14 +36,13 @@ function engineBuilder(engine) {
     var lambda = node[0].children[0];
 
     let rtn = true;
-    console.log(parentData.length);
     for (let i=0, len=parentData.length; i<len && rtn; ++i) {
       let parent = parentData[i];
       let parentResult = (engine.doEval(ctx, [parent], lambda));
       rtn = parentResult.length === 1 && parentResult[0] === true;
     }
     return [rtn];
-  }
+  };
 
   engine.allTrueFn  = function(x) {
     let rtn = true;
