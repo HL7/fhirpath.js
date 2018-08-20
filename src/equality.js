@@ -27,10 +27,16 @@ function getPrecision(x) {
 
 var deepEqual = function (actual, expected, opts) {
   if (!opts) opts = {};
+
   // 7.1. All identical values are equivalent, as determined by ===.
+  if (actual === expected) {
+    return true;
+  }
+
   if(opts.fuzzy && isString(actual) && isString(expected)) {
     return normalizeStr(actual) == normalizeStr(expected);
   }
+
   if(opts.fuzzy && Number.isInteger(actual) && Number.isInteger(expected)) {
     return actual === expected;
   }
@@ -44,10 +50,7 @@ var deepEqual = function (actual, expected, opts) {
     }
   }
 
-  if (actual === expected) {
-    return true;
-
-  } else if (actual instanceof Date && expected instanceof Date) {
+  if (actual instanceof Date && expected instanceof Date) {
     return actual.getTime() === expected.getTime();
 
     // 7.3. Other pairs that do not both pass typeof value == 'object',
@@ -78,12 +81,9 @@ function objEquiv(a, b, opts) {
   if (a.prototype !== b.prototype) return false;
   //~~~I've managed to break Object.keys through screwy arguments passing.
   //   Converting to array solves the problem.
-  if (isArguments(a)) {
-    if (!isArguments(b)) {
-      return false;
-    }
-    a = pSlice.call(a);
-    b = pSlice.call(b);
+  if(isArguments(a) || isArguments(b)) {
+    a = isArguments(a) ? pSlice.call(a) : a;
+    b = isArguments(b) ? pSlice.call(b) : b;
     return deepEqual(a, b, opts);
   }
   try {
