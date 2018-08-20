@@ -61,18 +61,18 @@ tests:
 # is empty ({ }), the result is false.
 
   - desc: exists for not empty coll should return true
-    expression: functions.coll1.exists()
+    expression: Functions.coll1.exists()
     result: [true]
 
  
   - desc: exists for empty coll should return false
-    expression: functions.attrempty.exists()
+    expression: Functions.attrempty.exists()
     result: [false]
 
 # The operator can also take an optional criteria to be applied to the collection prior to the determination of the exists. In this case, the operation is shorthand for where(criteria).exists().
 
   - desc: exists with createria should work
-    expression: functions.coll1.coll2.exists($this > 0)
+    expression: Functions.coll1[0].coll2.exists($this > 0)
     result: [true]
 
  
@@ -84,17 +84,17 @@ tests:
 
 
   - desc: all for empty coll is true
-    expression: functions.attrempty.all()
+    expression: Functions.attrempty.all()
     result: [true]
 
  
   - desc: all evaluations is true
-    expression: functions.coll1.coll2.all($this > 0)
+    expression: Functions.coll1[0].coll2.all($this > 0)
     result: [true]
 
  
   - desc: not all evaluations is true
-    expression: functions.coll1.coll2.all($this = 5)
+    expression: Functions.coll1[0].coll2.all($this = 5)
     result: [false]
 
 
@@ -104,17 +104,17 @@ tests:
 
 
   - desc: allTrue for empty coll is true
-    expression: functions.attrempty.allTrue()
+    expression: Functions.attrempty.allTrue()
     result: [true]
 
  
   - desc: allTrue for coll with all true items is true
-    expression: functions.coll1.colltrue.allTrue()
+    expression: Functions.coll1[2].colltrue.allTrue()
     result: [true]
 
  
   - desc: allTrue for coll with false value
-    expression: functions.coll1.collwithfalse.allTrue()
+    expression: Functions.coll1[3].collwithfalse.allTrue()
     result: [false]
 
 
@@ -123,17 +123,17 @@ tests:
 # is empty ({ }), the result is false.
 
   - desc: anyTrue for empty coll is false
-    expression: functions.attrempty.anyTrue()
+    expression: Functions.attrempty.anyTrue()
     result: [false]
 
  
   - desc: anyTrue for coll with true value
-    expression: functions.coll1.collwithfalse.anyTrue()
+    expression: Functions.coll1[3].collwithfalse.anyTrue()
     result: [true]
 
  
   - desc: anyTrue for coll with all false values
-    expression: functions.coll1.collfalse.anyTrue()
+    expression: Functions.coll1[4].collfalse.anyTrue()
     result: [false]
 
 
@@ -142,17 +142,17 @@ tests:
 # If the input is empty ({ }), the result is true.
 
   - desc: allFalse for empty coll is true
-    expression: functions.attrempty.allFalse()
+    expression: Functions.attrempty.allFalse()
     result: [true]
 
  
   - desc: allFalse for coll with all false items is true
-    expression: functions.coll1.collfalse.allFalse()
+    expression: Functions.coll1[4].collfalse.allFalse()
     result: [true]
 
  
   - desc: allFalse for coll with true value
-    expression: functions.coll1.collwithfalse.allFalse()
+    expression: Functions.coll1[3].collwithfalse.allFalse()
     result: [false]
 
 
@@ -161,17 +161,17 @@ tests:
 # is empty ({ }), the result is false.
 
   - desc: anyFalse for empty coll is false
-    expression: functions.attrempty.anyFalse()
+    expression: Functions.attrempty.anyFalse()
     result: [false]
 
  
   - desc: anyFalse for coll with false value
-    expression: functions.coll1.collwithfalse.anyFalse()
+    expression: Functions.coll1[3].collwithfalse.anyFalse()
     result: [true]
 
  
   - desc: anyFalse for coll with all true values
-    expression: functions.coll1.colltrue.anyFalse()
+    expression: Functions.coll1[2].colltrue.anyFalse()
     result: [false]
 
 
@@ -184,6 +184,22 @@ tests:
 # This means that if the input collection is empty ({ }), the result is true,
 # otherwise if the other collection is empty ({ }), the result is false.
 
+  - desc: if input coll is empty result of subset is true
+    expression: Functions.attrempty.subsetOf(Functions.attrdouble)
+    result: [true]
+
+  - desc: if argument coll is empty result of subset is false
+    expression: Functions.attrdouble.subsetOf(Functions.attrempty)
+    result: [false]
+
+  - desc: if input coll is subset of argument coll
+    expression: Functions.attrdouble.subsetOf(Functions.coll1[0].coll2)
+    result: [true]
+
+  - desc: if input coll isn't subset of argument coll
+    expression: Functions.coll1[0].coll2.subsetOf(Functions.attrdouble)
+    result: [false]
+
 # 5.1.10. supersetOf(other : collection) : boolean Returns true if all items in
 # the collection passed as the other argument are members of the input
 # collection. Membership is determined using the equals (=) operation (see
@@ -193,6 +209,22 @@ tests:
 # collection for membership in the input collection, with a default of false.
 # This means that if the input collection is empty ({ }), the result is false,
 # otherwise if the other collection is empty ({ }), the result is true.
+
+  - desc: if argumet coll is empty result of superset is true
+    expression: Functions.attrdouble.supersetOf(Functions.attrempty)
+    result: [true]
+
+  - desc: if input coll is empty result of superset is false
+    expression: Functions.attrempty.supersetOf(Functions.attrdouble)
+    result: [false]
+
+  - desc: if argument coll is superset of input coll
+    expression: Functions.coll1[0].coll2.subsetOf(Functions.attrdouble)
+    result: [true]
+
+  - desc: if argument coll isn't superset of input coll
+    expression: Functions.attrdouble.subsetOf(Functions.coll1[0].coll2)
+    result: [false]
 
 # 5.1.11. isDistinct() : boolean Returns true if all the items in the input
 # collection are distinct. To determine whether two items are distinct, the
@@ -205,11 +237,35 @@ tests:
 # X.count() = X.distinct().count() This means that if the input collection is
 # empty ({ }), the result is true.
 
+  - desc: isDistinct of empty input coll is true
+    expression: Functions.attrempty.isDistinct()
+    result: [true]
+
+  - desc: isDistinct of distinct coll
+    expression: Functions.coll1[0].coll2.isDistinct()
+    result: [true]
+
+  - desc: isDistinct of coll with different values
+    expression: Functions.coll1[2].collwithfalse.isDistinct()
+    result: [false]
+
 # 5.1.12. distinct() : collection Returns a collection containing only the
 # unique items in the input collection. To determine whether two items are the
 # same, the equals (=) operator is used, as defined below.
 
 # If the input collection is empty ({ }), the result is empty.
+
+  - desc: distinct of empty coll is empty
+    expression: Functions.attrempty.distinct()
+    result: []
+
+  - desc: distinct of coll with same values
+    expression: Functions.coll1[2].colltrue.distinct()
+    result: [true]
+
+  - desc: distinct of coll with different values
+    expression: Functions.coll1[0].coll2.distinct()
+    result: [1, 2, 3]
 
 # 5.1.13. count() : integer Returns a collection with a single value which is
 # the integer count of the number of items in the input collection. Returns 0
@@ -222,6 +278,10 @@ tests:
   - desc: nested count
     expression: Functions.coll1.coll2.count()
     result: [5]
+
+  - desc: nested count (alternative)
+    expression: Functions.coll1[0].coll2.count()
+    result: [3]
 
   - desc: 0 if nothing
     expression: Functions.ups.count()
@@ -266,7 +326,7 @@ tests:
     result:
       $status: error
       $error: Expected single
-
+ 
 # 5.3.3. first() : collection Returns a collection containing only the first
 # item in the input collection. This function is equivalent to item(0), so it
 # will return an empty collection if the input collection has no items.
@@ -363,7 +423,7 @@ tests:
 
   - desc: take
     expression: Functions.attrdouble.take(2)
-    result: [ 1 , 2 ]
+    result: [ 1, 2 ]
 
   - desc: take more then has
     expression: Functions.attrsingle.take(2)
@@ -379,15 +439,15 @@ tests:
 
   - desc: take
     expression: Functions.coll1.coll2.attr.take(3)
-    result: [1, 2 , 3]
+    result: [1, 2, 3]
 
   - desc: take
     expression: Functions.coll1.coll2.attr.take(4)
-    result: [1, 2 , 3, 4]
+    result: [1, 2, 3, 4]
 
   - desc: take
     expression: Functions.coll1.coll2.attr.take(5)
-    result: [1, 2 , 3, 4, 5]
+    result: [1, 2, 3, 4, 5]
 
 # 5.5.1. iif(criterium: expression, true-result: collection [, otherwise-result:
 # collection]) : collection If criterium is true, the function returns the value
@@ -417,6 +477,9 @@ tests:
     expression: Functions.iif(coll1[0].coll2[0].attr = 1, coll1[0].coll2[0].attr, coll1[0].coll2[1].attr)
     result: [1]
 
+  - expression: Functions.coll1.coll2.attr
+  - expression: Functions.coll1[0].coll2.attr
+  - expression: Functions.coll1[2].coll2.attr
 
 subject:
   resourceType: Functions
@@ -437,6 +500,7 @@ subject:
         - attr: 2
         - attr: 3
     - coll2:
+        - attr: 3
         - attr: 4
         - attr: 5
     - colltrue:
