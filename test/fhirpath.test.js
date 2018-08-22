@@ -7,6 +7,9 @@ const fs   = require('fs');
 
 var items = fs.readdirSync(__dirname + '/cases/');
 
+// turn on focus test
+var focus = true;
+
 for (var i=0; i<items.length; i++) {
   var fileName = items[i];
 
@@ -14,30 +17,38 @@ for (var i=0; i<items.length; i++) {
   if (fileName.indexOf('.yaml') == fileName.length-5) {
     const testcase = yaml.safeLoad(fs.readFileSync( __dirname + '/cases/' + fileName, 'utf8'));
 
-    describe(fileName, ()=> {
-      testcase.tests.forEach((t)=>{
-        // console.log(yaml.dump(subj.parse(t.expression)));
-        let exprs = Array.isArray(t.expression) ? t.expression : [t.expression];
-        exprs.forEach((e)=>{
-          it(((t.desc || '') + ': ' + e) , () => {
-            if (!t.error) {
-              var res = subj.evaluate(testcase.subject, e);
-              expect(res).toEqual(t.result);
-            }
-            else {
-              let exceptn = null;
-              try {
-                subj.evaluate(testcase.subject, e);
+    if((focus && testcase.focus) || focus === false) {
+      describe(fileName, ()=> {
+        testcase.tests.forEach((t)=>{
+          // console.log(yaml.dump(subj.parse(t.expression)));
+          let exprs = Array.isArray(t.expression) ? t.expression : [t.expression];
+          let console_log = console.log;
+          exprs.forEach((e)=>{
+            it(((t.desc || '') + ': ' + (e || '')) , () => {
+              if (t.disableConsoleLog)
+                console.log = function() {};
+              if (!t.error && t.expression) {
+                var res = subj.evaluate(testcase.subject, e);
+                expect(res).toEqual(t.result);
               }
-              catch (e) {
-                exceptn = e;
+              else {
+                let exceptn = null;
+                try {
+                  subj.evaluate(testcase.subject, e);
+                }
+                catch (e) {
+                  exceptn = e;
+                }
+                expect(e).not.toBe(null);
               }
-              expect(e).not.toBe(null);
-            }
+              if (t.disableConsoleLog)
+                console.log = console.log;
+            });
           });
         });
       });
-    });
+
+    }
   }
 }
 

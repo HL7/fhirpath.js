@@ -18,7 +18,7 @@ npm install –save fhirpath
 ```js
 
 const fhirpath = require('fhirpath');
-fhirpath('{"resourceType": "Patient", ...}', 'Patient.name.given');
+fhirpath.evaluate('{"resourceType": "Patient", ...}', 'Patient.name.given');
 
 // precompile fhirpath
 const path = fhirpath.compile('Patient.name.given');
