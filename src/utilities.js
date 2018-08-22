@@ -10,7 +10,7 @@ var util =  {};
 util.raiseError = function(message, fnName) {
   fnName = fnName ? fnName + ": " : "";
   throw fnName + message;
-}
+};
 
 /**
  *  Throws an exception if the collection contains more than one value.
@@ -23,7 +23,7 @@ util.assertAtMostOne = function (collection, errorMsgPrefix) {
     util.raiseError("Was expecting no more than one element but got " +
       JSON.stringify(collection), errorMsgPrefix);
   }
-}
+};
 
 /**
  *  Throws an exception if the data is not one of the expected types.
@@ -38,6 +38,6 @@ util.assertType = function(data, types, errorMsgPrefix) {
     util.raiseError("Found type '"+(typeof data)+"' but was expecting " +
       typeList, errorMsgPrefix);
   }
-}
+};
 
 module.exports = util;

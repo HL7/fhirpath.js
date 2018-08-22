@@ -40,7 +40,7 @@ function mathFunctionInit(engine) {
           throw "AdditiveExpression: Unexpected operator: " +operator;
       }
     }
-  }
+  };
 
   engine.MultiplicativeExpression = function(ctx, parentData, node) {
     let left = engine.doEval(ctx, parentData, node.children[0]);
@@ -64,11 +64,11 @@ function mathFunctionInit(engine) {
       return [Math.floor(left / right)];
     else // should never reach here, per grammar
       throw "MultiplicativeExpression: Unexpected operator: " +operator;
-  }
+  };
 
   var evalTable = engine.evalTable;
   evalTable.AdditiveExpression = engine.AdditiveExpression;
   evalTable.MultiplicativeExpression = engine.MultiplicativeExpression;
 }
 
-module.exports = mathFunctionInit
+module.exports = mathFunctionInit;
