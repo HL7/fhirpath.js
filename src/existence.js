@@ -2,6 +2,7 @@
 // specification).
 
 var util = require("./utilities");
+var deepEqual = require('./deep-equal');
 
 /**
  *  Adds the existence functions to the given FHIRPath engine.
@@ -80,6 +81,37 @@ function engineBuilder(engine) {
     return [rtn];
   };
 
+  engine.subsetOfMacro = function(ctx, parentData, node) {
+    var lambda = node[0].children[0];
+    var otherCollection = engine.doEval(ctx, ctx.dataRoot, lambda);
+    let rtn = parentData.length <= otherCollection.length;
+    if (rtn) {
+      // This requires a deep-equals comparision of every object in parentData,
+      // against each objectin otherCollection.
+      // Optimize by building a hashmap of JSON versions of the objects.
+      var otherHash = {};
+      for (let p=0, pLen=parentData.length; p<pLen && rtn; ++p) {
+        let pObj = parentData[p];
+        let pObjStr = JSON.stringify(pObj);
+        let found = false;
+        if (p===0) { // otherHash is not yet built
+          for (let i=0, len=parentData.length; i<len && !found; ++i) {
+            let otherObj = otherCollection[i];
+            otherHash[JSON.stringify(otherObj)] = otherObj;
+            found = deepEqual(pObj, otherObj);
+          }
+          rtn = found;
+        }
+        else {
+          let foundObj = otherHash[pObjStr];
+          // If the JSON matches, check the objects
+          rtn = foundObj ? deepEqual(pObj, foundObj) : false;
+        }
+      }
+    }
+    return [rtn];
+  };
+
   var fnTable = engine.fnTable;
   var existenceFns = ["empty", "not", "allTrue", "anyTrue",
     'allFalse', 'anyFalse'];
@@ -88,8 +120,11 @@ function engineBuilder(engine) {
     fnTable[name] = engine[name+"Fn"];
   }
 
-  engine.macroTable.exists = engine.existsMacro;
-  engine.macroTable.all = engine.allMacro;
+  var macros = ['exists', 'all', 'subsetOf'];
+  for (let i=0, len=macros.length; i<len; ++i) {
+    let name=macros[i];
+    engine.macroTable[name] = engine[name+"Macro"];
+  }
 }
 
 module.exports = engineBuilder;

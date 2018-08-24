@@ -394,24 +394,40 @@ engine.doEval = function(ctx, parentData, node) {
   }
 };
 
+var parse = function(path) {
+  return parser.parse(path);
+};
+
+
+/**
+ *  Applies the given parsed FHIRPath expression to the given resource,
+ *  returning the result of doEval.
+ */
+function applyParsedPath(resource, parsedPath) {
+  let dataRoot = engine.arraify(resource);
+  return engine.doEval({dataRoot: dataRoot}, dataRoot, parsedPath.children[0]);
+}
+
 /**
  * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
  * @param {string} path - fhirpath expression, sample 'Patient.name.given'
  */
 var evaluate = function(resource, path) {
   const node = parser.parse(path);
-  return engine.doEval({}, engine.arraify(resource), node.children[0]);
+  return applyParsedPath(resource, node);
 };
 
-var parse = function(path) {
-  return parser.parse(path);
-};
-
-
+/**
+ *  Returns a function that takes a resource and returns the result of
+ *  evaluating the given FHIRPath expression on that resource.  The advantage
+ *  of this function over "evaluate" is that if you have multiple resources,
+ *  the given FHIRPath expression will only be parsed once.
+ * @param path the FHIRPath expression to be parsed.
+ */
 var compile = function(path) {
   const node = parse(path);
   return function(resource) {
-    return engine.doEval({}, engine.arraify(resource), node.children[0]);
+    return applyParsedPath(resource, node);
   };
 };
 
