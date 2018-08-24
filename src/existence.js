@@ -81,36 +81,52 @@ function engineBuilder(engine) {
     return [rtn];
   };
 
-  engine.subsetOfMacro = function(ctx, parentData, node) {
-    var lambda = node[0].children[0];
-    var otherCollection = engine.doEval(ctx, ctx.dataRoot, lambda);
-    let rtn = parentData.length <= otherCollection.length;
+
+  /**
+   *  Returns true if coll1 is a subset of coll2.
+   */
+  function subsetOf(coll1, coll2) {
+    let rtn = coll1.length <= coll2.length;
     if (rtn) {
-      // This requires a deep-equals comparision of every object in parentData,
-      // against each objectin otherCollection.
+      // This requires a deep-equals comparision of every object in coll1,
+      // against each objectin coll2.
       // Optimize by building a hashmap of JSON versions of the objects.
-      var otherHash = {};
-      for (let p=0, pLen=parentData.length; p<pLen && rtn; ++p) {
-        let pObj = parentData[p];
-        let pObjStr = JSON.stringify(pObj);
+      var c2Hash = {};
+      for (let p=0, pLen=coll1.length; p<pLen && rtn; ++p) {
+        let obj1 = coll1[p];
+        let obj1Str = JSON.stringify(obj1);
         let found = false;
-        if (p===0) { // otherHash is not yet built
-          for (let i=0, len=parentData.length; i<len && !found; ++i) {
-            let otherObj = otherCollection[i];
-            otherHash[JSON.stringify(otherObj)] = otherObj;
-            found = deepEqual(pObj, otherObj);
+        if (p===0) { // c2Hash is not yet built
+          for (let i=0, len=coll2.length; i<len; ++i) {
+            // No early return from this loop, because we're building c2Hash.
+            let obj2 = coll2[i];
+            c2Hash[JSON.stringify(obj2)] = obj2;
+            found = found || deepEqual(obj1, obj2);
           }
           rtn = found;
         }
         else {
-          let foundObj = otherHash[pObjStr];
+          let foundObj = c2Hash[obj1Str];
           // If the JSON matches, check the objects
-          rtn = foundObj ? deepEqual(pObj, foundObj) : false;
+          rtn = foundObj ? deepEqual(obj1, foundObj) : false;
         }
       }
     }
-    return [rtn];
+    return rtn;
+  }
+
+  engine.subsetOfMacro = function(ctx, parentData, node) {
+    var lambda = node[0].children[0];
+    var otherCollection = engine.doEval(ctx, ctx.dataRoot, lambda);
+    return [subsetOf(parentData, otherCollection)];
   };
+
+  engine.supersetOfMacro = function(ctx, parentData, node) {
+    var lambda = node[0].children[0];
+    var otherCollection = engine.doEval(ctx, ctx.dataRoot, lambda);
+    return [subsetOf(otherCollection, parentData)];
+  };
+
 
   var fnTable = engine.fnTable;
   var existenceFns = ["empty", "not", "allTrue", "anyTrue",
@@ -120,7 +136,7 @@ function engineBuilder(engine) {
     fnTable[name] = engine[name+"Fn"];
   }
 
-  var macros = ['exists', 'all', 'subsetOf'];
+  var macros = ['exists', 'all', 'subsetOf', 'supersetOf'];
   for (let i=0, len=macros.length; i<len; ++i) {
     let name=macros[i];
     engine.macroTable[name] = engine[name+"Macro"];

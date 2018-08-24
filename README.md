@@ -52,7 +52,7 @@ We are currently implementing version 1.0 (a.k.a STU1) of
 [FHIRPath](http://hl7.org/fhirpath/).
 
 Completed sections:
-- 5.1.1-5.1.8 (various functions under "Existence")
+- 5.1.1-5.1.10 (various functions under "Existence")
 - 6.1 (Equality)
 - 6.6 (Math)
 
