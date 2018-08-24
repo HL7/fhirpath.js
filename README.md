@@ -45,7 +45,24 @@ fhirpath 'Patient.name.given'
 
 > ... will print fhirpath ast in yaml
 
+
+## Implementation Status
+
+We are currently implementing version 1.0 (a.k.a STU1) of
+[FHIRPath](http://hl7.org/fhirpath/).
+
+Completed sections:
+- 5.1.1-5.1.8 (various functions under "Existence")
+- 6.1 (Equality)
+- 6.6 (Math)
+
+Partially completed sections:
+- 6.2 (Comparison) - type checking is not completely performed
+
 ## Development Notes
+
+This section is for people doing development on this package (as opposed to
+using the package).
 
 If you need to regenerate the parser from the ANTLR4 grammar (which is in
 parser/FHIRPath.g4), first download the
@@ -53,7 +70,7 @@ ANTLR4 library from http://www.antlr.org/download/antlr-4.7.1-complete.jar into
 the root of the project directory, and then run "npm run generateParser".
 
 
-## Demo page
+### Building the demo page
 
 ```
 npm run build
