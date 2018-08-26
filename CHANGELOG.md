@@ -7,6 +7,7 @@ This log documents significant changes for each release.  This project follows
 ### Added
  - Support for $this
  - all/any True/False.
+ - Support for !~ and  =~
 
 ## [0.2.3] - 2018-08-13
 ### Changed
