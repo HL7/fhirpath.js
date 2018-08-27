@@ -211,14 +211,6 @@ engine.macroTable = {
 };
 
 
-engine.countFn = function(x) {
-  if (x && x.length) {
-    return [x.length];
-  } else {
-    return [0];
-  }
-};
-
 engine.traceFn = function(x, label) {
   console.log("TRACE:[" + (label || "") + "]", JSON.stringify(x, null, " "));
   return x;
@@ -303,7 +295,6 @@ engine.skipFn = function(x, num) {
 
 engine.fnTable = {
   empty: engine.emptyFn,
-  count: engine.countFn,
   single: engine.singleFn,
   first: engine.firstFn,
   last: engine.lastFn,

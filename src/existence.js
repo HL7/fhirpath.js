@@ -103,13 +103,10 @@ function engineBuilder(engine) {
             c2Hash[JSON.stringify(obj2)] = obj2;
             found = found || deepEqual(obj1, obj2);
           }
-          rtn = found;
         }
-        else {
-          let foundObj = c2Hash[obj1Str];
-          // If the JSON matches, check the objects
-          rtn = foundObj ? deepEqual(obj1, foundObj) : false;
-        }
+        else
+          found = !!c2Hash[obj1Str];
+        rtn = found;
       }
     }
     return rtn;
@@ -127,10 +124,40 @@ function engineBuilder(engine) {
     return [subsetOf(otherCollection, parentData)];
   };
 
+  engine.isDistinctFn = function(x) {
+    return [x.length === engine.distinctFn(x).length];
+  };
+
+  engine.distinctFn = function(x) {
+    let unique = [];
+    // Since this requires a deep equals, use a hash table (on JSON strings) for
+    // efficiency.
+    if (x.length > 0) {
+      let uniqueHash = {};
+      for (let i=0, len=x.length; i<len; ++i) {
+        let xObj = x[i];
+        let xStr = JSON.stringify(xObj);
+        let uObj = uniqueHash[xStr];
+        if (uObj === undefined) {
+          unique.push(xObj);
+          uniqueHash[xStr] = xObj;
+        }
+      }
+    }
+    return unique;
+  };
+
+  engine.countFn = function(x) {
+    if (x && x.length) {
+      return [x.length];
+    } else {
+      return [0];
+    }
+  };
 
   var fnTable = engine.fnTable;
   var existenceFns = ["empty", "not", "allTrue", "anyTrue",
-    'allFalse', 'anyFalse'];
+    'allFalse', 'anyFalse', 'isDistinct', 'distinct', 'count'];
   for (let i=0, len=existenceFns.length; i<len; ++i) {
     let name=existenceFns[i];
     fnTable[name] = engine[name+"Fn"];
