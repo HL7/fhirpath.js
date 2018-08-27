@@ -11,6 +11,28 @@ tests:
   - desc: Error adding non-matching types
     expression: n1 + s5
     error: true
+
+  - desc: Error truncated divide array of numbers
+    expression: MathTestData.n1 div MathTestData.a3
+    error: true
+  - desc: Error truncated divide missing numbers
+    expression: MathTestData.n1 div MathTestData.n4
+    error: true
+  - desc: Error truncated divide non-number
+    expression: MathTestData.n1 div MathTestData.s5
+    error: true
+
+
+  - desc: Error reminder of truncated division array of numbers
+    expression: MathTestData.n1 mod MathTestData.a3
+    error: true
+  - desc: Error reminder of runcated division missing numbers
+    expression: MathTestData.n1 mod MathTestData.n4
+    error: true
+  - desc: Error reminder of truncated division non-number
+    expression: MathTestData.n1 mod MathTestData.s5
+    error: true
+
   - desc: Error adding non-matching types (2)
     expression: s5 + n1
     error: true
