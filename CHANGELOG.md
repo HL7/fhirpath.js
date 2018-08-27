@@ -3,7 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [0.3.0] - 2018-08-15
+## [0.4.0] - 2018-08-27
+### Added
+ - Remaining functions in 5.1 (Existence) of the FHIRPath specification.
+
+## [0.3.0] - 2018-08-24
 ### Added
  - Support for $this
  - all/any True/False.
