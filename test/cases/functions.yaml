@@ -244,6 +244,7 @@ tests:
 # collection. Membership is determined using the equals (=) operation (see
 # below).
 
+# Note - The following paragraph is from the spec, but the spec is in error.
 # Conceptually, this function is evaluated by testing each element in the other
 # collection for membership in the input collection, with a default of false.
 # This means that if the input collection is empty ({ }), the result is false,
@@ -257,16 +258,16 @@ tests:
     expression: Functions.attrempty.supersetOf(Functions.attrdouble)
     result: [false]
 
-  - desc: '** if input coll isnt exists  - result of superset is false'
-    expression: Functions.attrempty.supersetOf(Functions.nothing)
+  - desc: '** if input coll isnt exists and argument is non-empty, result of superset is false'
+    expression: Functions.attrempty.supersetOf(Functions.attrdouble)
     result: [false]
 
   - desc: '** if argument coll is superset of input coll result is true'
-    expression: Functions.coll1[0].coll2.attr.subsetOf(Functions.attrdouble)
+    expression: Functions.coll1[0].coll2.attr.supersetOf(Functions.attrdouble)
     result: [true]
 
   - desc: '** if argument coll isnt superset of input coll result is false'
-    expression: Functions.attrdouble.subsetOf(Functions.coll1[0].coll2.attr)
+    expression: Functions.attrdouble.supersetOf(Functions.coll1[0].coll2.attr)
     result: [false]
 
 
@@ -291,11 +292,11 @@ tests:
     result: [true]
 
   - desc: '** isDistinct of distinct coll'
-    expression: Functions.coll1[0].coll2.attr.isDistinct()
+    expression: Functions.coll1.coll2.attr.isDistinct()
     result: [true]
 
-  - desc: '** isDistinct of coll with different values'
-    expression: Functions.coll1[2].collwithfalse.attr.isDistinct()
+  - desc: '** isDistinct of coll with same values'
+    expression: Functions.coll1.collfalse.attr.isDistinct()
     result: [false]
 
 
