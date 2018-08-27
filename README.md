@@ -52,12 +52,17 @@ We are currently implementing version 1.0 (a.k.a STU1) of
 [FHIRPath](http://hl7.org/fhirpath/).
 
 Completed sections:
-- 5.1.1-5.1.10 (various functions under "Existence")
+- 5.1 (Existence)
 - 6.1 (Equality)
 - 6.6 (Math)
 
 Partially completed sections:
 - 6.2 (Comparison) - type checking is not completely performed
+
+Deviations:
+- The library compares dateTime strings as strings, because it does not know
+  which strings are dates.  If your times consistently use "Z" for their
+  timezone, or consistently avoid using "Z", this should not cause a problem.
 
 ## Development Notes
 

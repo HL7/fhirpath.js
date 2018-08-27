@@ -3,10 +3,9 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [0.4.0] - 2018-08-
+## [0.4.0] - 2018-08-27
 ### Added
- - subsetOf
- - supersetOf
+ - Remaining functions in 5.1 (Existence) of the FHIRPath specification.
 
 ## [0.3.0] - 2018-08-24
 ### Added
