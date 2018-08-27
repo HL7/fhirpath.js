@@ -2,7 +2,6 @@
 // specification).
 
 var util = require("./utilities");
-var deepEqual = require('./deep-equal');
 
 /**
  *  Adds the existence functions to the given FHIRPath engine.
@@ -100,8 +99,9 @@ function engineBuilder(engine) {
           for (let i=0, len=coll2.length; i<len; ++i) {
             // No early return from this loop, because we're building c2Hash.
             let obj2 = coll2[i];
-            c2Hash[JSON.stringify(obj2)] = obj2;
-            found = found || deepEqual(obj1, obj2);
+            let obj2Str = JSON.stringify(obj2);
+            c2Hash[obj2Str] = obj2;
+            found = found || (obj1Str === obj2Str);
           }
         }
         else

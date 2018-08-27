@@ -73,8 +73,6 @@ function init(engine) {
     }
     return rtn;
   };
-
-  engine.deepEqual = deepEqual; // needed in existence.js
 }
 
 module.exports = init;
