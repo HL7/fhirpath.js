@@ -387,10 +387,11 @@ tests:
     expression: Functions.attrempty.select(nothing)
     result: []
 
-  - desc: '** select 4'
-  - desc: 'TODO - is valid case? how it works?'
+  - desc: '** select 4:  Select a union of two allTrue function calls, for each item in coll1'
+    # Note: Of the 6 items in coll1, only two contain a colltrue or a collfalse
+    # member, for the others the result of allTrue on an empty set will be true.
     expression: Functions.coll1.select(colltrue.attr.allTrue() | collfalse.attr.allTrue())
-    result: [true]
+    result: [true, true, true, true, true, true, true, true, true, false, true, true]
 
 
   - desc: '5.2.3. repeat(projection: expression) : collection'
@@ -410,19 +411,16 @@ tests:
 # which would find any descendants called group or question, not just the ones nested inside other group or question elements.
   - desc: '* traverse tree'
   - desc: '** find all attrs'
-    expression: Functions.repeat(attr).count()
-    result: [12]
+    expression: Functions.repeat(repeatingAttr).count()
+    result: [2]
 
-  - desc: '** find all 2 and 3 values'
-    expression: Functions.repeat(2 | 3).count();
-    result: [4]
+  - desc: '** find all repeatingAttr.a values'
+    expression: Functions.repeat(repeatingAttr).a
+    result: [2, 1]
 
-  - desc: 'TODO/FIXME infinite loop test:'
-    expression: true
-    result: false
-  # - desc: '** find all true values in nested coll'
-  #   expression: Functions.coll1.colltrue.repeat(true)
-  #   result: [true, true, true]
+  - desc: '** find all true values in nested coll'
+    expression: Functions.coll1.colltrue.repeat(attr)
+    result: [true, true, true]
 
   - desc: '** find non-exists value'
     expression: Functions.coll1.repeat(nothing)
@@ -492,7 +490,7 @@ tests:
   - desc: '** [big index]'
     expression: Functions.coll1[100].coll2[0].attr
     result: []
- 
+
   - desc: '5.3.2. single() : collection'
 # Will return the single item in the input if there
 # is just one item. If the input collection is empty ({ }), the result is empty.
@@ -516,7 +514,7 @@ tests:
     result:
       $status: error
       $error: Expected single
- 
+
   - desc: '5.3.3. first() : collection'
 # Returns a collection containing only the first
 # item in the input collection. This function is equivalent to item(0), so it
@@ -696,6 +694,11 @@ subject:
   attrobject:
     a: 1
     b: 2
+    repeatingAttr: 5
+  repeatingAttr:
+    repeatingAttr:
+      a: 1
+    a: 2
   coll1:
     - coll2:
         - attr: 1

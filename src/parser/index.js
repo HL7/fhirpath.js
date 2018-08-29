@@ -82,7 +82,13 @@ var parse = function(path){
   antlr4.tree.ParseTreeWalker.DEFAULT.walk(printer, tree);
 
   if (errors.length > 0) {
-    var e = new Error();
+    let errMsgs = [];
+    for (let i=0, len=errors.length; i<len; ++i) {
+      let err = errors[i];
+      errMsgs.push("rec: "+err[0]+"; sym: "+err[1]+"; line: "+err[2]+"; col: "+
+        err[3]+"; msg: "+err[4]+"; e: "+err[5]);
+    }
+    var e = new Error(errMsgs.join("\n"));
     e.errors = errors;
     throw e;
   }
