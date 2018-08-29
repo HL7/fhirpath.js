@@ -615,7 +615,7 @@ tests:
 
   - desc: '** Combine empty coll with non-empty coll'
     expression: Functions.attrempty.combine(Functions.coll1.colltrue.attr)
-    result: [truei, true, true]
+    result: [true, true, true]
 
   - desc: '** Combine colls'
     expression: Functions.attrdouble.combine(Functions.coll1.colltrue.attr)
