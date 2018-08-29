@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.4.1] - 2018-08-29
+### Added
+ - Tests for functions in 5.2 (except ofType), which is not yet implemented.
+
 ## [0.4.0] - 2018-08-27
 ### Added
  - Remaining functions in 5.1 (Existence) of the FHIRPath specification.
