@@ -40,4 +40,42 @@ util.assertType = function(data, types, errorMsgPrefix) {
   }
 };
 
+util.isEmpty = function(x){
+  return Array.isArray(x) && x.length == 0;
+};
+
+util.isSome = function(x){
+  return x !== null && x !== undefined && !util.isEmpty(x);
+};
+
+util.isTrue = function(x){
+  return x !== null && x !== undefined && (x === true || (x.length == 1 && x[0] === true));
+};
+
+util.isFalse = function(x){
+  return x !== null && x !== undefined && (x === false || (x.length == 1 && x[0] === false));
+};
+
+util.isCapitalized = function(x){
+  return x && (x[0] === x[0].toUpperCase());
+};
+
+util.flatten = function(x){
+  return x.reduce(function(acc, x) {
+    if(Array.isArray(x)){
+      // todo replace with array modification
+      acc = acc.concat(x);
+    } else {
+      acc.push(x);
+    }
+    return acc;
+  }, []);
+};
+
+util.arraify = function(x){
+  if(Array.isArray(x)){ return x; }
+  if(util.isSome(x)){ return [x]; }
+  return [];
+};
+
 module.exports = util;

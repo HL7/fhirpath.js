@@ -8,7 +8,7 @@ const fs   = require('fs');
 var items = fs.readdirSync(__dirname + '/cases/');
 
 // Set "focus" to true to turn on focus option
-var focus = false;
+var focus = true;
 
 for (var i=0; i<items.length; i++) {
   var fileName = items[i];

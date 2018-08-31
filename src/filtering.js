@@ -4,6 +4,8 @@
 /**
  *  Adds the filtering and projection functions to the given FHIRPath engine.
  */
+let util = require('./utilities');
+
 function engineBuilder(engine) {
   "use strict";
 
@@ -13,7 +15,7 @@ function engineBuilder(engine) {
     // for example an EqualityExpression.
     var lambda = node[0].children[0];
 
-    return engine.flatten(parentData.filter(function(x) {
+    return util.flatten(parentData.filter(function(x) {
       return engine.doEval(ctx, [x], lambda)[0];
     }));
   };
@@ -23,7 +25,7 @@ function engineBuilder(engine) {
 
     var lambda = node[0].children[0];
 
-    return engine.flatten(parentData.map(function(x) {
+    return util.flatten(parentData.map(function(x) {
       return engine.doEval(ctx, [x], lambda);
     }));
   };
@@ -39,7 +41,7 @@ function engineBuilder(engine) {
     var lres = null;
     while (items.length != 0) {
       next = items.shift();
-      lres = engine.flatten(engine.doEval(ctx, [next], lambda));
+      lres = util.flatten(engine.doEval(ctx, [next], lambda));
       if(lres){
         res = res.concat(lres);
         items = items.concat(lres);

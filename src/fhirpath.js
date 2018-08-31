@@ -16,38 +16,25 @@
 // be evaluated inside macro
 
 const parser = require("./parser");
-// var util = require("./utilities");
+const util = require("./utilities");
 
 let engine = {}; // the object with all FHIRPath functions and operations
+let existence = require("./existence");
 
-engine.isEmpty = function(x){
-  return Array.isArray(x) && x.length == 0;
-};
-
-engine.isSome = function(x){
-  return x !== null && x !== undefined && !engine.isEmpty(x);
-};
-
-engine.isCapitalized = function(x){
-  return x && (x[0] === x[0].toUpperCase());
-};
-
-engine.flatten = function(x){
-  return x.reduce(function(acc, x) {
-    if(Array.isArray(x)){
-      // todo replace with array modification
-      acc = acc.concat(x);
-    } else {
-      acc.push(x);
-    }
-    return acc;
-  }, []);
-};
-
-engine.arraify = function(x){
-  if(Array.isArray(x)){ return x; }
-  if(engine.isSome(x)){ return [x]; }
-  return [];
+engine.invocationTable = {
+  empty:        {fn: existence.emptyFn},
+  not:          {fn: existence.notFn},
+  exists:       {fn: existence.existsMacro, arity: {0: [], 1: ["Expr"]}},
+  all:          {fn: existence.allMacro, arity: {1: ["Expr"]}},
+  allTrue:      {fn: existence.allTrueFn},
+  anyTrue:      {fn: existence.anyTrueFn},
+  allFalse:     {fn: existence.allFalseFn},
+  anyFalse:     {fn: existence.anyFalseFn},
+  subsetOf:     {fn: existence.subsetOfFn, arity: {1: ["Any"]}},
+  supersetOf:   {fn: existence.supersetOfFn, arity: {1: ["Any"]}},
+  isDistinct:   {fn: existence.isDistinctFn},
+  distinct:     {fn: existence.distinctFn},
+  count:        {fn: existence.countFn}
 };
 
 engine.InvocationExpression = function(ctx, parentData, node) {
@@ -98,12 +85,12 @@ engine.MemberInvocation = function(ctx, parentData ,node ) {
   const key = engine.doEval(ctx, parentData, node.children[0])[0];
 
   if (parentData) {
-    if(engine.isCapitalized(key)) {
+    if(util.isCapitalized(key)) {
       return parentData.filter(function(x) { return x.resourceType === key; });
     } else {
       return parentData.reduce(function(acc, res) {
         var toAdd = res[key];
-        if(engine.isSome(toAdd)) {
+        if(util.isSome(toAdd)) {
           if(Array.isArray(toAdd)) {
             // replace with array modification
             acc = acc.concat(toAdd);
@@ -127,12 +114,12 @@ engine.IndexerExpression = function(ctx, parentData, node) {
   var coll = engine.doEval(ctx, parentData, coll_node);
   var idx = engine.doEval(ctx, parentData, idx_node);
 
-  if(engine.isEmpty(idx)) {
+  if(util.isEmpty(idx)) {
     return [];
   }
 
   var idxNum = parseInt(idx[0]);
-  if(coll && engine.isSome(idxNum) && coll.length>idxNum && idxNum>=0) {
+  if(coll && util.isSome(idxNum) && coll.length>idxNum && idxNum>=0) {
     return [coll[idxNum]];
   } else {
     return [];
@@ -153,7 +140,7 @@ engine.iifMacro = function(ctx, parentData, node) {
   var succ = exprs[1];
   var fail = exprs[2];
 
-  var res = engine.flatten(engine.doEval(ctx, parentData, cond));
+  var res = util.flatten(engine.doEval(ctx, parentData, cond));
   if(res[0]){
     return engine.doEval(ctx, parentData, succ);
   } else {
@@ -190,7 +177,7 @@ engine.singleFn = function(x) {
 
 
 engine.firstFn = function(x) {
-  if(engine.isSome(x)){
+  if(util.isSome(x)){
     if(x.length){
       return [x[0]];
     } else {
@@ -202,7 +189,7 @@ engine.firstFn = function(x) {
 };
 
 engine.lastFn = function(x) {
-  if(engine.isSome(x)){
+  if(util.isSome(x)){
     if(x.length){
       return [x[x.length - 1]];
     } else {
@@ -214,7 +201,7 @@ engine.lastFn = function(x) {
 };
 
 engine.tailFn = function(x) {
-  if(engine.isSome(x)){
+  if(util.isSome(x)){
     if(x.length){
       return x.slice(1, x.length);
     } else {
@@ -226,7 +213,7 @@ engine.tailFn = function(x) {
 };
 
 engine.takeFn = function(x, n) {
-  if(engine.isSome(x)){
+  if(util.isSome(x)){
     if(x.length){
       return x.slice(0, n);
     } else {
@@ -250,7 +237,6 @@ engine.skipFn = function(x, num) {
 };
 
 engine.fnTable = {
-  empty: engine.emptyFn,
   single: engine.singleFn,
   first: engine.firstFn,
   last: engine.lastFn,
@@ -259,6 +245,8 @@ engine.fnTable = {
   skip: engine.skipFn,
   trace: engine.traceFn
 };
+
+// TODO: this is new table
 
 engine.realizeParams = function(ctx, parentData, args) {
   if(args && args[0] && args[0].children) {
@@ -270,21 +258,75 @@ engine.realizeParams = function(ctx, parentData, args) {
   }
 };
 
+const paramTable = {
+  "Any": function(ctx, parentData, type, param){
+    return engine.doEval(ctx, ctx.dataRoot, param);
+  },
+  "Expr": function(ctx, parentData, type, param){
+    return function(data) {
+      return engine.doEval(ctx, util.arraify(data), param); 
+    };
+  }
+};
+
+function makeParam(ctx, parentData, type, param) {
+  var maker = paramTable[type];
+  if(maker){
+    return maker(ctx, parentData, type, param);
+  } else {
+    console.error(type, param);
+    throw new Error("IMPL me for " + type);
+  }
+}
+
 engine.FunctionInvocation = function(ctx, parentData, node) {
   var args = engine.doEval(ctx, parentData, node.children[0]);
+
   const fnName = args[0];
   args.shift();
-  var macro = engine.macroTable[fnName];
-  if(macro){
-    return macro(ctx, parentData, args);
-  } else {
-    var fn = engine.fnTable[fnName];
-    if(fn){
-      var params = engine.realizeParams(ctx, parentData, args);
-      params.unshift(parentData);
-      return fn.apply(ctx, params);
+  var invoc = engine.invocationTable[fnName];
+  if(invoc) {
+    var rawParams = args && args[0] && args[0].children;
+    if(!invoc.arity){
+      if(!rawParams){
+        if(invoc.propogateEmpty && parentData.length == 0){
+          return [];
+        } else {
+          return invoc.fn.call(ctx, util.arraify(parentData));
+        }
+      } else {
+        throw new Error(fnName + " expects no params");
+      }
     } else {
-      throw new Error("No function [" + fnName + "] defined ");
+      var paramsNumber = rawParams ? rawParams.length : 0;
+      var argTypes = invoc.arity[paramsNumber];
+      if(argTypes){
+        var params = [];
+        for(var i = 0; i < paramsNumber; i++){
+          var tp = argTypes[i];
+          var pr = rawParams[i];
+          params.push(makeParam(ctx, parentData, tp, pr));
+        }
+        params.unshift(parentData);
+        return invoc.fn.apply(ctx, params);
+      } else {
+        console.log(fnName + " wrong arity");
+        return [];
+      }
+    }
+  } else {
+    var macro = engine.macroTable[fnName];
+    if(macro){
+      return macro(ctx, parentData, args);
+    } else {
+      var fn = engine.fnTable[fnName];
+      if(fn){
+        var params = engine.realizeParams(ctx, parentData, args);
+        params.unshift(parentData);
+        return fn.apply(ctx, params);
+      } else {
+        throw new Error("No function [" + fnName + "] defined ");
+      }
     }
   }
 };
@@ -328,7 +370,6 @@ engine.evalTable = {
   UnionExpression: engine.UnionExpression,
 };
 
-require("./existence")(engine);
 require("./filtering")(engine);
 require("./math")(engine);
 require("./equality")(engine);
@@ -352,7 +393,7 @@ var parse = function(path) {
  *  returning the result of doEval.
  */
 function applyParsedPath(resource, parsedPath) {
-  let dataRoot = engine.arraify(resource);
+  let dataRoot = util.arraify(resource);
   return engine.doEval({dataRoot: dataRoot}, dataRoot, parsedPath.children[0]);
 }
 

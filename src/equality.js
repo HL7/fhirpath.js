@@ -7,13 +7,13 @@ function init(engine) {
   "use strict";
 
   function equality(x,y){
-    if(engine.isEmpty(x) || engine.isEmpty(y)) { return []; }
+    if(util.isEmpty(x) || util.isEmpty(y)) { return []; }
     return [deepEqual(x, y)];
   }
 
   function equivalence(x,y){
-    if(engine.isEmpty(x) && engine.isEmpty(y)) { return [true]; }
-    if(engine.isEmpty(x) || engine.isEmpty(y)) { return []; }
+    if(util.isEmpty(x) && util.isEmpty(y)) { return [true]; }
+    if(util.isEmpty(x) || util.isEmpty(y)) { return []; }
     return [deepEqual(x, y, {fuzzy: true})];
   }
 

@@ -1,3 +1,4 @@
+focus: true
 tests:
   - expression:
       - Patient.name.family
@@ -49,6 +50,9 @@ tests:
     result: ["Organization/1"]
 
   - expression: Patient.name.exists()
+    result: [true]
+
+  - expression: Patient.name.exists(given)
     result: [true]
 
   - expression: Patient.ups.exists()
