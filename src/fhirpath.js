@@ -20,6 +20,7 @@ const util = require("./utilities");
 
 let engine = {}; // the object with all FHIRPath functions and operations
 let existence = require("./existence");
+let filtering = require("./filtering");
 
 engine.invocationTable = {
   empty:        {fn: existence.emptyFn},
@@ -34,7 +35,10 @@ engine.invocationTable = {
   supersetOf:   {fn: existence.supersetOfFn, arity: {1: ["Any"]}},
   isDistinct:   {fn: existence.isDistinctFn},
   distinct:     {fn: existence.distinctFn},
-  count:        {fn: existence.countFn}
+  count:        {fn: existence.countFn},
+  where:        {fn: filtering.whereMacro, arity: {1: ["Expr"]}},
+  select:       {fn: filtering.selectMacro, arity: {1: ["Expr"]}},
+  repeat:       {fn: filtering.repeatMacro, arity: {1: ["Expr"]}}
 };
 
 engine.InvocationExpression = function(ctx, parentData, node) {
@@ -370,7 +374,6 @@ engine.evalTable = {
   UnionExpression: engine.UnionExpression,
 };
 
-require("./filtering")(engine);
 require("./math")(engine);
 require("./equality")(engine);
 
