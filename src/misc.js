@@ -19,4 +19,8 @@ engine.traceFn = function(x, label) {
   return x;
 };
 
+engine.unionOp = function(coll1, coll2){
+  return coll1.concat(coll2);
+};
+
 module.exports = engine;

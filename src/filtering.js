@@ -15,10 +15,9 @@ engine.whereMacro = function(parentData, expr) {
   }));
 };
 
-engine.selectMacro = function(parentData, expr) {
-  if(parentData !== false && ! parentData) { return []; }
-
-  return util.flatten(parentData.map(function(x) {
+engine.selectMacro = function(data, expr) {
+  if(data !== false && ! data) { return []; }
+  return util.flatten(data.map(function(x) {
     return expr(x);
   }));
 };

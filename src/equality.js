@@ -3,76 +3,75 @@
 var util = require("./utilities");
 var deepEqual = require('./deep-equal');
 
-function init(engine) {
-  "use strict";
+var engine = {};
 
-  function equality(x,y){
-    if(util.isEmpty(x) || util.isEmpty(y)) { return []; }
-    return [deepEqual(x, y)];
-  }
-
-  function equivalence(x,y){
-    if(util.isEmpty(x) && util.isEmpty(y)) { return [true]; }
-    if(util.isEmpty(x) || util.isEmpty(y)) { return []; }
-    return [deepEqual(x, y, {fuzzy: true})];
-  }
-
-  engine.evalTable.EqualityExpression = function(ctx, parentData, node) {
-    var op = node.terminalNodeText[0];
-    var left = engine.doEval(ctx, parentData, node.children[0]);
-    var right = engine.doEval(ctx, parentData, node.children[1]);
-    if(op == '=') {
-      return equality(left, right);
-    } else if (op == '!=') {
-      var eq = equality(left, right);
-      return eq.length == 1 ? [!eq[0]] : [];
-    } else if (op == '~') {
-      return equivalence(left, right);
-    } else if (op == '!~') {
-      var eqv = equivalence(left, right);
-      return eqv.length == 1 ? [!eqv[0]] : [];
-    } else {
-      throw new Error(op + ' is not impl.');
-    }
-  };
-
-  engine.evalTable.InequalityExpression = function(ctx, parentData, node) {
-    var left = engine.doEval(ctx, parentData, node.children[0]);
-    var right = engine.doEval(ctx, parentData, node.children[1]);
-    let rtn;
-    if (!left.length || ! right.length)
-      rtn = [];
-    else  {
-      util.assertAtMostOne(left, "InequalityExpression");
-      util.assertAtMostOne(right, "InequalityExpression");
-      left = left[0];
-      right = right[0];
-      let lType = typeof left;
-      let rType = typeof right;
-      if (lType != rType) {
-        util.raiseError('Type of "'+left+'" did not match type of "'+right+'"', 'InequalityExpression');
-      }
-      // TBD - Check types are "string", "number", or "Date".
-      let operator = node.terminalNodeText[0];
-      switch (operator) {
-      case '<':
-        rtn = [left < right];
-        break;
-      case '>':
-        rtn = [left > right];
-        break;
-      case '<=':
-        rtn = [left <= right];
-        break;
-      case '>=':
-        rtn = [left >= right];
-        break;
-      default:
-        util.raiseError('Invalid operator "'+operator+'"', 'InequalityExpression');
-      }
-    }
-    return rtn;
-  };
+function equality(x,y){
+  if(util.isEmpty(x) || util.isEmpty(y)) { return []; }
+  return [deepEqual(x, y)];
 }
 
-module.exports = init;
+function equivalence(x,y){
+  if(util.isEmpty(x) && util.isEmpty(y)) { return [true]; }
+  if(util.isEmpty(x) || util.isEmpty(y)) { return []; }
+  return [deepEqual(x, y, {fuzzy: true})];
+}
+
+engine.equal = function(a, b){
+  return equality(a, b);
+};
+
+engine.unequal = function(a, b){
+  var eq = equality(a, b);
+  // TODO: imple utils not
+  return eq.length == 1 ? [!eq[0]] : [];
+};
+engine.equival = function(a, b){
+  return equivalence(a, b);
+};
+
+engine.unequival = function(a, b){
+  var eq =  equivalence(a, b);
+  return eq.length == 1 ? [!eq[0]] : [];
+};
+
+function typecheck(a, b){
+  util.assertAtMostOne(a, "InequalityExpression");
+  util.assertAtMostOne(b, "InequalityExpression");
+  a = a[0];
+  b = b[0];
+  let lType = typeof a;
+  let rType = typeof b;
+  if (lType != rType) {
+    util.raiseError('Type of "'+a+'" did not match type of "'+b+'"', 'InequalityExpression');
+  }
+}
+
+engine.lt = function(a, b){
+  if (!a.length || !b.length) rtn = [];
+  typecheck(a,b);
+  return [a[0] < b[0]];
+
+};
+
+engine.gt = function(a, b){
+  if (!a.length || !b.length) rtn = [];
+  typecheck(a,b);
+  return [a[0] > b[0]];
+
+};
+
+engine.lte = function(a, b){
+  if (!a.length || !b.length) rtn = [];
+  typecheck(a,b);
+  return [a[0] <= b[0]];
+
+};
+
+engine.gte = function(a, b){
+  if (!a.length || !b.length) rtn = [];
+  typecheck(a,b);
+  return [a[0] >= b[0]];
+};
+
+
+module.exports = engine;

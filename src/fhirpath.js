@@ -18,10 +18,11 @@
 const parser = require("./parser");
 const util = require("./utilities");
 
-let engine = {}; // the object with all FHIRPath functions and operations
+let engine    = {}; // the object with all FHIRPath functions and operations
 let existence = require("./existence");
 let filtering = require("./filtering");
-let misc = require("./misc");
+let misc      = require("./misc");
+let equality  =  require("./equality");
 
 engine.invocationTable = {
   empty:        {fn: existence.emptyFn},
@@ -47,7 +48,16 @@ engine.invocationTable = {
   take:         {fn: filtering.takeFn, arity: {1: ["Integer"]}},
   skip:         {fn: filtering.skipFn, arity: {1: ["Integer"]}},
   iif:          {fn: misc.iifMacro,    arity: {3: ["Expr", "Expr", "Expr"]}},
-  trace:        {fn: misc.traceFn,     arity: {0: [], 1: ["String"]}}
+  trace:        {fn: misc.traceFn,     arity: {0: [], 1: ["String"]}},
+  "|":          {fn: misc.unionOp,   arity: {2: ["Any", "Any"]}},
+  "=":          {fn: equality.equal,   arity: {2: ["Any", "Any"]}},
+  "!=":         {fn: equality.unequal,   arity: {2: ["Any", "Any"]}},
+  "~":          {fn: equality.equival,   arity: {2: ["Any", "Any"]}},
+  "!~":         {fn: equality.unequival,   arity: {2: ["Any", "Any"]}},
+  "<":          {fn: equality.lt,   arity: {2: ["Any", "Any"]}},
+  ">":          {fn: equality.gt,   arity: {2: ["Any", "Any"]}},
+  "<=":         {fn: equality.lte,   arity: {2: ["Any", "Any"]}},
+  ">=":         {fn: equality.gte,   arity: {2: ["Any", "Any"]}},
 };
 
 engine.InvocationExpression = function(ctx, parentData, node) {
@@ -162,7 +172,7 @@ engine.realizeParams = function(ctx, parentData, args) {
 
 const paramTable = {
   "Any": function(ctx, parentData, type, param){
-    return engine.doEval(ctx, ctx.dataRoot, param);
+    return engine.doEval(ctx, parentData, param);
   },
   "Integer": function(ctx, parentData, type, param){
     var res = engine.doEval(ctx, ctx.dataRoot, param);
@@ -176,7 +186,7 @@ const paramTable = {
   },
   "Expr": function(ctx, parentData, type, param){
     return function(data) {
-      return engine.doEval(ctx, util.arraify(data), param); 
+      return engine.doEval(ctx, util.arraify(data), param);
     };
   }
 };
@@ -184,6 +194,8 @@ const paramTable = {
 function makeParam(ctx, parentData, type, param) {
   var maker = paramTable[type];
   if(maker){
+    // this is hack for $this
+    ctx.currentData = parentData;
     return maker(ctx, parentData, type, param);
   } else {
     console.error(type, param);
@@ -191,20 +203,15 @@ function makeParam(ctx, parentData, type, param) {
   }
 }
 
-engine.FunctionInvocation = function(ctx, parentData, node) {
-  var args = engine.doEval(ctx, parentData, node.children[0]);
-
-  const fnName = args[0];
-  args.shift();
+function doInvoke(ctx, fnName, data, rawParams){
   var invoc = engine.invocationTable[fnName];
   if(invoc) {
-    var rawParams = args && args[0] && args[0].children;
     if(!invoc.arity){
       if(!rawParams){
-        if(invoc.propogateEmpty && parentData.length == 0){
+        if(invoc.propogateEmpty && data.length == 0){
           return [];
         } else {
-          return invoc.fn.call(ctx, util.arraify(parentData));
+          return invoc.fn.call(ctx, util.arraify(data));
         }
       } else {
         throw new Error(fnName + " expects no params");
@@ -217,30 +224,49 @@ engine.FunctionInvocation = function(ctx, parentData, node) {
         for(var i = 0; i < paramsNumber; i++){
           var tp = argTypes[i];
           var pr = rawParams[i];
-          params.push(makeParam(ctx, parentData, tp, pr));
+          params.push(makeParam(ctx, data, tp, pr));
         }
-        params.unshift(parentData);
+        params.unshift(data);
         return invoc.fn.apply(ctx, params);
       } else {
-        console.log(fnName + " wrong arity");
+        console.log(fnName + " wrong arity: got " + paramsNumber );
         return [];
       }
     }
   } else {
-    var macro = engine.macroTable[fnName];
-    if(macro){
-      return macro(ctx, parentData, args);
-    } else {
-      var fn = engine.fnTable[fnName];
-      if(fn){
-        var params = engine.realizeParams(ctx, parentData, args);
-        params.unshift(parentData);
-        return fn.apply(ctx, params);
-      } else {
-        throw new Error("No function [" + fnName + "] defined ");
-      }
-    }
+    throw new Error("Not impl " + fnName); 
   }
+}
+
+function infixInvoke(ctx, fnName, data, rawParams){
+  var invoc = engine.invocationTable[fnName];
+  if(invoc && invoc.fn) {
+    var paramsNumber = rawParams ? rawParams.length : 0;
+    if(paramsNumber != 2) { throw new Error("Infix invoke should has arity 2"); }
+    var argTypes = invoc.arity[paramsNumber];
+    if(argTypes){
+      var params = [];
+      for(var i = 0; i < paramsNumber; i++){
+        var tp = argTypes[i];
+        var pr = rawParams[i];
+        params.push(makeParam(ctx, data, tp, pr));
+      }
+      return invoc.fn.apply(ctx, params);
+    } else {
+      console.log(fnName + " wrong arity: got " + paramsNumber );
+      return [];
+    }
+  } else {
+    throw new Error("Not impl " + fnName); 
+  }
+}
+
+engine.FunctionInvocation = function(ctx, parentData, node) {
+  var args = engine.doEval(ctx, parentData, node.children[0]);
+  const fnName = args[0];
+  args.shift();
+  var rawParams = args && args[0] && args[0].children;
+  return doInvoke(ctx, fnName, parentData, rawParams);
 };
 
 engine.ParamList = function(ctx, parentData, node) {
@@ -250,16 +276,22 @@ engine.ParamList = function(ctx, parentData, node) {
 };
 
 
-
 engine.UnionExpression = function(ctx, parentData, node) {
-  var left = engine.doEval(ctx, parentData, node.children[0]);
-  var right = engine.doEval(ctx, parentData, node.children[1]);
-  return left.concat(right);
+  return infixInvoke(ctx, '|', parentData, node.children);
 };
 
 engine.ThisInvocation = function(ctx, parentData) {
-  // Assumption:  parentData is set to the current node for $this.
-  return [parentData[0]];
+  return util.arraify(ctx.currentData);
+};
+
+engine.EqualityExpression = function(ctx, parentData, node) {
+  var op = node.terminalNodeText[0];
+  return infixInvoke(ctx, op, parentData, node.children);
+};
+
+engine.InequalityExpression = function(ctx, parentData, node) {
+  var op = node.terminalNodeText[0];
+  return infixInvoke(ctx, op, parentData, node.children);
 };
 
 engine.evalTable = {
@@ -283,7 +315,6 @@ engine.evalTable = {
 };
 
 require("./math")(engine);
-require("./equality")(engine);
 
 engine.doEval = function(ctx, parentData, node) {
   const evaluator = engine.evalTable[node.type];
