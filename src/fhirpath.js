@@ -21,6 +21,7 @@ const util = require("./utilities");
 let engine = {}; // the object with all FHIRPath functions and operations
 let existence = require("./existence");
 let filtering = require("./filtering");
+let misc = require("./misc");
 
 engine.invocationTable = {
   empty:        {fn: existence.emptyFn},
@@ -38,7 +39,15 @@ engine.invocationTable = {
   count:        {fn: existence.countFn},
   where:        {fn: filtering.whereMacro, arity: {1: ["Expr"]}},
   select:       {fn: filtering.selectMacro, arity: {1: ["Expr"]}},
-  repeat:       {fn: filtering.repeatMacro, arity: {1: ["Expr"]}}
+  repeat:       {fn: filtering.repeatMacro, arity: {1: ["Expr"]}},
+  single:       {fn: filtering.singleFn},
+  first:        {fn: filtering.firstFn},
+  last:         {fn: filtering.lastFn},
+  tail:         {fn: filtering.tailFn},
+  take:         {fn: filtering.takeFn, arity: {1: ["Integer"]}},
+  skip:         {fn: filtering.skipFn, arity: {1: ["Integer"]}},
+  iif:          {fn: misc.iifMacro,    arity: {3: ["Expr", "Expr", "Expr"]}},
+  trace:        {fn: misc.traceFn,     arity: {0: [], 1: ["String"]}}
 };
 
 engine.InvocationExpression = function(ctx, parentData, node) {
@@ -71,7 +80,6 @@ engine.BooleanLiteral = function(ctx, parentData, node) {
     return [false];
   }
 };
-
 
 engine.NumberLiteral = function(ctx, parentData, node) {
   return [Number(node.text)];
@@ -137,118 +145,8 @@ engine.Functn = function(ctx, parentData, node) {
 };
 
 
-engine.iifMacro = function(ctx, parentData, node) {
-
-  var exprs = node[0].children;
-  var cond = exprs[0];
-  var succ = exprs[1];
-  var fail = exprs[2];
-
-  var res = util.flatten(engine.doEval(ctx, parentData, cond));
-  if(res[0]){
-    return engine.doEval(ctx, parentData, succ);
-  } else {
-    return engine.doEval(ctx, parentData, fail);
-  }
-};
-
-
-engine.macroTable = {
-  iif: engine.iifMacro
-};
-
-
-engine.traceFn = function(x, label) {
-  console.log("TRACE:[" + (label || "") + "]", JSON.stringify(x, null, " "));
-  return x;
-};
-
-
-//TODO: behavior on object?
-engine.singleFn = function(x) {
-  if (x && x.length) {
-    if(x.length == 1){
-      return [x[0]];
-    } else if (x.length == 0) {
-      return [];
-    } else {
-      return {$status: "error", $error: "Expected single"};
-    }
-  } else {
-    return [];
-  }
-};
-
-
-engine.firstFn = function(x) {
-  if(util.isSome(x)){
-    if(x.length){
-      return [x[0]];
-    } else {
-      return x;
-    }
-  } else {
-    return [];
-  }
-};
-
-engine.lastFn = function(x) {
-  if(util.isSome(x)){
-    if(x.length){
-      return [x[x.length - 1]];
-    } else {
-      return x;
-    }
-  } else {
-    return [];
-  }
-};
-
-engine.tailFn = function(x) {
-  if(util.isSome(x)){
-    if(x.length){
-      return x.slice(1, x.length);
-    } else {
-      return [x];
-    }
-  } else {
-    return [];
-  }
-};
-
-engine.takeFn = function(x, n) {
-  if(util.isSome(x)){
-    if(x.length){
-      return x.slice(0, n);
-    } else {
-      return [x];
-    }
-  } else {
-    return [];
-  }
-};
-
-engine.skipFn = function(x, num) {
-  if(Array.isArray(x)){
-    if(x.length >= num){
-      return x.slice(num, x.length);
-    } else {
-      return [];
-    }
-  } else {
-    return [];
-  }
-};
-
-engine.fnTable = {
-  single: engine.singleFn,
-  first: engine.firstFn,
-  last: engine.lastFn,
-  tail: engine.tailFn,
-  take: engine.takeFn,
-  skip: engine.skipFn,
-  trace: engine.traceFn
-};
+engine.macroTable = {};
+engine.fnTable = {};
 
 // TODO: this is new table
 
@@ -265,6 +163,16 @@ engine.realizeParams = function(ctx, parentData, args) {
 const paramTable = {
   "Any": function(ctx, parentData, type, param){
     return engine.doEval(ctx, ctx.dataRoot, param);
+  },
+  "Integer": function(ctx, parentData, type, param){
+    var res = engine.doEval(ctx, ctx.dataRoot, param);
+    // TODO: check type
+    return res[0];
+  },
+  "String": function(ctx, parentData, type, param){
+    var res = engine.doEval(ctx, ctx.dataRoot, param);
+    // TODO: check type
+    return res[0];
   },
   "Expr": function(ctx, parentData, type, param){
     return function(data) {
