@@ -34,8 +34,8 @@ engine.invocationTable = {
   anyTrue:      {fn: existence.anyTrueFn},
   allFalse:     {fn: existence.allFalseFn},
   anyFalse:     {fn: existence.anyFalseFn},
-  subsetOf:     {fn: existence.subsetOfFn, arity: {1: ["Any"]}},
-  supersetOf:   {fn: existence.supersetOfFn, arity: {1: ["Any"]}},
+  subsetOf:     {fn: existence.subsetOfFn, arity: {1: ["AnyAtRoot"]}},
+  supersetOf:   {fn: existence.supersetOfFn, arity: {1: ["AnyAtRoot"]}},
   isDistinct:   {fn: existence.isDistinctFn},
   distinct:     {fn: existence.distinctFn},
   count:        {fn: existence.countFn},
@@ -174,6 +174,9 @@ engine.realizeParams = function(ctx, parentData, args) {
 const paramTable = {
   "Any": function(ctx, parentData, type, param){
     return engine.doEval(ctx, parentData, param);
+  },
+  "AnyAtRoot": function(ctx, parentData, type, param){
+    return engine.doEval(ctx, ctx.dataRoot, param);
   },
   "Integer": function(ctx, parentData, type, param){
     var res = engine.doEval(ctx, ctx.dataRoot, param);

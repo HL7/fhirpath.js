@@ -47,28 +47,28 @@ function typecheck(a, b){
 }
 
 engine.lt = function(a, b){
-  if (!a.length || !b.length) rtn = [];
+  if (!a.length || !b.length) return [];
   typecheck(a,b);
   return [a[0] < b[0]];
 
 };
 
 engine.gt = function(a, b){
-  if (!a.length || !b.length) rtn = [];
+  if (!a.length || !b.length) return [];
   typecheck(a,b);
   return [a[0] > b[0]];
 
 };
 
 engine.lte = function(a, b){
-  if (!a.length || !b.length) rtn = [];
+  if (!a.length || !b.length) return [];
   typecheck(a,b);
   return [a[0] <= b[0]];
 
 };
 
 engine.gte = function(a, b){
-  if (!a.length || !b.length) rtn = [];
+  if (!a.length || !b.length) return [];
   typecheck(a,b);
   return [a[0] >= b[0]];
 };
