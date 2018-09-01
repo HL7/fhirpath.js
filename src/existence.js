@@ -146,9 +146,9 @@ engine.distinctFn = function(x) {
 
 engine.countFn = function(x) {
   if (x && x.length) {
-    return [x.length];
+    return x.length;
   } else {
-    return [0];
+    return 0;
   }
 };
 

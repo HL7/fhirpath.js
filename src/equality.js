@@ -7,13 +7,13 @@ var engine = {};
 
 function equality(x,y){
   if(util.isEmpty(x) || util.isEmpty(y)) { return []; }
-  return [deepEqual(x, y)];
+  return deepEqual(x, y);
 }
 
 function equivalence(x,y){
   if(util.isEmpty(x) && util.isEmpty(y)) { return [true]; }
   if(util.isEmpty(x) || util.isEmpty(y)) { return []; }
-  return [deepEqual(x, y, {fuzzy: true})];
+  return deepEqual(x, y, {fuzzy: true});
 }
 
 engine.equal = function(a, b){
@@ -21,17 +21,14 @@ engine.equal = function(a, b){
 };
 
 engine.unequal = function(a, b){
-  var eq = equality(a, b);
-  // TODO: imple utils not
-  return eq.length == 1 ? [!eq[0]] : [];
+  return !equality(a, b);
 };
 engine.equival = function(a, b){
   return equivalence(a, b);
 };
 
 engine.unequival = function(a, b){
-  var eq =  equivalence(a, b);
-  return eq.length == 1 ? [!eq[0]] : [];
+  return !equivalence(a, b);
 };
 
 function typecheck(a, b){
@@ -49,28 +46,27 @@ function typecheck(a, b){
 engine.lt = function(a, b){
   if (!a.length || !b.length) return [];
   typecheck(a,b);
-  return [a[0] < b[0]];
+  return a[0] < b[0];
 
 };
 
 engine.gt = function(a, b){
   if (!a.length || !b.length) return [];
   typecheck(a,b);
-  return [a[0] > b[0]];
+  return a[0] > b[0];
 
 };
 
 engine.lte = function(a, b){
   if (!a.length || !b.length) return [];
   typecheck(a,b);
-  return [a[0] <= b[0]];
-
+  return a[0] <= b[0];
 };
 
 engine.gte = function(a, b){
   if (!a.length || !b.length) return [];
   typecheck(a,b);
-  return [a[0] >= b[0]];
+  return a[0] >= b[0];
 };
 
 

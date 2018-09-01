@@ -51,14 +51,21 @@ engine.invocationTable = {
   iif:          {fn: misc.iifMacro,    arity: {3: ["Expr", "Expr", "Expr"]}},
   trace:        {fn: misc.traceFn,     arity: {0: [], 1: ["String"]}},
   "|":          {fn: misc.unionOp,   arity: {2: ["Any", "Any"]}},
-  "=":          {fn: equality.equal,   arity: {2: ["Any", "Any"]}},
-  "!=":         {fn: equality.unequal,   arity: {2: ["Any", "Any"]}},
+  "=":          {fn: equality.equal,   arity: {2: ["Any", "Any"]}, nullable: true},
+  "!=":         {fn: equality.unequal,   arity: {2: ["Any", "Any"]}, nullable: true},
   "~":          {fn: equality.equival,   arity: {2: ["Any", "Any"]}},
   "!~":         {fn: equality.unequival,   arity: {2: ["Any", "Any"]}},
-  "<":          {fn: equality.lt,   arity: {2: ["Any", "Any"]}},
-  ">":          {fn: equality.gt,   arity: {2: ["Any", "Any"]}},
-  "<=":         {fn: equality.lte,   arity: {2: ["Any", "Any"]}},
-  ">=":         {fn: equality.gte,   arity: {2: ["Any", "Any"]}},
+  "<":          {fn: equality.lt,   arity: {2: ["Any", "Any"]}, nullable: true},
+  ">":          {fn: equality.gt,   arity: {2: ["Any", "Any"]}, nullable: true},
+  "<=":         {fn: equality.lte,  arity: {2: ["Any", "Any"]}, nullable: true},
+  ">=":         {fn: equality.gte,  arity: {2: ["Any", "Any"]}, nullable: true},
+  "&":          {fn: math.amp,     arity:  {2: ["String", "String"]}},
+  "+":          {fn: math.plus,    arity:  {2: ["Number", "Number"]}, nullable: true},
+  "-":          {fn: math.minus,   arity:  {2: ["Number", "Number"]}, nullable: true},
+  "*":          {fn: math.mul,     arity:  {2: ["Number", "Number"]}, nullable: true},
+  "/":          {fn: math.div,     arity:  {2: ["Number", "Number"]}, nullable: true},
+  "mod":        {fn: math.mod,     arity:  {2: ["Number", "Number"]}, nullable: true},
+  "div":        {fn: math.intdiv,  arity:  {2: ["Number", "Number"]}, nullable: true},
 };
 
 engine.InvocationExpression = function(ctx, parentData, node) {
@@ -156,9 +163,6 @@ engine.Functn = function(ctx, parentData, node) {
 };
 
 
-engine.macroTable = {};
-engine.fnTable = {};
-
 // TODO: this is new table
 
 engine.realizeParams = function(ctx, parentData, args) {
@@ -179,6 +183,11 @@ const paramTable = {
     return engine.doEval(ctx, ctx.dataRoot, param);
   },
   "Integer": function(ctx, parentData, type, param){
+    var res = engine.doEval(ctx, ctx.dataRoot, param);
+    // TODO: check type
+    return res[0];
+  },
+  "Number": function(ctx, parentData, type, param){
     var res = engine.doEval(ctx, ctx.dataRoot, param);
     // TODO: check type
     return res[0];
@@ -215,7 +224,8 @@ function doInvoke(ctx, fnName, data, rawParams){
         if(invoc.propogateEmpty && data.length == 0){
           return [];
         } else {
-          return invoc.fn.call(ctx, util.arraify(data));
+          var res = invoc.fn.call(ctx, util.arraify(data));
+          return util.arraify(res); 
         }
       } else {
         throw new Error(fnName + " expects no params");
@@ -231,7 +241,13 @@ function doInvoke(ctx, fnName, data, rawParams){
           params.push(makeParam(ctx, data, tp, pr));
         }
         params.unshift(data);
-        return invoc.fn.apply(ctx, params);
+        if(invoc.nullable) {
+          if(params.some(isNullable)){
+            return [];
+          }
+        }
+        var res = invoc.fn.apply(ctx, params);
+        return util.arraify(res); 
       } else {
         console.log(fnName + " wrong arity: got " + paramsNumber );
         return [];
@@ -240,6 +256,10 @@ function doInvoke(ctx, fnName, data, rawParams){
   } else {
     throw new Error("Not impl " + fnName); 
   }
+}
+function isNullable(x) {
+  var res = x=== null || x=== undefined || util.isEmpty(x);
+  return res; 
 }
 
 function infixInvoke(ctx, fnName, data, rawParams){
@@ -255,7 +275,13 @@ function infixInvoke(ctx, fnName, data, rawParams){
         var pr = rawParams[i];
         params.push(makeParam(ctx, data, tp, pr));
       }
-      return invoc.fn.apply(ctx, params);
+      if(invoc.nullable) {
+        if(params.some(isNullable)){
+          return [];
+        }
+      }
+      var res = invoc.fn.apply(ctx, params);
+      return util.arraify(res);
     } else {
       console.log(fnName + " wrong arity: got " + paramsNumber );
       return [];
@@ -299,62 +325,14 @@ engine.InequalityExpression = function(ctx, parentData, node) {
 };
 
 engine.AdditiveExpression = function(ctx, parentData, node) {
-  let left = engine.doEval(ctx, parentData, node.children[0]);
-  let right = engine.doEval(ctx, parentData, node.children[1]);
-  util.assertAtMostOne(left, "AdditiveExpression");
-  util.assertAtMostOne(right, "AdditiveExpression");
-  let operator = node.terminalNodeText[0];
-  if (operator === "&") {
-    left = left.length > 0 ? left[0] : "";
-    right = right.length > 0 ? right[0] : "";
-    util.assertType(left, ["string"], "AdditiveExpression");
-    util.assertType(right, ["string"], "AdditiveExpression");
-    return [left + right];
-  }
-  else { // + or -
-    if (left.length === 0 || right.length === 0)
-      return [];
-    else {
-      left = left[0];
-      right = right[0];
-      if (typeof left !== typeof right)
-        throw "AdditiveExpression:  Mismatched types, "+typeof left +" and "+ typeof right;
-      if (operator === "+")
-        return [left + right];
-      else if (operator === "-") {
-        util.assertType(left, ["number"], "AdditiveExpression");
-        util.assertType(right, ["number"], "AdditiveExpression");
-        return [left - right];
-      }
-      else // should never reach here, per the grammar
-        throw "AdditiveExpression: Unexpected operator: " +operator;
-    }
-  }
+  var op = node.terminalNodeText[0];
+  return infixInvoke(ctx, op, parentData, node.children);
 };
 
-  engine.MultiplicativeExpression = function(ctx, parentData, node) {
-    let left = engine.doEval(ctx, parentData, node.children[0]);
-    let right = engine.doEval(ctx, parentData, node.children[1]);
-    util.assertAtMostOne(left, "MultiplicativeExpression");
-    util.assertAtMostOne(right, "MultiplicativeExpression");
-    if (left.length == 0 || right.length === 0)
-      return [];
-    left = left[0];
-    right = right[0];
-    util.assertType(left, ["number"], "MultiplicativeExpression");
-    util.assertType(right, ["number"], "MultiplicativeExpression");
-    let operator = node.terminalNodeText[0];
-    if (operator === "*")
-      return [left * right];
-    else if (operator === "/")
-      return [left / right];
-    else if (operator === "mod")
-      return [left % right];
-    else if (operator === "div")
-      return [Math.floor(left / right)];
-    else // should never reach here, per grammar
-      throw "MultiplicativeExpression: Unexpected operator: " +operator;
-  };
+engine.MultiplicativeExpression = function(ctx, parentData, node) {
+  var op = node.terminalNodeText[0];
+  return infixInvoke(ctx, op, parentData, node.children);
+};
 
 
 engine.evalTable = {
