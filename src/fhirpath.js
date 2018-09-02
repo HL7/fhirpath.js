@@ -218,13 +218,14 @@ function makeParam(ctx, parentData, type, param) {
 
 function doInvoke(ctx, fnName, data, rawParams){
   var invoc = engine.invocationTable[fnName];
+  var res;
   if(invoc) {
     if(!invoc.arity){
       if(!rawParams){
         if(invoc.propogateEmpty && data.length == 0){
           return [];
         } else {
-          var res = invoc.fn.call(ctx, util.arraify(data));
+          res = invoc.fn.call(ctx, util.arraify(data));
           return util.arraify(res); 
         }
       } else {
@@ -246,7 +247,7 @@ function doInvoke(ctx, fnName, data, rawParams){
             return [];
           }
         }
-        var res = invoc.fn.apply(ctx, params);
+        res = invoc.fn.apply(ctx, params);
         return util.arraify(res); 
       } else {
         console.log(fnName + " wrong arity: got " + paramsNumber );
@@ -310,7 +311,7 @@ engine.UnionExpression = function(ctx, parentData, node) {
   return infixInvoke(ctx, '|', parentData, node.children);
 };
 
-engine.ThisInvocation = function(ctx, parentData) {
+engine.ThisInvocation = function(ctx) {
   return util.arraify(ctx.currentData);
 };
 
