@@ -1,4 +1,3 @@
-focus: true
 tests:
   - desc: '5. Functions'
   - desc: '5.1 Existence'
@@ -467,8 +466,8 @@ tests:
   - desc: '** single on many'
     expression: Functions.attrdouble.single()
     result:
-      $status: error
-      $error: Expected single
+      - $status: error
+        $error: Expected single
 
   - desc: '5.3.3. first() : collection'
 # Returns a collection containing only the first

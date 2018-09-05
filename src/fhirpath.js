@@ -9,45 +9,81 @@
 // and named after node type
 // if node needs to eval father it's children it has to call `doEval` function
 //
-// For FunctionInvocation node there is two lookup tables - fnTable & macroTable
-// difference between fn and macro - should we eval argument or pass AST.
-// in case of function: we eval args and pass to function with current data
-// in case of macro (like where or select): we pass expression (lambda), which should
-// be evaluated inside macro
+// most of nodes do function or operator invocation at the end
+//
+// For invocation's and operator's there is one lookup table -
+// invocationTable and two helper functions doInvoke and infixInvoke for
+// operators
+// 1. operator or function is looked up in table
+// 2. using signature (in  .arity property) unpack parameters
+// 3. check params types
+// 4. do call function 
+// 5. wrap result by util.arraify
+//
+// if function is nullable
+// and one of parameters is empty/null - function will not be invoked and empty
+// result returned
+//
+// Not solved problem is overloading functions by types - for example + operator defined
+// for strings and numbers
+// we can make dispatching params type dependent - let see
 
 const parser = require("./parser");
-// var util = require("./utilities");
+const util = require("./utilities");
 
-let engine = {}; // the object with all FHIRPath functions and operations
+let engine    = {}; // the object with all FHIRPath functions and operations
+let existence = require("./existence");
+let filtering = require("./filtering");
+let misc      = require("./misc");
+let equality  =  require("./equality");
+let math      =  require("./math");
 
-engine.isEmpty = function(x){
-  return Array.isArray(x) && x.length == 0;
-};
+// * fn: handler
+// * arity: is index map with type signature
+// * nullable - means propagate empty result, i.e. instead
+//   calling function if one of params is  empty return empty
 
-engine.isSome = function(x){
-  return x !== null && x !== undefined && !engine.isEmpty(x);
-};
-
-engine.isCapitalized = function(x){
-  return x && (x[0] === x[0].toUpperCase());
-};
-
-engine.flatten = function(x){
-  return x.reduce(function(acc, x) {
-    if(Array.isArray(x)){
-      // todo replace with array modification
-      acc = acc.concat(x);
-    } else {
-      acc.push(x);
-    }
-    return acc;
-  }, []);
-};
-
-engine.arraify = function(x){
-  if(Array.isArray(x)){ return x; }
-  if(engine.isSome(x)){ return [x]; }
-  return [];
+engine.invocationTable = {
+  empty:        {fn: existence.emptyFn},
+  not:          {fn: existence.notFn},
+  exists:       {fn: existence.existsMacro, arity: {0: [], 1: ["Expr"]}},
+  all:          {fn: existence.allMacro, arity: {1: ["Expr"]}},
+  allTrue:      {fn: existence.allTrueFn},
+  anyTrue:      {fn: existence.anyTrueFn},
+  allFalse:     {fn: existence.allFalseFn},
+  anyFalse:     {fn: existence.anyFalseFn},
+  subsetOf:     {fn: existence.subsetOfFn, arity: {1: ["AnyAtRoot"]}},
+  supersetOf:   {fn: existence.supersetOfFn, arity: {1: ["AnyAtRoot"]}},
+  isDistinct:   {fn: existence.isDistinctFn},
+  distinct:     {fn: existence.distinctFn},
+  count:        {fn: existence.countFn},
+  where:        {fn: filtering.whereMacro, arity: {1: ["Expr"]}},
+  select:       {fn: filtering.selectMacro, arity: {1: ["Expr"]}},
+  repeat:       {fn: filtering.repeatMacro, arity: {1: ["Expr"]}},
+  single:       {fn: filtering.singleFn},
+  first:        {fn: filtering.firstFn},
+  last:         {fn: filtering.lastFn},
+  tail:         {fn: filtering.tailFn},
+  take:         {fn: filtering.takeFn, arity: {1: ["Integer"]}},
+  skip:         {fn: filtering.skipFn, arity: {1: ["Integer"]}},
+  iif:          {fn: misc.iifMacro,    arity: {3: ["Expr", "Expr", "Expr"]}},
+  trace:        {fn: misc.traceFn,     arity: {0: [], 1: ["String"]}},
+  "|":          {fn: misc.unionOp,   arity: {2: ["Any", "Any"]}},
+  "=":          {fn: equality.equal,   arity: {2: ["Any", "Any"]}, nullable: true},
+  "!=":         {fn: equality.unequal,   arity: {2: ["Any", "Any"]}, nullable: true},
+  "~":          {fn: equality.equival,   arity: {2: ["Any", "Any"]}},
+  "!~":         {fn: equality.unequival,   arity: {2: ["Any", "Any"]}},
+  "<":          {fn: equality.lt,   arity: {2: ["Any", "Any"]}, nullable: true},
+  ">":          {fn: equality.gt,   arity: {2: ["Any", "Any"]}, nullable: true},
+  "<=":         {fn: equality.lte,  arity: {2: ["Any", "Any"]}, nullable: true},
+  ">=":         {fn: equality.gte,  arity: {2: ["Any", "Any"]}, nullable: true},
+  "&":          {fn: math.amp,     arity:  {2: ["String", "String"]}},
+  "+":          {fn: math.plus,    arity:  {2: ["Number", "Number"]}, nullable: true},
+  "-":          {fn: math.minus,   arity:  {2: ["Number", "Number"]}, nullable: true},
+  "*":          {fn: math.mul,     arity:  {2: ["Number", "Number"]}, nullable: true},
+  "/":          {fn: math.div,     arity:  {2: ["Number", "Number"]}, nullable: true},
+  "mod":        {fn: math.mod,     arity:  {2: ["Number", "Number"]}, nullable: true},
+  "div":        {fn: math.intdiv,  arity:  {2: ["Number", "Number"]}, nullable: true},
 };
 
 engine.InvocationExpression = function(ctx, parentData, node) {
@@ -81,7 +117,6 @@ engine.BooleanLiteral = function(ctx, parentData, node) {
   }
 };
 
-
 engine.NumberLiteral = function(ctx, parentData, node) {
   return [Number(node.text)];
 };
@@ -98,12 +133,12 @@ engine.MemberInvocation = function(ctx, parentData ,node ) {
   const key = engine.doEval(ctx, parentData, node.children[0])[0];
 
   if (parentData) {
-    if(engine.isCapitalized(key)) {
+    if(util.isCapitalized(key)) {
       return parentData.filter(function(x) { return x.resourceType === key; });
     } else {
       return parentData.reduce(function(acc, res) {
         var toAdd = res[key];
-        if(engine.isSome(toAdd)) {
+        if(util.isSome(toAdd)) {
           if(Array.isArray(toAdd)) {
             // replace with array modification
             acc = acc.concat(toAdd);
@@ -127,12 +162,12 @@ engine.IndexerExpression = function(ctx, parentData, node) {
   var coll = engine.doEval(ctx, parentData, coll_node);
   var idx = engine.doEval(ctx, parentData, idx_node);
 
-  if(engine.isEmpty(idx)) {
+  if(util.isEmpty(idx)) {
     return [];
   }
 
   var idxNum = parseInt(idx[0]);
-  if(coll && engine.isSome(idxNum) && coll.length>idxNum && idxNum>=0) {
+  if(coll && util.isSome(idxNum) && coll.length>idxNum && idxNum>=0) {
     return [coll[idxNum]];
   } else {
     return [];
@@ -145,121 +180,6 @@ engine.Functn = function(ctx, parentData, node) {
   });
 };
 
-
-engine.iifMacro = function(ctx, parentData, node) {
-
-  var exprs = node[0].children;
-  var cond = exprs[0];
-  var succ = exprs[1];
-  var fail = exprs[2];
-
-  var res = engine.flatten(engine.doEval(ctx, parentData, cond));
-  if(res[0]){
-    return engine.doEval(ctx, parentData, succ);
-  } else {
-    return engine.doEval(ctx, parentData, fail);
-  }
-};
-
-
-engine.macroTable = {
-  iif: engine.iifMacro
-};
-
-
-engine.traceFn = function(x, label) {
-  console.log("TRACE:[" + (label || "") + "]", JSON.stringify(x, null, " "));
-  return x;
-};
-
-
-//TODO: behavior on object?
-engine.singleFn = function(x) {
-  if (x && x.length) {
-    if(x.length == 1){
-      return [x[0]];
-    } else if (x.length == 0) {
-      return [];
-    } else {
-      return {$status: "error", $error: "Expected single"};
-    }
-  } else {
-    return [];
-  }
-};
-
-
-engine.firstFn = function(x) {
-  if(engine.isSome(x)){
-    if(x.length){
-      return [x[0]];
-    } else {
-      return x;
-    }
-  } else {
-    return [];
-  }
-};
-
-engine.lastFn = function(x) {
-  if(engine.isSome(x)){
-    if(x.length){
-      return [x[x.length - 1]];
-    } else {
-      return x;
-    }
-  } else {
-    return [];
-  }
-};
-
-engine.tailFn = function(x) {
-  if(engine.isSome(x)){
-    if(x.length){
-      return x.slice(1, x.length);
-    } else {
-      return [x];
-    }
-  } else {
-    return [];
-  }
-};
-
-engine.takeFn = function(x, n) {
-  if(engine.isSome(x)){
-    if(x.length){
-      return x.slice(0, n);
-    } else {
-      return [x];
-    }
-  } else {
-    return [];
-  }
-};
-
-engine.skipFn = function(x, num) {
-  if(Array.isArray(x)){
-    if(x.length >= num){
-      return x.slice(num, x.length);
-    } else {
-      return [];
-    }
-  } else {
-    return [];
-  }
-};
-
-engine.fnTable = {
-  empty: engine.emptyFn,
-  single: engine.singleFn,
-  first: engine.firstFn,
-  last: engine.lastFn,
-  tail: engine.tailFn,
-  take: engine.takeFn,
-  skip: engine.skipFn,
-  trace: engine.traceFn
-};
-
 engine.realizeParams = function(ctx, parentData, args) {
   if(args && args[0] && args[0].children) {
     return args[0].children.map(function(x) {
@@ -270,23 +190,125 @@ engine.realizeParams = function(ctx, parentData, args) {
   }
 };
 
+const paramTable = {
+  "Any": function(ctx, parentData, type, param){
+    return engine.doEval(ctx, parentData, param);
+  },
+  "AnyAtRoot": function(ctx, parentData, type, param){
+    return engine.doEval(ctx, ctx.dataRoot, param);
+  },
+  "Integer": function(ctx, parentData, type, param){
+    var res = engine.doEval(ctx, ctx.dataRoot, param);
+    util.assertType(res[0], ["number"], "Number");
+    return res[0];
+  },
+  "Number": function(ctx, parentData, type, param){
+    var res = engine.doEval(ctx, ctx.dataRoot, param);
+    // TODO: check type
+    return res[0];
+  },
+  "String": function(ctx, parentData, type, param){
+    var res = engine.doEval(ctx, ctx.dataRoot, param);
+    // TODO: check type
+    return res[0];
+  },
+  "Expr": function(ctx, parentData, type, param){
+    return function(data) {
+      return engine.doEval(ctx, util.arraify(data), param);
+    };
+  }
+};
+
+function makeParam(ctx, parentData, type, param) {
+  var maker = paramTable[type];
+  if(maker){
+    // this is hack for $this
+    ctx.currentData = parentData;
+    return maker(ctx, parentData, type, param);
+  } else {
+    console.error(type, param);
+    throw new Error("IMPL me for " + type);
+  }
+}
+
+function doInvoke(ctx, fnName, data, rawParams){
+  var invoc = engine.invocationTable[fnName];
+  var res;
+  if(invoc) {
+    if(!invoc.arity){
+      if(!rawParams){
+        res = invoc.fn.call(ctx, util.arraify(data));
+        return util.arraify(res);
+      } else {
+        throw new Error(fnName + " expects no params");
+      }
+    } else {
+      var paramsNumber = rawParams ? rawParams.length : 0;
+      var argTypes = invoc.arity[paramsNumber];
+      if(argTypes){
+        var params = [];
+        for(var i = 0; i < paramsNumber; i++){
+          var tp = argTypes[i];
+          var pr = rawParams[i];
+          params.push(makeParam(ctx, data, tp, pr));
+        }
+        params.unshift(data);
+        if(invoc.nullable) {
+          if(params.some(isNullable)){
+            return [];
+          }
+        }
+        res = invoc.fn.apply(ctx, params);
+        return util.arraify(res); 
+      } else {
+        console.log(fnName + " wrong arity: got " + paramsNumber );
+        return [];
+      }
+    }
+  } else {
+    throw new Error("Not implemented: " + fnName); 
+  }
+}
+function isNullable(x) {
+  var res = x=== null || x=== undefined || util.isEmpty(x);
+  return res; 
+}
+
+function infixInvoke(ctx, fnName, data, rawParams){
+  var invoc = engine.invocationTable[fnName];
+  if(invoc && invoc.fn) {
+    var paramsNumber = rawParams ? rawParams.length : 0;
+    if(paramsNumber != 2) { throw new Error("Infix invoke should have arity 2"); }
+    var argTypes = invoc.arity[paramsNumber];
+    if(argTypes){
+      var params = [];
+      for(var i = 0; i < paramsNumber; i++){
+        var tp = argTypes[i];
+        var pr = rawParams[i];
+        params.push(makeParam(ctx, data, tp, pr));
+      }
+      if(invoc.nullable) {
+        if(params.some(isNullable)){
+          return [];
+        }
+      }
+      var res = invoc.fn.apply(ctx, params);
+      return util.arraify(res);
+    } else {
+      console.log(fnName + " wrong arity: got " + paramsNumber );
+      return [];
+    }
+  } else {
+    throw new Error("Not impl " + fnName); 
+  }
+}
+
 engine.FunctionInvocation = function(ctx, parentData, node) {
   var args = engine.doEval(ctx, parentData, node.children[0]);
   const fnName = args[0];
   args.shift();
-  var macro = engine.macroTable[fnName];
-  if(macro){
-    return macro(ctx, parentData, args);
-  } else {
-    var fn = engine.fnTable[fnName];
-    if(fn){
-      var params = engine.realizeParams(ctx, parentData, args);
-      params.unshift(parentData);
-      return fn.apply(ctx, params);
-    } else {
-      throw new Error("No function [" + fnName + "] defined ");
-    }
-  }
+  var rawParams = args && args[0] && args[0].children;
+  return doInvoke(ctx, fnName, parentData, rawParams);
 };
 
 engine.ParamList = function(ctx, parentData, node) {
@@ -296,17 +318,34 @@ engine.ParamList = function(ctx, parentData, node) {
 };
 
 
-
 engine.UnionExpression = function(ctx, parentData, node) {
-  var left = engine.doEval(ctx, parentData, node.children[0]);
-  var right = engine.doEval(ctx, parentData, node.children[1]);
-  return left.concat(right);
+  return infixInvoke(ctx, '|', parentData, node.children);
 };
 
-engine.ThisInvocation = function(ctx, parentData) {
-  // Assumption:  parentData is set to the current node for $this.
-  return [parentData[0]];
+engine.ThisInvocation = function(ctx) {
+  return util.arraify(ctx.currentData);
 };
+
+engine.EqualityExpression = function(ctx, parentData, node) {
+  var op = node.terminalNodeText[0];
+  return infixInvoke(ctx, op, parentData, node.children);
+};
+
+engine.InequalityExpression = function(ctx, parentData, node) {
+  var op = node.terminalNodeText[0];
+  return infixInvoke(ctx, op, parentData, node.children);
+};
+
+engine.AdditiveExpression = function(ctx, parentData, node) {
+  var op = node.terminalNodeText[0];
+  return infixInvoke(ctx, op, parentData, node.children);
+};
+
+engine.MultiplicativeExpression = function(ctx, parentData, node) {
+  var op = node.terminalNodeText[0];
+  return infixInvoke(ctx, op, parentData, node.children);
+};
+
 
 engine.evalTable = {
   BooleanLiteral: engine.BooleanLiteral,
@@ -317,6 +356,8 @@ engine.evalTable = {
   IndexerExpression: engine.IndexerExpression,
   InequalityExpression: engine.InequalityExpression,
   InvocationExpression: engine.InvocationExpression,
+  AdditiveExpression: engine.AdditiveExpression,
+  MultiplicativeExpression: engine.MultiplicativeExpression,
   InvocationTerm: engine.InvocationTerm,
   LiteralTerm: engine.LiteralTerm,
   MemberInvocation: engine.MemberInvocation,
@@ -328,10 +369,6 @@ engine.evalTable = {
   UnionExpression: engine.UnionExpression,
 };
 
-require("./existence")(engine);
-require("./filtering")(engine);
-require("./math")(engine);
-require("./equality")(engine);
 
 engine.doEval = function(ctx, parentData, node) {
   const evaluator = engine.evalTable[node.type];
@@ -352,7 +389,7 @@ var parse = function(path) {
  *  returning the result of doEval.
  */
 function applyParsedPath(resource, parsedPath) {
-  let dataRoot = engine.arraify(resource);
+  let dataRoot = util.arraify(resource);
   return engine.doEval({dataRoot: dataRoot}, dataRoot, parsedPath.children[0]);
 }
 

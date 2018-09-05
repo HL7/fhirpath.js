@@ -51,6 +51,9 @@ tests:
   - expression: Patient.name.exists()
     result: [true]
 
+  - expression: Patient.name.exists(given)
+    result: [true]
+
   - expression: Patient.ups.exists()
     result: [false]
 
