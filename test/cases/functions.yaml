@@ -1,4 +1,3 @@
-focus: false
 tests:
   - desc: '5. Functions'
   - desc: '5.1 Existence'

@@ -32,8 +32,8 @@ engine.unequival = function(a, b){
 };
 
 function typecheck(a, b){
-  util.assertAtMostOne(a, "InequalityExpression");
-  util.assertAtMostOne(b, "InequalityExpression");
+  util.assertAtMostOne(a, "Singleton was expected");
+  util.assertAtMostOne(b, "Singleton was expected");
   a = a[0];
   b = b[0];
   let lType = typeof a;

@@ -32,7 +32,7 @@ engine.repeatMacro = function(parentData, expr) {
   var lres = null;
   while (items.length != 0) {
     next = items.shift();
-    lres = util.flatten(expr(next));
+    lres = expr(next);
     if(lres){
       res = res.concat(lres);
       items = items.concat(lres);
@@ -45,10 +45,11 @@ engine.repeatMacro = function(parentData, expr) {
 engine.singleFn = function(x) {
   if (x && x.length) {
     if(x.length == 1){
-      return [x[0]];
+      return x;
     } else if (x.length == 0) {
       return [];
     } else {
+      //TODO: should throw error?
       return {$status: "error", $error: "Expected single"};
     }
   } else {

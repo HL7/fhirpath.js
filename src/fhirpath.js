@@ -25,6 +25,11 @@ let misc      = require("./misc");
 let equality  =  require("./equality");
 let math      =  require("./math");
 
+// * fn: handler
+// * arity: is index map with type signature
+// * nullable - means propagate empty result, i.e. instead
+//   calling function if one of params is  empty return empty
+
 engine.invocationTable = {
   empty:        {fn: existence.emptyFn},
   not:          {fn: existence.notFn},
@@ -162,9 +167,6 @@ engine.Functn = function(ctx, parentData, node) {
   });
 };
 
-
-// TODO: this is new table
-
 engine.realizeParams = function(ctx, parentData, args) {
   if(args && args[0] && args[0].children) {
     return args[0].children.map(function(x) {
@@ -184,7 +186,7 @@ const paramTable = {
   },
   "Integer": function(ctx, parentData, type, param){
     var res = engine.doEval(ctx, ctx.dataRoot, param);
-    // TODO: check type
+    util.assertType(res[0], ["number"], "Number");
     return res[0];
   },
   "Number": function(ctx, parentData, type, param){
@@ -222,12 +224,8 @@ function doInvoke(ctx, fnName, data, rawParams){
   if(invoc) {
     if(!invoc.arity){
       if(!rawParams){
-        if(invoc.propogateEmpty && data.length == 0){
-          return [];
-        } else {
-          res = invoc.fn.call(ctx, util.arraify(data));
-          return util.arraify(res); 
-        }
+        res = invoc.fn.call(ctx, util.arraify(data));
+        return util.arraify(res);
       } else {
         throw new Error(fnName + " expects no params");
       }
@@ -255,7 +253,7 @@ function doInvoke(ctx, fnName, data, rawParams){
       }
     }
   } else {
-    throw new Error("Not impl " + fnName); 
+    throw new Error("Not implemented: " + fnName); 
   }
 }
 function isNullable(x) {
@@ -267,7 +265,7 @@ function infixInvoke(ctx, fnName, data, rawParams){
   var invoc = engine.invocationTable[fnName];
   if(invoc && invoc.fn) {
     var paramsNumber = rawParams ? rawParams.length : 0;
-    if(paramsNumber != 2) { throw new Error("Infix invoke should has arity 2"); }
+    if(paramsNumber != 2) { throw new Error("Infix invoke should have arity 2"); }
     var argTypes = invoc.arity[paramsNumber];
     if(argTypes){
       var params = [];

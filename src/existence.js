@@ -2,6 +2,7 @@
 // specification).
 
 var util = require("./utilities");
+var filtering = require("./filtering");
 
 /**
  *  Adds the existence functions to the given FHIRPath engine.
@@ -26,23 +27,18 @@ engine.notFn = function(x) {
 engine.existsMacro  = function(coll, expr) {
   var vec = coll;
   if (expr) {
-    vec = coll.filter(function(x){
-      //FIXME: i do not like this logic
-      var res = expr(x);
-      return util.isFalse(res) ? false : util.isSome(res);
-    });
+    return engine.existsMacro(filtering.whereMacro(coll, expr));
   }
   return [!util.isEmpty(vec)];
 };
 
 engine.allMacro = function(coll, expr) {
-  let rtn = true;
-  for (let i=0, len=coll.length; i<len && rtn; ++i) {
+  for (let i=0, len=coll.length; i<len; ++i) {
     if(!util.isTrue(expr(coll[i]))){
       return [false];
     }
   }
-  return [rtn];
+  return [true];
 };
 
 engine.allTrueFn  = function(x) {

@@ -1,4 +1,3 @@
-focus: true
 tests:
   - expression:
       - Patient.name.family
