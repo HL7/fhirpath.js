@@ -9,11 +9,24 @@
 // and named after node type
 // if node needs to eval father it's children it has to call `doEval` function
 //
-// For FunctionInvocation node there is two lookup tables - fnTable & macroTable
-// difference between fn and macro - should we eval argument or pass AST.
-// in case of function: we eval args and pass to function with current data
-// in case of macro (like where or select): we pass expression (lambda), which should
-// be evaluated inside macro
+// most of nodes do function or operator invocation at the end
+//
+// For invocation's and operator's there is one lookup table -
+// invocationTable and two helper functions doInvoke and infixInvoke for
+// operators
+// 1. operator or function is looked up in table
+// 2. using signature (in  .arity property) unpack parameters
+// 3. check params types
+// 4. do call function 
+// 5. wrap result by util.arraify
+//
+// if function is nullable
+// and one of parameters is empty/null - function will not be invoked and empty
+// result returned
+//
+// Not solved problem is overloading functions by types - for example + operator defined
+// for strings and numbers
+// we can make dispatching params type dependent - let see
 
 const parser = require("./parser");
 const util = require("./utilities");
