@@ -8,20 +8,10 @@ var filtering = require("./filtering");
  *  Adds the existence functions to the given FHIRPath engine.
  */
 var engine = {};
-engine.emptyFn = function(x) {
-  if(x){
-    return [x.length == 0];
-  } else {
-    if(util.isSome(x)){
-      return [false];
-    } else {
-      return [true];
-    }
-  }
-};
+engine.emptyFn = util.isEmpty;
 
 engine.notFn = function(x) {
-  return (x.length === 1 && typeof x[0] === 'boolean') ? [!x[0]] : [];
+  return (x.length === 1 && typeof x[0] === 'boolean') ? !x[0] : [];
 };
 
 engine.existsMacro  = function(coll, expr) {
@@ -29,7 +19,7 @@ engine.existsMacro  = function(coll, expr) {
   if (expr) {
     return engine.existsMacro(filtering.whereMacro(coll, expr));
   }
-  return [!util.isEmpty(vec)];
+  return !util.isEmpty(vec);
 };
 
 engine.allMacro = function(coll, expr) {

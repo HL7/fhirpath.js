@@ -43,79 +43,35 @@ engine.repeatMacro = function(parentData, expr) {
 
 //TODO: behavior on object?
 engine.singleFn = function(x) {
-  if (x && x.length) {
-    if(x.length == 1){
-      return x;
-    } else if (x.length == 0) {
-      return [];
-    } else {
-      //TODO: should throw error?
-      return {$status: "error", $error: "Expected single"};
-    }
-  } else {
+  if(x.length == 1){
+    return x;
+  } else if (x.length == 0) {
     return [];
+  } else {
+    //TODO: should throw error?
+    return {$status: "error", $error: "Expected single"};
   }
 };
 
 
 engine.firstFn = function(x) {
-  if(util.isSome(x)){
-    if(x.length){
-      return [x[0]];
-    } else {
-      return x;
-    }
-  } else {
-    return [];
-  }
+  return x[0];
 };
 
 engine.lastFn = function(x) {
-  if(util.isSome(x)){
-    if(x.length){
-      return [x[x.length - 1]];
-    } else {
-      return x;
-    }
-  } else {
-    return [];
-  }
+  return x[x.length - 1];
 };
 
 engine.tailFn = function(x) {
-  if(util.isSome(x)){
-    if(x.length){
-      return x.slice(1, x.length);
-    } else {
-      return [x];
-    }
-  } else {
-    return [];
-  }
+  return x.slice(1, x.length);
 };
 
 engine.takeFn = function(x, n) {
-  if(util.isSome(x)){
-    if(x.length){
-      return x.slice(0, n);
-    } else {
-      return [x];
-    }
-  } else {
-    return [];
-  }
+  return x.slice(0, n);
 };
 
 engine.skipFn = function(x, num) {
-  if(Array.isArray(x)){
-    if(x.length >= num){
-      return x.slice(num, x.length);
-    } else {
-      return [];
-    }
-  } else {
-    return [];
-  }
+  return x.slice(num, x.length);
 };
 
 /*
