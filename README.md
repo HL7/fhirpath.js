@@ -2,9 +2,10 @@
 
 [![Build Status](https://travis-ci.org/lhncbc/fhirpath.js.svg?branch=master)](https://travis-ci.org/lhncbc/fhirpath.js)
 
-FHIRPath implementation in javascript.
+[FHIRPath](http://hl7.org/fhirpath/) implementation in JavaScript.
 
-[Demo Page](https://lhncbc.github.io/fhirpath.js/)
+## Demo
+Try it out on the [demo page](https://lhncbc.github.io/fhirpath.js/).
 
 
 ## Usage
@@ -53,10 +54,12 @@ We are currently implementing version 1.0 (a.k.a STU1) of
 
 Completed sections:
 - 5.1 (Existence)
+- 5.3 (Subsetting)
 - 6.1 (Equality)
 - 6.6 (Math)
 
 Partially completed sections:
+- 5.2 (Filtering and Projection) - missing "ofType"; otherwise complete
 - 6.2 (Comparison) - type checking is not completely performed
 
 Deviations:

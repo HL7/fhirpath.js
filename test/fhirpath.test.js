@@ -10,14 +10,21 @@ var items = fs.readdirSync(__dirname + '/cases/');
 // Set "focus" to true to turn on focus option
 var focus = false;
 
+function endWith(s, postfix){
+  var idx = s.indexOf(postfix);
+  return ( idx > 0 &&  idx == fileName.length - postfix.length);
+}
+
+var focusFile = /.*.yaml/;
+
 for (var i=0; i<items.length; i++) {
   var fileName = items[i];
 
   // Only process yaml files
-  if (fileName.indexOf('.yaml') == fileName.length-5) {
+  if (endWith(fileName, '.yaml')) {
     const testcase = yaml.safeLoad(fs.readFileSync( __dirname + '/cases/' + fileName, 'utf8'));
 
-    if((focus && testcase.focus) || focus === false) {
+    if((focus && focusFile.test(fileName)) || focus === false) {
       describe(fileName, ()=> {
         testcase.tests.forEach((t)=>{
           // console.log(yaml.dump(subj.parse(t.expression)));

@@ -1,4 +1,3 @@
-focus: true
 tests:
   - desc: '5. Functions'
   - desc: '5.1 Existence'
@@ -387,6 +386,12 @@ tests:
     expression: Functions.attrempty.select(nothing)
     result: []
 
+  - desc: '** select 4:  Select a union of two allTrue function calls, for each item in coll1'
+    # Note: Of the 6 items in coll1, only two contain a colltrue or a collfalse
+    # member, for the others the result of allTrue on an empty set will be true.
+    expression: Functions.coll1.select(colltrue.attr.allTrue() | collfalse.attr.allTrue())
+    result: [true, true, true, true, true, true, true, true, true, false, true, true]
+
 
   - desc: '5.2.3. repeat(projection: expression) : collection'
 # A version of select that will repeat the projection and add it to the output collection, as long as the projection yields new items (as determined by the equals (=) operator).
@@ -408,6 +413,17 @@ tests:
   - desc: 'TODO FIX INF LOOP'
     # expression: Functions.coll1.colltrue.repeat(true)
     # result: [true, true, true]
+  - desc: '** find all attrs'
+    expression: Functions.repeat(repeatingAttr).count()
+    result: [2]
+
+  - desc: '** find all repeatingAttr.a values'
+    expression: Functions.repeat(repeatingAttr).a
+    result: [2, 1]
+
+  - desc: '** find all true values in nested coll'
+    expression: Functions.coll1.colltrue.repeat(attr)
+    result: [true, true, true]
 
   - desc: '** find non-exists value'
     expression: Functions.coll1.repeat(nothing)
@@ -460,8 +476,8 @@ tests:
   - desc: '** single on many'
     expression: Functions.attrdouble.single()
     result:
-      $status: error
-      $error: Expected single
+      - $status: error
+        $error: Expected single
 
   - desc: '5.3.3. first() : collection'
 # Returns a collection containing only the first
@@ -846,6 +862,11 @@ subject:
   attrobject:
     a: 1
     b: 2
+    repeatingAttr: 5
+  repeatingAttr:
+    repeatingAttr:
+      a: 1
+    a: 2
   coll1:
     - coll2:
         - attr: 1
