@@ -69,24 +69,54 @@ engine.anyFalseFn  = function(x) {
 
 
 /**
+ *  Returns a JSON version of the given object, but with keys of the object in
+ *  sorted order (or at least a stable order).
+ *  From: https://stackoverflow.com/a/35810961/360782
+ */
+function orderedJsonStringify(obj) {
+  return JSON.stringify(sortObjByKey(obj));
+}
+
+/**
+ *  If given value is an object, returns a new object with the properties added
+ *  in sorted order, and handles nested objects.  Otherwise, returns the given
+ *  value.
+ *  From: https://stackoverflow.com/a/35810961/360782
+ */
+function sortObjByKey(value) {
+  return (typeof value === 'object') ?
+    (Array.isArray(value) ?
+      value.map(sortObjByKey) :
+      Object.keys(value).sort().reduce(
+        (o, key) => {
+          const v = value[key];
+          o[key] = sortObjByKey(v);
+          return o;
+        }, {})
+    ) :
+    value;
+}
+
+
+/**
  *  Returns true if coll1 is a subset of coll2.
  */
 function subsetOf(coll1, coll2) {
   let rtn = coll1.length <= coll2.length;
   if (rtn) {
     // This requires a deep-equals comparision of every object in coll1,
-    // against each objectin coll2.
+    // against each object in coll2.
     // Optimize by building a hashmap of JSON versions of the objects.
     var c2Hash = {};
     for (let p=0, pLen=coll1.length; p<pLen && rtn; ++p) {
       let obj1 = coll1[p];
-      let obj1Str = JSON.stringify(obj1);
+      let obj1Str = orderedJsonStringify(obj1);
       let found = false;
       if (p===0) { // c2Hash is not yet built
         for (let i=0, len=coll2.length; i<len; ++i) {
           // No early return from this loop, because we're building c2Hash.
           let obj2 = coll2[i];
-          let obj2Str = JSON.stringify(obj2);
+          let obj2Str = orderedJsonStringify(obj2);
           c2Hash[obj2Str] = obj2;
           found = found || (obj1Str === obj2Str);
         }
