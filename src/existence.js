@@ -4,9 +4,6 @@
 var util = require("./utilities");
 var filtering = require("./filtering");
 
-/**
- *  Adds the existence functions to the given FHIRPath engine.
- */
 var engine = {};
 engine.emptyFn = util.isEmpty;
 

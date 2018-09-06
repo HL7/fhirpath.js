@@ -642,6 +642,10 @@ tests:
     expression: Functions.attrdouble.combine(Functions.coll1.coll2.attr)
     result: [1, 2, 1, 2, 3, 4, 5]
 
+  - desc: 'testing'
+    expression: Functions.coll1.coll2.attr
+    result: true
+    focus: true
 
   - desc: '5.5.1. iif(criterium: expression, true-result: collection [, otherwise-result:
  collection]) : collection'
