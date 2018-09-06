@@ -378,13 +378,13 @@ tests:
     expression: Functions.coll1.coll2.select(attr)
     result: [1, 2, 3, 4, 5]
 
-  - desc: '** select 2'
+  - desc: '** select 2.  Note that the union removes duplicates'
     expression: Functions.coll1.select(colltrue | collfalse).attr
-    result: [true, true, true, false, false]
+    result: [true, false]
 
-  - desc: '** select 3'
+  - desc: '** select 3.  Note that the union removes duplicates'
     expression: Functions.coll1.select(colltrue.attr | collfalse.attr)
-    result: [true, true, true, false, false]
+    result: [true, false]
 
   - desc: '** select on empty coll is empty'
     expression: Functions.attrempty.select(nothing)
@@ -393,8 +393,9 @@ tests:
   - desc: '** select 4:  Select a union of two allTrue function calls, for each item in coll1'
     # Note: Of the 6 items in coll1, only two contain a colltrue or a collfalse
     # member, for the others the result of allTrue on an empty set will be true.
+    # Also note that the union removes duplicates.
     expression: Functions.coll1.select(colltrue.attr.allTrue() | collfalse.attr.allTrue())
-    result: [true, true, true, true, true, true, true, true, true, false, true, true]
+    result: [true, true, true, true, true, false, true]
 
 
   - desc: '5.2.3. repeat(projection: expression) : collection'
@@ -641,11 +642,6 @@ tests:
   - desc: '** Combine colls 2'
     expression: Functions.attrdouble.combine(Functions.coll1.coll2.attr)
     result: [1, 2, 1, 2, 3, 4, 5]
-
-  - desc: 'testing'
-    expression: Functions.coll1.coll2.attr
-    result: true
-    focus: true
 
   - desc: '5.5.1. iif(criterium: expression, true-result: collection [, otherwise-result:
  collection]) : collection'

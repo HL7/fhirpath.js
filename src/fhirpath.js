@@ -67,7 +67,7 @@ engine.invocationTable = {
   tail:         {fn: filtering.tailFn},
   take:         {fn: filtering.takeFn, arity: {1: ["Integer"]}},
   skip:         {fn: filtering.skipFn, arity: {1: ["Integer"]}},
-  combine:      {fn: combining.combineFn, arity: {1: ["Any"]}},
+  combine:      {fn: combining.combineFn, arity: {1: ["AnyAtRoot"]}},
   iif:          {fn: misc.iifMacro,    arity: {3: ["Expr", "Expr", "Expr"]}},
   trace:        {fn: misc.traceFn,     arity: {0: [], 1: ["String"]}},
   "|":          {fn: combining.unionOp,   arity: {2: ["Any", "Any"]}},
