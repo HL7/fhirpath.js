@@ -17,7 +17,7 @@
 // 1. operator or function is looked up in table
 // 2. using signature (in  .arity property) unpack parameters
 // 3. check params types
-// 4. do call function 
+// 4. do call function
 // 5. wrap result by util.arraify
 //
 // if function is nullable
@@ -34,9 +34,10 @@ const util = require("./utilities");
 let engine    = {}; // the object with all FHIRPath functions and operations
 let existence = require("./existence");
 let filtering = require("./filtering");
+let combining = require("./combining");
 let misc      = require("./misc");
-let equality  =  require("./equality");
-let math      =  require("./math");
+let equality  = require("./equality");
+let math      = require("./math");
 
 // * fn: handler
 // * arity: is index map with type signature
@@ -66,9 +67,10 @@ engine.invocationTable = {
   tail:         {fn: filtering.tailFn},
   take:         {fn: filtering.takeFn, arity: {1: ["Integer"]}},
   skip:         {fn: filtering.skipFn, arity: {1: ["Integer"]}},
+  combine:      {fn: combining.combineFn, arity: {1: ["AnyAtRoot"]}},
   iif:          {fn: misc.iifMacro,    arity: {3: ["Expr", "Expr", "Expr"]}},
   trace:        {fn: misc.traceFn,     arity: {0: [], 1: ["String"]}},
-  "|":          {fn: misc.unionOp,   arity: {2: ["Any", "Any"]}},
+  "|":          {fn: combining.unionOp,   arity: {2: ["Any", "Any"]}},
   "=":          {fn: equality.equal,   arity: {2: ["Any", "Any"]}, nullable: true},
   "!=":         {fn: equality.unequal,   arity: {2: ["Any", "Any"]}, nullable: true},
   "~":          {fn: equality.equival,   arity: {2: ["Any", "Any"]}},
@@ -259,19 +261,19 @@ function doInvoke(ctx, fnName, data, rawParams){
           }
         }
         res = invoc.fn.apply(ctx, params);
-        return util.arraify(res); 
+        return util.arraify(res);
       } else {
         console.log(fnName + " wrong arity: got " + paramsNumber );
         return [];
       }
     }
   } else {
-    throw new Error("Not implemented: " + fnName); 
+    throw new Error("Not implemented: " + fnName);
   }
 }
 function isNullable(x) {
   var res = x=== null || x=== undefined || util.isEmpty(x);
-  return res; 
+  return res;
 }
 
 function infixInvoke(ctx, fnName, data, rawParams){
@@ -299,7 +301,7 @@ function infixInvoke(ctx, fnName, data, rawParams){
       return [];
     }
   } else {
-    throw new Error("Not impl " + fnName); 
+    throw new Error("Not impl " + fnName);
   }
 }
 
