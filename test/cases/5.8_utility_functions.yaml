@@ -1,0 +1,71 @@
+tests:
+  - desc: '5. Functions'
+  - desc: '5.8. Utility functions'
+  - desc: '5.8.1. trace(name : string) : collection'
+# Add a string representation of the input collection to the diagnostic log, using the parameter name as the name in the log. This log should be made available to the user in some appropriate fashion. Does not change the input, so returns the input collection as output.
+
+  - desc: '** trace'
+    expression: Functions.coll2.attr.trace('coll2')
+    result: [1, 2, 3, 4, 5]
+
+  - desc: '5.8.2. today() : dateTime'
+# Returns a dateTime containing the current date.
+
+  - desc: '** today()'
+    expression: Functions.today()
+    result: '1234'
+
+
+  - desc: '5.8.3. now() : dateTime'
+# Returns a dateTime containing the current date and time, including timezone.
+
+  - desc: '** now()'
+    expression: now()
+    result: '10:10'
+
+
+subject:
+  resourceType: Functions
+  attrempty: []
+  attrtrue: true
+  attrfalse: false
+  attrsingle:
+    - 1
+  attrdouble:
+    - 1
+    - 2
+  attrobject:
+    a: 1
+    b: 2
+    repeatingAttr: 5
+  repeatingAttr:
+    repeatingAttr:
+      a: 1
+    a: 2
+  coll1:
+    - coll2:
+        - attr: 1
+        - attr: 2
+        - attr: 3
+    - coll2:
+        - attr: 4
+        - attr: 5
+    - colltrue:
+        - attr: true
+        - attr: true
+        - attr: true
+    - collwithfalse:
+        - attr: false
+        - attr: true
+    - collfalse:
+        - attr: false
+        - attr: false
+    - mixed:
+        - attr: true
+        - attr: false
+        - attr: 'test string'
+        - attr: 999
+        - attr: 3.14159
+        - attr: '@2015-02-04T14:34:28Z'
+        - attr: '@T14:34:28+09:00'
+        - attr: 4 days
