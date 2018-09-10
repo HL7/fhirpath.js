@@ -15,7 +15,7 @@ function endWith(s, postfix){
 }
 
 var focus = false;
-var focusFile = /^6\.5_.*.yaml/;
+var focusFile = /.*.yaml/;
 
 for (var i=0; i<items.length; i++) {
   var fileName = items[i];
