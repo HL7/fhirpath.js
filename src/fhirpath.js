@@ -38,7 +38,9 @@ let combining = require("./combining");
 let misc      = require("./misc");
 let equality  = require("./equality");
 let math      = require("./math");
-let strings      = require("./strings");
+let strings   = require("./strings");
+let navigation= require("./navigation");
+let datetime  = require("./datetime");
 
 // * fn: handler
 // * arity: is index map with type signature
@@ -61,7 +63,6 @@ engine.invocationTable = {
   count:        {fn: existence.countFn},
   where:        {fn: filtering.whereMacro, arity: {1: ["Expr"]}},
   select:       {fn: filtering.selectMacro, arity: {1: ["Expr"]}},
-  repeat:       {fn: filtering.repeatMacro, arity: {1: ["Expr"]}},
   single:       {fn: filtering.singleFn},
   first:        {fn: filtering.firstFn},
   last:         {fn: filtering.lastFn},
@@ -85,6 +86,13 @@ engine.invocationTable = {
   matches:        {fn: strings.matches,          arity: {1: ["String"]}},
   replaceMatches: {fn: strings.replaceMatches,   arity: {2: ["String", "String"]}},
   length:         {fn: strings.length },
+
+  now:            {fn: datetime.now },
+  today:          {fn: datetime.today },
+
+  repeat:          {fn: filtering.repeatMacro, arity: {1: ["Expr"]}},
+  children:        {fn: navigation.children },
+  descendants:     {fn: navigation.descendants },
 
   "|":          {fn: combining.unionOp,   arity: {2: ["Any", "Any"]}},
   "=":          {fn: equality.equal,   arity: {2: ["Any", "Any"]}, nullable: true},
