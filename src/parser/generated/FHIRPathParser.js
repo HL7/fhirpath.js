@@ -31,25 +31,25 @@ var serializedATN = ["\u0003\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964",
     "\u0018\u001a\u001c\u0002\u000e\u0003\u0002\u0006\u0007\u0003\u0002\b",
     "\u000b\u0004\u0002\u0006\u0007\f\f\u0003\u0002\u000e\u0011\u0003\u0002",
     "\u0014\u0017\u0003\u0002\u0018\u0019\u0003\u0002\u001b\u001c\u0003\u0002",
-    "\u0012\u0013\u0003\u0002\"#\u0003\u0002\'.\u0003\u0002/6\u0004\u0002",
-    "\u0012\u00139:\u0002\u00a2\u0002\"\u0003\u0002\u0002\u0002\u0004V\u0003",
-    "\u0002\u0002\u0002\u0006`\u0003\u0002\u0002\u0002\bb\u0003\u0002\u0002",
-    "\u0002\nh\u0003\u0002\u0002\u0002\fj\u0003\u0002\u0002\u0002\u000eq",
-    "\u0003\u0002\u0002\u0002\u0010y\u0003\u0002\u0002\u0002\u0012\u0080",
-    "\u0003\u0002\u0002\u0002\u0014\u0082\u0003\u0002\u0002\u0002\u0016\u0084",
-    "\u0003\u0002\u0002\u0002\u0018\u0086\u0003\u0002\u0002\u0002\u001a\u0088",
-    "\u0003\u0002\u0002\u0002\u001c\u0090\u0003\u0002\u0002\u0002\u001e\u001f",
-    "\b\u0002\u0001\u0002\u001f#\u0005\u0004\u0003\u0002 !\t\u0002\u0002",
-    "\u0002!#\u0005\u0002\u0002\r\"\u001e\u0003\u0002\u0002\u0002\" \u0003",
-    "\u0002\u0002\u0002#L\u0003\u0002\u0002\u0002$%\f\f\u0002\u0002%&\t\u0003",
-    "\u0002\u0002&K\u0005\u0002\u0002\r\'(\f\u000b\u0002\u0002()\t\u0004",
-    "\u0002\u0002)K\u0005\u0002\u0002\f*+\f\n\u0002\u0002+,\u0007\r\u0002",
-    "\u0002,K\u0005\u0002\u0002\u000b-.\f\t\u0002\u0002./\t\u0005\u0002\u0002",
-    "/K\u0005\u0002\u0002\n01\f\u0007\u0002\u000212\t\u0006\u0002\u00022",
-    "K\u0005\u0002\u0002\b34\f\u0006\u0002\u000245\t\u0007\u0002\u00025K",
-    "\u0005\u0002\u0002\u000767\f\u0005\u0002\u000278\u0007\u001a\u0002\u0002",
-    "8K\u0005\u0002\u0002\u00069:\f\u0004\u0002\u0002:;\t\b\u0002\u0002;",
-    "K\u0005\u0002\u0002\u0005<=\f\u0003\u0002\u0002=>\u0007\u001d\u0002",
+    "\u0012\u0013\u0003\u0002\"#\u0003\u0002\'.\u0003\u0002/6\u0005\u0002",
+    "\u0012\u0013\u0019\u00199:\u0002\u00a2\u0002\"\u0003\u0002\u0002\u0002",
+    "\u0004V\u0003\u0002\u0002\u0002\u0006`\u0003\u0002\u0002\u0002\bb\u0003",
+    "\u0002\u0002\u0002\nh\u0003\u0002\u0002\u0002\fj\u0003\u0002\u0002\u0002",
+    "\u000eq\u0003\u0002\u0002\u0002\u0010y\u0003\u0002\u0002\u0002\u0012",
+    "\u0080\u0003\u0002\u0002\u0002\u0014\u0082\u0003\u0002\u0002\u0002\u0016",
+    "\u0084\u0003\u0002\u0002\u0002\u0018\u0086\u0003\u0002\u0002\u0002\u001a",
+    "\u0088\u0003\u0002\u0002\u0002\u001c\u0090\u0003\u0002\u0002\u0002\u001e",
+    "\u001f\b\u0002\u0001\u0002\u001f#\u0005\u0004\u0003\u0002 !\t\u0002",
+    "\u0002\u0002!#\u0005\u0002\u0002\r\"\u001e\u0003\u0002\u0002\u0002\"",
+    " \u0003\u0002\u0002\u0002#L\u0003\u0002\u0002\u0002$%\f\f\u0002\u0002",
+    "%&\t\u0003\u0002\u0002&K\u0005\u0002\u0002\r\'(\f\u000b\u0002\u0002",
+    "()\t\u0004\u0002\u0002)K\u0005\u0002\u0002\f*+\f\n\u0002\u0002+,\u0007",
+    "\r\u0002\u0002,K\u0005\u0002\u0002\u000b-.\f\t\u0002\u0002./\t\u0005",
+    "\u0002\u0002/K\u0005\u0002\u0002\n01\f\u0007\u0002\u000212\t\u0006\u0002",
+    "\u00022K\u0005\u0002\u0002\b34\f\u0006\u0002\u000245\t\u0007\u0002\u0002",
+    "5K\u0005\u0002\u0002\u000767\f\u0005\u0002\u000278\u0007\u001a\u0002",
+    "\u00028K\u0005\u0002\u0002\u00069:\f\u0004\u0002\u0002:;\t\b\u0002\u0002",
+    ";K\u0005\u0002\u0002\u0005<=\f\u0003\u0002\u0002=>\u0007\u001d\u0002",
     "\u0002>K\u0005\u0002\u0002\u0004?@\f\u000f\u0002\u0002@A\u0007\u0003",
     "\u0002\u0002AK\u0005\n\u0006\u0002BC\f\u000e\u0002\u0002CD\u0007\u0004",
     "\u0002\u0002DE\u0005\u0002\u0002\u0002EF\u0007\u0005\u0002\u0002FK\u0003",
@@ -720,6 +720,7 @@ FHIRPathParser.prototype.expression = function(_p) {
         switch(this._input.LA(1)) {
         case FHIRPathParser.T__15:
         case FHIRPathParser.T__16:
+        case FHIRPathParser.T__22:
         case FHIRPathParser.T__27:
         case FHIRPathParser.T__29:
         case FHIRPathParser.T__31:
@@ -1145,6 +1146,7 @@ FHIRPathParser.prototype.term = function() {
         switch(this._input.LA(1)) {
         case FHIRPathParser.T__15:
         case FHIRPathParser.T__16:
+        case FHIRPathParser.T__22:
         case FHIRPathParser.T__34:
         case FHIRPathParser.IDENTIFIER:
         case FHIRPathParser.QUOTEDIDENTIFIER:
@@ -1755,7 +1757,7 @@ FHIRPathParser.prototype.functn = function() {
         this.state = 107;
         this._errHandler.sync(this);
         _la = this._input.LA(1);
-        if((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << FHIRPathParser.T__3) | (1 << FHIRPathParser.T__4) | (1 << FHIRPathParser.T__15) | (1 << FHIRPathParser.T__16) | (1 << FHIRPathParser.T__27) | (1 << FHIRPathParser.T__29))) !== 0) || ((((_la - 32)) & ~0x1f) == 0 && ((1 << (_la - 32)) & ((1 << (FHIRPathParser.T__31 - 32)) | (1 << (FHIRPathParser.T__32 - 32)) | (1 << (FHIRPathParser.T__33 - 32)) | (1 << (FHIRPathParser.T__34 - 32)) | (1 << (FHIRPathParser.DATETIME - 32)) | (1 << (FHIRPathParser.TIME - 32)) | (1 << (FHIRPathParser.IDENTIFIER - 32)) | (1 << (FHIRPathParser.QUOTEDIDENTIFIER - 32)) | (1 << (FHIRPathParser.STRING - 32)) | (1 << (FHIRPathParser.NUMBER - 32)))) !== 0)) {
+        if((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << FHIRPathParser.T__3) | (1 << FHIRPathParser.T__4) | (1 << FHIRPathParser.T__15) | (1 << FHIRPathParser.T__16) | (1 << FHIRPathParser.T__22) | (1 << FHIRPathParser.T__27) | (1 << FHIRPathParser.T__29))) !== 0) || ((((_la - 32)) & ~0x1f) == 0 && ((1 << (_la - 32)) & ((1 << (FHIRPathParser.T__31 - 32)) | (1 << (FHIRPathParser.T__32 - 32)) | (1 << (FHIRPathParser.T__33 - 32)) | (1 << (FHIRPathParser.T__34 - 32)) | (1 << (FHIRPathParser.DATETIME - 32)) | (1 << (FHIRPathParser.TIME - 32)) | (1 << (FHIRPathParser.IDENTIFIER - 32)) | (1 << (FHIRPathParser.QUOTEDIDENTIFIER - 32)) | (1 << (FHIRPathParser.STRING - 32)) | (1 << (FHIRPathParser.NUMBER - 32)))) !== 0)) {
             this.state = 106;
             this.paramList();
         }
@@ -2343,7 +2345,7 @@ FHIRPathParser.prototype.identifier = function() {
         this.enterOuterAlt(localctx, 1);
         this.state = 142;
         _la = this._input.LA(1);
-        if(!(_la===FHIRPathParser.T__15 || _la===FHIRPathParser.T__16 || _la===FHIRPathParser.IDENTIFIER || _la===FHIRPathParser.QUOTEDIDENTIFIER)) {
+        if(!((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << FHIRPathParser.T__15) | (1 << FHIRPathParser.T__16) | (1 << FHIRPathParser.T__22))) !== 0) || _la===FHIRPathParser.IDENTIFIER || _la===FHIRPathParser.QUOTEDIDENTIFIER)) {
         this._errHandler.recoverInline(this);
         }
         else {

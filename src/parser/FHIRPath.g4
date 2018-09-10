@@ -7,6 +7,7 @@ grammar FHIRPath;
 
 expression
         : term                                                      #termExpression
+        | expression '.' invocation                                 #invocationExpression
         | expression '[' expression ']'                             #indexerExpression
         | ('+' | '-') expression                                    #polarityExpression
         | expression ('*' | '/' | 'div' | 'mod') expression         #multiplicativeExpression
@@ -19,7 +20,6 @@ expression
         | expression 'and' expression                               #andExpression
         | expression ('or' | 'xor') expression                      #orExpression
         | expression 'implies' expression                           #impliesExpression
-        | expression '.' invocation                                 #invocationExpression
         //| (IDENTIFIER)? '=>' expression                             #lambdaExpression
         ;
 
@@ -89,6 +89,7 @@ identifier
         | QUOTEDIDENTIFIER
         | 'as'
         | 'is'
+        | 'contains'
         ;
 
 
