@@ -1,0 +1,64 @@
+tests:
+  - desc: '5. Functions'
+  - desc: '5.7. Tree navigation'
+  - desc: '5.7.1. children() : collection'
+# Returns a collection with all immediate child nodes of all items in the input collection. Note that the ordering of the children is undefined and using operations like first() on the result may return different results on different platforms.
+
+  - desc: '** children'
+    expression: Functions.coll1.children()
+    result: [coll2, coll2, colltrue, collwithfalse. collfalse, collfalse, mixed]
+
+  - desc: '5.7.2. descendants() : collection'
+# Returns a collection with all descendant nodes of all items in the input collection. The result does not include the nodes in the input collection themselves. Is a shorthand for repeat(children()). Note that the ordering of the children is undefined and using operations like first() on the result may return different results on different platforms.
+# Note: Many of these functions will result in a set of nodes of different underlying types. It may be necessary to use ofType() as described in the previous section to maintain type safety. See section 8 for more information about type safe use of FHIRPath expressions.
+
+  - desc: '** descendants'
+    expression: Functions.coll2.descendants()
+    result: [1, 2, 3, 4, 5]
+
+
+subject:
+  resourceType: Functions
+  attrempty: []
+  attrtrue: true
+  attrfalse: false
+  attrsingle:
+    - 1
+  attrdouble:
+    - 1
+    - 2
+  attrobject:
+    a: 1
+    b: 2
+    repeatingAttr: 5
+  repeatingAttr:
+    repeatingAttr:
+      a: 1
+    a: 2
+  coll1:
+    - coll2:
+        - attr: 1
+        - attr: 2
+        - attr: 3
+    - coll2:
+        - attr: 4
+        - attr: 5
+    - colltrue:
+        - attr: true
+        - attr: true
+        - attr: true
+    - collwithfalse:
+        - attr: false
+        - attr: true
+    - collfalse:
+        - attr: false
+        - attr: false
+    - mixed:
+        - attr: true
+        - attr: false
+        - attr: 'test string'
+        - attr: 999
+        - attr: 3.14159
+        - attr: '@2015-02-04T14:34:28Z'
+        - attr: '@T14:34:28+09:00'
+        - attr: 4 days

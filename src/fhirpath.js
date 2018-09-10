@@ -38,6 +38,7 @@ let combining = require("./combining");
 let misc      = require("./misc");
 let equality  = require("./equality");
 let math      = require("./math");
+let strings      = require("./strings");
 
 // * fn: handler
 // * arity: is index map with type signature
@@ -64,12 +65,27 @@ engine.invocationTable = {
   single:       {fn: filtering.singleFn},
   first:        {fn: filtering.firstFn},
   last:         {fn: filtering.lastFn},
+  ofType:       {fn: filtering.ofTypeFn, arity: {1: ["Identifier"]}},
   tail:         {fn: filtering.tailFn},
   take:         {fn: filtering.takeFn, arity: {1: ["Integer"]}},
   skip:         {fn: filtering.skipFn, arity: {1: ["Integer"]}},
   combine:      {fn: combining.combineFn, arity: {1: ["AnyAtRoot"]}},
   iif:          {fn: misc.iifMacro,    arity: {3: ["Expr", "Expr", "Expr"]}},
   trace:        {fn: misc.traceFn,     arity: {0: [], 1: ["String"]}},
+  toInteger:    {fn: misc.toInteger},
+  toDecimal:    {fn: misc.toDecimal},
+  toString:     {fn: misc.toString},
+
+  indexOf:        {fn: strings.indexOf,          arity: {1: ["String"]}},
+  substring:      {fn: strings.substring,        arity: {1: ["Integer"], 2: ["Integer","Integer"]}},
+  startWith:      {fn: strings.startWith,        arity: {1: ["String"]}},
+  endWith:        {fn: strings.endWith,          arity: {1: ["String"]}},
+  contains:       {fn: strings.contains,         arity: {1: ["String"]}},
+  replace:        {fn: strings.replace,          arity: {2: ["String", "String"]}},
+  matches:        {fn: strings.matches,          arity: {1: ["String"]}},
+  replaceMatches: {fn: strings.replaceMatches,   arity: {2: ["String", "String"]}},
+  length:         {fn: strings.length },
+
   "|":          {fn: combining.unionOp,   arity: {2: ["Any", "Any"]}},
   "=":          {fn: equality.equal,   arity: {2: ["Any", "Any"]}, nullable: true},
   "!=":         {fn: equality.unequal,   arity: {2: ["Any", "Any"]}, nullable: true},
@@ -198,6 +214,14 @@ const paramTable = {
   },
   "AnyAtRoot": function(ctx, parentData, type, param){
     return engine.doEval(ctx, ctx.dataRoot, param);
+  },
+  "Identifier": function(ctx, parentData, type, param){
+    var id =  engine.doEval(ctx, ctx.dataRoot, param);
+    if(param.type == "TermExpression"){
+      return param.text;
+    } else {
+      throw new Error("Expected identifier node, got ", JSON.stringify(param));
+    }
   },
   "Integer": function(ctx, parentData, type, param){
     var res = engine.doEval(ctx, ctx.dataRoot, param);

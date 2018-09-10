@@ -1,0 +1,143 @@
+tests:
+  - desc: '5. Functions'
+  - desc: '5.5. Conversion'
+  - desc: '5.5.1. iif(criterium: expression, true-result: collection [, otherwise-result:
+ collection]) : collection'
+# If criterium is true, the function returns the value
+# of true-result parameter.
+
+# If criterium is false or an empty collection, the function returns
+# otherwise-result, unless the optional otherwise-expression is not given, in
+# which case the function returns an empty collection.
+
+  - desc: '** boolean - true'
+    expression: 'true'
+    result: [true]
+
+  - desc: '** boolean - false'
+    expression: 'false'
+    result: [false]
+
+  - desc: '** iif'
+    expression: Functions.iif(true, 'a', 'b')
+    result: ['a']
+
+  - desc: '** iif 2'
+    expression: Functions.iif(false, 'a', 'b')
+    result: ['b']
+
+  - desc: '** iif 3'
+    expression: Functions.iif(coll1[0].coll2[0].attr = 1, coll1[0].coll2[0].attr, coll1[0].coll2[1].attr)
+    result: [1]
+
+  - desc: 'TODO ADD TEST____'
+  - desc: '5.5.2. toInteger() : integer'
+    # If the input collection contains a single item, this functio# n will return a single integer if:
+    # the item in the input collection is an integer
+    # the item in the input collection is a string and is convertible to an integer
+    # the item is a boolean, where true results in a 1 and false results in a 0.
+    # If the item is not one the above types, the evaluation of the expression will end and signal an error to the calling environment.
+    # If the item is a string, but the string is not convertible to an integer (using the regex format (\\+|-)?\d+), the evaluation of the expression will end and signal an error to the calling environment.
+
+    # In all other cases, the function will return an empty collection.
+  - desc: '** Bool to int'
+    expression: Functions.attrtrue.toInteger()
+    result: [1]
+
+  - desc: '** str to int'
+    expression: intstr.toInteger()
+    result: [101]
+
+  - desc: '5.5.3. toDecimal() : decimal'
+# If the input collection contains a single item, this function will return a single decimal if:
+# the item in the input collection is an integer or decimal
+# the item in the input collection is a string and is convertible to a decimal
+# the item is a boolean, where true results in a 1.0 and false results in a 0.0.
+# If the item is not one of the above types, the evaluation of the expression will end and signal an error to the calling environment.
+# If the item is a string, but the string is not convertible to a decimal (using the regex format (\\+|-)?\d+('.' \d+)?), the evaluation of the expression will end and signal an error to the calling environment.
+# In all other cases, the function will return an empty collection.
+  - desc: '** Bool to decimal'
+    expression: Functions.attrtrue.toDecimal()
+    result: [1.0]
+
+  - desc: '** str to decimal'
+    expression: decstr.toDecimal()
+    result: [101.99]
+
+
+  - desc: '5.5.4. toString() : string'
+# If the input collection contains a single item, this function will return a single string if:
+# the item in the input collection is a string
+# the item in the input collection is an integer, decimal, time or dateTime the output will contain its string representation
+# the item is a boolean, where true results in 'true' and false in 'false'.
+# If the item is not one of the above types, the evaluation of the expression will end and signal an error to the calling environment.
+# The string representation uses the following formats:
+# Type	Representation
+# boolean
+# true or false
+
+# integer
+# (\\+|-)?\d+
+
+# decimal
+# (\\+|-)?\d+(.\d+)?
+
+# quantity
+# (\\+|-)?\d+(.\d+)? '<unit>'
+
+# dateTime
+# YYYY-MM-DDThh:mm:ss.fff(+/-)hh:mm
+
+# time
+# Thh:mm:ss.fff(+/-)hh:mm
+
+# Note that for partial dates and times, the result will only be specified to the level of precision in the value being converted.
+# In all other cases, the function will return an empty collection.
+
+  - desc: '** bool to string'
+    expression: attrtrue.toString()
+    result: ['true']
+
+  - desc: '** bool to string'
+    expression: attrdec.toString()
+    result: ['101.99']
+
+
+
+subject:
+  resourceType: Functions
+  attrempty: []
+  attrtrue: true
+  attrfalse: false
+  intstr: '101'
+  decstr: '101.99'
+  attrdec: 101.99
+  attrsingle:
+    - 1
+  coll1:
+    - coll2:
+        - attr: 1
+        - attr: 2
+        - attr: 3
+    - coll2:
+        - attr: 4
+        - attr: 5
+    - colltrue:
+        - attr: true
+        - attr: true
+        - attr: true
+    - collwithfalse:
+        - attr: false
+        - attr: true
+    - collfalse:
+        - attr: false
+        - attr: false
+    - mixed:
+        - attr: true
+        - attr: false
+        - attr: 'test string'
+        - attr: 999
+        - attr: 3.14159
+        - attr: '@2015-02-04T14:34:28Z'
+        - attr: '@T14:34:28+09:00'
+        - attr: 4 days

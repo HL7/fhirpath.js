@@ -8,14 +8,14 @@ const fs   = require('fs');
 var items = fs.readdirSync(__dirname + '/cases/');
 
 // Set "focus" to true to turn on focus option
-var focus = false;
 
 function endWith(s, postfix){
   var idx = s.indexOf(postfix);
   return ( idx > 0 &&  idx == fileName.length - postfix.length);
 }
 
-var focusFile = /.*.yaml/;
+var focus = true;
+var focusFile = /^5\.6_.*.yaml/;
 
 for (var i=0; i<items.length; i++) {
   var fileName = items[i];
@@ -25,13 +25,14 @@ for (var i=0; i<items.length; i++) {
     const testcase = yaml.safeLoad(fs.readFileSync( __dirname + '/cases/' + fileName, 'utf8'));
 
     if((focus && focusFile.test(fileName)) || focus === false) {
+      console.log(fileName, focusFile.test(fileName));
       let focusedTest = false;
-      for (let i=0, len=testcase.tests.length; i<len && !focusedTest; ++i)
-        focusedTest = testcase.tests[i].focus
+      // for (let i=0, len=testcase.tests.length; i<len && !focusedTest; ++i)
+      //   focusedTest = testcase.tests[i].focus
 
       describe(fileName, ()=> {
         testcase.tests.forEach((t)=>{
-          if (!focus || (focusedTest && t.focus)) {
+          if (true || !focus || (focusedTest && t.focus)) {
             // console.log(yaml.dump(subj.parse(t.expression)));
             let exprs = Array.isArray(t.expression) ? t.expression : [t.expression];
             let console_log = console.log;
