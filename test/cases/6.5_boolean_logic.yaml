@@ -47,10 +47,10 @@ tests:
     result: [true]
   - desc: '* implies (true implies false)'
     expression: ok1 implies ups1
-    result: [true]
+    result: [false]
   - desc: '* implies (false implies true)'
     expression: ups1 implies ok1
-    result: [false]
+    result: [true]
   - desc: '* implies (false implies false)'
     expression: ups2 implies ups1
     result: [true]
