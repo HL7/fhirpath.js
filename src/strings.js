@@ -1,9 +1,3 @@
-
-// This file holds code to hande the FHIRPath Existence functions (5.1 in the
-// specification).
-
-var util = require("./utilities");
-
 var engine = {};
 
 function ensureStringSingleton(x){

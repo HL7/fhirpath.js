@@ -15,7 +15,7 @@ function endWith(s, postfix){
 }
 
 var focus = true;
-var focusFile = /^5\.6_.*.yaml/;
+var focusFile = /^5\.7_.*.yaml/;
 
 for (var i=0; i<items.length; i++) {
   var fileName = items[i];
@@ -25,7 +25,6 @@ for (var i=0; i<items.length; i++) {
     const testcase = yaml.safeLoad(fs.readFileSync( __dirname + '/cases/' + fileName, 'utf8'));
 
     if((focus && focusFile.test(fileName)) || focus === false) {
-      console.log(fileName, focusFile.test(fileName));
       let focusedTest = false;
       // for (let i=0, len=testcase.tests.length; i<len && !focusedTest; ++i)
       //   focusedTest = testcase.tests[i].focus

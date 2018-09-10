@@ -216,7 +216,6 @@ const paramTable = {
     return engine.doEval(ctx, ctx.dataRoot, param);
   },
   "Identifier": function(ctx, parentData, type, param){
-    var id =  engine.doEval(ctx, ctx.dataRoot, param);
     if(param.type == "TermExpression"){
       return param.text;
     } else {
