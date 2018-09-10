@@ -85,13 +85,34 @@ tests:
   - desc: '** empty input coll'
     expression: Functions.attrempty.ofType(string)
     result: []
-  - desc: "TODO ADD TESTS ________"
+  - desc: '** string'
+    expression: heteroattr.ofType(string)
+    result: ['string']
+  - desc: '** integer'
+    expression: heteroattr.ofType(integer)
+    result: [1]
+  - desc: '** decimal'
+    expression: heteroattr.ofType(decimal)
+    result: [1, 1.01]
+  - desc: '** boolean'
+    expression: heteroattr.ofType(boolean)
+    result: [true, false]
+  - desc: '** object (not fhir)'
+    expression: heteroattr.ofType(object)
+    result: [{a: 1}]
 
 subject:
   resourceType: Functions
   attrempty: []
   attrtrue: true
   attrfalse: false
+  heteroattr:
+    - 'string'
+    - 1
+    - 1.01
+    - a: 1
+    - true
+    - false
   attrsingle:
     - 1
   attrdouble:
