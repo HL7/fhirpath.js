@@ -2,7 +2,7 @@
   "name": "fhirpath",
   "version": "0.6.0",
   "description": "A FHIRPath engine",
-  "main": "interpreter/index.js",
+  "main": "src/fhirpath.js",
   "dependencies": {
     "antlr4": "^4.7.1"
   },
