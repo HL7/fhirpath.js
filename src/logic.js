@@ -13,7 +13,7 @@ engine.xorOp = function(a, b) {
 };
 
 engine.impliesOp = function(a, b) {
-  if(a === false) { return true; };
+  if(a === false) { return true; }
   return (a && b);
 };
 
