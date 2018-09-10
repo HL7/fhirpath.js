@@ -41,6 +41,7 @@ let math      = require("./math");
 let strings   = require("./strings");
 let navigation= require("./navigation");
 let datetime  = require("./datetime");
+let logic  = require("./logic");
 
 // * fn: handler
 // * arity: is index map with type signature
@@ -110,6 +111,11 @@ engine.invocationTable = {
   "/":          {fn: math.div,     arity:  {2: ["Number", "Number"]}, nullable: true},
   "mod":        {fn: math.mod,     arity:  {2: ["Number", "Number"]}, nullable: true},
   "div":        {fn: math.intdiv,  arity:  {2: ["Number", "Number"]}, nullable: true},
+
+  "or":        {fn: logic.orOp,  arity:       {2: ["Boolean", "Boolean"]}, nullable: true},
+  "and":       {fn: logic.andOp,  arity:      {2: ["Boolean", "Boolean"]}, nullable: true},
+  "xor":       {fn: logic.xorOp,  arity:      {2: ["Boolean", "Boolean"]}, nullable: true},
+  "implies":   {fn: logic.impliesOp,  arity:  {2: ["Boolean", "Boolean"]}, nullable: true},
 };
 
 engine.InvocationExpression = function(ctx, parentData, node) {
@@ -235,6 +241,14 @@ const paramTable = {
     util.assertType(res[0], ["number"], "Number");
     return res[0];
   },
+  "Boolean": function(ctx, parentData, type, param){
+    var res = engine.doEval(ctx, ctx.dataRoot, param);
+    if(res.length === 0) { return false; };
+    if(res[0] === true || res[0] === false){
+      return res[0];
+    }
+    throw new Error("Expected boolean, got: " + JSON.stringify(res));
+  },
   "Number": function(ctx, parentData, type, param){
     var res = engine.doEval(ctx, ctx.dataRoot, param);
     // TODO: check type
@@ -359,22 +373,7 @@ engine.ThisInvocation = function(ctx) {
   return util.arraify(ctx.currentData);
 };
 
-engine.EqualityExpression = function(ctx, parentData, node) {
-  var op = node.terminalNodeText[0];
-  return infixInvoke(ctx, op, parentData, node.children);
-};
-
-engine.InequalityExpression = function(ctx, parentData, node) {
-  var op = node.terminalNodeText[0];
-  return infixInvoke(ctx, op, parentData, node.children);
-};
-
-engine.AdditiveExpression = function(ctx, parentData, node) {
-  var op = node.terminalNodeText[0];
-  return infixInvoke(ctx, op, parentData, node.children);
-};
-
-engine.MultiplicativeExpression = function(ctx, parentData, node) {
+engine.OpExpression = function(ctx, parentData, node) {
   var op = node.terminalNodeText[0];
   return infixInvoke(ctx, op, parentData, node.children);
 };
@@ -382,15 +381,15 @@ engine.MultiplicativeExpression = function(ctx, parentData, node) {
 
 engine.evalTable = {
   BooleanLiteral: engine.BooleanLiteral,
-  EqualityExpression: engine.EqualityExpression,
+  EqualityExpression: engine.OpExpression,
   FunctionInvocation: engine.FunctionInvocation,
   Functn: engine.Functn,
   Identifier: engine.Identifier,
   IndexerExpression: engine.IndexerExpression,
-  InequalityExpression: engine.InequalityExpression,
+  InequalityExpression: engine.OpExpression,
   InvocationExpression: engine.InvocationExpression,
-  AdditiveExpression: engine.AdditiveExpression,
-  MultiplicativeExpression: engine.MultiplicativeExpression,
+  AdditiveExpression: engine.OpExpression,
+  MultiplicativeExpression: engine.OpExpression,
   InvocationTerm: engine.InvocationTerm,
   LiteralTerm: engine.LiteralTerm,
   MemberInvocation: engine.MemberInvocation,
@@ -400,6 +399,10 @@ engine.evalTable = {
   TermExpression: engine.TermExpression,
   ThisInvocation: engine.ThisInvocation,
   UnionExpression: engine.UnionExpression,
+  OrExpression: engine.OpExpression,
+  ImpliesExpression: engine.OpExpression,
+  AndExpression: engine.OpExpression,
+  XorExpression: engine.OpExpression
 };
 
 
