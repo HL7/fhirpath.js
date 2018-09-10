@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.5.1] - 2018-09-07
+### Fixed
+ - Corrected the (outdated) main file entry in package.json.
+
 ## [0.5.0] - 2018-09-07
 ### Added
  - combine()
