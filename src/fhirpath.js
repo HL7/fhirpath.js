@@ -243,7 +243,7 @@ const paramTable = {
   },
   "Boolean": function(ctx, parentData, type, param){
     var res = engine.doEval(ctx, ctx.dataRoot, param);
-    if(res.length === 0) { return false; };
+    if(res.length === 0) { return false; }
     if(res[0] === true || res[0] === false){
       return res[0];
     }

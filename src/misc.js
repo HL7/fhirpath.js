@@ -21,7 +21,7 @@ engine.traceFn = function(x, label) {
 
 var intRegex = /^[+-]?\d+$/;
 engine.toInteger = function(coll){
-  if(coll.length == 0 || coll.length > 1) { return []; }
+  if(coll.length != 1) { return []; }
   var v = coll[0];
   if(v === false) {return 0;}
   if(v === true) {return 1;}
@@ -44,7 +44,7 @@ engine.toInteger = function(coll){
 
 var numRegex = /^[+-]?\d+(\.\d+)?$/;
 engine.toDecimal = function(coll){
-  if(coll.length == 0 || coll.length > 1) { return []; }
+  if(coll.length != 1) { return []; }
   var v = coll[0];
   if(v === false) {return 0;}
   if(v === true) {return 1.0;}
@@ -62,7 +62,7 @@ engine.toDecimal = function(coll){
 };
 
 engine.toString = function(coll){
-  if(coll.length == 0 || coll.length > 1) { return []; }
+  if(coll.length != 1) { return []; }
   var v = coll[0];
   return v.toString();
 };

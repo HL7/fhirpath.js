@@ -26,12 +26,13 @@ for (var i=0; i<items.length; i++) {
 
     if((focus && focusFile.test(fileName)) || focus === false) {
       let focusedTest = false;
-      // for (let i=0, len=testcase.tests.length; i<len && !focusedTest; ++i)
-      //   focusedTest = testcase.tests[i].focus
+      for (let i=0, len=testcase.tests.length; i<len && !focusedTest; ++i) {
+        focusedTest = testcase.tests[i].focus;
+      }
 
       describe(fileName, ()=> {
         testcase.tests.forEach((t)=>{
-          if (true || !focus || (focusedTest && t.focus)) {
+          if (!focus || (focusedTest && t.focus)) {
             // console.log(yaml.dump(subj.parse(t.expression)));
             let exprs = Array.isArray(t.expression) ? t.expression : [t.expression];
             let console_log = console.log;

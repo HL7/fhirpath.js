@@ -11,7 +11,7 @@ tests:
   - desc: '5.8.2. today() : dateTime'
 # Returns a dateTime containing the current date.
 
-  - desc: '** today()'
+  - desc: '** TBD: today()'
     # expression: Functions.today()
     # result: '1234'
 
@@ -19,7 +19,7 @@ tests:
   - desc: '5.8.3. now() : dateTime'
 # Returns a dateTime containing the current date and time, including timezone.
 
-  - desc: '** now()'
+  - desc: '** TBD: now()'
     # expression: now()
     # result: '10:10'
 
