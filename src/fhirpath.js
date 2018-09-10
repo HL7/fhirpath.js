@@ -78,9 +78,9 @@ engine.invocationTable = {
 
   indexOf:        {fn: strings.indexOf,          arity: {1: ["String"]}},
   substring:      {fn: strings.substring,        arity: {1: ["Integer"], 2: ["Integer","Integer"]}},
-  startWith:      {fn: strings.startWith,        arity: {1: ["String"]}},
-  endWith:        {fn: strings.endWith,          arity: {1: ["String"]}},
-  contains:       {fn: strings.contains,         arity: {1: ["String"]}},
+  startsWith:     {fn: strings.startsWith,       arity: {1: ["String"]}},
+  endsWith:       {fn: strings.endsWith,         arity: {1: ["String"]}},
+  contains:       {fn: strings.containsFn,       arity: {1: ["String"]}},
   replace:        {fn: strings.replace,          arity: {2: ["String", "String"]}},
   matches:        {fn: strings.matches,          arity: {1: ["String"]}},
   replaceMatches: {fn: strings.replaceMatches,   arity: {2: ["String", "String"]}},

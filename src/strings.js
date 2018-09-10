@@ -6,40 +6,60 @@ var util = require("./utilities");
 
 var engine = {};
 
-engine.indexOf = function(str, substr){
+function ensureStringSingleton(x){
+  if(x.length == 1 && typeof x[0] === "string") {
+    return x[0];
+  }
+  throw new Error('Expected string, but got ' + JSON.stringify(x));
+}
+
+engine.indexOf = function(coll, substr){
+  var str = ensureStringSingleton(coll);
+  return str.indexOf(substr);
+};
+
+engine.substring = function(coll, start, length){
+  var str = ensureStringSingleton(coll);
+  return str.substring(start, start + length);
+};
+
+engine.startsWith = function(coll, prefix){
+  var str = ensureStringSingleton(coll);
+  return str.startsWith(prefix);
+};
+
+engine.endsWith = function(coll, postfix){
+  var str = ensureStringSingleton(coll);
+  return str.endsWith(postfix);
+};
+
+engine.containsFn = function(coll, substr){
+  var str = ensureStringSingleton(coll);
+  return str.includes(substr);
+};
+
+
+engine.matches = function(coll, regex){
+  var str = ensureStringSingleton(coll);
+  var reg = new RegExp(regex);
+  return reg.test(str);
 
 };
 
-engine.substring = function(str, start, length){
-
+engine.replace = function(coll, regex, repl){
+  var str = ensureStringSingleton(coll);
+  return str.replace(regex, repl);
 };
 
-engine.startWith = function(str, prefix){
-
+engine.replaceMatches = function(coll, regex, repl){
+  var str = ensureStringSingleton(coll);
+  var reg = new RegExp(regex);
+  return str.replace(reg, repl);
 };
 
-engine.endWith = function(str, postfix){
-
-};
-
-engine.contains = function(str, substr){
-
-};
-
-engine.replace = function(str, regex, repl){
-
-};
-
-engine.matches = function(str, regex){
-
-};
-
-engine.replaceMatches = function(str, regex, repl){
-
-};
-
-engine.length = function(str){
-
+engine.length = function(coll){
+  var str = ensureStringSingleton(coll);
+  return str.length;
 };
 
 module.exports = engine;
