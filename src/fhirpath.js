@@ -105,17 +105,17 @@ engine.invocationTable = {
   "<=":         {fn: equality.lte,  arity: {2: ["Any", "Any"]}, nullable: true},
   ">=":         {fn: equality.gte,  arity: {2: ["Any", "Any"]}, nullable: true},
   "&":          {fn: math.amp,     arity:  {2: ["String", "String"]}},
-  "+":          {fn: math.plus,    arity:  {2: ["Number", "Number"]}, nullable: true},
+  "+":          {fn: math.plus,    arity:  {2: ["Any", "Any"]}, nullable: true},
   "-":          {fn: math.minus,   arity:  {2: ["Number", "Number"]}, nullable: true},
   "*":          {fn: math.mul,     arity:  {2: ["Number", "Number"]}, nullable: true},
   "/":          {fn: math.div,     arity:  {2: ["Number", "Number"]}, nullable: true},
   "mod":        {fn: math.mod,     arity:  {2: ["Number", "Number"]}, nullable: true},
   "div":        {fn: math.intdiv,  arity:  {2: ["Number", "Number"]}, nullable: true},
 
-  "or":        {fn: logic.orOp,  arity:       {2: ["Boolean", "Boolean"]}, nullable: true},
-  "and":       {fn: logic.andOp,  arity:      {2: ["Boolean", "Boolean"]}, nullable: true},
-  "xor":       {fn: logic.xorOp,  arity:      {2: ["Boolean", "Boolean"]}, nullable: true},
-  "implies":   {fn: logic.impliesOp,  arity:  {2: ["Boolean", "Boolean"]}, nullable: true},
+  "or":        {fn: logic.orOp,  arity:       {2: [["Boolean"], ["Boolean"]]}},
+  "and":       {fn: logic.andOp,  arity:      {2: [["Boolean"], ["Boolean"]]}},
+  "xor":       {fn: logic.xorOp,  arity:      {2: [["Boolean"], ["Boolean"]]}},
+  "implies":   {fn: logic.impliesOp,  arity:  {2: [["Boolean"], ["Boolean"]]}},
 };
 
 engine.InvocationExpression = function(ctx, parentData, node) {
@@ -223,55 +223,69 @@ engine.realizeParams = function(ctx, parentData, args) {
 };
 
 const paramTable = {
-  "Any": function(ctx, parentData, type, param){
-    return engine.doEval(ctx, parentData, param);
+  "Integer": function(val){
+    if(typeof val !== "number" || !Number.isInteger(val)){
+      throw new Error("Expected integer, got: " + JSON.stringify(val));
+    }
+    return val;
   },
-  "AnyAtRoot": function(ctx, parentData, type, param){
+  "Boolean": function(val){
+    if(val === true || val === false){
+      return val;
+    }
+    throw new Error("Expected boolean, got: " + JSON.stringify(val));
+  },
+  "Number": function(val){
+    if(typeof val !== "number"){
+      throw new Error("Expected number, got: " + JSON.stringify(val));
+    }
+    return val;
+  },
+  "String": function(val){
+    if(typeof val !== "string"){
+      throw new Error("Expected string, got: " + JSON.stringify(val));
+    }
+    return val;
+  }
+};
+
+function makeParam(ctx, parentData, type, param) {
+  // this is hack for $this
+  ctx.currentData = parentData;
+  if(type === "Expr"){
+    return function(data) {
+      return engine.doEval(ctx, util.arraify(data), param);
+    };
+  }
+  if(type === "AnyAtRoot"){
     return engine.doEval(ctx, ctx.dataRoot, param);
-  },
-  "Identifier": function(ctx, parentData, type, param){
+  }
+  if(type === "Identifier"){
     if(param.type == "TermExpression"){
       return param.text;
     } else {
       throw new Error("Expected identifier node, got ", JSON.stringify(param));
     }
-  },
-  "Integer": function(ctx, parentData, type, param){
-    var res = engine.doEval(ctx, ctx.dataRoot, param);
-    util.assertType(res[0], ["number"], "Number");
-    return res[0];
-  },
-  "Boolean": function(ctx, parentData, type, param){
-    var res = engine.doEval(ctx, ctx.dataRoot, param);
-    if(res.length === 0) { return false; }
-    if(res[0] === true || res[0] === false){
-      return res[0];
-    }
-    throw new Error("Expected boolean, got: " + JSON.stringify(res));
-  },
-  "Number": function(ctx, parentData, type, param){
-    var res = engine.doEval(ctx, ctx.dataRoot, param);
-    // TODO: check type
-    return res[0];
-  },
-  "String": function(ctx, parentData, type, param){
-    var res = engine.doEval(ctx, ctx.dataRoot, param);
-    // TODO: check type
-    return res[0];
-  },
-  "Expr": function(ctx, parentData, type, param){
-    return function(data) {
-      return engine.doEval(ctx, util.arraify(data), param);
-    };
   }
-};
-
-function makeParam(ctx, parentData, type, param) {
+  var res = engine.doEval(ctx, parentData, param);
+  if(type === "Any") {
+    return res;
+  }
+  if(Array.isArray(type)){
+    if(res.length == 0){
+      return [];
+    } else {
+      type = type[0];
+    }
+  }
   var maker = paramTable[type];
-  if(maker){
-    // this is hack for $this
-    ctx.currentData = parentData;
-    return maker(ctx, parentData, type, param);
+  if(res.length > 1){
+    throw new Error("Unexpected collection" + JSON.stringify(res) +"; expected singleton of type" + type);
+  }
+  if(res.length == 0){
+    return [];
+  } else  if(maker){
+    return maker(res[0]);
   } else {
     console.error(type, param);
     throw new Error("IMPL me for " + type);

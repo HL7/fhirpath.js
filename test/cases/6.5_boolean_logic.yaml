@@ -15,6 +15,19 @@ tests:
   - desc: '* and (false and false)'
     expression: ok1 and ups1
     result: [false]
+  - desc: '* Empty logic'
+  - desc: '* and ({} and true)'
+    expression: emp and ok1
+    result: []
+  - desc: '* and (true and {})'
+    expression: ok1 and emp
+    result: []
+  - desc: '* and ({} and false)'
+    expression: emp and ups1
+    result: [false]
+  - desc: '* and (false and {})'
+    expression: ups1 and emp
+    result: [false]
 
   - desc: '* 6.5.2 or'
   - desc: '* or (true and true)'
@@ -26,6 +39,23 @@ tests:
   - desc: '* or (false or false)'
     expression: ups2 or ups1
     result: [false]
+
+  - desc: '* Empty logic'
+  - desc: '* or ({} or true)'
+    expression: emp or ok1
+    result: [true]
+  - desc: '* or (true or {})'
+    expression: ok1 or emp
+    result: [true]
+  - desc: '* or ({} or false)'
+    expression: emp or ups1
+    result: []
+  - desc: '* or (false or {})'
+    expression: ups1 or emp
+    result: []
+  - desc: '* or ({} or {})'
+    expression: emp or emp
+    result: []
 
   - desc: '* 6.5.3 xor'
   - desc: '* xor (true xor true)'
@@ -41,6 +71,24 @@ tests:
     expression: ups2 xor ups1
     result: [false]
 
+  - desc: '* Empty logic'
+  - desc: '* xor ({} xor true)'
+    expression: emp xor ok1
+    result: [true]
+  - desc: '* xor (true xor {})'
+    expression: ok1 xor emp
+    result: [true]
+  - desc: '* xor ({} xor false)'
+    expression: emp xor ups1
+    result: []
+  - desc: '* xor (false xor {})'
+    expression: ups1 xor emp
+    result: []
+  - desc: '* xor ({} xor {})'
+    expression: emp xor emp
+    result: []
+
+
   - desc: '* 6.5.4 implies'
   - desc: '* implies (true implies true)'
     expression: ok1 implies ok2
@@ -55,6 +103,23 @@ tests:
     expression: ups2 implies ups1
     result: [true]
 
+  - desc: '* Empty logic'
+  - desc: '* implies ({} implies true)'
+    expression: emp implies ok1
+    result: [true]
+  - desc: '* implies (true implies {})'
+    expression: ok1 implies emp
+    result: []
+  - desc: '* implies ({} implies false)'
+    expression: emp implies ups1
+    result: []
+  - desc: '* implies (false implies {})'
+    expression: ups1 implies emp
+    result: [true]
+  - desc: '* implies ({} implies {})'
+    expression: emp implies emp
+    result: []
+
   - desc: '* in where TODO:'
     # expression: coll.where(a='a' and b='b')
     # result:
@@ -65,6 +130,7 @@ subject:
   ok2: true
   ups1: false
   ups2: false
+  emp: []
   coll:
     - a: a
       b: b
