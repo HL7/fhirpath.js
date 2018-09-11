@@ -38,9 +38,15 @@ let combining = require("./combining");
 let misc      = require("./misc");
 let equality  = require("./equality");
 let math      = require("./math");
+let strings   = require("./strings");
+let navigation= require("./navigation");
+let datetime  = require("./datetime");
+let logic  = require("./logic");
 
 // * fn: handler
 // * arity: is index map with type signature
+//   if type is in array (like [Boolean]) - this means
+//   function accepts value of this type or empty value {} 
 // * nullable - means propagate empty result, i.e. instead
 //   calling function if one of params is  empty return empty
 
@@ -60,16 +66,37 @@ engine.invocationTable = {
   count:        {fn: existence.countFn},
   where:        {fn: filtering.whereMacro, arity: {1: ["Expr"]}},
   select:       {fn: filtering.selectMacro, arity: {1: ["Expr"]}},
-  repeat:       {fn: filtering.repeatMacro, arity: {1: ["Expr"]}},
   single:       {fn: filtering.singleFn},
   first:        {fn: filtering.firstFn},
   last:         {fn: filtering.lastFn},
+  ofType:       {fn: filtering.ofTypeFn, arity: {1: ["Identifier"]}},
   tail:         {fn: filtering.tailFn},
   take:         {fn: filtering.takeFn, arity: {1: ["Integer"]}},
   skip:         {fn: filtering.skipFn, arity: {1: ["Integer"]}},
   combine:      {fn: combining.combineFn, arity: {1: ["AnyAtRoot"]}},
   iif:          {fn: misc.iifMacro,    arity: {3: ["Expr", "Expr", "Expr"]}},
   trace:        {fn: misc.traceFn,     arity: {0: [], 1: ["String"]}},
+  toInteger:    {fn: misc.toInteger},
+  toDecimal:    {fn: misc.toDecimal},
+  toString:     {fn: misc.toString},
+
+  indexOf:        {fn: strings.indexOf,          arity: {1: ["String"]}},
+  substring:      {fn: strings.substring,        arity: {1: ["Integer"], 2: ["Integer","Integer"]}},
+  startsWith:     {fn: strings.startsWith,       arity: {1: ["String"]}},
+  endsWith:       {fn: strings.endsWith,         arity: {1: ["String"]}},
+  contains:       {fn: strings.containsFn,       arity: {1: ["String"]}},
+  replace:        {fn: strings.replace,          arity: {2: ["String", "String"]}},
+  matches:        {fn: strings.matches,          arity: {1: ["String"]}},
+  replaceMatches: {fn: strings.replaceMatches,   arity: {2: ["String", "String"]}},
+  length:         {fn: strings.length },
+
+  now:            {fn: datetime.now },
+  today:          {fn: datetime.today },
+
+  repeat:          {fn: filtering.repeatMacro, arity: {1: ["Expr"]}},
+  children:        {fn: navigation.children },
+  descendants:     {fn: navigation.descendants },
+
   "|":          {fn: combining.unionOp,   arity: {2: ["Any", "Any"]}},
   "=":          {fn: equality.equal,   arity: {2: ["Any", "Any"]}, nullable: true},
   "!=":         {fn: equality.unequal,   arity: {2: ["Any", "Any"]}, nullable: true},
@@ -80,12 +107,17 @@ engine.invocationTable = {
   "<=":         {fn: equality.lte,  arity: {2: ["Any", "Any"]}, nullable: true},
   ">=":         {fn: equality.gte,  arity: {2: ["Any", "Any"]}, nullable: true},
   "&":          {fn: math.amp,     arity:  {2: ["String", "String"]}},
-  "+":          {fn: math.plus,    arity:  {2: ["Number", "Number"]}, nullable: true},
+  "+":          {fn: math.plus,    arity:  {2: ["Any", "Any"]}, nullable: true},
   "-":          {fn: math.minus,   arity:  {2: ["Number", "Number"]}, nullable: true},
   "*":          {fn: math.mul,     arity:  {2: ["Number", "Number"]}, nullable: true},
   "/":          {fn: math.div,     arity:  {2: ["Number", "Number"]}, nullable: true},
   "mod":        {fn: math.mod,     arity:  {2: ["Number", "Number"]}, nullable: true},
   "div":        {fn: math.intdiv,  arity:  {2: ["Number", "Number"]}, nullable: true},
+
+  "or":        {fn: logic.orOp,  arity:       {2: [["Boolean"], ["Boolean"]]}},
+  "and":       {fn: logic.andOp,  arity:      {2: [["Boolean"], ["Boolean"]]}},
+  "xor":       {fn: logic.xorOp,  arity:      {2: [["Boolean"], ["Boolean"]]}},
+  "implies":   {fn: logic.impliesOp,  arity:  {2: [["Boolean"], ["Boolean"]]}},
 };
 
 engine.InvocationExpression = function(ctx, parentData, node) {
@@ -193,40 +225,69 @@ engine.realizeParams = function(ctx, parentData, args) {
 };
 
 const paramTable = {
-  "Any": function(ctx, parentData, type, param){
-    return engine.doEval(ctx, parentData, param);
+  "Integer": function(val){
+    if(typeof val !== "number" || !Number.isInteger(val)){
+      throw new Error("Expected integer, got: " + JSON.stringify(val));
+    }
+    return val;
   },
-  "AnyAtRoot": function(ctx, parentData, type, param){
-    return engine.doEval(ctx, ctx.dataRoot, param);
+  "Boolean": function(val){
+    if(val === true || val === false){
+      return val;
+    }
+    throw new Error("Expected boolean, got: " + JSON.stringify(val));
   },
-  "Integer": function(ctx, parentData, type, param){
-    var res = engine.doEval(ctx, ctx.dataRoot, param);
-    util.assertType(res[0], ["number"], "Number");
-    return res[0];
+  "Number": function(val){
+    if(typeof val !== "number"){
+      throw new Error("Expected number, got: " + JSON.stringify(val));
+    }
+    return val;
   },
-  "Number": function(ctx, parentData, type, param){
-    var res = engine.doEval(ctx, ctx.dataRoot, param);
-    // TODO: check type
-    return res[0];
-  },
-  "String": function(ctx, parentData, type, param){
-    var res = engine.doEval(ctx, ctx.dataRoot, param);
-    // TODO: check type
-    return res[0];
-  },
-  "Expr": function(ctx, parentData, type, param){
-    return function(data) {
-      return engine.doEval(ctx, util.arraify(data), param);
-    };
+  "String": function(val){
+    if(typeof val !== "string"){
+      throw new Error("Expected string, got: " + JSON.stringify(val));
+    }
+    return val;
   }
 };
 
 function makeParam(ctx, parentData, type, param) {
+  // this is hack for $this
+  ctx.currentData = parentData;
+  if(type === "Expr"){
+    return function(data) {
+      return engine.doEval(ctx, util.arraify(data), param);
+    };
+  }
+  if(type === "AnyAtRoot"){
+    return engine.doEval(ctx, ctx.dataRoot, param);
+  }
+  if(type === "Identifier"){
+    if(param.type == "TermExpression"){
+      return param.text;
+    } else {
+      throw new Error("Expected identifier node, got ", JSON.stringify(param));
+    }
+  }
+  var res = engine.doEval(ctx, parentData, param);
+  if(type === "Any") {
+    return res;
+  }
+  if(Array.isArray(type)){
+    if(res.length == 0){
+      return [];
+    } else {
+      type = type[0];
+    }
+  }
   var maker = paramTable[type];
-  if(maker){
-    // this is hack for $this
-    ctx.currentData = parentData;
-    return maker(ctx, parentData, type, param);
+  if(res.length > 1){
+    throw new Error("Unexpected collection" + JSON.stringify(res) +"; expected singleton of type" + type);
+  }
+  if(res.length == 0){
+    return [];
+  } else  if(maker){
+    return maker(res[0]);
   } else {
     console.error(type, param);
     throw new Error("IMPL me for " + type);
@@ -328,22 +389,7 @@ engine.ThisInvocation = function(ctx) {
   return util.arraify(ctx.currentData);
 };
 
-engine.EqualityExpression = function(ctx, parentData, node) {
-  var op = node.terminalNodeText[0];
-  return infixInvoke(ctx, op, parentData, node.children);
-};
-
-engine.InequalityExpression = function(ctx, parentData, node) {
-  var op = node.terminalNodeText[0];
-  return infixInvoke(ctx, op, parentData, node.children);
-};
-
-engine.AdditiveExpression = function(ctx, parentData, node) {
-  var op = node.terminalNodeText[0];
-  return infixInvoke(ctx, op, parentData, node.children);
-};
-
-engine.MultiplicativeExpression = function(ctx, parentData, node) {
+engine.OpExpression = function(ctx, parentData, node) {
   var op = node.terminalNodeText[0];
   return infixInvoke(ctx, op, parentData, node.children);
 };
@@ -351,15 +397,15 @@ engine.MultiplicativeExpression = function(ctx, parentData, node) {
 
 engine.evalTable = {
   BooleanLiteral: engine.BooleanLiteral,
-  EqualityExpression: engine.EqualityExpression,
+  EqualityExpression: engine.OpExpression,
   FunctionInvocation: engine.FunctionInvocation,
   Functn: engine.Functn,
   Identifier: engine.Identifier,
   IndexerExpression: engine.IndexerExpression,
-  InequalityExpression: engine.InequalityExpression,
+  InequalityExpression: engine.OpExpression,
   InvocationExpression: engine.InvocationExpression,
-  AdditiveExpression: engine.AdditiveExpression,
-  MultiplicativeExpression: engine.MultiplicativeExpression,
+  AdditiveExpression: engine.OpExpression,
+  MultiplicativeExpression: engine.OpExpression,
   InvocationTerm: engine.InvocationTerm,
   LiteralTerm: engine.LiteralTerm,
   MemberInvocation: engine.MemberInvocation,
@@ -369,6 +415,10 @@ engine.evalTable = {
   TermExpression: engine.TermExpression,
   ThisInvocation: engine.ThisInvocation,
   UnionExpression: engine.UnionExpression,
+  OrExpression: engine.OpExpression,
+  ImpliesExpression: engine.OpExpression,
+  AndExpression: engine.OpExpression,
+  XorExpression: engine.OpExpression
 };
 
 

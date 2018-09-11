@@ -1,0 +1,38 @@
+tests:
+  - desc: '5. Functions'
+  - desc: '5.7. Tree navigation'
+  - desc: '5.7.1. children() : collection'
+# Returns a collection with all immediate child nodes of all items in the input collection. Note that the ordering of the children is undefined and using operations like first() on the result may return different results on different platforms.
+
+  - desc: '** children'
+    expression: ch.children()
+    result: [{d: 1},{e: 1},{d: 2}, {e: 2}]
+
+  - desc: '5.7.2. descendants() : collection'
+# Returns a collection with all descendant nodes of all items in the input collection. The result does not include the nodes in the input collection themselves. Is a shorthand for repeat(children()). Note that the ordering of the children is undefined and using operations like first() on the result may return different results on different platforms.
+# Note: Many of these functions will result in a set of nodes of different underlying types. It may be necessary to use ofType() as described in the previous section to maintain type safety. See section 8 for more information about type safe use of FHIRPath expressions.
+
+  - desc: '** descendants'
+    expression: ch.descendants()
+    result: [{d: 1},{e: 1},{d: 2}, {e: 2}, 1, 1, 2, 2]
+  - desc: '** descendants'
+    expression: desc.descendants()
+    result: [{b: {c: {d: 1}}}, {c: {d: 1}},  {d: 1}, 1]
+
+
+subject:
+  desc:
+    a:
+      b:
+        c:
+          d:
+            1
+  ch:
+    - a:
+        d: 1
+      b:
+        e: 1
+    - a:
+        d: 2
+      b:
+        e: 2

@@ -54,13 +54,16 @@ We are currently implementing version 1.0 (a.k.a STU1) of
 
 Completed sections:
 - 5.1 (Existence)
+- 5.2 (Filtering and Projection) "ofType" - basic support for primitives
 - 5.3 (Subsetting)
 - 5.4 (Combining)
+- 5.6 (String Manipulation)
+- 5.7 (Tree Navigation)
+- 5.8 (Utility Functions)
 - 6.1 (Equality)
 - 6.6 (Math)
 
 Partially completed sections:
-- 5.2 (Filtering and Projection) - missing "ofType"; otherwise complete
 - 6.2 (Comparison) - type checking is not completely performed
 
 Deviations:

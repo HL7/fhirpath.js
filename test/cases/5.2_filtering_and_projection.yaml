@@ -1,0 +1,155 @@
+
+tests:
+  - desc: '5. Functions'
+  - desc: '5.2. Filtering and projection'
+  - desc: '5.2.1. where(criteria : expression) : collection'
+# Returns a collection containing only those elements in the input collection for which the stated criteria expression evaluates to true. Elements for which the expression evaluates to false or empty ({ }) are not included in the result.
+
+  - desc: '** filter coll of numbers'
+    expression: Functions.coll1.coll2.attr.where($this > 2)
+    result: [3, 4, 5]
+
+  - desc: '** filter coll with empty coll result'
+    expression: Functions.coll1.coll2.attr.where($this = 0)
+    result: []
+
+# If the input collection is emtpy ({ }), the result is empty.
+
+  - desc: '** filter empty coll'
+    expression: Functions.attrempty.where($this > 0)
+    result: []
+
+  - desc: '** filter non-exists coll'
+    expression: Functions.nothing.where($this < 0)
+    result: []
+
+  - desc: '5.2.2. select(projection: expression) : collection'
+# Evaluates the projection expression for each item in the input collection. The result of each evaluation is added to the output collection. If the evaluation results in a collection with multiple items, all items are added to the output collection (collections resulting from evaluation of projection are flattened). This means that if the evaluation for an element results in the empty collection ({ }), no element is added to the result, and that if the input collection is empty ({ }), the result is empty as well.
+
+  - desc: '** simple select'
+    expression: Functions.coll1.coll2.select(attr)
+    result: [1, 2, 3, 4, 5]
+
+  - desc: '** select 2'
+    expression: Functions.coll1.select(colltrue | collfalse).attr
+    result: [true, false]
+
+  - desc: '** select 3'
+    expression: Functions.coll1.select(colltrue.attr | collfalse.attr)
+    result: [true, false]
+
+  - desc: '** select on empty coll is empty'
+    expression: Functions.attrempty.select(nothing)
+    result: []
+
+
+  - desc: '5.2.3. repeat(projection: expression) : collection'
+# A version of select that will repeat the projection and add it to the output collection, as long as the projection yields new items (as determined by the equals (=) operator).
+
+# This operation can be used to traverse a tree and selecting only specific children:
+
+# ValueSet.expansion.repeat(contains)
+# Will repeat finding children called contains, until no new nodes are found.
+
+# Questionnaire.repeat(group | question).question
+# Will repeat finding children called group or question, until no new nodes are found.
+
+# Note that this is slightly different from:
+
+# Questionnaire.descendants().select(group | question)
+# which would find any descendants called group or question, not just the ones nested inside other group or question elements.
+  - desc: '* traverse tree'
+  - desc: '** find all true values in nested coll'
+  - desc: 'TODO FIX INF LOOP'
+    # expression: Functions.coll1.colltrue.repeat(true)
+    # result: [true, true, true]
+  - desc: '** find all attrs'
+    expression: Functions.repeat(repeatingAttr).count()
+    result: [2]
+
+  - desc: '** find all repeatingAttr.a values'
+    expression: Functions.repeat(repeatingAttr).a
+    result: [2, 1]
+
+  - desc: '** find all true values in nested coll'
+    expression: Functions.coll1.colltrue.repeat(attr)
+    result: [true, true, true]
+
+  - desc: '** find non-exists value'
+    expression: Functions.coll1.repeat(nothing)
+    result: []
+
+
+  - desc: '5.2.4. ofType(type : identifier) : collection'
+# Returns a collection that contains all items in the input collection that are of the given type or a subclass thereof. If the input collection is empty ({ }), the result is empty.
+  - desc: '** empty input coll'
+    expression: Functions.attrempty.ofType(string)
+    result: []
+  - desc: '** string'
+    expression: heteroattr.ofType(string)
+    result: ['string']
+  - desc: '** integer'
+    expression: heteroattr.ofType(integer)
+    result: [1]
+  - desc: '** decimal'
+    expression: heteroattr.ofType(decimal)
+    result: [1, 1.01]
+  - desc: '** boolean'
+    expression: heteroattr.ofType(boolean)
+    result: [true, false]
+  - desc: '** object (not fhir)'
+    expression: heteroattr.ofType(object)
+    result: [{a: 1}]
+
+subject:
+  resourceType: Functions
+  attrempty: []
+  attrtrue: true
+  attrfalse: false
+  heteroattr:
+    - 'string'
+    - 1
+    - 1.01
+    - a: 1
+    - true
+    - false
+  attrsingle:
+    - 1
+  attrdouble:
+    - 1
+    - 2
+  attrobject:
+    a: 1
+    b: 2
+    repeatingAttr: 5
+  repeatingAttr:
+    repeatingAttr:
+      a: 1
+    a: 2
+  coll1:
+    - coll2:
+        - attr: 1
+        - attr: 2
+        - attr: 3
+    - coll2:
+        - attr: 4
+        - attr: 5
+    - colltrue:
+        - attr: true
+        - attr: true
+        - attr: true
+    - collwithfalse:
+        - attr: false
+        - attr: true
+    - collfalse:
+        - attr: false
+        - attr: false
+    - mixed:
+        - attr: true
+        - attr: false
+        - attr: 'test string'
+        - attr: 999
+        - attr: 3.14159
+        - attr: '@2015-02-04T14:34:28Z'
+        - attr: '@T14:34:28+09:00'
+        - attr: 4 days

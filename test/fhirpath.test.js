@@ -8,13 +8,13 @@ const fs   = require('fs');
 var items = fs.readdirSync(__dirname + '/cases/');
 
 // Set "focus" to true to turn on focus option
-var focus = false;
 
 function endWith(s, postfix){
   var idx = s.indexOf(postfix);
   return ( idx > 0 &&  idx == fileName.length - postfix.length);
 }
 
+var focus = false;
 var focusFile = /.*.yaml/;
 
 for (var i=0; i<items.length; i++) {
@@ -26,8 +26,9 @@ for (var i=0; i<items.length; i++) {
 
     if((focus && focusFile.test(fileName)) || focus === false) {
       let focusedTest = false;
-      for (let i=0, len=testcase.tests.length; i<len && !focusedTest; ++i)
-        focusedTest = testcase.tests[i].focus
+      for (let i=0, len=testcase.tests.length; i<len && !focusedTest; ++i) {
+        focusedTest = testcase.tests[i].focus;
+      }
 
       describe(fileName, ()=> {
         testcase.tests.forEach((t)=>{

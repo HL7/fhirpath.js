@@ -1,0 +1,87 @@
+tests:
+  - desc: '5. Functions'
+  - desc: '5.4. Combining'
+  - desc: '5.4.1. | (union collections)'
+# Merge the two collections into a single collection, eliminating any duplicate values (using equals (=)) to determine equality). Unioning an empty collection to a non-empty collection will return the non-empty collection with duplicates eliminated. There is no expectation of order in the resulting collection.
+
+  - desc: '** Unioning empty coll with non-exists coll  is empty coll'
+    expression: Functions.coll1.nothing | Functions.attrempty
+    result: []
+
+  - desc: '** Unioning empty coll with non-distinct coll is coll without duplicates'
+    expression: Functions.attrempty | Functions.coll1.colltrue.attr
+    result: [true]
+
+  - desc: '** Unioning colls'
+    expression: Functions.attrdouble | Functions.coll1.colltrue.attr
+    result: [1, 2, true]
+
+  - desc: '** Unioning colls 2'
+    expression: Functions.attrdouble | Functions.coll1.coll2.attr
+    result: [1, 2, 3, 4, 5]
+
+
+  - desc: '5.4.2. combine(other : collection) : collection'
+# Merge the input and other collections into a single collection without eliminating duplicate values. Combining an empty collection with a non-empty collection will return the non-empty collection. There is no expectation of order in the resulting collection.
+
+  - desc: '** Combine empty coll with non-exists coll is empty coll'
+    expression: Functions.attrempty.combine(Functions.nothing)
+    result: []
+
+  - desc: '** Combine empty coll with non-empty coll'
+    expression: Functions.attrempty.combine(Functions.coll1.colltrue.attr)
+    result: [true, true, true]
+
+  - desc: '** Combine colls'
+    expression: Functions.attrdouble.combine(Functions.coll1.colltrue.attr)
+    result: [1, 2, true, true, true]
+
+  - desc: '** Combine colls 2'
+    expression: Functions.attrdouble.combine(Functions.coll1.coll2.attr)
+    result: [1, 2, 1, 2, 3, 4, 5]
+
+subject:
+  resourceType: Functions
+  attrempty: []
+  attrtrue: true
+  attrfalse: false
+  attrsingle:
+    - 1
+  attrdouble:
+    - 1
+    - 2
+  attrobject:
+    a: 1
+    b: 2
+    repeatingAttr: 5
+  repeatingAttr:
+    repeatingAttr:
+      a: 1
+    a: 2
+  coll1:
+    - coll2:
+        - attr: 1
+        - attr: 2
+        - attr: 3
+    - coll2:
+        - attr: 4
+        - attr: 5
+    - colltrue:
+        - attr: true
+        - attr: true
+        - attr: true
+    - collwithfalse:
+        - attr: false
+        - attr: true
+    - collfalse:
+        - attr: false
+        - attr: false
+    - mixed:
+        - attr: true
+        - attr: false
+        - attr: 'test string'
+        - attr: 999
+        - attr: 3.14159
+        - attr: '@2015-02-04T14:34:28Z'
+        - attr: '@T14:34:28+09:00'
+        - attr: 4 days

@@ -1,0 +1,218 @@
+tests:
+  - desc: '5. Functions'
+  - desc: '5.3. Subsetting 5.3.1.'
+  - desc: '[ index : integer ] : collection'
+# The indexer operation
+# returns a collection with only the index-th item (0-based index). If the input
+# collection is empty ({ }), or the index lies outside the boundaries of the
+# input collection, an empty collection is returned.
+
+# Example:
+
+# Patient.name[0]
+
+  - desc: '** [index]'
+    expression: Functions.coll1[1].coll2[0].attr
+    result: [4]
+
+  - desc: '** [big index]'
+    expression: Functions.coll1[100].coll2[0].attr
+    result: []
+
+  - desc: '5.3.2. single() : collection'
+# Will return the single item in the input if there
+# is just one item. If the input collection is empty ({ }), the result is empty.
+# If there are multiple items, an error is signaled to the evaluation
+# environment. This operation is useful for ensuring that an error is returned
+# if an assumption about cardinality is violated at run-time.
+  - desc: '** single'
+    expression: Functions.attrsingle.single()
+    result: [1]
+
+  - desc: '** single on nothing'
+    expression: Functions.ups.single()
+    result: []
+
+  - desc: '** single on empty'
+    expression: Functions.attrempty.single()
+    result: []
+
+  - desc: '** single on many'
+    expression: Functions.attrdouble.single()
+    result:
+      - $status: error
+        $error: Expected single
+
+  - desc: '5.3.3. first() : collection'
+# Returns a collection containing only the first
+# item in the input collection. This function is equivalent to item(0), so it
+# will return an empty collection if the input collection has no items.
+  - desc: '** first'
+    expression: Functions.attrdouble.first()
+    result: [1]
+
+  - desc: '** first nothing'
+    expression: Functions.nothing.first()
+    result: []
+
+  - desc: '5.3.4. last() : collection'
+# Returns a collection containing only the last item
+# in the input collection. Will return an empty collection if the input
+# collection has no items.
+
+  - desc: '** last'
+    expression: Functions.attrdouble.last()
+    result: [2]
+
+  - desc: '** last (alternative)'
+    expression: Functions.attrsingle.last()
+    result: [1]
+
+  - desc: '** last on empty'
+    expression: Functions.attrempty.last()
+    result: []
+
+  - desc: '** last nothing'
+    expression: Functions.nothing.last()
+    result: []
+
+  - desc: '5.3.5. tail() : collection'
+# Returns a collection containing all but the first
+# item in the input collection. Will return an empty collection if the input
+# collection has no items, or only one item.
+
+  - desc: '** tail'
+    expression: Functions.attrdouble.tail()
+    result: [ 2 ]
+
+  - desc: '** tail on one'
+    expression: Functions.attrsingle.tail()
+    result:  [ ]
+
+  - desc: '** tail on empty'
+    expression: Functions.attrempty.tail()
+    result: []
+
+  - desc: '** tail nothing'
+    expression: Functions.nothing.tail()
+    result: []
+
+  - desc: '** tail (alternative)'
+    expression: Functions.coll1.coll2.attr.tail()
+    result: [2, 3, 4, 5]
+
+
+  - desc: '5.3.6. skip(num : integer) : collection'
+# Returns a collection containing all
+# but the first num items in the input collection. Will return an empty
+# collection if there are no items remaining after the indicated number of items
+# have been skipped, or if the input collection is empty. If num is less than or
+# equal to zero, the input collection is simply returned.
+  - desc: '** skip'
+    expression: Functions.attrdouble.skip(1)
+    result: [2]
+
+  - desc: '** skip 2'
+    expression: Functions.attrsingle.skip(1)
+    result: []
+
+  - desc: '** skip 3'
+    expression: Functions.coll1.coll2.attr.skip(3)
+    result: [4, 5]
+
+  - desc: '** skip 4'
+    expression: Functions.coll1.coll2.attr.skip(4)
+    result: [5]
+
+  - desc: '** skip 5'
+    expression: Functions.coll1.coll2.attr.skip(5)
+    result: []
+
+  - desc: '** skip 6'
+    expression: Functions.coll1.coll2.attr.skip(6)
+    result: []
+
+
+  - desc: '5.3.7. take(num : integer) : collection'
+# Returns a collection containing the
+# first num items in the input collection, or less if there are less than num
+# items. If num is less than or equal to 0, or if the input collection is empty
+# ({ }), take returns an empty collection.
+
+  - desc: '** take'
+    expression: Functions.attrdouble.take(1)
+    result: [ 1 ]
+
+  - desc: '** take 2'
+    expression: Functions.attrdouble.take(2)
+    result: [ 1, 2 ]
+
+  - desc: '** take more then has'
+    expression: Functions.attrsingle.take(2)
+    result:  [ 1 ]
+
+  - desc: '** take on empty'
+    expression: Functions.attrempty.take(1)
+    result: []
+
+  - desc: '** take nothing'
+    expression: Functions.nothing.take(2)
+    result: []
+
+  - desc: '** take 3'
+    expression: Functions.coll1.coll2.attr.take(3)
+    result: [1, 2, 3]
+
+  - desc: '** take 4'
+    expression: Functions.coll1.coll2.attr.take(4)
+    result: [1, 2, 3, 4]
+
+  - desc: '** take 5'
+    expression: Functions.coll1.coll2.attr.take(5)
+    result: [1, 2, 3, 4, 5]
+
+subject:
+  resourceType: Functions
+  attrempty: []
+  attrtrue: true
+  attrfalse: false
+  attrsingle:
+    - 1
+  attrdouble:
+    - 1
+    - 2
+  attrobject:
+    a: 1
+    b: 2
+    repeatingAttr: 5
+  repeatingAttr:
+    repeatingAttr:
+      a: 1
+    a: 2
+  coll1:
+    - coll2:
+        - attr: 1
+        - attr: 2
+        - attr: 3
+    - coll2:
+        - attr: 4
+        - attr: 5
+    - colltrue:
+        - attr: true
+        - attr: true
+        - attr: true
+    - collwithfalse:
+        - attr: false
+        - attr: true
+    - collfalse:
+        - attr: false
+        - attr: false
+    - mixed:
+        - attr: true
+        - attr: false
+        - attr: 'test string'
+        - attr: 999
+        - attr: 3.14159
+        - attr: '@2015-02-04T14:34:28Z'
+        - attr: '@T14:34:28+09:00'
+        - attr: 4 days
