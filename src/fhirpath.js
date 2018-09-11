@@ -45,6 +45,8 @@ let logic  = require("./logic");
 
 // * fn: handler
 // * arity: is index map with type signature
+//   if type is in array (like [Boolean]) - this means
+//   function accepts value of this type or empty value {} 
 // * nullable - means propagate empty result, i.e. instead
 //   calling function if one of params is  empty return empty
 
