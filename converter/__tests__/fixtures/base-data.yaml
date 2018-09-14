@@ -1,0 +1,26 @@
+tests:
+  - desc: '** Patient tests'
+  - desc: '** extract birthDate'
+    expression: birthDate
+    result:
+      - '1974-12-25'
+  - desc: '** patient has a birthDate'
+    expression: birthDate
+    result:
+      - 'true'
+  - desc: '** patient telecom types'
+    expression: telecom.use
+    result:
+      - home
+      - work
+      - mobile
+      - old
+  - desc: '** Basics'
+  - desc: '** testSimple'
+    expression: name.given
+    result:
+      - Peter
+      - James
+      - Jim
+      - Peter
+      - James
