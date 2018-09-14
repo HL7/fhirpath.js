@@ -32,21 +32,15 @@ tests:
 
   - desc: '** select 2'
     expression: Functions.coll1.select(colltrue | collfalse).attr
-    result: [true, true, true, false, false]
+    result: [true, false]
 
   - desc: '** select 3'
     expression: Functions.coll1.select(colltrue.attr | collfalse.attr)
-    result: [true, true, true, false, false]
+    result: [true, false]
 
   - desc: '** select on empty coll is empty'
     expression: Functions.attrempty.select(nothing)
     result: []
-
-  - desc: '** select 4:  Select a union of two allTrue function calls, for each item in coll1'
-    # Note: Of the 6 items in coll1, only two contain a colltrue or a collfalse
-    # member, for the others the result of allTrue on an empty set will be true.
-    expression: Functions.coll1.select(colltrue.attr.allTrue() | collfalse.attr.allTrue())
-    result: [true, true, true, true, true, true, true, true, true, false, true, true]
 
 
   - desc: '5.2.3. repeat(projection: expression) : collection'
@@ -91,13 +85,34 @@ tests:
   - desc: '** empty input coll'
     expression: Functions.attrempty.ofType(string)
     result: []
-  - desc: "TODO ADD TESTS ________"
+  - desc: '** string'
+    expression: heteroattr.ofType(string)
+    result: ['string']
+  - desc: '** integer'
+    expression: heteroattr.ofType(integer)
+    result: [1]
+  - desc: '** decimal'
+    expression: heteroattr.ofType(decimal)
+    result: [1, 1.01]
+  - desc: '** boolean'
+    expression: heteroattr.ofType(boolean)
+    result: [true, false]
+  - desc: '** object (not fhir)'
+    expression: heteroattr.ofType(object)
+    result: [{a: 1}]
 
 subject:
   resourceType: Functions
   attrempty: []
   attrtrue: true
   attrfalse: false
+  heteroattr:
+    - 'string'
+    - 1
+    - 1.01
+    - a: 1
+    - true
+    - false
   attrsingle:
     - 1
   attrdouble:

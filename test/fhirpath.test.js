@@ -8,13 +8,13 @@ const fs   = require('fs');
 var items = fs.readdirSync(__dirname + '/cases/');
 
 // Set "focus" to true to turn on focus option
-var focus = false;
 
 function endWith(s, postfix){
   var idx = s.indexOf(postfix);
   return ( idx > 0 &&  idx == fileName.length - postfix.length);
 }
 
+var focus = false;
 var focusFile = /.*.yaml/;
 
 for (var i=0; i<items.length; i++) {
@@ -25,33 +25,40 @@ for (var i=0; i<items.length; i++) {
     const testcase = yaml.safeLoad(fs.readFileSync( __dirname + '/cases/' + fileName, 'utf8'));
 
     if((focus && focusFile.test(fileName)) || focus === false) {
+      let focusedTest = false;
+      for (let i=0, len=testcase.tests.length; i<len && !focusedTest; ++i) {
+        focusedTest = testcase.tests[i].focus;
+      }
+
       describe(fileName, ()=> {
         testcase.tests.forEach((t)=>{
-          // console.log(yaml.dump(subj.parse(t.expression)));
-          let exprs = Array.isArray(t.expression) ? t.expression : [t.expression];
-          let console_log = console.log;
-          exprs.forEach((e)=>{
-            it(((t.desc || '') + ': ' + (e || '')) , () => {
-              if (t.disableConsoleLog)
-                console.log = function() {};
-              if (!t.error && t.expression) {
-                var res = subj.evaluate(testcase.subject, e);
-                expect(res).toEqual(t.result);
-              }
-              else {
-                let exceptn = null;
-                try {
-                  subj.evaluate(testcase.subject, e);
+          if (!focus || (focusedTest && t.focus)) {
+            // console.log(yaml.dump(subj.parse(t.expression)));
+            let exprs = Array.isArray(t.expression) ? t.expression : [t.expression];
+            let console_log = console.log;
+            exprs.forEach((e)=>{
+              it(((t.desc || '') + ': ' + (e || '')) , () => {
+                if (t.disableConsoleLog)
+                  console.log = function() {};
+                if (!t.error && t.expression) {
+                  var res = subj.evaluate(testcase.subject, e);
+                  expect(res).toEqual(t.result);
                 }
-                catch (e) {
-                  exceptn = e;
+                else {
+                  let exceptn = null;
+                  try {
+                    subj.evaluate(testcase.subject, e);
+                  }
+                  catch (e) {
+                    exceptn = e;
+                  }
+                  expect(e).not.toBe(null);
                 }
-                expect(e).not.toBe(null);
-              }
-              if (t.disableConsoleLog)
-                console.log = console.log;
+                if (t.disableConsoleLog)
+                  console.log = console.log;
+              });
             });
-          });
+          }
         });
       });
 

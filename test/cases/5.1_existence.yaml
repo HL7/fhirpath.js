@@ -238,6 +238,10 @@ tests:
     expression: Functions.coll1[0].coll2.attr.subsetOf(Functions.attrdouble)
     result: [false]
 
+  - desc: '** should treat objects with different key orders as equivalent'
+    expression: Functions.subsetTestC1.subsetOf(Functions.subsetTestC2)
+    result: [true]
+
   - desc: '** 5.1.10. supersetOf(other : collection) : boolean'
 # Returns true if all items in the collection passed as the other argument are members of the input
 # collection. Membership is determined using the equals (=) operation (see
@@ -390,3 +394,20 @@ subject:
         - attr: '@2015-02-04T14:34:28Z'
         - attr: '@T14:34:28+09:00'
         - attr: 4 days
+  subsetTestC1:
+    - a: 1
+      b: 2
+      1: 3
+      2: 4
+      c:
+        d: 5
+        e: 6
+  subsetTestC2:
+    - 2: 4
+      1: 3
+      b: 2
+      a: 1
+      c:
+        e: 6
+        d: 5
+

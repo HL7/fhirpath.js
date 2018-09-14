@@ -3,6 +3,28 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.6.0] - 2018-09-07
+### Added
+ - logical operations
+ - tree navigation
+ - string functions
+ - part of ofType (explicit one)
+
+## [0.5.1] - 2018-09-07
+### Fixed
+ - Corrected the (outdated) main file entry in package.json.
+
+## [0.5.0] - 2018-09-07
+### Added
+ - combine()
+### Fixed
+ - union operator ("|")
+
+## [0.4.3] - 2018-09-05
+### Fixed
+ - A problem with subsetOf (and supersetOf) that prevented objects with keys
+   added in different orders from being considered the same.
+
 ## [0.4.1] - 2018-08-29
 ### Added
  - Tests for functions in 5.2 (except ofType), which is not yet implemented.

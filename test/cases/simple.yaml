@@ -84,7 +84,7 @@ tests:
     result: ["Peter", "James", "Jim", "Peter", "James"]
 
   - expression: Patient.name.given | Patient.name.family
-    result: ["Peter", "James", "Jim", "Peter", "James", "Chalmers", "Windsor"]
+    result: ["Peter", "James", "Jim", "Chalmers", "Windsor"]
 
   - expression: Patient.name.select(given | family)
     result: ["Peter", "James", "Chalmers", "Jim", "Peter", "James", "Windsor"]

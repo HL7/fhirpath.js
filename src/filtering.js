@@ -74,17 +74,25 @@ engine.skipFn = function(x, num) {
   return x.slice(num, x.length);
 };
 
-/*
- *  TBD
- engine.ofTypeFn = function(parentData, type) {
- let rtn = [];
- for (let i=0, len=parentData.length; i<len && rtn; ++i) {
- switch(type) {
- }
- }
- return rtn;
- }
-*/
+function checkFHIRType(x, tp){
+  if(typeof x === tp){
+    return true;
+  }
+  if(tp === "integer") {
+    return Number.isInteger(x);
+  }
+  if(tp === "decimal") {
+    return typeof x == "number";
+  }
+  return false;
+}
+// naive typeof implementation
+// understand only basic types like string, number etc
+engine.ofTypeFn = function(coll, type) {
+  return coll.filter(function(x){
+    return checkFHIRType(x, type);
+  });
+};
 
 
 module.exports = engine;

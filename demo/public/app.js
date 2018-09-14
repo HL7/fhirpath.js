@@ -29,9 +29,11 @@ function evaluate(){
     var res = yaml.safeLoad(cm.getValue());
     console.log(pathNode.value, res);
     var result = fhirpath.evaluate(res, pathNode.value);
-    outNode.innerHTML = '<pre>' + yaml.dump(result) + '</pre>';
+    outNode.innerHTML = '<pre />';
+    outNode.childNodes.item(0).textContent = yaml.dump(result);
   } catch (e) {
-    outNode.innerHTML = '<pre style="color: red;">' + e.toString() + '</pre>';
+    outNode.innerHTML = '<pre style="color: red;" />';
+    outNode.childNodes.item(0).textContent = e.toString();
     console.error(e);
   }
 }
