@@ -1,4 +1,5 @@
 import util from 'util';
+import _ from 'lodash';
 
 import xml2js from 'xml2js';
 import yaml from 'js-yaml';
@@ -16,29 +17,37 @@ export default async (xmlData) => {
 
 
 const transform = (node) => {
+
   return Object.keys(node).reduce((acc, key) => {
 
     switch(key) {
+    case 'tests':
+      return { tests: transform(node[key]) };
+
+    case 'group':
+      return _.flatten([...acc, ...node[key].map(item => transform(item))]);
+
+    case 'test':
+      return [acc, ...node[key].map(item => transform(item))];
+
     case '$':
       return { desc: `** ${node[key].name || 'test'}` };
 
-    case 'expression':
-      return {...acc, [key]: node[key][0]['_']};
-
+    case 'expression': {
+      const value = _.first(node[key]);
+      const hasError = _.get(value, ['$', 'invalid']);
+      const updated = { ...acc, [key]: value['_'] };
+      if (hasError) {
+        updated.error = true;
+      }
+      return updated;
+    }
     case 'output':
-      return {...acc, result: node[key].map(item => item['_'] ? item['_'] : '')};
-
-    case 'tests':
-      return { ...acc, tests: transform(node[key])};
-
-    case 'group':
-      return [ ...acc, ...transform(node[key]) ];
+      return { ...acc, result: node[key].map(item => item['_'] ? item['_'] : '') };
 
     default:
-      if(!isNaN(Number(key))) {
-        return [...acc, ...transform(node[key])];
-      }
-      return [acc, ...node[key].map(item => transform(item))];
+      console.log('Warning, unhandled node');
+      return acc;
     }
   }, []);
 };
