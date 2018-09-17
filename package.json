@@ -34,7 +34,7 @@
     "test": "jest && npm run lint",
     "test-converter": "jest converter",
     "build": "webpack",
-    "lint": "eslint src/parser/index.js src/*.js",
+    "lint": "eslint src/parser/index.js src/*.js converter/",
     "build-converter": "npx babel converter --out-dir ./dist/data"
   },
   "bin": {
