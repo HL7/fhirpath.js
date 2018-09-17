@@ -1,8 +1,11 @@
 import fs from 'fs';
+import util from 'util';
 import convert from './converter';
 
 export const run =  async (from, to) => {
-  const xmlData = fs.readFileSync(from);
+  const readFile = util.promisify(fs.readFile);
+  const writeFile = util.promisify(fs.writeFile);
+  const xmlData = await readFile(from);
   const ymlData = await convert(xmlData);
-  fs.writeFileSync(to, ymlData);
+  await writeFile(to, ymlData);
 };
