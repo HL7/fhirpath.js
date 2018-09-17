@@ -1,6 +1,6 @@
 # FHIR-r4 test converter
 
-CLI-tool for convert fhirpath [XML test cases](https://github.com/hl7-fhir/fhir-svn/blob/master/tests/resources/tests-fhir-r4.xml)
+CLI-tool for converting fhirpath [XML test cases](https://github.com/hl7-fhir/fhir-svn/blob/master/tests/resources/tests-fhir-r4.xml)
 into fhirpath.js yaml test cases format.
 
 ### Installing:
