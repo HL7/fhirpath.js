@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<tests>
+  <!-- Some tests thrown in by Brian -->
+  <group name="Patient tests">
+    <test name="extract birthDate" inputfile="patient-example.xml" predicate="false">
+      <expression>birthDate</expression>
+      <output type="date">1974-12-25</output>
+    </test>
+    <test
+      name="patient has a birthDate" inputfile="patient-example.xml" predicate="true">
+      <expression>birthDate</expression>
+      <output type="boolean">true</output>
+    </test>
+    <test name="patient telecom types" inputfile="patient-example.xml">
+      <expression>telecom.use</expression>
+      <output type="code">home</output>
+      <output type="code">work</output>
+      <output type="code">mobile</output>
+      <output type="code">old</output>
+    </test>
+  </group>
+
+  <!-- Tests ported from the Java Unit Tests -->
+  <group name="Basics">
+    <!-- test(patient(), "name.given", 3, "string"); -->
+    <test name="testSimple" inputfile="patient-example.xml">
+      <expression>name.given</expression>
+      <output type="string">Peter</output>
+      <output type="string">James</output>
+      <output type="string">Jim</output>
+      <output type="string">Peter</output>
+      <output type="string">James</output>
+    </test>
+  </group>
+</tests>
