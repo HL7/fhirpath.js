@@ -47,6 +47,7 @@ var cm = codeMirror(document.getElementById("input"), {
   lineNumbers: true,
   mode:  "yaml"
 });
+window.cm = cm; // for testing purposes
 
 var inputTypeBeforeChange =
   document.querySelector('input[name="inputType"]:checked').value;
