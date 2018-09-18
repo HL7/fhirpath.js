@@ -32,10 +32,9 @@
   "scripts": {
     "generateParser": "cd src/parser; rm -rf ./generated/*; java -Xmx500M -cp \"../../antlr-4.7.1-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o generated -Dlanguage=JavaScript FHIRPath.g4",
     "test": "jest && npm run lint",
-    "test-converter": "jest converter",
     "build": "webpack",
     "lint": "eslint src/parser/index.js src/*.js converter/",
-    "build-converter": "npx babel converter --out-dir ./dist/data"
+    "build-converter": "npx babel converter --out-dir ./build/converter"
   },
   "bin": {
     "fhirpath": "bin/fhirpath"
