@@ -10,7 +10,7 @@ into fhirpath.js yaml test cases format.
 ```npm run build-converter```
 
 ### Convert test file:
-```/dist/data/bin/index.js ~/fhir-r4.xml(path to xml file)  ~/tests-r4.yaml(path to save result data)```
+```build/converter/bin/index.js converter/dataset/fhir-r4.xml(path to xml file)  converter/dataset/tests-r4.yaml(path to save result data)```
 
 ### Converter test in whole test scope:
 ```npm run test```
