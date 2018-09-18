@@ -405,7 +405,7 @@ engine.AliasOpExpression = function(map){
   };
 };
 
-engine.NullLiteral = function(ctx, parentData, node) {
+engine.NullLiteral = function() {
   return [];
 };
 
