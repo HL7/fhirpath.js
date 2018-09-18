@@ -4,7 +4,7 @@ CLI-tool for converting fhirpath [XML test cases](https://github.com/hl7-fhir/fh
 into fhirpath.js yaml test cases format.
 
 ### Installing:
-```npm install```
+```npm ci```
 
 ### Build code with babel:
 ```npm run build-converter```
@@ -12,5 +12,5 @@ into fhirpath.js yaml test cases format.
 ### Convert test file:
 ```/dist/data/bin/index.js ~/fhir-r4.xml(path to xml file)  ~/tests-r4.yaml(path to save result data)```
 
-### Run converter test:
-```npm run test-converter```
+### Converter test in whole test scope:
+```npm run test```
