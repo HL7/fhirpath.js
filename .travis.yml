@@ -9,8 +9,8 @@ before_script:
 - npm ci
 script:
 - npm run lint
-- npm run test
 - (npm run build && cd demo && npm ci && npm run build)
+- npm run test
 deploy:
   - provider: npm
     email: plynch@mail.nih.gov
