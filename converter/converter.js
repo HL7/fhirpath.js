@@ -14,19 +14,16 @@ module.exports = async (xmlData) => {
   return formatted;
 };
 
-const castValue = (value, type) => {
-  const identity = (v) => v;
-
-  const mapper = {
-    boolean: (v) => v === 'true' ? true : false,
-    integer: (v) => Number(v),
-    string: identity,
-    date: identity,
-    code: identity,
-    Quantity: identity
-  };
-  return mapper[type](value);
+const mapper = {
+  boolean: (v) => v === 'true' ? true : false,
+  integer: (v) => Number(v),
+  string: _.identity,
+  date: _.identity,
+  code: _.identity,
+  Quantity: _.identity
 };
+
+const castValue = (value, type) => mapper[type](value);
 
 const transform = (node) => {
 
@@ -62,4 +59,3 @@ const transform = (node) => {
     }
   }, []);
 };
-
