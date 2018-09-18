@@ -409,6 +409,10 @@ engine.NullLiteral = function() {
   return [];
 };
 
+engine.ParenthesizedTerm = function(ctx, parentData, node) {
+  return engine.doEval(ctx, parentData, node.children[0]);
+};
+
 
 engine.evalTable = {
   BooleanLiteral: engine.BooleanLiteral,
@@ -428,6 +432,7 @@ engine.evalTable = {
   MemberInvocation: engine.MemberInvocation,
   NumberLiteral: engine.NumberLiteral,
   ParamList: engine.ParamList,
+  ParenthesizedTerm: engine.ParenthesizedTerm,
   StringLiteral: engine.StringLiteral,
   TermExpression: engine.TermExpression,
   ThisInvocation: engine.ThisInvocation,
