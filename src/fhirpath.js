@@ -37,6 +37,7 @@ let filtering = require("./filtering");
 let combining = require("./combining");
 let misc      = require("./misc");
 let equality  = require("./equality");
+let collections  = require("./collections");
 let math      = require("./math");
 let strings   = require("./strings");
 let navigation= require("./navigation");
@@ -106,8 +107,8 @@ engine.invocationTable = {
   ">":          {fn: equality.gt,   arity: {2: ["Any", "Any"]}, nullable: true},
   "<=":         {fn: equality.lte,  arity: {2: ["Any", "Any"]}, nullable: true},
   ">=":         {fn: equality.gte,  arity: {2: ["Any", "Any"]}, nullable: true},
-  "containsOp": {fn: equality.contains,   arity: {2: ["Any", "Any"]}},
-  "inOp":       {fn: equality.in,  arity: {2: ["Any", "Any"]}},
+  "containsOp": {fn: collections.contains,   arity: {2: ["Any", "Any"]}, nullable: true},
+  "inOp":       {fn: collections.in,  arity: {2: ["Any", "Any"]}, nullable: true},
   "&":          {fn: math.amp,     arity:  {2: ["String", "String"]}},
   "+":          {fn: math.plus,    arity:  {2: ["Any", "Any"]}, nullable: true},
   "-":          {fn: math.minus,   arity:  {2: ["Number", "Number"]}, nullable: true},

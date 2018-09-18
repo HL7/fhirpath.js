@@ -17,6 +17,8 @@ tests:
     result: [true]
   - expression: 'coll contains not_el'
     result: [false]
+  - expression: 'coll contains empty'
+    result: []
 subject:
   el:
     a: 2
