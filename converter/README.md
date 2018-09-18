@@ -6,11 +6,9 @@ into fhirpath.js yaml test cases format.
 ### Installing:
 ```npm ci```
 
-### Build code with babel:
-```npm run build-converter```
 
 ### Convert test file:
-```build/converter/bin/index.js converter/dataset/fhir-r4.xml(path to xml file)  converter/dataset/tests-r4.yaml(path to save result data)```
+```converter/bin/index.js converter/dataset/fhir-r4.xml(path to xml file)  converter/dataset/tests-r4.yaml(path to save result data)```
 
 ### Converter test in whole test scope:
 ```npm run test```
