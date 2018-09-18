@@ -1,6 +1,5 @@
 // This file holds code to hande the FHIRPath Math functions.
 
-var util = require("./utilities");
 var deepEqual = require('./deep-equal');
 
 var engine = {};
