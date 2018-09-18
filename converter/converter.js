@@ -14,7 +14,19 @@ export default async (xmlData) => {
   return formatted;
 };
 
+const castValue = (value, type) => {
+  const identity = (v) => v;
 
+  const mapper = {
+    boolean: (v) => v === 'true' ? true : false,
+    integer: (v) => Number(v),
+    string: identity,
+    date: identity,
+    code: identity,
+    Quantity: identity
+  };
+  return mapper[type](value);
+};
 
 const transform = (node) => {
 
@@ -43,8 +55,7 @@ const transform = (node) => {
       return updated;
     }
     case 'output':
-      return { ...acc, result: node[key].map(item => item['_'] ? item['_'] : '') };
-
+      return { ...acc, result: node[key].map(({ '$': { type }, '_': value = '' }) => castValue(value, type)) };
     default:
       console.log('Warning, unhandled node');
       return acc;

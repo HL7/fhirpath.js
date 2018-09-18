@@ -7,7 +7,7 @@ tests:
   - desc: '** patient has a birthDate'
     expression: birthDate
     result:
-      - 'true'
+      - true
   - desc: '** patient telecom types'
     expression: telecom.use
     result:
