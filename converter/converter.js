@@ -15,7 +15,7 @@ module.exports = async (xmlData) => {
 };
 
 const mapper = {
-  boolean: (v) => v === 'true' ? true : false,
+  boolean: (v) => v === 'true',
   integer: (v) => Number(v),
   string: _.identity,
   date: _.identity,
