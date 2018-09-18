@@ -4,4 +4,4 @@ downloads
 src/scratch.js
 build
 .DS_Store
-dist
+.editorconfig
