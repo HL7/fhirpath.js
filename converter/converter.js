@@ -1,10 +1,10 @@
-import util from 'util';
-import _ from 'lodash';
+const util = require('util');
+const _ = require('lodash');
 
-import xml2js from 'xml2js';
-import yaml from 'js-yaml';
+const xml2js = require('xml2js');
+const yaml = require('js-yaml');
 
-export default async (xmlData) => {
+module.exports = async (xmlData) => {
   const parser = new xml2js.Parser({ explicitCharkey: true });
   const parseString = util.promisify(parser.parseString);
 
