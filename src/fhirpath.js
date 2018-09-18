@@ -106,6 +106,8 @@ engine.invocationTable = {
   ">":          {fn: equality.gt,   arity: {2: ["Any", "Any"]}, nullable: true},
   "<=":         {fn: equality.lte,  arity: {2: ["Any", "Any"]}, nullable: true},
   ">=":         {fn: equality.gte,  arity: {2: ["Any", "Any"]}, nullable: true},
+  "containsOp": {fn: equality.contains,   arity: {2: ["Any", "Any"]}},
+  "inOp":       {fn: equality.in,  arity: {2: ["Any", "Any"]}},
   "&":          {fn: math.amp,     arity:  {2: ["String", "String"]}},
   "+":          {fn: math.plus,    arity:  {2: ["Any", "Any"]}, nullable: true},
   "-":          {fn: math.minus,   arity:  {2: ["Number", "Number"]}, nullable: true},
@@ -394,6 +396,15 @@ engine.OpExpression = function(ctx, parentData, node) {
   return infixInvoke(ctx, op, parentData, node.children);
 };
 
+engine.AliasOpExpression = function(map){
+  return function(ctx, parentData, node) {
+    var op = node.terminalNodeText[0];
+    var alias = map[op];
+    if(!alias) { throw new Error("Do not know how to alias " + op + " by " + JSON.stringify(map)); }
+    return infixInvoke(ctx, alias, parentData, node.children);
+  };
+};
+
 engine.NullLiteral = function(ctx, parentData, node) {
   return [];
 };
@@ -410,6 +421,7 @@ engine.evalTable = {
   InvocationExpression: engine.InvocationExpression,
   AdditiveExpression: engine.OpExpression,
   MultiplicativeExpression: engine.OpExpression,
+  MembershipExpression: engine.AliasOpExpression({"contains": "containsOp", "in": "inOp"}),
   NullLiteral: engine.NullLiteral,
   InvocationTerm: engine.InvocationTerm,
   LiteralTerm: engine.LiteralTerm,
