@@ -1,0 +1,5 @@
+tests:
+  - expression: '{}'
+    result: []
+subject:
+  prop: val

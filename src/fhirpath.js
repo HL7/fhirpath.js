@@ -394,6 +394,10 @@ engine.OpExpression = function(ctx, parentData, node) {
   return infixInvoke(ctx, op, parentData, node.children);
 };
 
+engine.NullLiteral = function(ctx, parentData, node) {
+  return [];
+};
+
 
 engine.evalTable = {
   BooleanLiteral: engine.BooleanLiteral,
@@ -406,6 +410,7 @@ engine.evalTable = {
   InvocationExpression: engine.InvocationExpression,
   AdditiveExpression: engine.OpExpression,
   MultiplicativeExpression: engine.OpExpression,
+  NullLiteral: engine.NullLiteral,
   InvocationTerm: engine.InvocationTerm,
   LiteralTerm: engine.LiteralTerm,
   MemberInvocation: engine.MemberInvocation,
