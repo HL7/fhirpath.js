@@ -5,7 +5,7 @@ This log documents significant changes for each release.  This project follows
 
 ## [0.7.0] - 2018-09-19
 ### Added
- - A option to the demo app for working with JSON rather than YAML.
+ - An option to the demo app for working with JSON rather than YAML.
 
 ## [0.6.0] - 2018-09-07
 ### Added
