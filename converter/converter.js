@@ -39,9 +39,14 @@ const transform = (node) => {
     case 'test':
       return [acc, ...node[key].map(item => transform(item))];
 
-    case '$':
-      return { desc: `** ${node[key].name || 'test'}` };
-
+    case '$': {
+      const value = node[key];
+      const updated = { desc: `** ${node[key].name || 'test'}` };
+      if (value.inputfile) {
+        updated.inputfile = _.replace(value.inputfile, '.xml', '.json');
+      }
+      return updated;
+    }
     case 'expression': {
       const value = _.first(node[key]);
       const hasError = _.get(value, ['$', 'invalid']);
