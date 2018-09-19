@@ -13,7 +13,7 @@ tests:
     result: [-1]
 
   - desc: '** index of empty substring'
-    expression: Functions.str.attr.indexOf('0')
+    expression: Functions.str.attr.indexOf('')
     result: [0]
 
   - desc: '5.6.2. substring(start : integer [, length : integer]) : string'
@@ -118,7 +118,7 @@ tests:
     result: ['match string']
 
   - desc: '** replaceMatches 2'
-    expression: Functions.str.date.replace("\\b(?<month>\\d{1,2})/(?<day>\\d{1,2})/(?<year>\\d{2,4})\\b", "${day}-${month}-${year}")
+    expression: Functions.str.date.replace('\\b(?<month>\\d{1,2})/(?<day>\\d{1,2})/(?<year>\\d{2,4})\\b', '${day}-${month}-${year}')
     result: ['30-11-1972']
 
   - desc: '5.6.9. length() : integer'
