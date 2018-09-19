@@ -1,6 +1,6 @@
 {
   "name": "fhirpath",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "dependencies": {
@@ -18,7 +18,9 @@
   },
   "scripts": {
     "generateParser": "cd src/parser; rm -rf ./generated/*; java -Xmx500M -cp \"../../antlr-4.7.1-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o generated -Dlanguage=JavaScript FHIRPath.g4",
-    "test": "jest && npm run lint",
+    "test:unit": "jest && npm run lint",
+    "test:demo": "npm run build && cd demo && npm run build && grunt test:e2e",
+    "test": "npm run test:unit && npm run test:demo",
     "build": "webpack",
     "lint": "eslint src/parser/index.js src/*.js"
   },

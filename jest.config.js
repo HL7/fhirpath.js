@@ -3,4 +3,5 @@
 
 module.exports = {
   testEnvironment: "node",
+  testPathIgnorePatterns: ["/protractor/"]
 };
