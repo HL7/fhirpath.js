@@ -16,6 +16,12 @@ then
   PATH=${dir}/node_modules/.bin:${PATH}
 fi
 
+if [[ -e "$dir/demo/node_modules" ]]
+then
+  PATH=${dir}/demo/node_modules/.bin:${PATH}
+fi
+
+
 umask 022
 
 alias antlr4="java -Xmx500M -cp \"${dir}/antlr-4.7.1-complete.jar:$CLASSPATH\" org.antlr.v4.Tool"
