@@ -15,6 +15,8 @@ function containsImpl(a,b){
 }
 
 engine.contains = function(a, b){
+  if(b.length == 0) { return []; }
+  if(a.length == 0) { return false; }
   if(b.length > 1) {
     throw new Error("Expected singleton on right side of contains, got " + JSON.stringify(b));
   }

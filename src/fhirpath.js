@@ -107,7 +107,7 @@ engine.invocationTable = {
   ">":          {fn: equality.gt,   arity: {2: ["Any", "Any"]}, nullable: true},
   "<=":         {fn: equality.lte,  arity: {2: ["Any", "Any"]}, nullable: true},
   ">=":         {fn: equality.gte,  arity: {2: ["Any", "Any"]}, nullable: true},
-  "containsOp": {fn: collections.contains,   arity: {2: ["Any", "Any"]}, nullable: true},
+  "containsOp": {fn: collections.contains,   arity: {2: ["Any", "Any"]}},
   "inOp":       {fn: collections.in,  arity: {2: ["Any", "Any"]}},
   "&":          {fn: math.amp,     arity:  {2: ["String", "String"]}},
   "+":          {fn: math.plus,    arity:  {2: ["Any", "Any"]}, nullable: true},

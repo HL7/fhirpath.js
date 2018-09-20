@@ -21,6 +21,9 @@ tests:
   - expression: 'ups in emptycoll'
     desc: 'empty in empty is empty'
     result: []
+  - expression: 'coll in coll'
+    desc: 'If the left operand has multiple items, an exception is thrown'
+    error: true
   - desc: '6.4.3 contains'
   - expression: 'coll contains el'
     result: [true]
@@ -28,6 +31,18 @@ tests:
     result: [false]
   - expression: 'coll contains empty'
     result: []
+  - expression: 'coll contains ups'
+    desc: 'reverse of: If the left-hand side of the operator is the empty collection is empty, the result is empty'
+    result: []
+  - expression: 'emptycoll contains el'
+    desc: 'reverse of: if the right-hand side is empty, the result is false'
+    result: [false]
+  - expression: 'emptycoll contains ups'
+    desc: 'empty in empty is empty'
+    result: []
+  - expression: 'coll contains coll'
+    desc: 'reverse of: If the left operand has multiple items, an exception is thrown'
+    error: true
 subject:
   el:
     a: 2
