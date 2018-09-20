@@ -43,7 +43,7 @@ const transform = (node) => {
       const value = node[key];
       const updated = { desc: `** ${node[key].name || 'test'}` };
       if (value.inputfile) {
-        updated.inputfile = _.replace(value.inputfile, '.xml', '.json');
+        updated.inputfile = value.inputfile.replace(/.xml$/, '.json');
       }
       return updated;
     }
