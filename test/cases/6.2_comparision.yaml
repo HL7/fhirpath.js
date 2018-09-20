@@ -16,6 +16,12 @@ tests:
   - desc: less than, with too many values
     expression: c < g
     error: true
+  - desc: less than, expecting true
+    expression: a < h
+    result: [true]
+  - desc: less than, expecting false
+    expression: j < d
+    result: [false]
 
   - desc: greater than, expecting true
     expression: b > a
@@ -32,6 +38,12 @@ tests:
   - desc: greater than, with too many values
     expression: c > g
     error: true
+  - desc: greater than, expecting true
+    expression: h > a
+    result: [true]
+  - desc: greater than, expecting false
+    expression: d > j
+    result: [false]
 
   - desc: greater or equal than, expecting true
     expression: b >= c
@@ -48,6 +60,12 @@ tests:
   - desc: greater or equal than, with too many values
     expression: c >= g
     error: true
+  - desc: greater or equal than, expecting true
+    expression: c >= h
+    result: [true]
+  - desc: greater or equal than, expecting false
+    expression: d >= j
+    result: [false]
 
   - desc: less or equal than, expecting true
     expression: b <= c
@@ -62,8 +80,14 @@ tests:
     expression: c <= e
     result: []
   - desc: less than equal, with too many values
-    expression: c <= g
+    expression: a <= h
     error: true
+  - desc: less or equal than, expecting true
+    expression: a <= h
+    result: [true]
+  - desc: less than or equal, expecting false
+    expression: j <= d
+    result: [false]
 # TBD -- add more tests (date, times)
 
 subject:
@@ -78,3 +102,4 @@ subject:
     - 1
     - 2
   h: 2.0
+  j: "Oxygen"
