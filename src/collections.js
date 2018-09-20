@@ -22,6 +22,8 @@ engine.contains = function(a, b){
 };
 
 engine.in = function(a, b){
+  if(a.length == 0) { return []; }
+  if(b.length == 0) { return false; }
   if(a.length > 1) {
     throw new Error("Expected singleton on right side of in, got " + JSON.stringify(b));
   }

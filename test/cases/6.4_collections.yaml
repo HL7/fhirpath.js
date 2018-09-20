@@ -12,6 +12,15 @@ tests:
     result: [true]
   - expression: 'not_el in coll'
     result: [false]
+  - expression: 'ups in coll'
+    desc: 'If the left-hand side of the operator is the empty collection is empty, the result is empty'
+    result: []
+  - expression: 'el in emptycoll'
+    desc: 'if the right-hand side is empty, the result is false'
+    result: [false]
+  - expression: 'ups in emptycoll'
+    desc: 'empty in empty is empty'
+    result: []
   - desc: '6.4.3 contains'
   - expression: 'coll contains el'
     result: [true]
@@ -32,3 +41,4 @@ subject:
     - a: 1
     - a: 2
     - a: 3
+  emptycoll: []
