@@ -37,6 +37,7 @@ let filtering = require("./filtering");
 let combining = require("./combining");
 let misc      = require("./misc");
 let equality  = require("./equality");
+let collections  = require("./collections");
 let math      = require("./math");
 let strings   = require("./strings");
 let navigation= require("./navigation");
@@ -106,6 +107,8 @@ engine.invocationTable = {
   ">":          {fn: equality.gt,   arity: {2: ["Any", "Any"]}, nullable: true},
   "<=":         {fn: equality.lte,  arity: {2: ["Any", "Any"]}, nullable: true},
   ">=":         {fn: equality.gte,  arity: {2: ["Any", "Any"]}, nullable: true},
+  "containsOp": {fn: collections.contains,   arity: {2: ["Any", "Any"]}},
+  "inOp":       {fn: collections.in,  arity: {2: ["Any", "Any"]}},
   "&":          {fn: math.amp,     arity:  {2: ["String", "String"]}},
   "+":          {fn: math.plus,    arity:  {2: ["Any", "Any"]}, nullable: true},
   "-":          {fn: math.minus,   arity:  {2: ["Number", "Number"]}, nullable: true},
@@ -394,6 +397,23 @@ engine.OpExpression = function(ctx, parentData, node) {
   return infixInvoke(ctx, op, parentData, node.children);
 };
 
+engine.AliasOpExpression = function(map){
+  return function(ctx, parentData, node) {
+    var op = node.terminalNodeText[0];
+    var alias = map[op];
+    if(!alias) { throw new Error("Do not know how to alias " + op + " by " + JSON.stringify(map)); }
+    return infixInvoke(ctx, alias, parentData, node.children);
+  };
+};
+
+engine.NullLiteral = function() {
+  return [];
+};
+
+engine.ParenthesizedTerm = function(ctx, parentData, node) {
+  return engine.doEval(ctx, parentData, node.children[0]);
+};
+
 
 engine.evalTable = {
   BooleanLiteral: engine.BooleanLiteral,
@@ -406,11 +426,14 @@ engine.evalTable = {
   InvocationExpression: engine.InvocationExpression,
   AdditiveExpression: engine.OpExpression,
   MultiplicativeExpression: engine.OpExpression,
+  MembershipExpression: engine.AliasOpExpression({"contains": "containsOp", "in": "inOp"}),
+  NullLiteral: engine.NullLiteral,
   InvocationTerm: engine.InvocationTerm,
   LiteralTerm: engine.LiteralTerm,
   MemberInvocation: engine.MemberInvocation,
   NumberLiteral: engine.NumberLiteral,
   ParamList: engine.ParamList,
+  ParenthesizedTerm: engine.ParenthesizedTerm,
   StringLiteral: engine.StringLiteral,
   TermExpression: engine.TermExpression,
   ThisInvocation: engine.ThisInvocation,

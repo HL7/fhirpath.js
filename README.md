@@ -61,6 +61,9 @@ Completed sections:
 - 5.7 (Tree Navigation)
 - 5.8 (Utility Functions)
 - 6.1 (Equality)
+- 6.2 (Comparisons)
+- 6.4 (Collections)
+- 6.5 (Boolean logic)
 - 6.6 (Math)
 
 Partially completed sections:
