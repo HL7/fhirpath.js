@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.8.0] - 2018-09-21
+### Added
+ - Support for "contains" and "in" operators
+ - Support for parentheses and null literals
+
 ## [0.7.0] - 2018-09-19
 ### Added
  - An option to the demo app for working with JSON rather than YAML.
