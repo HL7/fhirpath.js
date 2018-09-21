@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.7.0] - 2018-09-19
+### Added
+ - An option to the demo app for working with JSON rather than YAML.
+
 ## [0.6.0] - 2018-09-07
 ### Added
  - logical operations
