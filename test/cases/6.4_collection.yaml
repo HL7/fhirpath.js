@@ -19,6 +19,7 @@ tests:
     result: []
 
   - desc: '** in empty coll 2'
+    disable: true
     expression: a in d
     result: [false]
 

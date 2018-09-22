@@ -1,6 +1,8 @@
 const subj = require('../src/fhirpath');
 const yaml = require('js-yaml');
 const fs   = require('fs');
+const path = require('path');
+const _    = require('lodash');
 
 // Get document, or throw exception on error
 // const testcase = yaml.safeLoad(fs.readFileSync( __dirname + '/cases/simple.yaml', 'utf8'));
@@ -31,17 +33,32 @@ for (var i=0; i<items.length; i++) {
       }
 
       describe(fileName, ()=> {
-        testcase.tests.forEach((t)=>{
+        testcase.tests.forEach((t)=> {
           if (!focus || (focusedTest && t.focus)) {
             // console.log(yaml.dump(subj.parse(t.expression)));
             let exprs = Array.isArray(t.expression) ? t.expression : [t.expression];
             let console_log = console.log;
-            exprs.forEach((e)=>{
+            exprs.forEach((e)=> {
+              if (t.disable && t.disable === true) {
+                it.skip(`Disabled test ${t.desc}`, () => {});
+              } else {
               it(((t.desc || '') + ': ' + (e || '')) , () => {
                 if (t.disableConsoleLog)
                   console.log = function() {};
                 if (!t.error && t.expression) {
-                  var res = subj.evaluate(testcase.subject, e);
+                  let res;
+                  if (_.has(t, 'inputfile')) {
+                    const filePath = __dirname + /resources/ + t.inputfile;
+                    if (fs.existsSync(filePath)) {
+                      const subjFromFile = JSON.parse(fs.readFileSync(filePath));
+                      console_log(subjFromFile);
+                      res = subj.evaluate(subjFromFile, e);
+                    } else {
+                      throw new Error('Resource file isnt exists');
+                    }
+                  } else {
+                    res =  subj.evaluate(testcase.subject, e);
+                  }
                   expect(res).toEqual(t.result);
                 }
                 else {
@@ -57,6 +74,7 @@ for (var i=0; i<items.length; i++) {
                 if (t.disableConsoleLog)
                   console.log = console.log;
               });
+              }
             });
           }
         });
@@ -65,4 +83,3 @@ for (var i=0; i<items.length; i++) {
     }
   }
 }
-

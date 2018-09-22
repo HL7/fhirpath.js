@@ -4,10 +4,12 @@ tests:
 #If the left operand is a collection with a single item and the second operand is a type identifier, this operator returns true if the type of the left operand is the type specified in the second operand, or a subclass thereof. If the identifier cannot be resolved to a valid type identifier, the evaluator will throw an error. If the input collections contains more than one item, the evaluator will throw an error. In all other cases this function returns the empty collection.
   - desc: '** is boolean'
     expression: 1 > 2 is boolean
+    disable: true
     result: [true]
 
   - desc: '** values is integer'
     expression: coll.all($this is number)
+    disable: true
     result: [true]
 
   - desc: '** values isnt Patient type'
@@ -19,6 +21,7 @@ tests:
 
   - desc: '** as'
     expression: coll.a as value
+    disable: true
     result: [true]
 
 subject:
