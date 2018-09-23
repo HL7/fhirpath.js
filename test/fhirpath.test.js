@@ -1,7 +1,6 @@
 const subj = require('../src/fhirpath');
 const yaml = require('js-yaml');
 const fs   = require('fs');
-const path = require('path');
 const _    = require('lodash');
 
 // Get document, or throw exception on error
@@ -42,38 +41,37 @@ for (var i=0; i<items.length; i++) {
               if (t.disable && t.disable === true) {
                 it.skip(`Disabled test ${t.desc}`, () => {});
               } else {
-              it(((t.desc || '') + ': ' + (e || '')) , () => {
-                if (t.disableConsoleLog)
-                  console.log = function() {};
-                if (!t.error && t.expression) {
-                  let res;
-                  if (_.has(t, 'inputfile')) {
-                    const filePath = __dirname + /resources/ + t.inputfile;
-                    if (fs.existsSync(filePath)) {
-                      const subjFromFile = JSON.parse(fs.readFileSync(filePath));
-                      console_log(subjFromFile);
-                      res = subj.evaluate(subjFromFile, e);
+                it(((t.desc || '') + ': ' + (e || '')) , () => {
+                  if (t.disableConsoleLog)
+                    console.log = function() {};
+                  if (!t.error && t.expression) {
+                    let res;
+                    if (_.has(t, 'inputfile')) {
+                      const filePath = __dirname + /resources/ + t.inputfile;
+                      if (fs.existsSync(filePath)) {
+                        const subjFromFile = JSON.parse(fs.readFileSync(filePath));
+                        res = subj.evaluate(subjFromFile, e);
+                      } else {
+                        throw new Error('Resource file isnt exists');
+                      }
                     } else {
-                      throw new Error('Resource file isnt exists');
+                      res =  subj.evaluate(testcase.subject, e);
                     }
-                  } else {
-                    res =  subj.evaluate(testcase.subject, e);
+                    expect(res).toEqual(t.result);
                   }
-                  expect(res).toEqual(t.result);
-                }
-                else {
-                  let exceptn = null;
-                  try {
-                    subj.evaluate(testcase.subject, e);
+                  else {
+                    let exceptn = null;
+                    try {
+                      subj.evaluate(testcase.subject, e);
+                    }
+                    catch (e) {
+                      exceptn = e;
+                    }
+                    expect(e).not.toBe(null);
                   }
-                  catch (e) {
-                    exceptn = e;
-                  }
-                  expect(e).not.toBe(null);
-                }
-                if (t.disableConsoleLog)
-                  console.log = console.log;
-              });
+                  if (t.disableConsoleLog)
+                    console.log = console.log;
+                });
               }
             });
           }
