@@ -42,16 +42,15 @@ const transform = (node) => {
     case '$': {
       const value = node[key];
       const updated = { desc: `** ${node[key].name || 'test'}` };
-      if (value.inputfile) {
+      if (_.has(value, 'inputfile')) {
         updated.inputfile = value.inputfile.replace(/.xml$/, '.json');
       }
       return updated;
     }
     case 'expression': {
       const value = _.first(node[key]);
-      const hasError = _.get(value, ['$', 'invalid']);
       const updated = { ...acc, [key]: value['_'] };
-      if (hasError) {
+      if (_.has(value, ['$', 'invalid'])) {
         updated.error = true;
       }
       return updated;
