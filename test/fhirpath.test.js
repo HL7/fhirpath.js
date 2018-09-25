@@ -18,6 +18,8 @@ function endWith(s, postfix){
 var focus = false;
 var focusFile = /.*.yaml/;
 
+const resources = {};
+
 for (var i=0; i<items.length; i++) {
   var fileName = items[i];
 
@@ -31,6 +33,7 @@ for (var i=0; i<items.length; i++) {
         focusedTest = testcase.tests[i].focus;
       }
 
+
       describe(fileName, ()=> {
         testcase.tests.forEach((t)=> {
           if (!focus || (focusedTest && t.focus)) {
@@ -38,7 +41,7 @@ for (var i=0; i<items.length; i++) {
             let exprs = Array.isArray(t.expression) ? t.expression : [t.expression];
             let console_log = console.log;
             exprs.forEach((e)=> {
-              if (t.disable && t.disable === true) {
+              if (t.disable === true) {
                 it.skip(`Disabled test ${t.desc}`, () => {});
               } else {
                 it(((t.desc || '') + ': ' + (e || '')) , () => {
@@ -47,12 +50,17 @@ for (var i=0; i<items.length; i++) {
                   if (!t.error && t.expression) {
                     let res;
                     if (_.has(t, 'inputfile')) {
-                      const filePath = __dirname + /resources/ + t.inputfile;
-                      if (fs.existsSync(filePath)) {
-                        const subjFromFile = JSON.parse(fs.readFileSync(filePath));
-                        res = subj.evaluate(subjFromFile, e);
+                      if(_.has(resources, t.inputfile)) {
+                        res = subj.evaluate(resources[t.inputfile], e);
                       } else {
-                        throw new Error('Resource file isnt exists');
+                        const filePath = __dirname + /resources/ + t.inputfile;
+                        if (fs.existsSync(filePath)) {
+                          const subjFromFile = JSON.parse(fs.readFileSync(filePath));
+                          resources[t.inputfile] = subjFromFile;
+                          res = subj.evaluate(subjFromFile, e);
+                        } else {
+                          throw new Error('Resource file isnt exists');
+                        }
                       }
                     } else {
                       res =  subj.evaluate(testcase.subject, e);
@@ -70,7 +78,7 @@ for (var i=0; i<items.length; i++) {
                     expect(e).not.toBe(null);
                   }
                   if (t.disableConsoleLog)
-                    console.log = console.log;
+                    console.log = console_log;
                 });
               }
             });
