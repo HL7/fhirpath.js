@@ -34,10 +34,11 @@ const transform = (node) => {
       return { tests: transform(node[key]) };
 
     case 'group':
-      return _.flatten([...acc, ...node[key].map(item => transform(item))]);
+      return [...acc, ...node[key].map(item =>
+        ({ [`group: ${item['$'].name}`]: transform(_.pick(item, 'test')) }))];
 
     case 'test':
-      return [acc, ...node[key].map(item => transform(item))];
+      return [...acc, ...node[key].map(item => transform(item))];
 
     case '$': {
       const value = node[key];
