@@ -21,8 +21,24 @@ function normalizeStr(x) {
 }
 
 function getPrecision(x) {
+  // If we later need to support numbers whose string format contains "e", then see:
+  // https://stackoverflow.com/a/9539746/360782
   return (x.toString().split(".")[1] || "").length;
 }
+
+
+/**
+ *  The smallest representable number in FHIRPath.
+ */
+const PRECISION_STEP = 1e-8;
+
+/**
+ *  Rounds a number to the nearest multiple of PRECISION_STEP.
+ */
+function roundToMaxPrecision(x) {
+  return Math.round(x/PRECISION_STEP)*PRECISION_STEP;
+}
+
 
 var deepEqual = function (actual, expected, opts) {
   if (!opts) opts = {};
@@ -30,6 +46,13 @@ var deepEqual = function (actual, expected, opts) {
   // 7.1. All identical values are equivalent, as determined by ===.
   if (actual === expected) {
     return true;
+  }
+
+  // If these are numbers, they need to be rounded to the maximum supported
+  // precision to remove floating point arithmetic errors (e.g. 0.1+0.1+0.1 should
+  // equal 0.3) before comparing.
+  if (typeof actual === 'number' && typeof expected === 'number') {
+    return roundToMaxPrecision(actual) === roundToMaxPrecision(expected);
   }
 
   if(opts.fuzzy && isString(actual) && isString(expected)) {
