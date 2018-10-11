@@ -41,6 +41,7 @@ tests:
     error: true
   - desc: '** Error adding missing numbers'
     expression: n1 + n4
+    disable: true
     error: true
   - desc: '** Error adding non-matching types'
     expression: n1 + s5
@@ -49,6 +50,7 @@ tests:
     expression: s5 + n1
     error: true
   - desc: '** Empty result if one or both operands is empty (1)'
+    disable: true
     expression: n1 + n4
     result: []
   - desc: '** Empty result if one or both operands is empty (1b)'
@@ -74,6 +76,7 @@ tests:
     expression: MathTestData.n1 div MathTestData.a3
     error: true
   - desc: '** Error truncated divide missing numbers'
+    disable: true
     expression: MathTestData.n1 div MathTestData.n4
     error: true
   - desc: '** Error truncated divide non-number'
@@ -87,7 +90,8 @@ tests:
   - desc: '** Error reminder of truncated division array of numbers'
     expression: MathTestData.n1 mod MathTestData.a3
     error: true
-  - desc: '** Error reminder of runcated division missing numbers'
+  - desc: '** Error reminder of truncated division missing numbers'
+    disable: true
     expression: MathTestData.n1 mod MathTestData.n4
     error: true
   - desc: '** Error reminder of truncated division non-number'

@@ -7,6 +7,7 @@ tests:
           - '1974-12-25'
       - desc: '** patient has a birthDate'
         inputfile: patient-example.json
+        disable: true
         expression: birthDate
         result:
           - true
@@ -30,6 +31,7 @@ tests:
           - James
       - desc: '** testSimpleNone'
         inputfile: patient-example.json
+        disable: true
         expression: name.suffix
       - desc: '** testSimpleDoubleQuotes'
         inputfile: patient-example.json
@@ -103,9 +105,11 @@ tests:
   - 'group: Dollar':
       - desc: '** testDollarThis1'
         inputfile: patient-example.json
+        disable: true
         expression: Patient.name.given.where(substring($this.length()-3) = 'out')
       - desc: '** testDollarThis2'
         inputfile: patient-example.json
+        disable: true
         expression: Patient.name.given.where(substring($this.length()-3) = 'ter')
         result:
           - Peter
@@ -119,6 +123,7 @@ tests:
           - James
       - desc: '** testDollarOrderAllowedA'
         inputfile: patient-example.json
+        disable: true
         expression: Patient.name.skip(3).given
       - desc: '** testDollarOrderNotAllowed'
         inputfile: patient-example.json
@@ -349,27 +354,32 @@ tests:
           - true
       - desc: '** testLiteralDecimal'
         inputfile: observation-example.json
+        disable: true
         expression: Observation.value.value > 180.0
         result:
           - true
       - desc: '** testLiteralDecimal'
         inputfile: observation-example.json
+        disable: true
         expression: Observation.value.value > 0.0
         result:
           - true
       - desc: '** testLiteralDecimal'
         inputfile: observation-example.json
+        disable: true
         expression: Observation.value.value > 0
         result:
           - true
       - desc: '** testLiteralDecimal'
         inputfile: observation-example.json
+        disable: true
         expression: Observation.value.value < 190
         result:
           - true
       - desc: 'TODO ADD RESULT'
       - desc: '** testLiteralDecimal'
         inputfile: observation-example.json
+        disable: true
         expression: Observation.value.value < 'test'
       - desc: '** testLiteralDate'
         inputfile: patient-example.json
@@ -427,6 +437,7 @@ tests:
           - true
       - desc: '** testLiteralUnicode'
         inputfile: patient-example.json
+        disable: true
         expression: Patient.name.given.first() = 'P\u0065ter'
         result:
           - true
@@ -438,6 +449,7 @@ tests:
           - true
       - desc: '** testExpressions'
         inputfile: patient-example.json
+        disable: true
         expression: Patient.name.select(given | family).distinct()
         result:
           - ''
@@ -863,17 +875,20 @@ tests:
   - 'group: testAll':
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: Patient.name.select(given.exists()).all()
         result:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: Patient.name.select(family.exists()).all()
         result:
           - false
   - 'group: testSubSetOf':
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: Patient.name.first().subsetOf($this.name)
         result:
           - true
@@ -885,6 +900,7 @@ tests:
   - 'group: testSuperSetOf':
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: Patient.name.first().supersetOf($this.name).not()
         result:
           - true
@@ -992,6 +1008,7 @@ tests:
           - 3
       - desc: '** test'
         inputfile: questionnaire-example.json
+        disable: true
         expression: Questionnaire.descendants().linkId.distinct()
         result:
           - ''
@@ -1006,6 +1023,7 @@ tests:
           - ''
       - desc: '** test'
         inputfile: questionnaire-example.json
+        disable: true
         expression: 'Questionnaire.descendants().linkId.select(substring(0,1)).distinct()'
         result:
           - ''
@@ -1245,11 +1263,13 @@ tests:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: '''0.0''.toInteger().empty()'
         result:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: '''st''.toInteger().empty()'
         result:
           - true
@@ -1277,6 +1297,7 @@ tests:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: '''st''.toDecimal().empty()'
         result:
           - true
@@ -1299,6 +1320,7 @@ tests:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: 0.0.toString() = '0.0'
         result:
           - true
@@ -1340,6 +1362,7 @@ tests:
   - 'group: testSubstring':
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: '''12345''.substring(2) = ''345'''
         result:
           - true
@@ -1350,11 +1373,13 @@ tests:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: '''12345''.substring(2,5) = ''345'''
         result:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: '''12345''.substring(25).empty()'
         result:
           - true
@@ -1397,6 +1422,7 @@ tests:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: '''12345''.startsWith('''') = false'
         result:
           - true
@@ -1433,6 +1459,7 @@ tests:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: '''12345''.endsWith('''') = false'
         result:
           - true
@@ -1469,6 +1496,7 @@ tests:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: '''12345''.contains('''') = false'
         result:
           - true
@@ -1506,6 +1534,7 @@ tests:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: 'name.trace(''test'', given).count() = 3'
         result:
           - true
@@ -1577,6 +1606,7 @@ tests:
           - false
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: 1.10 = 1.1
         result:
           - false
@@ -1587,6 +1617,7 @@ tests:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: 0.0 = 0
         result:
           - false
@@ -1662,6 +1693,7 @@ tests:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: 1.10 != 1.1
         result:
           - true
@@ -1672,6 +1704,7 @@ tests:
           - false
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: 0.0 != 0
         result:
           - true
@@ -1747,6 +1780,7 @@ tests:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: 1.1 ~ 1.2
         result:
           - false
@@ -1792,6 +1826,7 @@ tests:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: >-
           name.take(2).given ~ name.take(2).last().given |
           name.take(2).first().given
@@ -1836,6 +1871,7 @@ tests:
           - false
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: 1.1 !~ 1.2
         result:
           - true
@@ -1881,6 +1917,7 @@ tests:
           - false
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: >-
           name.take(2).given !~ name.take(2).last().given |
           name.take(2).first().given
@@ -2688,11 +2725,13 @@ tests:
   - 'group: testConcatenate':
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: 1 & 1 = '11'
         result:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: 1 & 'a' = '1a'
         result:
           - true
@@ -2726,6 +2765,7 @@ tests:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: 1.8 - 1.2 = 0.6
         result:
           - true
@@ -2772,6 +2812,7 @@ tests:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: 1.2 / 1.8 = 0.67
         result:
           - true
@@ -2814,6 +2855,7 @@ tests:
           - true
       - desc: '** test'
         inputfile: patient-example.json
+        disable: true
         expression: 2.2 mod 1.8 = 0.4
         result:
           - true

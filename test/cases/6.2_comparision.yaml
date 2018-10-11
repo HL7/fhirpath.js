@@ -80,6 +80,7 @@ tests:
     expression: c <= e
     result: []
   - desc: less than equal, with too many values
+    disable: true
     expression: a <= h
     error: true
   - desc: less or equal than, expecting true
