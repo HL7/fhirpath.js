@@ -23,6 +23,7 @@ function normalizeStr(x) {
 function getPrecision(x) {
   // If we later need to support numbers whose string format contains "e", then see:
   // https://stackoverflow.com/a/9539746/360782
+  // (Until then numbers that are 1e-7 or smaller will fail).
   return (x.toString().split(".")[1] || "").length;
 }
 
