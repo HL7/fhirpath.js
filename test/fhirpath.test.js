@@ -35,7 +35,7 @@ const calcExpression = (expression, test, testcase) => {
         resources[test.inputfile] = subjFromFile;
         return fhirpath.evaluate(subjFromFile, expression);
       } else {
-        throw new Error('Resource file isnt exists');
+        throw new Error("Resource file doesn't exists");
       }
     }
   } else {
