@@ -48,27 +48,30 @@ var deepEqual = function (actual, expected, opts) {
     return true;
   }
 
-  // If these are numbers, they need to be rounded to the maximum supported
-  // precision to remove floating point arithmetic errors (e.g. 0.1+0.1+0.1 should
-  // equal 0.3) before comparing.
-  if (typeof actual === 'number' && typeof expected === 'number') {
-    return roundToMaxPrecision(actual) === roundToMaxPrecision(expected);
-  }
+  if (opts.fuzzy) {
+    if(isString(actual) && isString(expected)) {
+      return normalizeStr(actual) == normalizeStr(expected);
+    }
 
-  if(opts.fuzzy && isString(actual) && isString(expected)) {
-    return normalizeStr(actual) == normalizeStr(expected);
-  }
+    if(Number.isInteger(actual) && Number.isInteger(expected)) {
+      return actual === expected;
+    }
 
-  if(opts.fuzzy && Number.isInteger(actual) && Number.isInteger(expected)) {
-    return actual === expected;
+    if(isNumber(actual) && isNumber(expected)) {
+      var prec = Math.min(getPrecision(actual), getPrecision(expected));
+      if(prec === 0){
+        return Math.round(actual) === Math.round(expected);
+      } else {
+        return Number.parseFloat(actual).toPrecision(prec) === Number.parseFloat(expected).toPrecision(prec);
+      }
+    }
   }
-
-  if(opts.fuzzy && isNumber(actual) && isNumber(expected)) {
-    var prec = Math.min(getPrecision(actual), getPrecision(expected));
-    if(prec === 0){
-      return Math.round(actual) === Math.round(expected);
-    } else {
-      return Number.parseFloat(actual).toPrecision(prec) === Number.parseFloat(expected).toPrecision(prec);
+  else { // !opts.fuzzy
+    // If these are numbers, they need to be rounded to the maximum supported
+    // precision to remove floating point arithmetic errors (e.g. 0.1+0.1+0.1 should
+    // equal 0.3) before comparing.
+    if (typeof actual === 'number' && typeof expected === 'number') {
+      return roundToMaxPrecision(actual) === roundToMaxPrecision(expected);
     }
   }
 
