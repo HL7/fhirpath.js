@@ -1,4 +1,4 @@
-const subj = require('../src/fhirpath');
+const fhirpath = require('../src/fhirpath');
 const yaml = require('js-yaml');
 const fs   = require('fs');
 const _    = require('lodash');
@@ -21,72 +21,72 @@ const focusFile = /.*.yaml/;
 const resources = {};
 
 const files = items.filter(fileName => endWith(fileName, '.yaml'))
-            .map(fileName =>({ fileName, data: yaml.safeLoad(fs.readFileSync(__dirname + '/cases/' + fileName, 'utf8')) }));
+  .map(fileName =>({ fileName, data: yaml.safeLoad(fs.readFileSync(__dirname + '/cases/' + fileName, 'utf8')) }));
 
 
-const calcExpression = (e, t, testcase) => {
-  if (_.has(t, 'inputfile')) {
-    if(_.has(resources, t.inputfile)) {
-      return  subj.evaluate(resources[t.inputfile], e);
+const calcExpression = (expression, test, testcase) => {
+  if (_.has(test, 'inputfile')) {
+    if(_.has(resources, test.inputfile)) {
+      return  fhirpath.evaluate(resources[test.inputfile], expression);
     } else {
-      const filePath = __dirname + /resources/ + t.inputfile;
+      const filePath = __dirname + /resources/ + test.inputfile;
       if (fs.existsSync(filePath)) {
         const subjFromFile = JSON.parse(fs.readFileSync(filePath));
-        resources[t.inputfile] = subjFromFile;
-        return subj.evaluate(subjFromFile, e);
+        resources[test.inputfile] = subjFromFile;
+        return fhirpath.evaluate(subjFromFile, expression);
       } else {
         throw new Error('Resource file isnt exists');
       }
     }
   } else {
-    return subj.evaluate(testcase.subject, e);
+    return fhirpath.evaluate(testcase.subject, expression);
   }
 };
 
-const generateCase = (e, t, testcase) => {
+const generateCase = (expression, test, testcase) => {
   const console_log = console.log;
-  if (t.disable === true) {
-    it.skip(`Disabled test ${t.desc}`, () => {});
+  if (test.disable === true) {
+    it.skip(`Disabled test ${test.desc}`, () => {});
   } else {
-    it(((t.desc || '') + ': ' + (e || '')) , () => {
-      if (t.disableConsoleLog) {
+    it(((test.desc || '') + ': ' + (expression || '')) , () => {
+      if (test.disableConsoleLog) {
         console.log = function() {};
       }
-      if (!t.error && t.expression) {
-        const res = calcExpression(e, t, testcase);
-        expect(res).toEqual(t.result);
+      if (!test.error && test.expression) {
+        const result = calcExpression(expression, test, testcase);
+        expect(result).toEqual(test.result);
       }
       else {
-        let exceptn = null;
+        let exception = null;
         try {
-          subj.evaluate(testcase.subject, e);
+          fhirpath.evaluate(testcase.subject, expression);
         }
-        catch (e) {
-          exceptn = e;
+        catch (error) {
+          exception = error;
         }
-        expect(e).not.toBe(null);
+        expect(exception).not.toBe(null);
       }
-      if (t.disableConsoleLog)
+      if (test.disableConsoleLog)
         console.log = console_log;
     });
   }
 };
 
-const generateTest = (t, testcase) => {
-  if (_.keys(t).some(key => key.startsWith('group'))) {
-    const groupName = _.first(_.keys(_.omit(t, 'disable')));
-    return (t.disable === true)
-      ? describe.skip(groupName, () => t[groupName].map(c => generateTest(c)))
-      : describe(groupName, () => t[groupName].map(c => generateTest(c)));
+const generateTest = (test, testcase) => {
+  if (_.keys(test).some(key => key.startsWith('group'))) {
+    const groupName = _.first(_.keys(_.omit(test, 'disable')));
+    return (test.disable === true)
+      ? describe.skip(groupName, () => test[groupName].map(tCase => generateTest(tCase)))
+      : describe(groupName, () => test[groupName].map(tCase => generateTest(tCase)));
   } else {
-    if (!focus || t.focus) {
-      let exprs = Array.isArray(t.expression) ? t.expression : [t.expression];
-      exprs.forEach((e) => generateCase(e, t, testcase));
+    if (!focus || test.focus) {
+      let expressions = Array.isArray(test.expression) ? test.expression : [test.expression];
+      expressions.forEach((expression) => generateCase(expression, test, testcase));
     }}
 };
 
 
-const generateSuite= (fileName, testcase) => {
+const generateSuite = (fileName, testcase) => {
   if((focus && focusFile.test(fileName)) || focus === false) {
     return describe(fileName, () => testcase.tests.forEach(test => generateTest(test, testcase)));
   }
