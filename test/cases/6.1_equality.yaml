@@ -255,6 +255,10 @@ tests:
     expression: "1.01 != 1.02"
     result: [true]
 
+  - desc: 'decimal values should not be compared beyond the maximum precision'
+    expression: '0.1 + 0.1 + 0.1 = 0.3'
+    result: [true]
+
   - desc: '* boolean: values must be the same'
 
   - desc: '** equal'
