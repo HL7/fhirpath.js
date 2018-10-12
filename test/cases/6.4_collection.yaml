@@ -28,6 +28,7 @@ tests:
 
   - desc: '** in operand is coll'
     expression: c in d
+    disable: true
     error: true
 
   - desc: '6.4.3. contains (containership)'
