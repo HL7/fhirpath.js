@@ -34,24 +34,24 @@ const transform = (node) => {
       return { tests: transform(node[key]) };
 
     case 'group':
-      return _.flatten([...acc, ...node[key].map(item => transform(item))]);
+      return [...acc, ...node[key].map(item =>
+        ({ [`group: ${item['$'].name}`]: transform(_.pick(item, 'test')) }))];
 
     case 'test':
-      return [acc, ...node[key].map(item => transform(item))];
+      return [...acc, ...node[key].map(item => transform(item))];
 
     case '$': {
       const value = node[key];
       const updated = { desc: `** ${node[key].name || 'test'}` };
-      if (value.inputfile) {
+      if (_.has(value, 'inputfile')) {
         updated.inputfile = value.inputfile.replace(/.xml$/, '.json');
       }
       return updated;
     }
     case 'expression': {
       const value = _.first(node[key]);
-      const hasError = _.get(value, ['$', 'invalid']);
       const updated = { ...acc, [key]: value['_'] };
-      if (hasError) {
+      if (_.has(value, ['$', 'invalid'])) {
         updated.error = true;
       }
       return updated;
