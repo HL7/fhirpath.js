@@ -7,16 +7,89 @@ tests:
   - desc: less than, expecting false
     expression: b < a
     result: [false]
-  - desc: less then, with mismatched types
+  - desc: less than, with mismatched types
     expression: c < d
     error: true
-  - desc: less than with empty value
+  - desc: less than, with empty value
     expression: c < e
     result: []
-  - desc: less than with too many values
+  - desc: less than, with too many values
     expression: c < g
     error: true
-# TBD -- add more tests
+  - desc: less than, expecting true
+    expression: a < h
+    result: [true]
+  - desc: less than, expecting false
+    expression: j < d
+    result: [false]
+
+  - desc: greater than, expecting true
+    expression: b > a
+    result: [true]
+  - desc: greater than, expecting false
+    expression: a > b
+    result: [false]
+  - desc: greater than, with mismatched types
+    expression: d > c
+    error: true
+  - desc: greater than, with empty value
+    expression: e > a
+    result: []
+  - desc: greater than, with too many values
+    expression: c > g
+    error: true
+  - desc: greater than, expecting true
+    expression: h > a
+    result: [true]
+  - desc: greater than, expecting false
+    expression: d > j
+    result: [false]
+
+  - desc: greater or equal than, expecting true
+    expression: b >= c
+    result: [true]
+  - desc: greater or equal than, expecting false
+    expression: a >= b
+    result: [false]
+  - desc: greater or equal than, with mismatched types
+    expression: d >= c
+    error: true
+  - desc: greater or equal than, with empty value
+    expression: e >= a
+    result: []
+  - desc: greater or equal than, with too many values
+    expression: c >= g
+    error: true
+  - desc: greater or equal than, expecting true
+    expression: c >= h
+    result: [true]
+  - desc: greater or equal than, expecting false
+    expression: d >= j
+    result: [false]
+
+  - desc: less or equal than, expecting true
+    expression: b <= c
+    result: [true]
+  - desc: less than or equal, expecting false
+    expression: b <= a
+    result: [false]
+  - desc: less or equal than, with mismatched types
+    expression: c <= d
+    error: true
+  - desc: less or equal than, with empty value
+    expression: c <= e
+    result: []
+  - desc: less than equal, with too many values
+    disable: true
+    expression: a <= h
+    error: true
+  - desc: less or equal than, expecting true
+    expression: a <= h
+    result: [true]
+  - desc: less than or equal, expecting false
+    expression: j <= d
+    result: [false]
+# TBD -- add more tests (date, times)
 
 subject:
   a: 1
@@ -29,4 +102,5 @@ subject:
   g:
     - 1
     - 2
-
+  h: 2.0
+  j: "Oxygen"

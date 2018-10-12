@@ -1,0 +1,46 @@
+tests:
+  - desc: '6.4. Collections'
+  - desc: '6.4.1. | (union collections)'
+# Merge the two collections into a single collection, eliminating any duplicate values (using equals (=)) to determine equality). Unioning an empty collection to a non-empty collection will return the non-empty collection with duplicates eliminated. There is no expectation of order in the resulting collection.
+  - desc: 'see 5.4.1 tests'
+
+  - desc: '6.4.2. in (membership)'
+# If the left operand is a collection with a single item, this operator returns true if the item is in the right operand using equality semantics. If the left-hand side of the operator is the empty collection is empty, the result is empty, if the right-hand side is empty, the result is false. If the left operand has multiple items, an exception is thrown.
+  - desc: '** item in coll'
+    expression: b in c
+    disable: true
+    result: [true]
+
+  - desc: '** item not in coll'
+    expression: a in c
+    disable: true
+    result: [false]
+
+  - desc: '** in empty coll'
+    expression: d in c
+    disable: true
+    result: []
+
+  - desc: '** in empty coll 2'
+    disable: true
+    expression: a in d
+    result: [false]
+
+  - desc: '** in operand is coll'
+    expression: c in d
+    disable: true
+    error: true
+
+  - desc: '6.4.3. contains (containership)'
+# If the right operand is a collection with a single item, this operator returns true if the item is in the left operand using equality semantics. This is the inverse operation of in.
+  - desc: 'see 5.6.5. tests'
+
+
+subject:
+  - a: 1
+    b: 2
+    c:
+      - 2
+      - 3
+      - 4
+    d: []

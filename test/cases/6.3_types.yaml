@@ -1,0 +1,32 @@
+tests:
+  - desc: '6.3. Types'
+  - desc: '6.3.1. is'
+#If the left operand is a collection with a single item and the second operand is a type identifier, this operator returns true if the type of the left operand is the type specified in the second operand, or a subclass thereof. If the identifier cannot be resolved to a valid type identifier, the evaluator will throw an error. If the input collections contains more than one item, the evaluator will throw an error. In all other cases this function returns the empty collection.
+  - desc: '** is boolean'
+    expression: 1 > 2 is boolean
+    disable: true
+    result: [true]
+
+  - desc: '** values is integer'
+    expression: coll.all($this is number)
+    disable: true
+    result: [true]
+
+  - desc: '** values isnt Patient type'
+    expression: coll.all($this is Patient)
+    disable: true
+    result: [false]
+
+  - desc: '6.3.2. as'
+#If the left operand is a collection with a single item and the second operand is an identifier, this function returns the value of the left operand if it is of the type specified in the second operand, or a subclass thereof. If the identifier cannot be resolved to a valid type identifier, the evaluator will throw an error. If there is more than one item in the input collection, the evaluator will throw an error. Otherwise, this operator returns the empty collection.
+
+  - desc: '** as'
+    expression: coll.a as value
+    disable: true
+    result: [true]
+
+subject:
+  coll:
+    - a: 1
+      b: 2
+      c: 3
