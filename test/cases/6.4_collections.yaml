@@ -1,0 +1,59 @@
+tests:
+  - desc: '6.4.2 |'
+  - expression: 'coll | coll2'
+    result:
+      - a: 1
+      - a: 2
+      - a: 3
+      - a: 4
+      - a: 5
+  - desc: '6.4.2 in'
+  - expression: 'el in coll'
+    result: [true]
+  - expression: 'not_el in coll'
+    result: [false]
+  - expression: 'ups in coll'
+    desc: 'If the left-hand side of the operator is the empty collection is empty, the result is empty'
+    result: []
+  - expression: 'el in emptycoll'
+    desc: 'if the right-hand side is empty, the result is false'
+    result: [false]
+  - expression: 'ups in emptycoll'
+    desc: 'empty in empty is empty'
+    result: []
+  - expression: 'coll in coll'
+    desc: 'If the left operand has multiple items, an exception is thrown'
+    error: true
+  - desc: '6.4.3 contains'
+  - expression: 'coll contains el'
+    result: [true]
+  - expression: 'coll contains not_el'
+    result: [false]
+  - expression: 'coll contains empty'
+    result: []
+  - expression: 'coll contains ups'
+    desc: 'reverse of: If the left-hand side of the operator is the empty collection is empty, the result is empty'
+    result: []
+  - expression: 'emptycoll contains el'
+    desc: 'reverse of: if the right-hand side is empty, the result is false'
+    result: [false]
+  - expression: 'emptycoll contains ups'
+    desc: 'empty in empty is empty'
+    result: []
+  - expression: 'coll contains coll'
+    desc: 'reverse of: If the left operand has multiple items, an exception is thrown'
+    error: true
+subject:
+  el:
+    a: 2
+  not_el:
+    a: 4
+  coll2:
+    - a: 3
+    - a: 4
+    - a: 5
+  coll:
+    - a: 1
+    - a: 2
+    - a: 3
+  emptycoll: []

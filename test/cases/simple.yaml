@@ -103,6 +103,10 @@ tests:
   - expression:  identifier.where($this.type.coding.code = 'Z').value
     result: []
 
+  - expression:  (2).combine(3)
+    desc: 'Parenthesized expression'
+    result: [2,3]
+
 
 
 subject:
