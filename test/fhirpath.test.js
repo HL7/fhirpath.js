@@ -65,7 +65,8 @@ const generateCase = (expression, test, testcase) => {
         catch (error) {
           exception = error;
         }
-        console.log(result);
+        if (result != null)
+          console.log(result);
         expect(exception).not.toBe(null);
       }
       if (test.disableConsoleLog)

@@ -1192,6 +1192,7 @@ tests:
       - desc: '** test'
         inputfile: patient-example.json
         expression: Patient.name.skip(1).given.trace('test') = 'Jim' | 'Peter' | 'James'
+        disableConsoleLog: true
         result:
           - true
       - desc: '** test'
@@ -1534,11 +1535,14 @@ tests:
       - desc: '** test'
         inputfile: patient-example.json
         expression: name.given.trace('test').count() = 5
+        disableConsoleLog: true
         result:
           - true
+
       - desc: '** test'
         inputfile: patient-example.json
         disable: true
+        disableConsoleLog: true
         expression: 'name.trace(''test'', given).count() = 3'
         result:
           - true

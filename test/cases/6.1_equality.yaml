@@ -180,6 +180,10 @@ tests:
         result: [true]
       - expression: 1.1 ~ 1.0 # rounded, ignoring trailing zeros
         result: [true]
+      - expression: 1.1 ~ 1.00 # rounded, ignoring trailing zeros
+        result: [true]
+      - expression: 1.10 ~ 1.00 # rounded, ignoring trailing zeros
+        result: [true]
       - expression: 11 ~ 10 # digits before decimal are not trailing zeros
         result: [false]
       - expression: 12 ~ 11
