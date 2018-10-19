@@ -56,14 +56,16 @@ const generateCase = (expression, test, testcase) => {
         const result = calcExpression(expression, test, testcase);
         expect(result).toEqual(test.result);
       }
-      else {
+      else if (test.error) {
         let exception = null;
+        let result = null;
         try {
-          fhirpath.evaluate(testcase.subject, expression);
+          result = fhirpath.evaluate(testcase.subject, expression);
         }
         catch (error) {
           exception = error;
         }
+        console.log(result);
         expect(exception).not.toBe(null);
       }
       if (test.disableConsoleLog)
@@ -76,18 +78,19 @@ const generateTest = (test, testcase) => {
   if (_.keys(test).some(key => key.startsWith('group'))) {
     const groupName = _.first(_.keys(_.omit(test, 'disable')));
     return (test.disable === true)
-      ? describe.skip(groupName, () => test[groupName].map(tCase => generateTest(tCase)))
-      : describe(groupName, () => test[groupName].map(tCase => generateTest(tCase)));
+      ? describe.skip(groupName, () => test[groupName].map(tCase => generateTest(tCase, testcase)))
+      : describe(groupName, () => test[groupName].map(tCase => generateTest(tCase, testcase)));
   } else {
     if (!focus || test.focus) {
       let expressions = Array.isArray(test.expression) ? test.expression : [test.expression];
       expressions.forEach((expression) => generateCase(expression, test, testcase));
-    }}
+  }
+    }
 };
 
 
 const generateSuite = (fileName, testcase) => {
-  if((focus && focusFile.test(fileName)) || focus === false) {
+  if((focus && focusFile.test(fileName)) || !focus) {
     return describe(fileName, () => testcase.tests.forEach(test => generateTest(test, testcase)));
   }
 };
