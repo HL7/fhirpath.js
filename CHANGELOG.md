@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.8.2] - 2018-10-24
+### Fixed
+ - Issues with decimals and the ~ operator.
+
 ## [0.8.1] - 2018-10-10
 ### Fixed
  - Floating point arithemetic errors are now corrected prior to comparison.
