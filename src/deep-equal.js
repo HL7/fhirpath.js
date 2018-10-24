@@ -27,7 +27,7 @@ function decimalPlaces(x) {
   // Based on https://stackoverflow.com/a/9539746/360782
   // Make sure it is a number and use the builtin number -> string.
   var s = "" + (+x);
-  var match = /(\d+)(?:\.(\d+))?(?:[eE]([+\-]?\d+))?$/.exec(s);
+  var match = /(\d+)(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/.exec(s);
   // NaN or Infinity or integer.
   // We arbitrarily decide that Infinity is integral.
   if (!match) { return 0; }
@@ -35,14 +35,13 @@ function decimalPlaces(x) {
   // exponent to simulate moving the decimal point left by exponent places.
   // 1.234e+2 has 1 fraction digit and '234'.length -  2 == 1
   // 1.234e-2 has 5 fraction digit and '234'.length - -2 == 5
-  var wholeNum = match[1];
+  //var wholeNum = match[1];
   var fraction = match[2];
   var exponent = match[3];
-  //return wholeNum.length + Math.max(
   return Math.max(
-      0,  // lower limit.
-      (fraction == '0' ? 0 : (fraction || '').length)  // fraction length
-      - (exponent || 0));  // exponent
+    0,  // lower limit.
+    (fraction == '0' ? 0 : (fraction || '').length)  // fraction length
+    - (exponent || 0));  // exponent
 }
 
 
@@ -66,7 +65,7 @@ function roundToMaxPrecision(x) {
  *  could contain fewer if the decimal digits in x contain zeros).
  */
 function roundToDecimalPlaces(x, n) {
-  var scale = Math.pow(10, n)
+  var scale = Math.pow(10, n);
   return Math.round(x*scale)/scale;
 }
 
