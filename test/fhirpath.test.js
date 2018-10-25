@@ -24,7 +24,7 @@ const files = items.filter(fileName => endWith(fileName, '.yaml'))
   .map(fileName =>({ fileName, data: yaml.safeLoad(fs.readFileSync(__dirname + '/cases/' + fileName, 'utf8')) }));
 
 
-const calcExpression = (expression, test, testcase) => {
+const calcExpression = (expression, test, testResource) => {
   if (_.has(test, 'inputfile')) {
     if(_.has(resources, test.inputfile)) {
       return  fhirpath.evaluate(resources[test.inputfile], expression);
@@ -39,60 +39,63 @@ const calcExpression = (expression, test, testcase) => {
       }
     }
   } else {
-    return fhirpath.evaluate(testcase.subject, expression);
+    return fhirpath.evaluate(testResource, expression);
   }
 };
 
-const generateCase = (expression, test, testcase) => {
+const generateTest = (test, testResource) => {
+  let expressions = Array.isArray(test.expression) ? test.expression : [test.expression];
   const console_log = console.log;
-  if (test.disable === true) {
-    it.skip(`Disabled test ${test.desc}`, () => {});
-  } else {
-    it(((test.desc || '') + ': ' + (expression || '')) , () => {
-      if (test.disableConsoleLog) {
-        console.log = function() {};
-      }
-      if (!test.error && test.expression) {
-        const result = calcExpression(expression, test, testcase);
-        expect(result).toEqual(test.result);
-      }
-      else if (test.error) {
-        let exception = null;
-        let result = null;
-        try {
-          result = fhirpath.evaluate(testcase.subject, expression);
+  expressions.forEach(expression => {
+    if (test.disable === true) {
+      it.skip(`Disabled test ${test.desc}`, () => {});
+    } else {
+      it(((test.desc || '') + ': ' + (expression || '')) , () => {
+        if (test.disableConsoleLog) {
+          console.log = function() {};
         }
-        catch (error) {
-          exception = error;
+        if (!test.error && test.expression) {
+          const result = calcExpression(expression, test, testResource);
+          expect(result).toEqual(test.result);
         }
-        if (result != null)
-          console.log(result);
-        expect(exception).not.toBe(null);
-      }
-      if (test.disableConsoleLog)
-        console.log = console_log;
-    });
-  }
+        else if (test.error) {
+          let exception = null;
+          let result = null;
+          try {
+            result = fhirpath.evaluate(testResource, expression);
+          }
+          catch (error) {
+            exception = error;
+          }
+          if (result != null)
+            console.log(result);
+          expect(exception).not.toBe(null);
+        }
+        if (test.disableConsoleLog)
+          console.log = console_log;
+      });
+    }
+  });
 };
 
-const generateTest = (test, testcase) => {
-  if (_.keys(test).some(key => key.startsWith('group'))) {
-    const groupName = _.first(_.keys(_.omit(test, 'disable')));
-    return (test.disable === true)
-      ? describe.skip(groupName, () => test[groupName].map(tCase => generateTest(tCase, testcase)))
-      : describe(groupName, () => test[groupName].map(tCase => generateTest(tCase, testcase)));
-  } else {
-    if (!focus || test.focus) {
-      let expressions = Array.isArray(test.expression) ? test.expression : [test.expression];
-      expressions.forEach((expression) => generateCase(expression, test, testcase));
-  }
-    }
+const generateGroup = (group, testResource) => {
+  const groupName = _.first(_.keys(_.omit(group, 'disable')));
+  return (group.disable === true)
+    ? describe.skip(groupName, () => group[groupName].map(test => generateTest(test, testResource)))
+    : describe(groupName, () => group[groupName].map(test => generateTest(test, testResource)));
 };
 
 
 const generateSuite = (fileName, testcase) => {
   if((focus && focusFile.test(fileName)) || !focus) {
-    return describe(fileName, () => testcase.tests.forEach(test => generateTest(test, testcase)));
+    return describe(fileName, () => testcase.tests.forEach(test => {
+      if (!focus || test.focus) {
+        const testResource = testcase.subject;
+        (_.keys(test).some(key => key.startsWith('group')))
+          ? generateGroup(test, testResource)
+          : generateTest(test, testResource);
+      }
+    }));
   }
 };
 
