@@ -18,18 +18,21 @@ if (process.argv.length < 3) {
 
   let path =  process.argv[2];
   let file = process.argv[3]
+  let context = process.argv[4]; // context data (key/value pairs)
+  if (context)
+    context = JSON.parse(context);
 
   if(file) {
     let resource = JSON.parse(fs.readFileSync(file));
-    let res = fp.evaluate(resource, path);
+    let res = fp.evaluate(resource, path, context);
     console.log('fhirpath(' + path + ') =>');
     console.log(JSON.stringify(res, null, " "));
-    
+
   } else {
     let res = fp.parse(path);
     console.log('AST for fhirpath(' + path + ') =>');
     console.log(yaml.dump(res));
   }
-  
+
 }
 
