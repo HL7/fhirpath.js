@@ -504,7 +504,7 @@ var evaluate = function(resource, path, context) {
  * @param path the FHIRPath expression to be parsed.
  * @param {object} context - a hash of variable name/value pairs.
  */
-var compile = function(path) {
+var compile = function(path, context) {
   const node = parse(path);
   return function(resource) {
     return applyParsedPath(resource, node, context);
