@@ -51,6 +51,8 @@ fhirpath 'Patient.name.given' pt.json
 
 Environment variables can be passed as a third argument as a string of JSON.
 
+If given just the FHIRPath expression, the utility will print the parsed tree:
+
 ```sh
 fhirpath 'Patient.name.given'
 
