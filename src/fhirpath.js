@@ -136,7 +136,8 @@ engine.TermExpression = function(ctx, parentData, node) {
 engine.ExternalConstantTerm = function(ctx, parentData, node) {
   var extConstant = node.children[0];
   var identifier = extConstant.children[0];
-  var value = ctx.vars[identifier.text];
+  var varName = engine.Identifier(ctx, parentData, identifier)[0];
+  var value = ctx.vars[varName];
   return value === undefined ? [] : [value] ;
 };
 
@@ -479,8 +480,8 @@ function applyParsedPath(resource, parsedPath, context) {
   // need to put user-provided variable data in a sub-object, ctx.vars.
   // Set up default standard variables, and allow override from the variables.
   // However, we'll keep our own copy of dataRoot for internal processing.
-  let ctx = {dataRoot, vars: Object.assign({context: dataRoot}, context)};
-  console.log(ctx);
+  let vars = {context: resource, ucum: 'http://unitsofmeasure.org'};
+  let ctx = {dataRoot, vars: Object.assign(vars, context)};
   return engine.doEval(ctx, dataRoot, parsedPath.children[0]);
 }
 

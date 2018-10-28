@@ -23,24 +23,30 @@ const resources = {};
 const files = items.filter(fileName => endWith(fileName, '.yaml'))
   .map(fileName =>({ fileName, data: yaml.safeLoad(fs.readFileSync(__dirname + '/cases/' + fileName, 'utf8')) }));
 
-
 const calcExpression = (expression, test, testcase) => {
+  let context = null;
   if (_.has(test, 'inputfile')) {
     if(_.has(resources, test.inputfile)) {
-      return  fhirpath.evaluate(resources[test.inputfile], expression);
+      context = resources[test.inputfile];
     } else {
       const filePath = __dirname + /resources/ + test.inputfile;
       if (fs.existsSync(filePath)) {
         const subjFromFile = JSON.parse(fs.readFileSync(filePath));
         resources[test.inputfile] = subjFromFile;
-        return fhirpath.evaluate(subjFromFile, expression);
+        context = subjFromFile;
       } else {
-        throw new Error("Resource file doesn't exists");
+        throw new Error("Resource file doesn't exist");
       }
     }
   } else {
-    return fhirpath.evaluate(testcase.subject, expression);
+    context = testcase.subject;
   }
+  let variables = {resource: context};
+  if (test.context)
+    variables.context = fhirpath.evaluate(context, test.context)[0];
+  if (test.variables)
+    Object.assign(variables, test.variables);
+  return fhirpath.evaluate(context, expression, variables);
 };
 
 const generateCase = (expression, test, testcase) => {
