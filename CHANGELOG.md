@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.9.0] - 2018-10-27
+### Added
+ - Support for environment variables
+
 ## [0.8.2] - 2018-10-24
 ### Fixed
  - Issues with decimals and the ~ operator.
