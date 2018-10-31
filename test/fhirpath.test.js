@@ -23,24 +23,27 @@ const resources = {};
 const files = items.filter(fileName => endWith(fileName, '.yaml'))
   .map(fileName =>({ fileName, data: yaml.safeLoad(fs.readFileSync(__dirname + '/cases/' + fileName, 'utf8')) }));
 
-
 const calcExpression = (expression, test, testResource) => {
   if (_.has(test, 'inputfile')) {
     if(_.has(resources, test.inputfile)) {
-      return fhirpath.evaluate(resources[test.inputfile], expression);
+      testResource = resources[test.inputfile];
     } else {
       const filePath = __dirname + /resources/ + test.inputfile;
       if (fs.existsSync(filePath)) {
         const subjFromFile = JSON.parse(fs.readFileSync(filePath));
         resources[test.inputfile] = subjFromFile;
-        return fhirpath.evaluate(subjFromFile, expression);
+        testResource = subjFromFile;
       } else {
-        throw new Error("Resource file doesn't exists");
+        throw new Error("Resource file doesn't exist");
       }
     }
-  } else {
-    return fhirpath.evaluate(testResource, expression);
   }
+  let variables = {resource: testResource};
+  if (test.context)
+    variables.context = fhirpath.evaluate(testResource, test.context)[0];
+  if (test.variables)
+    Object.assign(variables, test.variables);
+  return fhirpath.evaluate(testResource, expression, variables);
 };
 
 const generateTest = (test, testResource) => {
@@ -86,7 +89,8 @@ const generateTest = (test, testResource) => {
 
 const generateGroup = (group, testResource) => {
   const groupName = _.first(_.keys(_.omit(group, 'disable')));
-  const getTestGroupData = () => group[groupName].map(test => addType(test)).map(test => generateTest(test, testResource));
+  const getTestGroupData = () => group[groupName].map(test => addType(test)).map(
+    test => isGroup(test) ? generateGroup(test, testResource) : generateTest(test, testResource));
   switch (group.type) {
   case 'skipped':
     return describe.skip(groupName, () => getTestGroupData());
@@ -107,12 +111,16 @@ const addType = (entity) => {
   return {...entity, type: 'regular'};
 };
 
+// Tests whether the given test is a group.
+function isGroup(test) {
+  return (_.keys(test).some(key => key.startsWith('group')));
+}
 
 const generateSuite = (fileName, testcase) => {
   if((focus && focusFile.test(fileName)) || !focus) {
     return describe(fileName, () => testcase.tests.map(item => addType(item)).forEach(test => {
       const testResource = testcase.subject;
-      (_.keys(test).some(key => key.startsWith('group')))
+        isGroup(test)
         ? generateGroup(test, testResource)
         : generateTest(test, testResource);
     }));

@@ -18,12 +18,18 @@ npm install –save fhirpath
 
 ```js
 
+// Evaluating FHIRPath
+// API: evaluate(resourceObject, fhirPathExpression, environment)
 const fhirpath = require('fhirpath');
-fhirpath.evaluate('{"resourceType": "Patient", ...}', 'Patient.name.given');
+fhirpath.evaluate({"resourceType": "Patient", ...}, 'Patient.name.given');
 
-// precompile fhirpath
+// Environment variables can be passed in as third argument as a hash of
+// name/value pairs:
+fhirpath.evaluate({}, '%a - 1', {a: 5});
+
+// Precompiling fhirpath - result can be reused against multiple resources
 const path = fhirpath.compile('Patient.name.given');
-var res2 = path('{"resourceType": "Patient", ...}');
+var res2 = path({"resourceType": "Patient", ...});
 
 ```
 
@@ -42,17 +48,26 @@ fhirpath 'Patient.name.given' pt.json
 >  "Donald"
 > ]
 ```
+
+Environment variables can be passed as a third argument as a string of JSON.
+
+If given just the FHIRPath expression, the utility will print the parsed tree:
+
+```sh
 fhirpath 'Patient.name.given'
 
 > ... will print fhirpath ast in yaml
-
+```
 
 ## Implementation Status
 
 We are currently implementing version 1.0 (a.k.a STU1) of
 [FHIRPath](http://hl7.org/fhirpath/).
 
+The core parser was generated from the FHIRPath ANTLR grammar.
+
 Completed sections:
+- 3 (Path selection) - except that "is" and "as" are not supported yet
 - 5.1 (Existence)
 - 5.2 (Filtering and Projection) "ofType" - basic support for primitives
 - 5.3 (Subsetting)
@@ -61,13 +76,20 @@ Completed sections:
 - 5.7 (Tree Navigation)
 - 5.8 (Utility Functions)
 - 6.1 (Equality)
-- 6.2 (Comparisons)
 - 6.4 (Collections)
 - 6.5 (Boolean logic)
 - 6.6 (Math)
+- 6.8 (Operator Precedence) - handled by ANTLR parser
+- 7   (Lexical Elements) - handled by ANTLR parser
+- 8   (Environment Variables)
 
 Partially completed sections:
-- 6.2 (Comparison) - type checking is not completely performed
+- 6.2 (Comparison) - type checking is not completely performed, and dates are
+  treated as strings (for now).
+
+We are deferring handling information about FHIR resources, as much as
+possible.  This affects implementation of the following sections:
+- 6.3 (Types) - deferred
 
 Deviations:
 - The library compares dateTime strings as strings, because it does not know

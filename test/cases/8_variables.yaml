@@ -1,0 +1,30 @@
+tests:
+  - 'group: Environment variables':
+    - 'group: Standard variables':
+      - desc: '%resource (FHIR extension)'
+        expression: '%resource.n1'
+        result: [1]
+      - desc: '%context'
+        expression: '%context.n1'
+        result: [1]
+      - desc: '%context'
+        context:  'g1'
+        expression: '%context.n1'
+        result: [2]
+      - desc: '%ucum'
+        expression: '%ucum'
+        result: ['http://unitsofmeasure.org']
+    - expression: '%a - 1'
+      variables:
+        a: 5
+      result: [4]
+    - desc: 'Escaped variables'
+      expression: '%"a.b() - 1" - 2'
+      variables:
+        "a.b() - 1": 5
+      result: [3]
+
+subject:
+  n1: 1
+  g1:
+    n1: 2

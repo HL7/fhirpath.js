@@ -47,7 +47,7 @@ let logic  = require("./logic");
 // * fn: handler
 // * arity: is index map with type signature
 //   if type is in array (like [Boolean]) - this means
-//   function accepts value of this type or empty value {} 
+//   function accepts value of this type or empty value {}
 // * nullable - means propagate empty result, i.e. instead
 //   calling function if one of params is  empty return empty
 
@@ -131,6 +131,14 @@ engine.InvocationExpression = function(ctx, parentData, node) {
 
 engine.TermExpression = function(ctx, parentData, node) {
   return engine.doEval(ctx,parentData, node.children[0]);
+};
+
+engine.ExternalConstantTerm = function(ctx, parentData, node) {
+  var extConstant = node.children[0];
+  var identifier = extConstant.children[0];
+  var varName = engine.Identifier(ctx, parentData, identifier)[0];
+  var value = ctx.vars[varName];
+  return value === undefined ? [] : [value] ;
 };
 
 engine.LiteralTerm = function(ctx, parentData, node) {
@@ -415,7 +423,7 @@ engine.ParenthesizedTerm = function(ctx, parentData, node) {
 };
 
 
-engine.evalTable = {
+engine.evalTable = { // not every evaluator is listed if they are defined on engine
   BooleanLiteral: engine.BooleanLiteral,
   EqualityExpression: engine.OpExpression,
   FunctionInvocation: engine.FunctionInvocation,
@@ -446,7 +454,7 @@ engine.evalTable = {
 
 
 engine.doEval = function(ctx, parentData, node) {
-  const evaluator = engine.evalTable[node.type];
+  const evaluator = engine.evalTable[node.type] || engine[node.type];
   if(evaluator){
     return evaluator.call(engine, ctx, parentData, node);
   } else {
@@ -462,19 +470,31 @@ var parse = function(path) {
 /**
  *  Applies the given parsed FHIRPath expression to the given resource,
  *  returning the result of doEval.
+ * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
+ * @param {string} parsedPath - fhirpath expression, sample 'Patient.name.given'
+ * @param {object} context - a hash of variable name/value pairs.
  */
-function applyParsedPath(resource, parsedPath) {
+function applyParsedPath(resource, parsedPath, context) {
   let dataRoot = util.arraify(resource);
-  return engine.doEval({dataRoot: dataRoot}, dataRoot, parsedPath.children[0]);
+  // doEval takes a "ctx" object, and we store things in that as we parse, so we
+  // need to put user-provided variable data in a sub-object, ctx.vars.
+  // Set up default standard variables, and allow override from the variables.
+  // However, we'll keep our own copy of dataRoot for internal processing.
+  let vars = {context: resource, ucum: 'http://unitsofmeasure.org'};
+  let ctx = {dataRoot, vars: Object.assign(vars, context)};
+  return engine.doEval(ctx, dataRoot, parsedPath.children[0]);
 }
 
 /**
+ *  Evaluates the "path" FHIRPath expression on the given resource, using data
+ *  from "context" for variables mentioned in the "path" expression.
  * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
  * @param {string} path - fhirpath expression, sample 'Patient.name.given'
+ * @param {object} context - a hash of variable name/value pairs.
  */
-var evaluate = function(resource, path) {
+var evaluate = function(resource, path, context) {
   const node = parser.parse(path);
-  return applyParsedPath(resource, node);
+  return applyParsedPath(resource, node, context);
 };
 
 /**
@@ -483,11 +503,12 @@ var evaluate = function(resource, path) {
  *  of this function over "evaluate" is that if you have multiple resources,
  *  the given FHIRPath expression will only be parsed once.
  * @param path the FHIRPath expression to be parsed.
+ * @param {object} context - a hash of variable name/value pairs.
  */
-var compile = function(path) {
+var compile = function(path, context) {
   const node = parse(path);
   return function(resource) {
-    return applyParsedPath(resource, node);
+    return applyParsedPath(resource, node, context);
   };
 };
 
