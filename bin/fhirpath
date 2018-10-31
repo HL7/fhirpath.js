@@ -10,9 +10,17 @@ const yaml = require('js-yaml');
 
 if (process.argv.length < 3) {
 
-  console.log("path and file parameters are required");
-  console.log("AST:  fhirpath 'Patient.name.given'");
-  console.log("EVAL:  fhirpath 'Patient.name.given' path/to/resource.json");
+  console.log("At least a path parameter is required.");
+  console.log("Usage:");
+  console.log("  Evaluate:   fhirpath fhirpath-expression resource-json-or-file-path [context]");
+  console.log("    Example:  fhirpath 'Patient.name.given' path/to/resource.json");
+  console.log("    Note that the second argument can now be a JSON string for an object");
+  console.log("      representing the resource instead of a file pathname for a file");
+  console.log("      containing that data.");
+  console.log("    The third argument is an optional JSON string for a hash of variable");
+  console.log("      name/value pairs that should be available in the context for the FHIRPath");
+  console.log("      expression.");
+  console.log("  Display parsed tree:  fhirpath 'Patient.name.given'");
 
 } else {
 
@@ -23,7 +31,10 @@ if (process.argv.length < 3) {
     context = JSON.parse(context);
 
   if(file) {
-    let resource = JSON.parse(fs.readFileSync(file));
+    // Check whether the "file" is actually a JSON string representing the
+    // resource.
+    let resourceJSON = (file[0] === '{') ? file : fs.readFileSync(file);
+    let resource = JSON.parse(resourceJSON);
     let res = fp.evaluate(resource, path, context);
     console.log('fhirpath(' + path + ') =>');
     console.log(JSON.stringify(res, null, " "));
