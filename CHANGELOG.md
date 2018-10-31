@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.10.0] - TBD - will probably wait until there is something more
+### Added
+ - bin/fhirpath can now take a resource as a JSON string instead of a filename
+   for the resource.
+
 ## [0.9.0] - 2018-10-27
 ### Added
  - Support for environment variables
