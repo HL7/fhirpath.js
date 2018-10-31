@@ -49,6 +49,10 @@ fhirpath 'Patient.name.given' pt.json
 > ]
 ```
 
+Instead of passing a filename containing the resource, the string of JSON
+representing the resource can be passed directly as the second argument (which
+is useful for testing and experimenting).
+
 Environment variables can be passed as a third argument as a string of JSON.
 
 If given just the FHIRPath expression, the utility will print the parsed tree:
