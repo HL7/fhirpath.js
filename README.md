@@ -8,19 +8,29 @@
 Try it out on the [demo page](https://lhncbc.github.io/fhirpath.js/).
 
 
-## Usage
 
-Installation:
+## Installation:
+
+### Server-side (Node.js)
 
 ```sh
 npm install –save fhirpath
 ```
 
 ```js
+const fhirpath = require('fhirpath');
+
+### Web-browser:
+
+Download the zip file from the [releases
+page](https://github.com/lhncbc/fhirpath.js/releases).  It contains a JavaScript
+file, fhirpath.min.js, which defines a global "fhirpath" variable, which you can
+then use as shown below.
+
+## Usage
 
 // Evaluating FHIRPath
 // API: evaluate(resourceObject, fhirPathExpression, environment)
-const fhirpath = require('fhirpath');
 fhirpath.evaluate({"resourceType": "Patient", ...}, 'Patient.name.given');
 
 // Environment variables can be passed in as third argument as a hash of
