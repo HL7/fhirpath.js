@@ -19,6 +19,7 @@ npm install –save fhirpath
 
 ```js
 const fhirpath = require('fhirpath');
+```
 
 ### Web-browser:
 
@@ -28,7 +29,7 @@ file, fhirpath.min.js, which defines a global "fhirpath" variable, which you can
 then use as shown below.
 
 ## Usage
-
+```
 // Evaluating FHIRPath
 // API: evaluate(resourceObject, fhirPathExpression, environment)
 fhirpath.evaluate({"resourceType": "Patient", ...}, 'Patient.name.given');
