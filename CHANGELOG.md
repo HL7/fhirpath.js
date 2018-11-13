@@ -3,6 +3,12 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.9.2] - 2018-11-13
+### Fixed
+ - Removed the postinstall script from package.json.  It was added for
+   development, but is also run when this package is installed by another, and
+   was causing the installation to error out.
+
 ## [0.9.1] - 2018-11-09
 ### Fixed
  - The browser-ready build file (available on the "releases" tab of the GitHub
