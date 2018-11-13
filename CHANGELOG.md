@@ -3,6 +3,12 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.9.1] - 2018-11-09
+### Fixed
+ - The browser-ready build file (available on the "releases" tab of the GitHub
+   repository) now exposes a "fhirpath" global variable, whereas previously it
+   was trying to put that on a LForms object.
+
 ## [0.9.0] - 2018-10-27
 ### Added
  - Support for environment variables
