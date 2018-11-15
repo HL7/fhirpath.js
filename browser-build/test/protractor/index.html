@@ -1,0 +1,24 @@
+<html>
+<head>
+  <title>Test page for the browser build</title>
+</head>
+<body>
+<textarea id="expression" onkeyup="evaluateFP()"></textarea>
+<textarea id="resource" onkeyup="evaluateFP()"></textarea>
+<textarea id="result"></textarea>
+<script src="/fhirpath.min.js"></script>
+<script>
+function evaluateFP() {
+  var expr = document.getElementById('expression').value;
+  var resource = document.getElementById('resource').value;
+  console.log("expr="+expr);
+  console.log(resource);
+  if (expr && resource) {
+    resource = JSON.parse(resource);
+    document.getElementById('result').value =
+      JSON.stringify(fhirpath.evaluate(resource, expr));
+  }
+}
+</script>
+</body>
+</html>

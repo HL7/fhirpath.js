@@ -3,10 +3,22 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [0.10.0] - TBD - will probably wait until there is something more
+## [0.10.0] - 2018-11-15
 ### Added
  - bin/fhirpath can now take a resource as a JSON string instead of a filename
    for the resource.
+
+## [0.9.2] - 2018-11-13
+### Fixed
+ - Removed the postinstall script from package.json.  It was added for
+   development, but is also run when this package is installed by another, and
+   was causing the installation to error out.
+
+## [0.9.1] - 2018-11-09
+### Fixed
+ - The browser-ready build file (available on the "releases" tab of the GitHub
+   repository) now exposes a "fhirpath" global variable, whereas previously it
+   was trying to put that on a LForms object.
 
 ## [0.9.0] - 2018-10-27
 ### Added
