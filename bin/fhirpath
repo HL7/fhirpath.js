@@ -3,47 +3,41 @@
 const fp = require('../src/fhirpath');
 const fs = require('fs');
 const yaml = require('js-yaml');
+const options = require('commander');
+options.description('Parses and/or runs a FHIRPath expression.  If neither --resourceFile nor --resourceJSON is provided, the parse tree of the FHIRPath expression will be output.');
+options.option('-e, --expression <expr>', 'FHIRPath expression');
+options.option('-f, --resourceFile <path name>', 'A file containing the JSON resource.');
+options.option('-r, --resourceJSON <JSON>', 'JSON resource.');
+options.option('-v, --variables <JSON>', 'JSON hash of variables.');
+options.parse(process.argv);
 
 // this cli util is part of public interface of fhirpath
 // it can be extended with understading urls and files
 // TODO: introduce subcommands to inspect, eval fhirpath etc
 
-if (process.argv.length < 3) {
-
-  console.log("At least a path parameter is required.");
-  console.log("Usage:");
-  console.log("  Evaluate:   fhirpath fhirpath-expression resource-json-or-file-path [context]");
-  console.log("    Example:  fhirpath 'Patient.name.given' path/to/resource.json");
-  console.log("    Note that the second argument can now be a JSON string for an object");
-  console.log("      representing the resource instead of a file pathname for a file");
-  console.log("      containing that data.");
-  console.log("    The third argument is an optional JSON string for a hash of variable");
-  console.log("      name/value pairs that should be available in the context for the FHIRPath");
-  console.log("      expression.");
-  console.log("  Display parsed tree:  fhirpath 'Patient.name.given'");
-
-} else {
-
-  let path =  process.argv[2];
-  let file = process.argv[3]
-  let context = process.argv[4]; // context data (key/value pairs)
-  if (context)
-    context = JSON.parse(context);
-
-  if(file) {
-    // Check whether the "file" is actually a JSON string representing the
-    // resource.
-    let resourceJSON = (file[0] === '{') ? file : fs.readFileSync(file);
-    let resource = JSON.parse(resourceJSON);
-    let res = fp.evaluate(resource, path, context);
-    console.log('fhirpath(' + path + ') =>');
-    console.log(JSON.stringify(res, null, " "));
-
-  } else {
-    let res = fp.parse(path);
-    console.log('AST for fhirpath(' + path + ') =>');
+let expr =  options.expression;
+if (!expr)
+  options.help();
+else {
+  let resourceJSON = options.resourceJSON;
+  if (!resourceJSON) {
+    let resourceFile = options.resourceFile;
+    if (resourceFile)
+      resourceJSON = fs.readFileSync(resourceFile);
+  }
+  if (!resourceJSON) {
+    // Just display the parse tree
+    let res = fp.parse(expr);
+    console.log('Parse tree for fhirpath(' + expr + ') =>');
     console.log(yaml.dump(res));
   }
-
+  else {
+    let context = options.variables;
+    if (context)
+      context = JSON.parse(context);
+    let resource = JSON.parse(resourceJSON);
+    let res = fp.evaluate(resource, expr, context);
+    console.log('fhirpath(' + expr + ') =>');
+    console.log(JSON.stringify(res, null, " "));
+  }
 }
-

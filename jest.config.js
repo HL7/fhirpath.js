@@ -2,6 +2,7 @@
 // https://jestjs.io/docs/en/configuration.html
 
 module.exports = {
+  // testRegex: 'bin_',
   testEnvironment: "node",
   testPathIgnorePatterns: ["/protractor/"]
 };
