@@ -45,14 +45,14 @@ var res2 = path({"resourceType": "Patient", ...});
 ```
 
 
-## fhirpath util
+## fhirpath CLI 
+
+bin/fhirpath is a command-line tool for experimenting with FHIRPath.
 
 ```sh
-npm install -g fhirpath
-
 curl http://www.hl7.org/fhir/patient-example-a.json  > pt.json
 
-fhirpath 'Patient.name.given' pt.json
+fhirpath --expression 'Patient.name.given' --resourceFile pt.json
 
 > fhirpath(Patient.name.family) =>
 > [
@@ -61,15 +61,33 @@ fhirpath 'Patient.name.given' pt.json
 ```
 
 Instead of passing a filename containing the resource, the string of JSON
-representing the resource can be passed directly as the second argument (which
-is useful for testing and experimenting).
+representing the resource can be passed directly via --resourceJSON (useful if
+the JSON is brief).
 
-Environment variables can be passed as a third argument as a string of JSON.
+```sh
+fhirpath --expression 'a.b + 2' --resourceJSON '{"a": {"b": 1}}'
+
+> fhirpath(a.b + 2) =>
+> [
+>  3
+> ]
+```
+
+Environment variables can be passed via --variables followed by the JSON for an object with variable names as keys.
+
+```sh
+fhirpath --expression '%v + 2' --resourceJSON '{}' --variables '{"v": 5}'
+
+> fhirpath(%v + 2) =>
+> [
+>  7
+> ]
+```
 
 If given just the FHIRPath expression, the utility will print the parsed tree:
 
 ```sh
-fhirpath 'Patient.name.given'
+fhirpath --expression 'Patient.name.given'
 
 > ... will print fhirpath ast in yaml
 ```
