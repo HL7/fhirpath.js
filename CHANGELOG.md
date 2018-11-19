@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.10.0] - 2018-11-15
+### Added
+ - bin/fhirpath can now take a resource as a JSON string instead of a filename
+   for the resource.
+
 ## [0.9.2] - 2018-11-13
 ### Fixed
  - Removed the postinstall script from package.json.  It was added for

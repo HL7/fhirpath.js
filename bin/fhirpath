@@ -3,36 +3,41 @@
 const fp = require('../src/fhirpath');
 const fs = require('fs');
 const yaml = require('js-yaml');
+const options = require('commander');
+options.description('Parses and/or runs a FHIRPath expression.  If neither --resourceFile nor --resourceJSON is provided, the parse tree of the FHIRPath expression will be output.');
+options.option('-e, --expression <expr>', 'FHIRPath expression');
+options.option('-f, --resourceFile <path name>', 'A file containing the JSON resource.');
+options.option('-r, --resourceJSON <JSON>', 'JSON resource.');
+options.option('-v, --variables <JSON>', 'JSON hash of variables.');
+options.parse(process.argv);
 
 // this cli util is part of public interface of fhirpath
 // it can be extended with understading urls and files
 // TODO: introduce subcommands to inspect, eval fhirpath etc
 
-if (process.argv.length < 3) {
-
-  console.log("path and file parameters are required");
-  console.log("AST:  fhirpath 'Patient.name.given'");
-  console.log("EVAL:  fhirpath 'Patient.name.given' path/to/resource.json");
-
-} else {
-
-  let path =  process.argv[2];
-  let file = process.argv[3]
-  let context = process.argv[4]; // context data (key/value pairs)
-  if (context)
-    context = JSON.parse(context);
-
-  if(file) {
-    let resource = JSON.parse(fs.readFileSync(file));
-    let res = fp.evaluate(resource, path, context);
-    console.log('fhirpath(' + path + ') =>');
-    console.log(JSON.stringify(res, null, " "));
-
-  } else {
-    let res = fp.parse(path);
-    console.log('AST for fhirpath(' + path + ') =>');
+let expr =  options.expression;
+if (!expr)
+  options.help();
+else {
+  let resourceJSON = options.resourceJSON;
+  if (!resourceJSON) {
+    let resourceFile = options.resourceFile;
+    if (resourceFile)
+      resourceJSON = fs.readFileSync(resourceFile);
+  }
+  if (!resourceJSON) {
+    // Just display the parse tree
+    let res = fp.parse(expr);
+    console.log('Parse tree for fhirpath(' + expr + ') =>');
     console.log(yaml.dump(res));
   }
-
+  else {
+    let context = options.variables;
+    if (context)
+      context = JSON.parse(context);
+    let resource = JSON.parse(resourceJSON);
+    let res = fp.evaluate(resource, expr, context);
+    console.log('fhirpath(' + expr + ') =>');
+    console.log(JSON.stringify(res, null, " "));
+  }
 }
-
