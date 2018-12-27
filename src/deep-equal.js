@@ -122,7 +122,7 @@ var deepEqual = function (actual, expected, opts) {
   else {
    if (!opts.fuzzy) {
     if (actual instanceof FP_Type) {
-      return actual.equals(expected)[0];
+      return actual.equals(expected); // May return undefined
     }
     else if (expected instanceof FP_Type)
       return false;

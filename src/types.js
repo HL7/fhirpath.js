@@ -1,19 +1,32 @@
 let timeFormat = '[0-9][0-9](\\:[0-9][0-9](\\:[0-9][0-9](\\.[0-9]+)?)?)?(Z|(\\+|-)[0-9][0-9]\\:[0-9][0-9])?'
-let timeRE = new RegExp('^'+timeFormat+'$');
+let timeRE = new RegExp('^T?'+timeFormat+'$');
 let dateTimeRE = new RegExp('^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T'+timeFormat+')?)?)?Z?$')
 
 // testEnvironment: node in jest config
 // --runInBand
 class FP_Type {
+  /**
+   *  Tests whether this object is equal to another.  Returns either true,
+   *  false, or undefined (where in the FHIRPath specification empty would be
+   *  returned).
+   */
   equals(otherObj) {
-    return [false];
+    return false;
+  }
+
+  toString() {
+    return this.asStr ? this.asStr : super.toString();
+  }
+
+  toJSON() {
+    return this.toString();
   }
 }
 
 class FP_DateTime extends FP_Type {
   constructor(dateStr) {
     super();
-    this.dateStr = dateStr
+    this.asString = dateStr
     this.dateObj = new Date(dateStr);
     var dateMatchData = dateStr.match(dateTimeRE);
     this.maxPrecision = dateMatchData[6] ? 'ms' :
@@ -22,16 +35,12 @@ class FP_DateTime extends FP_Type {
       dateMatchData[1] ? 'month' : 'y'
   }
 
-  toString() {
-    return this.dateStr;
-  }
-
   equals(otherDateTime) {
-    var rtn = [];
+    var rtn;
     if (!(otherDateTime instanceof FP_DateTime))
-      rtn.push(false);
+      rtn = false;
     else if (this.maxPrecision == otherDateTime.maxPrecision)
-      rtn.push(this.dateObj.getTime() == otherDateTime.dateObj.getTime());
+      rtn = this.dateObj.getTime() == otherDateTime.dateObj.getTime();
     return rtn;
   }
 }
@@ -39,14 +48,24 @@ class FP_DateTime extends FP_Type {
 class FP_Time extends FP_Type {
   constructor(timeStr) {
     super();
-   // TBD set precision
+    if (timeStr[0] == 'T')
+      timeStr = timeStr.slice(1);
+    this.asStr = timeStr;
+    // Create a date object for use in comparing times.  Add a fixed date
+    // part so as not to be influenced by system time & date.
+    this.dateObj = new Date('2010T'+timeStr);
+    var timeMatchData = timeStr.match(timeRE);
+    this.maxPrecision = timeMatchData[3] ? 'ms' :
+      timeMatchData[2] ? 's' : timeMatchData[1] ? 'min' : 'h';
   }
 
   equals(otherTime) {
-    var rtn = [];
+    var rtn;
     if (!(otherTime instanceof FP_Time))
-      rtn.push(false);
-    else
+      rtn = false;
+    else if (this.maxPrecision == otherTime.maxPrecision)
+      rtn = this.dateObj.getTime() == otherTime.dateObj.getTime();
+    return rtn;
   }
 }
 
@@ -71,6 +90,8 @@ function addTypes(resource) {
   else if (typeof resource == "string") {
     if (resource.match(dateTimeRE))
       rtn = new FP_DateTime(resource);
+    else if (resource.match(timeRE))
+      rtn = new FP_Time(resource);
   }
   return rtn;
 }
