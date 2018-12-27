@@ -21,8 +21,10 @@ engine.equal = function(a, b){
 };
 
 engine.unequal = function(a, b){
-  return !equality(a, b);
+  var eq = equality(a, b);
+  return eq === undefined ? undefined : !eq;
 };
+
 engine.equival = function(a, b){
   return equivalence(a, b);
 };

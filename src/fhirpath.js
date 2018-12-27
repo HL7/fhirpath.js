@@ -43,6 +43,9 @@ let strings   = require("./strings");
 let navigation= require("./navigation");
 let datetime  = require("./datetime");
 let logic  = require("./logic");
+let types = require("./types");
+let FP_DateTime = types.FP_DateTime;
+let FP_Time = types.FP_Time;
 
 // * fn: handler
 // * arity: is index map with type signature
@@ -160,6 +163,16 @@ engine.BooleanLiteral = function(ctx, parentData, node) {
   } else {
     return [false];
   }
+};
+
+engine.DateTimeLiteral = function(ctx, parentData, node) {
+  var dateStr = node.text.slice(1); // Remove the @
+  return [new FP_DateTime(dateStr)];
+};
+
+engine.TimeLiteral = function(ctx, parentData, node) {
+  var timeStr = node.text.slice(1); // Remove the @
+  return [new FP_Time(timeStr)];
 };
 
 engine.NumberLiteral = function(ctx, parentData, node) {
@@ -475,6 +488,7 @@ var parse = function(path) {
  * @param {object} context - a hash of variable name/value pairs.
  */
 function applyParsedPath(resource, parsedPath, context) {
+  resource = types.addTypes(resource);
   let dataRoot = util.arraify(resource);
   // doEval takes a "ctx" object, and we store things in that as we parse, so we
   // need to put user-provided variable data in a sub-object, ctx.vars.

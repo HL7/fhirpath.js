@@ -2,6 +2,8 @@
 // (https://github.com/substack/node-deep-equal), with modifications.
 // For the license for node-deep-equal, see the bottom of this file.
 
+var types = require('./types');
+var FP_Type = types.FP_Type;
 var pSlice = Array.prototype.slice;
 var objectKeys = Object.keys;
 var isArguments = function (object) {
@@ -76,6 +78,7 @@ var deepEqual = function (actual, expected, opts) {
   if (actual === expected) {
     return true;
   }
+  var fpTypedObj;
 
   if (opts.fuzzy) {
     if(isString(actual) && isString(expected)) {
@@ -115,14 +118,23 @@ var deepEqual = function (actual, expected, opts) {
   } else if (!actual || !expected || typeof actual != 'object' && typeof expected != 'object') {
     return opts.strict ? actual === expected : actual == expected;
 
-    // 7.4. For all other Object pairs, including Array objects, equivalence is
-    // determined by having the same number of owned properties (as verified
-    // with Object.prototype.hasOwnProperty.call), the same set of keys
-    // (although not necessarily the same order), equivalent values for every
-    // corresponding key, and an identical 'prototype' property. Note: this
-    // accounts for both named and indexed properties on Arrays.
-  } else {
-    return objEquiv(actual, expected, opts);
+  }
+  else {
+   if (!opts.fuzzy) {
+    if (actual instanceof FP_Type) {
+      return actual.equals(expected)[0];
+    }
+    else if (expected instanceof FP_Type)
+      return false;
+   }
+
+   // 7.4. For all other Object pairs, including Array objects, equivalence is
+   // determined by having the same number of owned properties (as verified
+   // with Object.prototype.hasOwnProperty.call), the same set of keys
+   // (although not necessarily the same order), equivalent values for every
+   // corresponding key, and an identical 'prototype' property. Note: this
+   // accounts for both named and indexed properties on Arrays.
+   return objEquiv(actual, expected, opts);
   }
 };
 
@@ -162,6 +174,12 @@ function objEquiv(a, b, opts) {
   }
   //equivalent values for every corresponding key, and
   //~~~possibly expensive deep test
+  // If the length of the array is one, return the value of deepEqual (which can
+  // be "undefined".
+  if (ka.length === 1) {
+    key = ka[0];
+    return deepEqual(a[key], b[key], opts);
+  }
   for (i = ka.length - 1; i >= 0; i--) {
     key = ka[i];
     if (!deepEqual(a[key], b[key], opts)) return false;

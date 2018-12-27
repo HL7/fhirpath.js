@@ -2,6 +2,7 @@ const fhirpath = require('../src/fhirpath');
 const yaml = require('js-yaml');
 const fs   = require('fs');
 const _    = require('lodash');
+const types = require('../src/types');
 
 // Get document, or throw exception on error
 // const testcase = yaml.safeLoad(fs.readFileSync( __dirname + '/cases/simple.yaml', 'utf8'));
@@ -15,8 +16,9 @@ const endWith = (s, postfix) => {
   return (idx > 0 && idx === s.length - postfix.length);
 };
 
-const focus = true;
+const focus = false;
 const focusFile = /.*.yaml/;
+//const focusFile = /6.1.*.yaml/;
 
 const resources = {};
 
@@ -56,7 +58,7 @@ const generateTest = (test, testResource) => {
     }
     if (!test.error && test.expression) {
       const result = calcExpression(expression, test, testResource);
-      expect(result).toEqual(test.result);
+      expect(result).toEqual(types.addTypes(test.result));
     }
     else if (test.error) {
       let exception = null;

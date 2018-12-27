@@ -146,6 +146,34 @@ tests:
 # For dateTime and time comparisons with partial values (e.g. dateTimes
 # specified only to the day, or times specified only to the hour), the
 # comparison returns empty ({ }), not false.
+  - desc:  'DateTime literal compared with DateTime'
+    expression: '@2018 = @2018'
+    result: [true]
+
+  - desc:  'DateTime literal compared with different DateTime'
+    expression: '@2018 = @2017'
+    result: [false]
+
+  - desc: 'DateTime literal compared with different precision DateTime'
+    expression: '@2018 = @2018-02'
+    result: []
+
+  - desc: 'DateTime literal compared with same DateTime in resource'
+    expression: '@2018-02 = date1'
+    result: [true]
+
+  - desc: 'DateTime literal compared with different DateTime in resource'
+    expression: '@2018-01 = date1'
+    result: [false]
+
+  - desc: 'DateTime literal compared with different precision DateTime in resource'
+    expression: '@2018-02-02 = date1'
+    result: []
+
+  - desc: 'Time literal compared with same time in different timezone'
+    expression: '@T10:04:23-04:00 = @T18:04:23+04:00'
+    result: [true]
+    focus: true
 
   - 'group: 6.1.2. ~ (Equivalent)':
 
@@ -332,6 +360,7 @@ tests:
 
 subject:
   resourceType: Ops
+  date1: 2018-02
   str1: string1
   str2: string2
   int1: 1

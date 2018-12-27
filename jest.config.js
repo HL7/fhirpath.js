@@ -2,7 +2,7 @@
 // https://jestjs.io/docs/en/configuration.html
 
 module.exports = {
-  // testRegex: 'bin_',
+testRegex: 'test/fhirpath.test.js',
   testEnvironment: "node",
   testPathIgnorePatterns: ["/protractor/"]
 };
