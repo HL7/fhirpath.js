@@ -1,6 +1,8 @@
-let timeFormat = '[0-9][0-9](\\:[0-9][0-9](\\:[0-9][0-9](\\.[0-9]+)?)?)?(Z|(\\+|-)[0-9][0-9]\\:[0-9][0-9])?'
+let timeFormat =
+  '[0-9][0-9](\\:[0-9][0-9](\\:[0-9][0-9](\\.[0-9]+)?)?)?(Z|(\\+|-)[0-9][0-9]\\:[0-9][0-9])?';
 let timeRE = new RegExp('^T?'+timeFormat+'$');
-let dateTimeRE = new RegExp('^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T'+timeFormat+')?)?)?Z?$')
+let dateTimeRE = new RegExp(
+  '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T'+timeFormat+')?)?)?Z?$');
 
 // testEnvironment: node in jest config
 // --runInBand
@@ -10,7 +12,7 @@ class FP_Type {
    *  false, or undefined (where in the FHIRPath specification empty would be
    *  returned).
    */
-  equals(otherObj) {
+  equals(/* otherObj */) {
     return false;
   }
 
@@ -26,13 +28,13 @@ class FP_Type {
 class FP_DateTime extends FP_Type {
   constructor(dateStr) {
     super();
-    this.asString = dateStr
+    this.asString = dateStr;
     this.dateObj = new Date(dateStr);
     var dateMatchData = dateStr.match(dateTimeRE);
     this.maxPrecision = dateMatchData[6] ? 'ms' :
       dateMatchData[5] ? 's' : dateMatchData[4] ? 'min' :
-      dateMatchData[3] ? 'h' : dateMatchData[2] ? 'd' :
-      dateMatchData[1] ? 'month' : 'y'
+        dateMatchData[3] ? 'h' : dateMatchData[2] ? 'd' :
+          dateMatchData[1] ? 'month' : 'y';
   }
 
   equals(otherDateTime) {
@@ -104,4 +106,4 @@ module.exports = {
   FP_Time: FP_Time,
   timeRE: timeRE,
   dateTimeRE: dateTimeRE
-}
+};

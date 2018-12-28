@@ -7,7 +7,6 @@ var FP_Type = types.FP_Type;
 var FP_DateTime = types.FP_DateTime;
 var FP_Time = types.FP_Time;
 var pSlice = Array.prototype.slice;
-var pSlice = Array.prototype.slice;
 var objectKeys = Object.keys;
 var isArguments = function (object) {
   return Object.prototype.toString.call(object) == '[object Arguments]';
@@ -81,7 +80,6 @@ var deepEqual = function (actual, expected, opts) {
   if (actual === expected) {
     return true;
   }
-  var fpTypedObj;
 
   if (opts.fuzzy) {
     if(isString(actual) && isString(expected)) {
