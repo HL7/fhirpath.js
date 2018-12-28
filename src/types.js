@@ -80,7 +80,7 @@ function addTypes(resource) {
   // Eventually this might take a second optional parameter that would provide type
   // information pulled from a specific version of FHIR.  In the absence of such
   // information we will just guess based on what the strings look like.
-  if (resource instanceof Object) {
+  if (resource instanceof Object && !(resource instanceof FP_Type)) {
     let keys = Object.keys(resource);
     for (let i=0, len=keys.length; i<len; ++i) {
       let key = keys[i];

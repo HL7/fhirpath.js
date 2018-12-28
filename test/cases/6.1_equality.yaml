@@ -3,207 +3,217 @@ tests:
 
   - desc: '6.1 Equality'
 
-  - desc: '6.1.1. = (Equals)'
+  - 'group: 6.1.1. = (Equals)':
 
 # Returns true if the left collection is equal to the right collection:
 # If both operands are collections with a single item:
 # For primitives:
 
-  - desc: '* string: comparison is based on Unicode values'
-  - desc: '** strings equals'
-    expression: "'abc' = 'abc'"
-    result: [true]
+    - desc: '* string: comparison is based on Unicode values'
+    - desc: '** strings equals'
+      expression: "'abc' = 'abc'"
+      result: [true]
 
-  - desc: '** strings equals'
-    expression: "Ops.str1 = Ops.str1"
-    result: [true]
+    - desc: '** strings equals'
+      expression: "Ops.str1 = Ops.str1"
+      result: [true]
 
-  - desc: '** strings not equals'
-    expression: "'abc' = 'abcd'"
-    result: [false]
+    - desc: '** strings not equals'
+      expression: "'abc' = 'abcd'"
+      result: [false]
 
-  - desc: '** strings not equals'
-    expression: "Ops.str1 = Ops.str2"
-    result: [false]
+    - desc: '** strings not equals'
+      expression: "Ops.str1 = Ops.str2"
+      result: [false]
 
-  - desc: '** utf8 strings'
-    expression: "'ɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ ə ɚ ɛ ɜ ɝ ɞ ɟ ɠ' = 'ɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ ə ɚ ɛ ɜ ɝ ɞ ɟ ɠ'"
-    result: [true]
+    - desc: '** utf8 strings'
+      expression: "'ɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ ə ɚ ɛ ɜ ɝ ɞ ɟ ɠ' = 'ɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ ə ɚ ɛ ɜ ɝ ɞ ɟ ɠ'"
+      result: [true]
 
-  - desc: '** utf8 strings'
-    expression: "'ɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ ə ɚ ɛ ɜ ɝ ɞ ɟ ɠ' = 'ə ɚ ɛ ɜ ɝ ɞ ɟ ɠɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ '"
-    result: [false]
+    - desc: '** utf8 strings'
+      expression: "'ɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ ə ɚ ɛ ɜ ɝ ɞ ɟ ɠ' = 'ə ɚ ɛ ɜ ɝ ɞ ɟ ɠɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ '"
+      result: [false]
 
-  - desc: '* integer: values must be exactly equal'
+    - desc: '* integer: values must be exactly equal'
 
-  - desc: '** equal'
-    expression: "1 = 1"
-    result: [true]
+    - desc: '** equal'
+      expression: "1 = 1"
+      result: [true]
 
-  - desc: '** equal'
-    expression: "Ops.int1 = Ops.int1"
-    result: [true]
+    - desc: '** equal'
+      expression: "Ops.int1 = Ops.int1"
+      result: [true]
 
-  - desc: '** not equal'
-    expression: "1 = 2"
-    result: [false]
+    - desc: '** not equal'
+      expression: "1 = 2"
+      result: [false]
 
-  - desc: '** not equal'
-    expression: "Ops.int1 = Ops.int2"
-    result: [false]
+    - desc: '** not equal'
+      expression: "Ops.int1 = Ops.int2"
+      result: [false]
 
-  - desc: '* decimal: values must be equal, trailing zeroes are ignored'
-  - desc: '** decimals equal'
-    expression: "1.01 = 1.01"
-    result: [true]
+    - desc: '* decimal: values must be equal, trailing zeroes are ignored'
+    - desc: '** decimals equal'
+      expression: "1.01 = 1.01"
+      result: [true]
 
-  - desc: '** decimals equal, trailing zeroes are ignored'
-    expression: "0.01 = 00.01"
-    result: [true]
+    - desc: '** decimals equal, trailing zeroes are ignored'
+      expression: "0.01 = 00.01"
+      result: [true]
 
-  - desc: 'decimal not equal'
-    expression: "1.01 = 1.02"
-    result: [false]
+    - desc: 'decimal not equal'
+      expression: "1.01 = 1.02"
+      result: [false]
 
-  - desc: '* boolean: values must be the same'
+    - desc: 'decimal values should not be compared beyond the maximum precision'
+      expression: '0.1 + 0.1 + 0.1 = 0.3'
+      result: [true]
 
-  - desc: '** equal'
-    expression: "true = true"
-    result: [true]
+    - desc: '* boolean: values must be the same'
 
-  - desc: '** not equal'
-    expression: "true = false"
-    result: [false]
+    - desc: '** equal'
+      expression: "true = true"
+      result: [true]
 
-  - desc: '** propagate empty coll'
-    expression: "true = Ops.unexists"
-    result: []
+    - desc: '** not equal'
+      expression: "true = false"
+      result: [false]
 
-  - desc: '* TODO: dateTime: must be exactly the same, respecting the timezone (though +24:00 = +00:00 = Z)'
+    - desc: '** propagate empty coll'
+      expression: "true = Ops.unexists"
+      result: []
 
-# time: must be exactly the same, respecting the timezone (though +24:00 = +00:00 = Z)
+    - desc: '* TODO: dateTime: must be exactly the same, respecting the timezone (though +24:00 = +00:00 = Z)'
 
-# If a time or dateTime has no indication of timezone, the timezone of the
-# evaluating machine is assumed.
+  # time: must be exactly the same, respecting the timezone (though +24:00 = +00:00 = Z)
 
-  - desc: '* For complex types, equality requires all child properties to be equal, recursively.'
+  # If a time or dateTime has no indication of timezone, the timezone of the
+  # evaluating machine is assumed.
 
-  - desc: '** two objects'
-    expression: "Ops.complex = Ops.complexsame"
-    result: [true]
+    - desc: '* For complex types, equality requires all child properties to be equal, recursively.'
 
-  - desc: '** two objects not'
-    expression: "Ops.complex = Ops.complexother"
-    result: [false]
+    - desc: '** two objects'
+      expression: "Ops.complex = Ops.complexsame"
+      result: [true]
 
-  - desc: '** two colls'
-    expression: "Ops.coll = Ops.collsame"
-    result: [true]
+    - desc: '** two objects not'
+      expression: "Ops.complex = Ops.complexother"
+      result: [false]
 
-  - desc: '** two colls not'
-    expression: "Ops.coll = Ops.collother"
-    result: [false]
+    - desc: '** two colls'
+      expression: "Ops.coll = Ops.collsame"
+      result: [true]
 
-  - desc: '** two colls + empty'
-    expression: "Ops.coll = Ops.ups"
-    result: []
+    - desc: '** two colls not'
+      expression: "Ops.coll = Ops.collother"
+      result: [false]
 
-# If both operands are collections with multiple items:
+    - desc: '** two colls + empty'
+      expression: "Ops.coll = Ops.ups"
+      result: []
 
-# Each item must be equal
+  # If both operands are collections with multiple items:
 
-# Comparison is order dependent
+  # Each item must be equal
 
-# Otherwise, equals returns false.
+  # Comparison is order dependent
 
-# Note that this implies that if the collections have a different number of
-# items to compare, the result will be false.
+  # Otherwise, equals returns false.
 
-# Typically, this operator is used with single fixed values as operands. This
-# means that Patient.telecom.system = 'phone' will return false if there is more
-# than one telecom with a use. Typically, you’d want
-# Patient.telecom.where(system = 'phone')
+  # Note that this implies that if the collections have a different number of
+  # items to compare, the result will be false.
 
-  - desc: '** lenght missmatch'
-    expression: "Ops.coll.a = 1"
-    result: [false]
+  # Typically, this operator is used with single fixed values as operands. This
+  # means that Patient.telecom.system = 'phone' will return false if there is more
+  # than one telecom with a use. Typically, you’d want
+  # Patient.telecom.where(system = 'phone')
 
-  - desc: '** lenght match'
-    expression: "Ops.coll.a.first() = 1"
-    result: [true]
+    - desc: '** length mismatch'
+      expression: "Ops.coll.a = 1"
+      result: [false]
 
-# If one or both of the operands is the empty collection, this operation returns
-# an empty collection.
+    - desc: '** length match'
+      expression: "Ops.coll.a.first() = 1"
+      result: [true]
 
-  - desc: '** empty right'
-    expression: "Ops.coll.a.first() = Ops.unexists"
-    result: []
+  # If one or both of the operands is the empty collection, this operation returns
+  # an empty collection.
 
-  - desc: '** empty left'
-    expression: "Ops.unexists = Ops.coll.a.first()"
-    result: []
+    - desc: '** empty right'
+      expression: "Ops.coll.a.first() = Ops.unexists"
+      result: []
 
-# For dateTime and time comparisons with partial values (e.g. dateTimes
-# specified only to the day, or times specified only to the hour), the
-# comparison returns empty ({ }), not false.
-  - desc:  'DateTime literal compared with DateTime'
-    expression: '@2018 = @2018'
-    result: [true]
+    - desc: '** empty left'
+      expression: "Ops.unexists = Ops.coll.a.first()"
+      result: []
 
-  - desc:  'DateTime literal compared with different DateTime'
-    expression: '@2018 = @2017'
-    result: [false]
+  # For dateTime and time comparisons with partial values (e.g. dateTimes
+  # specified only to the day, or times specified only to the hour), the
+  # comparison returns empty ({ }), not false.
+    - desc:  'DateTime literal compared with DateTime'
+      expression: '@2018 = @2018'
+      result: [true]
+      focus: true
 
-  - desc: 'DateTime literal compared with different precision DateTime'
-    expression: '@2018 = @2018-02'
-    result: []
+    - desc:  'DateTime literal compared with different DateTime'
+      expression: '@2018 = @2017'
+      result: [false]
+      focus: true
 
-  - desc: 'DateTime literal compared with same DateTime in resource'
-    expression: '@2018-02 = date1'
-    result: [true]
+    - desc: 'DateTime literal compared with different precision DateTime'
+      expression: '@2018 = @2018-02'
+      result: []
+      focus: true
 
-  - desc: 'DateTime literal compared with different DateTime in resource'
-    expression: '@2018-01 = date1'
-    result: [false]
+    - desc: 'DateTime literal compared with same DateTime in resource'
+      expression: '@2018-02 = date1'
+      result: [true]
+      focus: true
 
-  - desc: 'DateTime literal compared with different precision DateTime in resource'
-    expression: '@2018-02-02 = date1'
-    result: []
+    - desc: 'DateTime literal compared with different DateTime in resource'
+      expression: '@2018-01 = date1'
+      result: [false]
+      focus: true
 
-  - desc: 'Time literal compared with same time in different timezone'
-    expression: '@T10:04:23-04:00 = @T18:04:23+04:00'
-    result: [true]
+    - desc: 'DateTime literal compared with different precision DateTime in resource'
+      expression: '@2018-02-02 = date1'
+      result: []
+      focus: true
 
-  - desc: 'Time literal compared with different time'
-    expression: '@T10:04:23-04:00 = @T18:04:24+04:00'
-    result: [false]
-    focus: true
+    - desc: 'Time literal compared with same time in different timezone'
+      expression: '@T10:04:23-04:00 = @T18:04:23+04:00'
+      result: [true]
+      focus: true
 
-  - desc: 'Time literal, comparing timezone and Z (same time)'
-    expression: '@T10:04:23-04:00 = @T14:04:23Z'
-    result: [true]
-    focus: true
+    - desc: 'Time literal compared with different time'
+      expression: '@T10:04:23-04:00 = @T18:04:24+04:00'
+      result: [false]
+      focus: true
 
-  - desc: 'Time literal, comparing timezone and Z (different time)'
-    expression: '@T10:04:23-04:00 = @T14:04:24Z'
-    result: [false]
-    focus: true
+    - desc: 'Time literal, comparing timezone and Z (same time)'
+      expression: '@T10:04:23-04:00 = @T14:04:23Z'
+      result: [true]
+      focus: true
 
-  - desc: 'Time literal compared with same time in resource'
-    expression: '@T12:34 = time1'
-    result: [true]
-    focus: true
+    - desc: 'Time literal, comparing timezone and Z (different time)'
+      expression: '@T10:04:23-04:00 = @T14:04:24Z'
+      result: [false]
+      focus: true
 
-  - desc: 'Time literal compared with different time in resource'
-    expression: '@T12:34 = time1'
-    result: [true]
-    focus: true
+    - desc: 'Time literal compared with same time in resource'
+      expression: '@T12:34 = time1'
+      result: [true]
+      focus: true
 
-  - desc: 'Time literal compared with different precision time in resource'
-    expression: '@T12:34:56 = time1'
-    result: []
-    focus: true
+    - desc: 'Time literal compared with different time in resource'
+      expression: '@T12:35 = time1'
+      result: [false]
+      focus: true
 
+    - desc: 'Time literal compared with different precision time in resource'
+      expression: '@T12:34:56 = time1'
+      result: []
+      focus: true
 
 
   - 'group: 6.1.2. ~ (Equivalent)':
@@ -265,14 +275,75 @@ tests:
   # precision than the other, comparison is done at the lowest precision.
 
   # boolean: the values must be the same
+  # The above comments, taken from the 1.0 spec, are contradictory.  The version
+  # from the "Normative Ballot 2" says this:
+  #  if the input values have different levels of precision, the comparison
+  #  returns false, not empty ({ }).
 
-    - desc: '* For complex types, equivalence requires all child properties to be equivalent, recursively.'
-      expression: "Ops.complex ~ Ops.complexsimilar"
+    - desc:  'DateTime literal compared with DateTime'
+      expression: '@2018 ~ @2018'
       result: [true]
+      focus: true
 
-    - desc: '* For complex types, equivalence requires all child properties to be equivalent, recursively.'
-      expression: "Ops.complex ~ Ops.complexother"
+    - desc:  'DateTime literal compared with different DateTime'
+      expression: '@2018 ~ @2017'
       result: [false]
+      focus: true
+
+    - desc: 'DateTime literal compared with different precision DateTime'
+      expression: '@2018 ~ @2018-02'
+      result: [false]
+      focus: true
+
+    - desc: 'DateTime literal compared with same DateTime in resource'
+      expression: '@2018-02 ~ date1'
+      result: [true]
+      focus: true
+
+    - desc: 'DateTime literal compared with different DateTime in resource'
+      expression: '@2018-01 ~ date1'
+      result: [false]
+      focus: true
+
+    - desc: 'DateTime literal compared with different precision DateTime in resource'
+      expression: '@2018-02-02 ~ date1'
+      result: [false]
+      focus: true
+
+    - desc: 'Time literal compared with same time in different timezone'
+      expression: '@T10:04:23-04:00 ~ @T18:04:23+04:00'
+      result: [true]
+      focus: true
+
+    - desc: 'Time literal compared with different time'
+      expression: '@T10:04:23-04:00 ~ @T18:04:24+04:00'
+      result: [false]
+      focus: true
+
+    - desc: 'Time literal, comparing timezone and Z (same time)'
+      expression: '@T10:04:23-04:00 ~ @T14:04:23Z'
+      result: [true]
+      focus: true
+
+    - desc: 'Time literal, comparing timezone and Z (different time)'
+      expression: '@T10:04:23-04:00 ~ @T14:04:24Z'
+      result: [false]
+      focus: true
+
+    - desc: 'Time literal compared with same time in resource'
+      expression: '@T12:34 ~ time1'
+      result: [true]
+      focus: true
+
+    - desc: 'Time literal compared with different time in resource'
+      expression: '@T12:35 ~ time1'
+      result: [false]
+      focus: true
+
+    - desc: 'Time literal compared with different precision time in resource'
+      expression: '@T12:34:56 ~ time1'
+      result: [false]
+      focus: true
 
   # If both operands are collections with multiple items:
 
@@ -283,86 +354,90 @@ tests:
   # Note that this implies that if the collections have a different number of
   # items to compare, the result will be false.
 
+    - desc: '* For complex types, equivalence requires all child properties to be equivalent, recursively.'
+      expression: "Ops.complex ~ Ops.complexsimilar"
+      result: [true]
 
-  - desc: '6.1.3. != (Not Equals)'
+    - desc: '* For complex types, equivalence requires all child properties to be equivalent, recursively.'
+      expression: "Ops.complex ~ Ops.complexother"
+      result: [false]
 
-  - desc: '* string: comparison is based on Unicode values'
-  - desc: '** strings equals'
-    expression: "'abc' != 'abc'"
-    result: [false]
 
-  - desc: '** strings equals'
-    expression: "Ops.str1 != Ops.str1"
-    result: [false]
-
-  - desc: '** strings not equals'
-    expression: "'abc' != 'abcd'"
-    result: [true]
-
-  - desc: '** strings not equals'
-    expression: "Ops.str1 != Ops.str2"
-    result: [true]
-
-  - desc: '** utf8 strings'
-    expression: "'ɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ ə ɚ ɛ ɜ ɝ ɞ ɟ ɠ' != 'ɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ ə ɚ ɛ ɜ ɝ ɞ ɟ ɠ'"
-    result: [false]
-
-  - desc: '** utf8 strings'
-    expression: "'ɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ ə ɚ ɛ ɜ ɝ ɞ ɟ ɠ' != 'ə ɚ ɛ ɜ ɝ ɞ ɟ ɠɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ '"
-    result: [true]
-
-  - desc: '* integer: values must be exactly equal'
-
-  - desc: '** equal'
-    expression: "1 != 1"
-    result: [false]
-
-  - desc: '** equal'
-    expression: "Ops.int1 != Ops.int1"
-    result: [false]
-
-  - desc: '** not equal'
-    expression: "1 != 2"
-    result: [true]
-
-  - desc: '** not equal'
-    expression: "Ops.int1 != Ops.int2"
-    result: [true]
-
-  - desc: '* decimal: values must be equal, trailing zeroes are ignored'
-  - desc: '** decimals equal'
-    expression: "1.01 != 1.01"
-    result: [false]
-
-  - desc: '** decimals equal, trailing zeroes are ignored'
-    expression: "0.01 != 00.01"
-    result: [false]
-
-  - desc: 'decimal not equal'
-    expression: "1.01 != 1.02"
-    result: [true]
-
-  - desc: 'decimal values should not be compared beyond the maximum precision'
-    expression: '0.1 + 0.1 + 0.1 = 0.3'
-    result: [true]
-
-  - desc: '* boolean: values must be the same'
-
-  - desc: '** equal'
-    expression: "true != true"
-    result: [false]
-
-  - desc: '** not equal'
-    expression: "true != false"
-    result: [true]
-
-  - desc: '** propagate empty coll'
-    expression: "true != Ops.unexists"
-    result: []
-
-  - desc: '* TODO: dateTime: must be exactly the same, respecting the timezone (though +24:00 = +00:00 = Z)'
-
+  - 'group: 6.1.3. != (Not Equals)':
 # The inverse of the equals operator.
+
+    - desc: '* string: comparison is based on Unicode values'
+    - desc: '** strings equals'
+      expression: "'abc' != 'abc'"
+      result: [false]
+
+    - desc: '** strings equals'
+      expression: "Ops.str1 != Ops.str1"
+      result: [false]
+
+    - desc: '** strings not equals'
+      expression: "'abc' != 'abcd'"
+      result: [true]
+
+    - desc: '** strings not equals'
+      expression: "Ops.str1 != Ops.str2"
+      result: [true]
+
+    - desc: '** utf8 strings'
+      expression: "'ɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ ə ɚ ɛ ɜ ɝ ɞ ɟ ɠ' != 'ɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ ə ɚ ɛ ɜ ɝ ɞ ɟ ɠ'"
+      result: [false]
+
+    - desc: '** utf8 strings'
+      expression: "'ɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ ə ɚ ɛ ɜ ɝ ɞ ɟ ɠ' != 'ə ɚ ɛ ɜ ɝ ɞ ɟ ɠɐ ɑ ɒ ɓ ɔ ɕ ɖ ɗ ɘ '"
+      result: [true]
+
+    - desc: '* integer: values must be exactly equal'
+
+    - desc: '** equal'
+      expression: "1 != 1"
+      result: [false]
+
+    - desc: '** equal'
+      expression: "Ops.int1 != Ops.int1"
+      result: [false]
+
+    - desc: '** not equal'
+      expression: "1 != 2"
+      result: [true]
+
+    - desc: '** not equal'
+      expression: "Ops.int1 != Ops.int2"
+      result: [true]
+
+    - desc: '* decimal: values must be equal, trailing zeroes are ignored'
+    - desc: '** decimals equal'
+      expression: "1.01 != 1.01"
+      result: [false]
+
+    - desc: '** decimals equal, trailing zeroes are ignored'
+      expression: "0.01 != 00.01"
+      result: [false]
+
+    - desc: 'decimal not equal'
+      expression: "1.01 != 1.02"
+      result: [true]
+
+    - desc: '* boolean: values must be the same'
+
+    - desc: '** equal'
+      expression: "true != true"
+      result: [false]
+
+    - desc: '** not equal'
+      expression: "true != false"
+      result: [true]
+
+    - desc: '** propagate empty coll'
+      expression: "true != Ops.unexists"
+      result: []
+
+    - desc: '* TODO: dateTime: must be exactly the same, respecting the timezone (though +24:00 = +00:00 = Z)'
+
 
   - desc: '6.1.4. !~ (Not Equivalent)'
 # The inverse of the equivalent operator.

@@ -4,6 +4,9 @@
 
 var types = require('./types');
 var FP_Type = types.FP_Type;
+var FP_DateTime = types.FP_DateTime;
+var FP_Time = types.FP_Time;
+var pSlice = Array.prototype.slice;
 var pSlice = Array.prototype.slice;
 var objectKeys = Object.keys;
 var isArguments = function (object) {
@@ -120,21 +123,24 @@ var deepEqual = function (actual, expected, opts) {
 
   }
   else {
-   if (!opts.fuzzy) {
     if (actual instanceof FP_Type) {
-      return actual.equals(expected); // May return undefined
+      let rtn = actual.equals(expected); // May return undefined
+      if (opts.fuzzy && rtn === undefined && (actual instanceof FP_DateTime ||
+          actual instanceof FP_Time)) {
+        rtn = false; // per rule about comparison
+      }
+      return rtn;
     }
     else if (expected instanceof FP_Type)
       return false;
-   }
 
-   // 7.4. For all other Object pairs, including Array objects, equivalence is
-   // determined by having the same number of owned properties (as verified
-   // with Object.prototype.hasOwnProperty.call), the same set of keys
-   // (although not necessarily the same order), equivalent values for every
-   // corresponding key, and an identical 'prototype' property. Note: this
-   // accounts for both named and indexed properties on Arrays.
-   return objEquiv(actual, expected, opts);
+    // 7.4. For all other Object pairs, including Array objects, equivalence is
+    // determined by having the same number of owned properties (as verified
+    // with Object.prototype.hasOwnProperty.call), the same set of keys
+    // (although not necessarily the same order), equivalent values for every
+    // corresponding key, and an identical 'prototype' property. Note: this
+    // accounts for both named and indexed properties on Arrays.
+    return objEquiv(actual, expected, opts);
   }
 };
 
