@@ -83,13 +83,6 @@ tests:
       expression: "true = Ops.unexists"
       result: []
 
-    - desc: '* TODO: dateTime: must be exactly the same, respecting the timezone (though +24:00 = +00:00 = Z)'
-
-  # time: must be exactly the same, respecting the timezone (though +24:00 = +00:00 = Z)
-
-  # If a time or dateTime has no indication of timezone, the timezone of the
-  # evaluating machine is assumed.
-
     - desc: '* For complex types, equality requires all child properties to be equal, recursively.'
 
     - desc: '** two objects'
@@ -150,6 +143,10 @@ tests:
   # For dateTime and time comparisons with partial values (e.g. dateTimes
   # specified only to the day, or times specified only to the hour), the
   # comparison returns empty ({ }), not false.
+  # time: must be exactly the same, respecting the timezone (though +24:00 = +00:00 = Z)
+
+  # If a time or dateTime has no indication of timezone, the timezone of the
+  # evaluating machine is assumed.
     - 'group: Dates & Times':
       - desc:  'DateTime literal compared with DateTime'
         expression: '@2018 = @2018'
@@ -201,7 +198,7 @@ tests:
         result: [false]
 
       - desc: 'Time literal compared with different precision time in resource'
-        expression: '@T12:34:56 = time1'
+        expression: '@T12 = time1'
         result: []
       focus: true
 

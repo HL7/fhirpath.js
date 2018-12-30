@@ -89,6 +89,49 @@ tests:
   - desc: less than or equal, expecting false
     expression: j <= d
     result: [false]
+  - 'group: Dates & Times':
+    - 'group:  DateTime, >':
+      - expression: '@2018 > @2019'
+        result: [false]
+      - expression: '@2018 > @2017'
+        result: [false]
+      - desc: Raise error on type comparison with string
+        expression: '@2018 > d'
+        error: true
+      - desc: Raise error on type comparison with integer
+        expression: '@2018 > a'
+        error: true
+      - desc: Raise error on type comparison with Time
+        expression: '@2018 > @T12:34'
+        error: true
+      - desc: Comparison based on the lesser precision (1)
+        expression: '@2018-12-31 > @2018'
+        result: [false]
+      - desc: Comparison based on the lesser precision (2)
+        expression: '@2018 > @2017-01'
+        result: [true]
+      - desc: Time comparison; GT (1)
+        expression: '@T12:03 > @T12:01'
+        result: [true]
+      - desc: Time comparison; GT (2)
+        expression: '@T12:01 > @T12:03'
+        result: [false]
+      - desc: Time comparison; GT (3)
+        expression: '@T12:01:34.123 > @T12:01:34.122'
+        result: [true]
+      - desc: Time comaprison with based on lesser precision (1)
+        expression: '@T12:01 > @T12'
+        result: [false]
+      - desc: Time comaprison with based on lesser precision (2)
+        expression: '@T12:02:34.324 > @T12:01'
+        result: [true]
+      - desc: Time comaprison with based on lesser precision (3)
+        expression: '@T12:02:34.324+05:00 > @T12+04:00'
+        result: [true]
+      - desc: Time comaprison with based on lesser precision (4)
+        expression: '@T12:02:34.324+05:00 > @T12+05:00'
+        result: [false]
+    focus: true
 # TBD -- add more tests (date, times)
 
 subject:
