@@ -171,7 +171,9 @@ tests:
       - desc: 'DateTime literal compared with different precision DateTime in resource'
         expression: '@2018-02-02 = date1'
         result: []
-
+      - desc: 'DateTime literal compared with a number (should throw error)'
+        expression: '@2018 = int1'
+        raise: true
       - desc: 'Time literal compared with same time in different timezone'
         expression: '@T10:04:23-04:00 = @T18:04:23+04:00'
         result: [true]

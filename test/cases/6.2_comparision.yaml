@@ -90,7 +90,7 @@ tests:
     expression: j <= d
     result: [false]
   - 'group: Dates & Times':
-    - 'group:  DateTime, >':
+    - 'group:  Date >':
       - expression: '@2018 > @2019'
         result: [false]
       - expression: '@2018 > @2017'
@@ -110,6 +110,29 @@ tests:
       - desc: Comparison based on the lesser precision (2)
         expression: '@2018 > @2017-01'
         result: [true]
+    - 'group:  DateTime, >':
+      - desc: Same date, same time
+        expression: '@2018-12-21T12:01 > @2018-12-21T12:01'
+        result: [false]
+      - desc: Same date, different time (1)
+        expression: '@2018-12-21T12:01 > @2018-12-21T12:02'
+        result: [false]
+      - desc: Same date, different time (2)
+        expression: '@2018-12-21T12:02 > @2018-12-21T12:01'
+        result: [true]
+      - desc: Different dates & times (1)
+        expression: '@2018-12-22T12:02 > @2018-12-21T12:01'
+        result: [true]
+      - desc: Different dates & times (1)
+        expression: '@2018-12-20T12:02 > @2018-12-21T12:01'
+        result: [false]
+      - desc: Time zone differences (1)
+        expression: '@2018-12-20T12:02+03:00 > @2018-12-21T12:01+02:00'
+        result: [false]
+      - desc: Time zone differences (2)
+        expression: '@2018-12-20T12:02+02:00 > @2018-12-21T12:01+03:00'
+        result: [true]
+    - 'group:  Time, >':
       - desc: Time comparison; GT (1)
         expression: '@T12:03 > @T12:01'
         result: [true]
@@ -126,7 +149,7 @@ tests:
         expression: '@T12:02:34.324 > @T12:01'
         result: [true]
       - desc: Time comaprison with based on lesser precision (3)
-        expression: '@T12:02:34.324+05:00 > @T12+04:00'
+        expression: '@T12+04:00 > @T12:02:34.324+05:00'
         result: [true]
       - desc: Time comaprison with based on lesser precision (4)
         expression: '@T12:02:34.324+05:00 > @T12+05:00'

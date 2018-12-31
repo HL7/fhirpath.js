@@ -3,6 +3,10 @@ let timeFormat =
 let timeRE = new RegExp('^T?'+timeFormat+'$');
 let dateTimeRE = new RegExp(
   '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T'+timeFormat+')?)?)?Z?$');
+let fhirTimeRE = /([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?/;
+let fhirDateTimeRE =
+/([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1])(T([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?/;
+
 
 // testEnvironment: node in jest config
 // --runInBand
@@ -22,6 +26,14 @@ class FP_Type {
 
   toJSON() {
     return this.toString();
+  }
+
+  /**
+   *  Returns -1, 0, or 1 if this object is less then, equal to, or greater
+   *  than otherObj.
+   */
+  compare(/* otherObj */) {
+    throw 'Not implemented';
   }
 }
 
@@ -51,14 +63,16 @@ class FP_DateTime extends FP_Type {
    *  than otherDateTime.  Comparisons are made at the lesser of the two date time
    *  precisions.
    */
- // compare(otherDateTime) {
-
- // }
+  compare(otherDateTime) {
+    if (!(otherDateTime instanceof FP_DateTime))
+      throw 'Invalid comparison of a DateTime with something else';
+    //var thisPrecision = this._getPrecision();
+    return false;
+  }
 }
 
 class FP_Time extends FP_Type {
   constructor(timeStr) {
-console.log("%%% in ctor");
     super();
     if (timeStr[0] == 'T')
       timeStr = timeStr.slice(1);
@@ -80,13 +94,10 @@ console.log("%%% in ctor");
    *  precisions.
    */
   compare(otherTime) {
-console.log("%%% in compare");
     if (!(otherTime instanceof FP_Time))
       throw 'Invalid comparison of a time with something else';
     var thisPrecision = this._getPrecision();
     var otherPrecision = otherTime._getPrecision();
-console.log(thisPrecision);
-console.log(otherPrecision);
     var thisTimeInt, otherTimeInt;
     if (thisPrecision === otherPrecision) {
       thisTimeInt = this._getDateObj().getTime();
@@ -98,14 +109,10 @@ console.log(otherPrecision);
         otherTimeInt = otherTime._getDateObj().getTime();
       }
       else {
-        thisTimeInt = this._getteObj().getTime();
+        thisTimeInt = this._getDateObj().getTime();
         otherTimeInt = otherTime._dateAtPrecision(thisPrecision).getTime();
       }
     }
-console.log(this._getDateObj().getTime());
-console.log(otherTime._getDateObj());
-console.log(thisTimeInt);
-console.log(otherTimeInt);
     return thisTimeInt < otherTimeInt ?
       -1 : thisTimeInt === otherTimeInt ? 0 : 1;
   }
@@ -121,9 +128,10 @@ console.log(otherTimeInt);
     var timeParts = this._getTimeParts().slice(0, precision+1);
     if (timeParts.length === 1)
       timeParts[1] = ':00'; // Date constructor requires minutes
+    var timeStr = '2010T'+timeParts.join('');
     var timeZone = this._getMatchData()[4];
-    var timeStr = '2010T'+timeParts.join('')+timeZone;
-console.log(timeStr);
+    if (timeZone)
+      timeStr += timeZone;
     return new Date(timeStr);
   }
 
@@ -167,7 +175,6 @@ console.log(timeStr);
         if (this.timeMatchData[i])
           this.maxPrecision = i;
       }
-console.log(this.timeMatchData);
     }
     return this.timeMatchData;
   }
@@ -236,9 +243,9 @@ function addTypes(resource) {
     }
   }
   else if (typeof resource == "string") {
-    if (resource.match(dateTimeRE))
+    if (resource.match(fhirDateTimeRE))
       rtn = new FP_DateTime(resource);
-    else if (resource.match(timeRE))
+    else if (resource.match(fhirTimeRE))
       rtn = new FP_Time(resource);
   }
   return rtn;
