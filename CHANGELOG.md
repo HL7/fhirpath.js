@@ -3,6 +3,14 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.11.0] - 2019-01-01
+### Added
+- Supported for DateTime and Time literals, along with equality, equivalence,
+   and comparison operators.
+### Changed
+- Strings in resources that match the DateTime or Time regular expressions in
+  FHIR are now interpreted as DateTimes and Times.
+
 ## [0.10.0] - 2018-11-15
 ### Added
  - bin/fhirpath can now take a resource as a JSON string instead of a filename
