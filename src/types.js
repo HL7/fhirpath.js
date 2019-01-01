@@ -37,65 +37,19 @@ class FP_Type {
   }
 }
 
-class FP_DateTime extends FP_Type {
-  constructor(dateStr) {
-    super();
-    this.asString = dateStr;
-    this.dateObj = new Date(dateStr);
-    var dateMatchData = dateStr.match(dateTimeRE);
-    this.maxPrecision = dateMatchData[6] ? 'ms' :
-      dateMatchData[5] ? 's' : dateMatchData[4] ? 'min' :
-        dateMatchData[3] ? 'h' : dateMatchData[2] ? 'd' :
-          dateMatchData[1] ? 'month' : 'y';
-  }
 
-  equals(otherDateTime) {
-    var rtn;
-    if (!(otherDateTime instanceof FP_DateTime))
-      rtn = false;
-    else if (this.maxPrecision == otherDateTime.maxPrecision)
-      rtn = this.dateObj.getTime() == otherDateTime.dateObj.getTime();
-    return rtn;
-  }
-
-  /**
-   *  Returns -1, 0, or 1 if this date time is less then, equal to, or greater
-   *  than otherDateTime.  Comparisons are made at the lesser of the two date time
-   *  precisions.
-   */
-  compare(otherDateTime) {
-    if (!(otherDateTime instanceof FP_DateTime))
-      throw 'Invalid comparison of a DateTime with something else';
-    //var thisPrecision = this._getPrecision();
-    return false;
-  }
-}
-
-class FP_Time extends FP_Type {
+class TimeBase extends FP_Type {
   constructor(timeStr) {
     super();
-    if (timeStr[0] == 'T')
-      timeStr = timeStr.slice(1);
     this.asStr = timeStr;
   }
 
-  equals(otherTime) {
-    var rtn;
-    if (!(otherTime instanceof FP_Time))
-      rtn = false;
-    else if (this._getPrecision() == otherTime._getPrecision())
-      rtn = this._getDateObj().getTime() == otherTime._getDateObj().getTime();
-    return rtn;
-  }
-
   /**
-   *  Returns -1, 0, or 1 if this time is less then, equal to, or greater
+   *  Returns -1, 0, or 1 if this (date) time is less then, equal to, or greater
    *  than otherTime.  Comparisons are made at the lesser of the two time
    *  precisions.
    */
   compare(otherTime) {
-    if (!(otherTime instanceof FP_Time))
-      throw 'Invalid comparison of a time with something else';
     var thisPrecision = this._getPrecision();
     var otherPrecision = otherTime._getPrecision();
     var thisTimeInt, otherTimeInt;
@@ -119,20 +73,72 @@ class FP_Time extends FP_Type {
 
 
   /**
-   *  Returns a new Date object for a time equal to what this time would be if
-   *  the string passed into the constructor had the given precision.
-   * @param precision the new precision, which is assumed to be less than the
-   *  or equal to the current precision.
+   *  Returns a number representing the precision of the time string given to
+   *  the constructor.  (Higher means more precise).  The number is the number
+   *  of components of the time string (ignoring the time zone) produced by
+   *  matching against the time regular expression.
    */
-  _dateAtPrecision(precision) {
-    var timeParts = this._getTimeParts().slice(0, precision+1);
-    if (timeParts.length === 1)
-      timeParts[1] = ':00'; // Date constructor requires minutes
-    var timeStr = '2010T'+timeParts.join('');
-    var timeZone = this._getMatchData()[4];
-    if (timeZone)
-      timeStr += timeZone;
-    return new Date(timeStr);
+  _getPrecision() {
+    if (this.precision === undefined)
+      this._getMatchData();
+    return this.precision;
+  }
+
+  /**
+   *  Returns the match data from matching the given RegExp against the
+   *  date/time string given to the constructor.
+   *  Also sets this.precision.
+   * @param regEx The regular expression to match against the date/time string.
+   * @param maxPrecision the maximum precision possible for the type
+   */
+  _getMatchData(regEx, maxPrecision) {
+    if (!this.timeMatchData) {
+      this.timeMatchData = this.asStr.match(regEx);
+      for (let i=maxPrecision; i>=0 && this.precision === undefined; --i) {
+        if (this.timeMatchData[i])
+          this.precision = i;
+      }
+    }
+    return this.timeMatchData;
+  }
+
+  /**
+   *  Returns an array of the pieces of the given time string, for use in
+   *  constructing lower precision versions of the time. The returned array will
+   *  contain separate elements for the hour, minutes, seconds, and milliseconds
+   *  (or as many of those are as present).  The length of the returned array
+   *  will therefore be an indication of the precision.
+   *  It will not include the timezone.
+   * @timeMatchData the result of matching the time portion of the string passed
+   *  into the constructor against the "timeRE" regular expression.
+   */
+  _getTimeParts(timeMatchData) {
+    var timeParts = [];
+    // Finish parsing the data into pieces, for later use in building
+    // lower-precision versions of the date if needed.
+    timeParts = [timeMatchData[0]];
+    var timeZone = timeMatchData[4];
+    if (timeZone) { // remove time zone from hours
+      let hours = timeParts[0];
+      timeParts[0] = hours.slice(0, hours.length-timeZone.length);
+    }
+    var min = timeMatchData[1];
+    if (min) { // remove minutes from hours
+      let hours = timeParts[0];
+      timeParts[0] = hours.slice(0, hours.length-min.length);
+      timeParts[1] = min;
+      var sec = timeMatchData[2];
+      if (sec) { // remove seconds from minutes
+        timeParts[1] = min.slice(0, min.length-sec.length);
+        timeParts[2] = sec;
+        var ms = timeMatchData[3];
+        if (ms) { // remove milliseconds from seconds
+          timeParts[2] = sec.slice(0, sec.length-ms.length);
+          timeParts[3] = ms;
+        }
+      }
+    }
+    return timeParts;
   }
 
 
@@ -152,31 +158,157 @@ class FP_Time extends FP_Type {
   }
 
 
-  /**
-   *  Returns a number representing the precision of the time string given to
-   *  the constructor.  (Higher means more precise).  The number is the number
-   *  of components of the time string (ignoring the time zone) produced by
-   *  matching against the time regular expression.
-   */
-  _getPrecision() {
-    if (this.maxPrecision === undefined)
-      this._getMatchData();
-    return this.maxPrecision;
+}
+
+class FP_DateTime extends TimeBase {
+  constructor(dateStr) {
+    super(dateStr);
+  }
+
+  equals(otherDateTime) {
+    var rtn;
+    if (!(otherDateTime instanceof FP_DateTime))
+      rtn = false;
+    else if (this._getPrecision() == otherDateTime._getPrecision())
+      rtn = this._getDateObj().getTime() == otherDateTime._getDateObj().getTime();
+    return rtn;
   }
 
   /**
+   *  Returns -1, 0, or 1 if this date time is less then, equal to, or greater
+   *  than otherDateTime.  Comparisons are made at the lesser of the two date time
+   *  precisions.
+   */
+  compare(otherDateTime) {
+    if (!(otherDateTime instanceof FP_DateTime))
+      throw 'Invalid comparison of a DateTime with something else';
+    return super.compare(otherDateTime);
+  }
+
+
+  /**
    *  Returns the match data from matching timeRE against the time string.
-   *  Also sets this.maxPrecision.
+   *  Also sets this.precision.
    */
   _getMatchData() {
-    if (!this.timeMatchData) {
-      this.timeMatchData = this.asStr.match(timeRE);
-      for (let i=3; i>=0 && this.maxPrecision === undefined; --i) {
-        if (this.timeMatchData[i])
-          this.maxPrecision = i;
+    return super._getMatchData(dateTimeRE, 6);
+  }
+
+  /**
+   *  Returns an array of the pieces of the date time string passed into the
+   *  constructor, for use in constructing lower precision versions of the
+   *  date time. The returned array will contain separate elements for the year,
+   *  month, day, hour, minutes, seconds, and milliseconds (or as many of those
+   *  are as present).  The length of the returned array will therefore be an
+   *  indication of the precision.  It will not include the timezone.
+   */
+  _getTimeParts() {
+    if (!this.timeParts) {
+      let timeMatchData =  this._getMatchData();
+      let year = timeMatchData[0];
+      this.timeParts = [year];
+      var month = timeMatchData[1];
+      if (month) { // Remove other information from year
+        this.timeParts[0] = year.slice(0, year.length-month.length);
+        this.timeParts[1] = month;
+        let day = timeMatchData[2];
+        if (day) { // Remove day information from month
+          this.timeParts[1] = month.slice(0, month.length-day.length);
+          this.timeParts[2] = day;
+          let time = timeMatchData[3];
+          if (time) { // Remove time from day
+            this.timeParts[2] = day.slice(0, day.length-time.length);
+            if (time[0] === 'T') // remove T from hour
+              timeMatchData[3] = time.slice(1);
+            this.timeParts = this.timeParts.concat(
+              super._getTimeParts(timeMatchData.slice(3)));
+          }
+        }
       }
     }
-    return this.timeMatchData;
+    return this.timeParts;
+  }
+
+
+  /**
+   *  Returns a new Date object for a time equal to what this time would be if
+   *  the string passed into the constructor had the given precision.
+   * @param precision the new precision, which is assumed to be less than the
+   *  or equal to the current precision.
+   */
+  _dateAtPrecision(precision) {
+    var timeParts = this._getTimeParts().slice(0, precision+1);
+    if (timeParts.length > 3) {
+      timeParts[3] = 'T' + timeParts[3]; // restore the T removed before
+      if (timeParts.length === 4)
+        timeParts[4] = ':00'; // Date constructor requires minutes if hour is present
+    }
+    var timeStr = timeParts.join('');
+    if (timeParts.length > 3) { // has a time part
+      var timeZone = this._getMatchData()[7];
+      if (timeZone)
+        timeStr += timeZone;
+    }
+console.log(timeStr);
+    return new Date(timeStr);
+  }
+
+
+}
+
+class FP_Time extends TimeBase {
+  constructor(timeStr) {
+    if (timeStr[0] == 'T')
+      timeStr = timeStr.slice(1);
+    super(timeStr);
+  }
+
+  equals(otherTime) {
+    var rtn;
+    if (!(otherTime instanceof FP_Time))
+      rtn = false;
+    else if (this._getPrecision() == otherTime._getPrecision())
+      rtn = this._getDateObj().getTime() == otherTime._getDateObj().getTime();
+    return rtn;
+  }
+
+
+  /**
+   *  Returns -1, 0, or 1 if this time is less then, equal to, or greater
+   *  than otherTime.  Comparisons are made at the lesser of the two time
+   *  precisions.
+   */
+  compare(otherTime) {
+    if (!(otherTime instanceof FP_Time))
+      throw 'Invalid comparison of a time with something else';
+    return super.compare(otherTime);
+  }
+
+
+  /**
+   *  Returns a new Date object for a time equal to what this time would be if
+   *  the string passed into the constructor had the given precision.
+   * @param precision the new precision, which is assumed to be less than the
+   *  or equal to the current precision.
+   */
+  _dateAtPrecision(precision) {
+    var timeParts = this._getTimeParts().slice(0, precision+1);
+    if (timeParts.length === 1)
+      timeParts[1] = ':00'; // Date constructor requires minutes
+    var timeStr = '2010T'+timeParts.join('');
+    var timeZone = this._getMatchData()[4];
+    if (timeZone)
+      timeStr += timeZone;
+    return new Date(timeStr);
+  }
+
+
+  /**
+   *  Returns the match data from matching timeRE against the time string.
+   *  Also sets this.precision.
+   */
+  _getMatchData() {
+    return super._getMatchData(timeRE, 3);
   }
 
   /**
@@ -189,35 +321,7 @@ class FP_Time extends FP_Type {
    */
   _getTimeParts() {
     if (!this.timeParts) {
-      this.timeParts = [];
-      var timeMatchData = this._getMatchData();
-      // Finish parsing the data into pieces, for later use in building
-      // lower-precision versions of the date if needed.
-      this.timeParts = [timeMatchData[0]];
-      var timeZone = timeMatchData[4];
-      if (timeZone) { // remove time zone from hours
-        let hours = this.timeParts[0];
-        this.timeParts[0] = hours.slice(0, hours.length-timeZone.length);
-      }
-      var min = timeMatchData[1];
-      if (min) { // remove minutes from hours
-        this.maxPrecision = 1;
-        let hours = this.timeParts[0];
-        this.timeParts[0] = hours.slice(0, hours.length-min.length);
-        this.timeParts[1] = min;
-        var sec = timeMatchData[2];
-        if (sec) { // remove seconds from minutes
-          this.maxPrecision = 2;
-          this.timeParts[1] = min.slice(0, min.length-sec.length);
-          this.timeParts[2] = sec;
-          var ms = timeMatchData[3];
-          if (ms) { // remove milliseconds from seconds
-            this.maxPrecision = 3;
-            this.timeParts[2] = sec.slice(0, sec.length-ms.length);
-            this.timeParts[3] = ms;
-          }
-        }
-      }
+      this.timeParts = super._getTimeParts(this._getMatchData());
     }
     return this.timeParts;
   }

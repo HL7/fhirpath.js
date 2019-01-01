@@ -160,6 +160,74 @@ tests:
         expression: '@2018 = @2018-02'
         result: []
 
+      - desc:  'DateTime literal compared with DateTime (month)'
+        expression: '@2018-02 = @2018-02'
+        result: [true]
+
+      - desc:  'DateTime literal compared with different DateTime (month)'
+        expression: '@2018-02 = @2018-02'
+        result: [false]
+
+      - desc:  'DateTime literal compared with DateTime (day)'
+        expression: '@2018-02-02 = @2018-02-02'
+        result: [true]
+
+      - desc:  'DateTime literal compared with different DateTime (day)'
+        expression: '@2018-02-02 = @2018-02-03'
+        result: [false]
+
+      - desc:  'DateTime literal compared with DateTime (hour)'
+        expression: '@2018-02-02T11 = @2018-02-02T11'
+        result: [true]
+
+      - desc:  'DateTime literal compared with different DateTime (hour)'
+        expression: '@2018-02-02T11 = @2018-02-02T12'
+        result: [false]
+
+      - desc:  'DateTime literal compared with DateTime (hour, tz)'
+        expression: '@2018-02-02T11+04:00 = @2018-02-02T11+04:00'
+        result: [true]
+
+      - desc:  'DateTime literal compared with different DateTime (hour,tz)'
+        expression: '@2018-02-02T11+04:00 = @2018-02-02T12+04:00'
+        result: [false]
+
+      - desc:  'DateTime literal compared with DateTime (minute)'
+        expression: '@2018-02-02T11:01 = @2018-02-02T11:01'
+        result: [true]
+
+      - desc:  'DateTime literal compared with different DateTime (minute)'
+        expression: '@2018-02-02T11:01 = @2018-02-02T11:02'
+        result: [false]
+
+      - desc:  'DateTime literal compared with DateTime (minute, tz)'
+        expression: '@2018-02-02T11:01+04:00 = @2018-02-02T11:01+04:00'
+        result: [true]
+
+      - desc:  'DateTime literal compared with different DateTime (minute, tz)'
+        expression: '@2018-02-02T11:01+04:00 = @2018-02-02T11:02+04:00'
+        result: [false]
+
+      - desc:  'DateTime literal compared with DateTime (second)'
+        expression: '@2018-02-02T11:01:03 = @2018-02-02T11:01:03'
+        result: [true]
+
+      - desc:  'DateTime literal compared with different DateTime (second)'
+        expression: '@2018-02-02T11:01:03 = @2018-02-02T11:01:04'
+        result: [false]
+
+      - desc:  'DateTime literal compared with DateTime (millisecond)'
+        expression: '@2018-02-02T11:01:03.123 = @2018-02-02T11:01:03.123'
+        result: [true]
+
+      - desc:  'DateTime literal compared with different DateTime (millisecond)'
+        expression: '@2018-02-02T11:01:03.123 = @2018-02-02T11:01:03.124'
+        result: [false]
+
+      - desc:  'DateTime literal compared with different DateTime (timezone)'
+        expression: '@2018-02-02T11:01:03.123+02:00 = @2018-02-02T11:01:03.123+04:00'
+        result: [false]
+
       - desc: 'DateTime literal compared with same DateTime in resource'
         expression: '@2018-02 = date1'
         result: [true]
@@ -171,9 +239,11 @@ tests:
       - desc: 'DateTime literal compared with different precision DateTime in resource'
         expression: '@2018-02-02 = date1'
         result: []
-      - desc: 'DateTime literal compared with a number (should throw error)'
+
+      - desc: 'DateTime literal compared with a number'
         expression: '@2018 = int1'
-        raise: true
+        result: [false]
+
       - desc: 'Time literal compared with same time in different timezone'
         expression: '@T10:04:23-04:00 = @T18:04:23+04:00'
         result: [true]

@@ -16,9 +16,9 @@ const endWith = (s, postfix) => {
   return (idx > 0 && idx === s.length - postfix.length);
 };
 
-const focus = true;
-//const focusFile = /.*.yaml/;
-const focusFile = /6.2.*.yaml/;
+const focus = false;
+const focusFile = /.*.yaml/;
+//const focusFile = /6.2.*.yaml/;
 
 const resources = {};
 
