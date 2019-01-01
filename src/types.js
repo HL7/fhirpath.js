@@ -249,7 +249,6 @@ class FP_DateTime extends TimeBase {
       if (timeZone)
         timeStr += timeZone;
     }
-console.log(timeStr);
     return new Date(timeStr);
   }
 
