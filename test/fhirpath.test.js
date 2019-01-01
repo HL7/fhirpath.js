@@ -122,7 +122,6 @@ const generateSuite = (fileName, testcase) => {
   if((focus && focusFile.test(fileName)) || !focus) {
     return describe(fileName, () => testcase.tests.map(item => addType(item)).forEach(test => {
       const testResource = testcase.subject;
-        focus: true
         isGroup(test)
         ? generateGroup(test, testResource)
         : generateTest(test, testResource);
