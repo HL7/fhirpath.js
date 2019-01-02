@@ -1,10 +1,10 @@
-# The following is the standard bashrc file for the LForms
+# The following is the standard bashrc file for the
 # development team for this repository.
 
 NODE=node-v10.14.1
 #
 # Set path
-PATH=~/${NODE}/bin:~/ruby/bin:~/.gem/ruby/2.5.0/bin:/bin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/etc
+PATH=~/${NODE}/bin:/bin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/etc
 
 # Add node_modules/.bin to the path. We can find that from `npm bin`, but that
 # takes a second or two, and slows things down.
