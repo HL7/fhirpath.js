@@ -41,7 +41,7 @@ function typecheck(a, b){
   b = b[0];
   let lType = typeof a;
   let rType = typeof b;
-  if (lType != rType || a.prototype !== b.prototype) {
+  if (lType != rType || Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) {
     util.raiseError('Type of "'+a+'" did not match type of "'+b+'"', 'InequalityExpression');
   }
 }
