@@ -121,7 +121,9 @@ var deepEqual = function (actual, expected, opts) {
 
   }
   else {
-    if (actual instanceof FP_Type) {
+    var actualIsFPT = actual instanceof FP_Type;
+    var expectedIsFPT = expected instanceof FP_Type;
+    if (actualIsFPT && expectedIsFPT) { // if both are FP_Type
       let rtn = actual.equals(expected); // May return undefined
       if (opts.fuzzy && rtn === undefined && (actual instanceof FP_DateTime ||
           actual instanceof FP_Time)) {
@@ -129,7 +131,7 @@ var deepEqual = function (actual, expected, opts) {
       }
       return rtn;
     }
-    else if (expected instanceof FP_Type)
+    else if (actualIsFPT || expectedIsFPT) // if only one is an FP_Type
       return false;
 
     // 7.4. For all other Object pairs, including Array objects, equivalence is
