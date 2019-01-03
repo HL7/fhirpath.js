@@ -52,21 +52,10 @@ class TimeBase extends FP_Type {
   compare(otherTime) {
     var thisPrecision = this._getPrecision();
     var otherPrecision = otherTime._getPrecision();
-    var thisTimeInt, otherTimeInt;
-    if (thisPrecision === otherPrecision) {
-      thisTimeInt = this._getDateObj().getTime();
-      otherTimeInt = otherTime._getDateObj().getTime();
-    }
-    else {
-      if (thisPrecision > otherPrecision) {
-        thisTimeInt = this._dateAtPrecision(otherPrecision).getTime();
-        otherTimeInt = otherTime._getDateObj().getTime();
-      }
-      else {
-        thisTimeInt = this._getDateObj().getTime();
-        otherTimeInt = otherTime._dateAtPrecision(thisPrecision).getTime();
-      }
-    }
+    var thisTimeInt = thisPrecision <= otherPrecision ?
+      this._getDateObj().getTime(): this._dateAtPrecision(otherPrecision).getTime();
+    var otherTimeInt = otherPrecision <= thisPrecision ?
+      otherTime._getDateObj().getTime(): otherTime._dateAtPrecision(thisPrecision).getTime();
     return thisTimeInt < otherTimeInt ?
       -1 : thisTimeInt === otherTimeInt ? 0 : 1;
   }
