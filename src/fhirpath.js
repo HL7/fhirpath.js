@@ -141,7 +141,9 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
   var identifier = extConstant.children[0];
   var varName = engine.Identifier(ctx, parentData, identifier)[0];
   var value = ctx.vars[varName];
-  return value === undefined ? [] : [value] ;
+  // For convenience, we all variable values to be passed in without their array
+  // wrapper.  However, when evaluating, we need to put the array back in.
+  return value === undefined ? [] : value instanceof Array ? value : [value];
 };
 
 engine.LiteralTerm = function(ctx, parentData, node) {
@@ -306,7 +308,8 @@ function makeParam(ctx, parentData, type, param) {
   }
   var maker = paramTable[type];
   if(res.length > 1){
-    throw new Error("Unexpected collection" + JSON.stringify(res) +"; expected singleton of type" + type);
+    throw new Error("Unexpected collection" + JSON.stringify(res) +
+      "; expected singleton of type " + type);
   }
   if(res.length == 0){
     return [];
