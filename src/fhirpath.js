@@ -487,6 +487,7 @@ var parse = function(path) {
  *  Applies the given parsed FHIRPath expression to the given resource,
  *  returning the result of doEval.
  * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
+ *  This resource will be modified by this function to add type information.
  * @param {string} parsedPath - fhirpath expression, sample 'Patient.name.given'
  * @param {object} context - a hash of variable name/value pairs.
  */
@@ -506,6 +507,7 @@ function applyParsedPath(resource, parsedPath, context) {
  *  Evaluates the "path" FHIRPath expression on the given resource, using data
  *  from "context" for variables mentioned in the "path" expression.
  * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
+ *  This resource will be modified by this function to add type information.
  * @param {string} path - fhirpath expression, sample 'Patient.name.given'
  * @param {object} context - a hash of variable name/value pairs.
  */

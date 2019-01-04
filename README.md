@@ -32,6 +32,7 @@ then use as shown below.
 ```
 // Evaluating FHIRPath
 // API: evaluate(resourceObject, fhirPathExpression, environment)
+// Note:  The resource will be modified by this function to add type information.
 fhirpath.evaluate({"resourceType": "Patient", ...}, 'Patient.name.given');
 
 // Environment variables can be passed in as third argument as a hash of
