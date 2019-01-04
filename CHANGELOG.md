@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.10.1] - 2019-01-04
+### Fixed
+ - Variables referenced in expressions are now only wrapped in arrays if they
+   are not already in an array.
+
 ## [0.10.0] - 2018-11-15
 ### Added
  - bin/fhirpath can now take a resource as a JSON string instead of a filename
