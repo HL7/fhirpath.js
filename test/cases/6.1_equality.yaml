@@ -271,7 +271,6 @@ tests:
       - desc: 'Time literal compared with different precision time in resource'
         expression: '@T12 = time1'
         result: []
-      focus: true
 
 
   - 'group: 6.1.2. ~ (Equivalent)':

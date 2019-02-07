@@ -154,7 +154,6 @@ tests:
       - desc: Time comparison with based on lesser precision (4)
         expression: '@T12:02:34.324+05:00 > @T12+05:00'
         result: [false]
-    focus: true
 # TBD -- add more tests (date, times)
 
 subject:
