@@ -9,15 +9,15 @@ const _    = require('lodash');
 const items = fs.readdirSync(__dirname + '/cases/');
 
 // Set "focus" to true to turn on focus option
+const focus = false;
+const focusFile = /.*.yaml/;
+//const focusFile = /6.1.*.yaml/;
+
 
 const endWith = (s, postfix) => {
   const idx = s.indexOf(postfix);
   return (idx > 0 && idx === s.length - postfix.length);
 };
-
-const focus = false;
-const focusFile = /.*.yaml/;
-//const focusFile = /6.1.*.yaml/;
 
 const resources = {};
 

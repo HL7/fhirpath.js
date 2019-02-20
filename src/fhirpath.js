@@ -83,6 +83,8 @@ engine.invocationTable = {
   toInteger:    {fn: misc.toInteger},
   toDecimal:    {fn: misc.toDecimal},
   toString:     {fn: misc.toString},
+  toDateTime:   {fn: misc.toDateTime},
+  toTime:       {fn: misc.toTime},
 
   indexOf:        {fn: strings.indexOf,          arity: {1: ["String"]}},
   substring:      {fn: strings.substring,        arity: {1: ["Integer"], 2: ["Integer","Integer"]}},

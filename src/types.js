@@ -8,8 +8,6 @@ let fhirDateTimeRE =
 /([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1])(T([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?/;
 
 
-// testEnvironment: node in jest config
-// --runInBand
 class FP_Type {
   /**
    *  Tests whether this object is equal to another.  Returns either true,
@@ -81,11 +79,13 @@ class TimeBase extends FP_Type {
    * @param maxPrecision the maximum precision possible for the type
    */
   _getMatchData(regEx, maxPrecision) {
-    if (!this.timeMatchData) {
+    if (this.timeMatchData === undefined) {
       this.timeMatchData = this.asStr.match(regEx);
-      for (let i=maxPrecision; i>=0 && this.precision === undefined; --i) {
-        if (this.timeMatchData[i])
-          this.precision = i;
+      if (this.timeMatchData) {
+        for (let i=maxPrecision; i>=0 && this.precision === undefined; --i) {
+          if (this.timeMatchData[i])
+            this.precision = i;
+        }
       }
     }
     return this.timeMatchData;
@@ -145,14 +145,18 @@ class TimeBase extends FP_Type {
     }
     return this.dateObj;
   }
-
-
 }
 
+
 class FP_DateTime extends TimeBase {
+  /**
+   *  Constructs an FP_DateTime, assuming dateStr is valid.  If you don't know
+   *  whether a string is a valid DateTime, use FP_DateTime.checkString instead.
+   */
   constructor(dateStr) {
     super(dateStr);
   }
+
 
   equals(otherDateTime) {
     var rtn;
@@ -240,9 +244,21 @@ class FP_DateTime extends TimeBase {
     }
     return new Date(timeStr);
   }
-
-
 }
+
+/**
+ *  Tests str to see if it is convertible to a DateTime.
+ * @return If str is convertible to a DateTime, returns an FP_DateTime;
+ *  otherwise returns null.
+ */
+FP_DateTime.checkString = function(str) {
+  let d = new FP_DateTime(str);
+  if (!d._getMatchData())
+    d = null;
+  return d;
+}
+
+
 
 class FP_Time extends TimeBase {
   constructor(timeStr) {
@@ -313,6 +329,18 @@ class FP_Time extends TimeBase {
     }
     return this.timeParts;
   }
+}
+
+/**
+ *  Tests str to see if it is convertible to a Time.
+ * @return If str is convertible to a Time, returns an FP_Time;
+ *  otherwise returns null.
+ */
+FP_Time.checkString = function(str) {
+  let d = new FP_Time(str);
+  if (!d._getMatchData())
+    d = null;
+  return d;
 }
 
 
