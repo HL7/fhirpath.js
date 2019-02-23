@@ -261,12 +261,20 @@ FP_DateTime.checkString = function(str) {
 
 
 class FP_Time extends TimeBase {
+  /**
+   *  Constructs an FP_Time, assuming dateStr is valid.  If you don't know
+   *  whether a string is a valid DateTime, use FP_Time.checkString instead.
+   */
   constructor(timeStr) {
     if (timeStr[0] == 'T')
       timeStr = timeStr.slice(1);
     super(timeStr);
   }
 
+  /**
+   *  Returns times are equal have the same level of precision, empty if the
+   *  have different levels of precision, and false otherwise.
+   */
   equals(otherTime) {
     var rtn;
     if (!(otherTime instanceof FP_Time))

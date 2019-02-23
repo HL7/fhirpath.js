@@ -127,13 +127,39 @@ var deepEqual = function (actual, expected, opts) {
       let rtn = actual.equals(expected); // May return undefined
       if (opts.fuzzy && rtn === undefined && (actual instanceof FP_DateTime ||
           actual instanceof FP_Time)) {
-        rtn = false; // per rule about comparison
+        // The case where a DateTime or Time returns undefined for "equals"
+        // means there were differing precisions.  opts.fuzzy means we are doing
+        // equivalence (~) not equality (=), and in that case differing
+        // precisions should result in false.
+        rtn = false;
       }
       return rtn;
     }
-    else if (actualIsFPT || expectedIsFPT) // if only one is an FP_Type
-      return false;
-
+    else if (actualIsFPT || expectedIsFPT) { // if only one is an FP_Type
+      // See if the other is convertible.
+      let ftp, nonFTP;
+      if (actualIsFPT) {
+        ftp = actual;
+        nonFTP = expected;
+      }
+      else {
+        ftp = expected;
+        nonFTP = actual;
+      }
+      let rtn = typeof nonFTP === 'string';
+      if (rtn) {
+        let d = ftp.constructor.checkString(nonFTP);
+        if (d) {
+          rtn = ftp.equals(d);
+          if (opts.fuzzy && rtn === undefined &&
+              (actual instanceof FP_DateTime ||
+              actual instanceof FP_Time)) {
+            rtn = false;  // see note for similar case above
+          }
+        }
+      }
+      return rtn;
+    }
     // 7.4. For all other Object pairs, including Array objects, equivalence is
     // determined by having the same number of owned properties (as verified
     // with Object.prototype.hasOwnProperty.call), the same set of keys
