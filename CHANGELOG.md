@@ -5,11 +5,12 @@ This log documents significant changes for each release.  This project follows
 
 ## [0.11.0] - 2019-01-01
 ### Added
-- Supported for DateTime and Time literals, along with equality, equivalence,
-   and comparison operators.
+- Support for DateTime and Time literals, along with equality, equivalence,
+  and comparison operators.
 ### Changed
-- Strings in resources that match the DateTime or Time regular expressions in
-  FHIR are now interpreted as DateTimes and Times.
+- If a string is compared against a DateTime or Time, a check will be made to
+  see whether the string is convertible to a DateTime or Time, and if that is
+  possible the comparison will be made based on the result of that conversion.
 
 ## [0.10.0] - 2018-11-15
 ### Added
