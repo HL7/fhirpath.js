@@ -74,10 +74,10 @@ tests:
   - desc: '* Empty logic'
   - desc: '* xor ({} xor true)'
     expression: emp xor ok1
-    result: [true]
+    result: []
   - desc: '* xor (true xor {})'
     expression: ok1 xor emp
-    result: [true]
+    result: []
   - desc: '* xor ({} xor false)'
     expression: emp xor ups1
     result: []
