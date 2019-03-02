@@ -352,37 +352,7 @@ FP_Time.checkString = function(str) {
 }
 
 
-/**
- *  Adds types to a FHIR resource that was parsed from JSON.  Some types such as
- *  times are just represented as strings in the JSON format.
- * @param resource a FHIR resource.  This will be modified by this function.
- * @return the modified resource
- */
-/*
-function addTypes(resource) {
-  var rtn = resource;
-  // Eventually this might take a second optional parameter that would provide type
-  // information pulled from a specific version of FHIR.  In the absence of such
-  // information we will just guess based on what the strings look like.
-  if (resource instanceof Object && !(resource instanceof FP_Type)) {
-    let keys = Object.keys(resource);
-    for (let i=0, len=keys.length; i<len; ++i) {
-      let key = keys[i];
-      resource[key] = addTypes(resource[key]);
-    }
-  }
-  else if (typeof resource == "string") {
-    if (resource.match(fhirDateTimeRE))
-      rtn = new FP_DateTime(resource);
-    else if (resource.match(fhirTimeRE))
-      rtn = new FP_Time(resource);
-  }
-  return rtn;
-}
-*/
-
 module.exports = {
-//  addTypes: addTypes,
   FP_Type: FP_Type,
   FP_DateTime: FP_DateTime,
   FP_Time: FP_Time,
