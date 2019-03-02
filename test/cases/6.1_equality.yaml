@@ -615,7 +615,7 @@ tests:
 
 subject:
   resourceType: Ops
-  date1: 2018-02
+  date1: "2018-02"
   time1: "12:34:45"
   str1: string1
   str2: string2

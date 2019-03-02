@@ -358,6 +358,7 @@ FP_Time.checkString = function(str) {
  * @param resource a FHIR resource.  This will be modified by this function.
  * @return the modified resource
  */
+/*
 function addTypes(resource) {
   var rtn = resource;
   // Eventually this might take a second optional parameter that would provide type
@@ -378,10 +379,10 @@ function addTypes(resource) {
   }
   return rtn;
 }
-
+*/
 
 module.exports = {
-  addTypes: addTypes,
+//  addTypes: addTypes,
   FP_Type: FP_Type,
   FP_DateTime: FP_DateTime,
   FP_Time: FP_Time,

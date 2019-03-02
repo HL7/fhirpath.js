@@ -79,6 +79,10 @@ tests:
       result: [true]
 
     - desc: inequality
+      expression: "time.toTime() = @T18:15-05:00"
+      result: [false]
+
+    - desc: inequality operator
       expression: "time.toTime() != @T18:15-05:00"
       result: [true]
     focus: true

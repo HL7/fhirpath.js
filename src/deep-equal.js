@@ -137,20 +137,20 @@ var deepEqual = function (actual, expected, opts) {
     }
     else if (actualIsFPT || expectedIsFPT) { // if only one is an FP_Type
       // See if the other is convertible.
-      let ftp, nonFTP;
+      let fpt, nonFPT;
       if (actualIsFPT) {
-        ftp = actual;
-        nonFTP = expected;
+        fpt = actual;
+        nonFPT = expected;
       }
       else {
-        ftp = expected;
-        nonFTP = actual;
+        fpt = expected;
+        nonFPT = actual;
       }
-      let rtn = typeof nonFTP === 'string';
+      let rtn = typeof nonFPT === 'string';
       if (rtn) {
-        let d = ftp.constructor.checkString(nonFTP);
+        let d = fpt.constructor.checkString(nonFPT);
         if (d) {
-          rtn = ftp.equals(d);
+          rtn = fpt.equals(d);
           if (opts.fuzzy && rtn === undefined &&
               (actual instanceof FP_DateTime ||
               actual instanceof FP_Time)) {

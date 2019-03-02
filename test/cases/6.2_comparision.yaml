@@ -110,7 +110,49 @@ tests:
       - desc: Comparison based on the lesser precision (2)
         expression: '@2018 > @2017-01'
         result: [true]
-    - 'group:  DateTime, >':
+      - desc: Comparison with later Date from resource
+        expression: '@2018-12-21 > date'
+        result: [false]
+    - 'group:  Date >=':
+      - desc: Comparison with earlier Date
+        expression: '@2018 >= @2017'
+        result: [true]
+      - desc: Comparison with equal Date
+        expression: '@2018 >= @2018'
+        result: [true]
+      - desc: Comparison with later Date
+        expression: '@2018 >= @2019'
+        result: [false]
+      - desc: Comparison with earlier Date from resource
+        expression: '@2020 >= date'
+        result: [true]
+      - desc: Comparison with equal Date from resource
+        expression: '@2019-02-25 >= date'
+        result: [true]
+      - desc: Comparison with later Date from resource
+        expression: '@2018 >= date'
+        result: [false]
+    - 'group:  Date <=':
+      - desc: Comparison with earlier Date
+        expression: '@2018 <= @2017'
+        result: [false]
+      - desc: Comparison with equal Date
+        expression: '@2018 <= @2018'
+        result: [true]
+      - desc: Comparison with later Date
+        expression: '@2018 <= @2019'
+        result: [true]
+    - 'group:  Date <':
+      - desc: Comparison with earlier Date
+        expression: '@2018 < @2017'
+        result: [false]
+      - desc: Comparison with equal Date
+        expression: '@2018 < @2018'
+        result: [false]
+      - desc: Comparison with later Date
+        expression: '@2018 < @2019'
+        result: [true]
+    - 'group:  DateTime':
       - desc: Same date, same time
         expression: '@2018-12-21T12:01 > @2018-12-21T12:01'
         result: [false]
@@ -126,13 +168,28 @@ tests:
       - desc: Different dates & times (1)
         expression: '@2018-12-20T12:02 > @2018-12-21T12:01'
         result: [false]
+      - desc: Comparison with differnet precision (1)
+        expression: '@2018-12-20T12 > @2018-12-20T12:01'
+        result: [false]
+      - desc: Comparison with differnet precision (2)
+        expression: '@2018-12-20T12 > @2018-12-20T11:01'
+        result: [true]
       - desc: Time zone differences (1)
         expression: '@2018-12-21T12:02+03:00 > @2018-12-21T12:01+02:00'
         result: [false]
       - desc: Time zone differences (2)
         expression: '@2018-12-21T12:02+02:00 > @2018-12-21T12:01+03:00'
         result: [true]
-    - 'group:  Time, >':
+      - desc: Comparison with later Date from resource
+        expression: '@2018-12-21 < date'
+        result: [true]
+      - desc: Comparison with later DateTime from resource
+        expression: '@2018-12-21T12:02+02:00 < dateTime'
+        result: [true]
+      - desc: Comparison with later DateTime from resource (2)
+        expression: '@2018-12-21T12:02+02:00 > dateTime'
+        result: [false]
+    - 'group:  Time':
       - desc: Time comparison; GT (1)
         expression: '@T12:03 > @T12:01'
         result: [true]
@@ -154,9 +211,24 @@ tests:
       - desc: Time comparison with based on lesser precision (4)
         expression: '@T12:02:34.324+05:00 > @T12+05:00'
         result: [false]
-# TBD -- add more tests (date, times)
+      - desc: Comparison with later time in resource (1)
+        expression: '@T17:00-05:00 < timeWithT'
+        result: [true]
+      - desc: Comparison with later time in resource (2)
+        expression: '@T17:00-05:00 > timeWithT'
+        result: [false]
+      - desc: Comparison with later time in resource (3)
+        expression: '@T17:00-05:00 < timeWithOutT'
+        result: [true]
+      - desc: Comparison with later time in resource (4)
+        expression: '@T17:00-05:00 > timeWithOutT'
+        result: [false]
 
 subject:
+  date: "2019-02-25"
+  dateTime: "2019-02-25T17:01-05:00"
+  timeWithT: "T17:01-05:00"
+  timeWithOutT: "17:01-05:00"
   a: 1
   b: 2
   c: 2
