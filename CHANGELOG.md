@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.10.3] - 2019-03-07
+### Fixed
+ - bin/fhirpath now works after npm install.
+
 ## [0.10.2] - 2019-02-26
 ### Fixed
  - Corrected the behavior of xor with an empty set.
