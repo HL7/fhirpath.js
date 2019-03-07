@@ -1,17 +1,17 @@
 {
   "name": "fhirpath",
-  "version": "0.10.2",
+  "version": "0.10.3",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "dependencies": {
     "antlr4": "^4.7.1",
-    "commander": "^2.18.0"
+    "commander": "^2.18.0",
+    "js-yaml": "^3.12.0"
   },
   "devDependencies": {
     "babel-eslint": "^9.0.0",
     "eslint": "^5.2.0",
     "jest": "^24.1.0",
-    "js-yaml": "^3.12.0",
     "lodash": "^4.17.10",
     "tmp": "0.0.33",
     "webpack": "^4.16.3",
