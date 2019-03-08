@@ -12,6 +12,19 @@ This log documents significant changes for each release.  This project follows
   see whether the string is convertible to a DateTime or Time, and if that is
   possible the comparison will be made based on the result of that conversion.
 
+## [0.10.3] - 2019-03-07
+### Fixed
+ - bin/fhirpath now works after npm install.
+
+## [0.10.2] - 2019-02-26
+### Fixed
+ - Corrected the behavior of xor with an empty set.
+
+## [0.10.1] - 2019-01-04
+### Fixed
+ - Variables referenced in expressions are now only wrapped in arrays if they
+   are not already in an array.
+
 ## [0.10.0] - 2018-11-15
 ### Added
  - bin/fhirpath can now take a resource as a JSON string instead of a filename
