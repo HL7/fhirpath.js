@@ -57,16 +57,16 @@ function typecheck(a, b){
   let rClass = b.constructor;
   if (lClass != rClass) {
     // See if one is an FPDateTime or FTTime while the other is a string.
-    let fpt, str;
+    var d;
     if (lClass === String && (rClass === FP_DateTime || rClass === FP_Time)) {
-      var d = rClass.checkString(a);
+      d = rClass.checkString(a);
       if (d)
-        rtn = [d, b]
+        rtn = [d, b];
     }
     else if (rClass === String && (lClass===FP_DateTime || lClass===FP_Time)) {
-      var d = lClass.checkString(b);
+      d = lClass.checkString(b);
       if (d)
-        rtn = [a, d]
+        rtn = [a, d];
     }
 
     if (!rtn) {

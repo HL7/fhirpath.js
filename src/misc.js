@@ -73,9 +73,10 @@ engine.toString = function(coll){
 
 /**
  *  Defines a function on engine called to+timeType (e.g., toDateTime, etc.).
+ * @param timeType a class (contsructor) for a time type (e.g. DateTime).
  */
 function defineTimeConverter(timeType) {
-  timeName = timeType.name;
+  let timeName = timeType.name;
   if (timeName.indexOf('FP_') === 0)
     timeName = timeName.slice(3);
   engine['to'+timeName] = function(coll) {

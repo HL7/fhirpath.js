@@ -3,9 +3,11 @@ let timeFormat =
 let timeRE = new RegExp('^T?'+timeFormat+'$');
 let dateTimeRE = new RegExp(
   '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T'+timeFormat+')?)?)?Z?$');
-let fhirTimeRE = /([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?/;
-let fhirDateTimeRE =
-/([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1])(T([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?/;
+// FHIR date/time regular expressions are slightly different.  For now, we will
+// stick with the FHIRPath regular expressions.
+//let fhirTimeRE = /([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?/;
+//let fhirDateTimeRE =
+///([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1])(T([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?/;
 
 
 class FP_Type {
@@ -256,7 +258,7 @@ FP_DateTime.checkString = function(str) {
   if (!d._getMatchData())
     d = null;
   return d;
-}
+};
 
 
 
@@ -349,7 +351,7 @@ FP_Time.checkString = function(str) {
   if (!d._getMatchData())
     d = null;
   return d;
-}
+};
 
 
 module.exports = {
