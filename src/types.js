@@ -20,6 +20,15 @@ class FP_Type {
     return false;
   }
 
+  /**
+   *  Tests whether this object is equivalant to another.  Returns either true,
+   *  false, or undefined (where in the FHIRPath specification empty would be
+   *  returned).
+   */
+  equivalentTo(/* otherObj */) {
+    return false;
+  }
+
   toString() {
     return this.asStr ? this.asStr : super.toString();
   }
@@ -38,7 +47,7 @@ class FP_Type {
 }
 
 
-class TimeBase extends FP_Type {
+class FP_TimeBase extends FP_Type {
   constructor(timeStr) {
     super();
     this.asStr = timeStr;
@@ -150,7 +159,7 @@ class TimeBase extends FP_Type {
 }
 
 
-class FP_DateTime extends TimeBase {
+class FP_DateTime extends FP_TimeBase {
   /**
    *  Constructs an FP_DateTime, assuming dateStr is valid.  If you don't know
    *  whether a string is a valid DateTime, use FP_DateTime.checkString instead.
@@ -161,13 +170,65 @@ class FP_DateTime extends TimeBase {
 
 
   equals(otherDateTime) {
+    // From the 2019May ballot:
+    // For Date, DateTime and Time equality, the comparison is performed by
+    // considering each precision in order, beginning with years (or hours for
+    // time values), and respecting timezone offsets. If the values are the
+    // same, comparison proceeds to the next precision; if the values are
+    // different, the comparison stops and the result is false. If one input has
+    // a value for the precision and the other does not, the comparison stops
+    // and the result is empty ({ }); if neither input has a value for the
+    // precision, or the last precision has been reached, the comparison stops
+    // and the result is true.
+    // Note:  Per the spec above
+    //   2012-01 = 2012 //  empty
+    //   2012-01 = 2011 //  false
+    //   2012-01 ~ 2012 //  false
     var rtn;
     if (!(otherDateTime instanceof FP_DateTime))
       rtn = false;
-    else if (this._getPrecision() == otherDateTime._getPrecision())
-      rtn = this._getDateObj().getTime() == otherDateTime._getDateObj().getTime();
+    else {
+      var thisPrec = this._getPrecision();
+      var otherPrec = otherDateTime._getPrecision();
+      if (thisPrec == otherPrec)
+        rtn = this._getDateObj().getTime() == otherDateTime._getDateObj().getTime();
+      else {
+        // The dates are not equal, but decide whether to return empty or false.
+        var commonPrec = thisPrec <= otherPrec ? thisPrec : otherPrec;
+        // Adjust for timezone offsets, if any, so they are at a common timezone
+        var thisUTCStr = this._getDateObj().toISOString();
+        var otherUTCStr = otherDateTime._getDateObj().toISOString();
+        // Now parse the strings and compare the adjusted time parts.
+        var thisAdj = (new FP_DateTime(thisUTCStr))._getTimeParts();
+        var otherAdj = (new FP_DateTime(otherUTCStr))._getTimeParts();
+        for (var i=0; i<=commonPrec && rtn !== false; ++i) {
+          rtn = thisAdj[i] == otherAdj[i];
+        }
+        // if rtn is still true, then return empty to indicate the difference in
+        // precision.
+        if (rtn)
+          rtn = undefined;
+      }
+    }
+    // else return undefined (empty)
     return rtn;
   }
+
+
+  equivalentTo(otherDateTime) {
+    var rtn = otherDateTime instanceof FP_DateTime;
+    if (rtn) {
+      var thisPrec = this._getPrecision();
+      var otherPrec = otherDateTime._getPrecision();
+      rtn = thisPrec == otherPrec;
+      if (rtn) {
+        rtn = this._getDateObj().getTime() ==
+          otherDateTime._getDateObj().getTime();
+      }
+    }
+    return rtn;
+  }
+
 
   /**
    *  Returns -1, 0, or 1 if this date time is less then, equal to, or greater
@@ -233,14 +294,20 @@ class FP_DateTime extends TimeBase {
    */
   _dateAtPrecision(precision) {
     var timeParts = this._getTimeParts().slice(0, precision+1);
-    if (timeParts.length > 3) {
+    var timeZone = this._getMatchData()[7];
+    var hasTime = timeParts.length > 3;
+    if (hasTime) {
       timeParts[3] = 'T' + timeParts[3]; // restore the T removed before
       if (timeParts.length === 4)
-        timeParts[4] = ':00'; // Date constructor requires minutes if hour is present
+        timeParts[4] = ':00'; // Date constructor requires minutes with hour
+    }
+    else if (timeZone) {
+      // The date constructor requires a time if a time zone is present.
+      timeParts[3] = 'T00';
+      timeParts[4]= ':00';
     }
     var timeStr = timeParts.join('');
     if (timeParts.length > 3) { // has a time part
-      var timeZone = this._getMatchData()[7];
       if (timeZone)
         timeStr += timeZone;
     }
@@ -262,7 +329,7 @@ FP_DateTime.checkString = function(str) {
 
 
 
-class FP_Time extends TimeBase {
+class FP_Time extends FP_TimeBase {
   /**
    *  Constructs an FP_Time, assuming dateStr is valid.  If you don't know
    *  whether a string is a valid DateTime, use FP_Time.checkString instead.

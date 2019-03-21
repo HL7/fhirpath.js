@@ -156,9 +156,13 @@ tests:
         expression: '@2018 = @2017'
         result: [false]
 
-      - desc: 'DateTime literal compared with different precision DateTime'
+      - desc: 'DateTime literal compared with different precision DateTime (1)'
         expression: '@2018 = @2018-02'
         result: []
+
+      - desc: 'DateTime literal compared with different precision DateTime (2)'
+        expression: '@2018 = @2019-02'
+        result: [false]
 
       - desc:  'DateTime literal compared with DateTime (month)'
         expression: '@2018-02 = @2018-02'
@@ -184,9 +188,25 @@ tests:
         expression: '@2018-02-02T11 = @2018-02-02T12'
         result: [false]
 
+      - desc:  'DateTime literal compared with same time, diff. precision (hour)'
+        expression: '@2018-02-02T11 = @2018-02-02T11:00'
+        result: []
+
       - desc:  'DateTime literal compared with DateTime (hour, tz)'
         expression: '@2018-02-02T11+04:00 = @2018-02-02T11+04:00'
         result: [true]
+
+      - desc:  'DateTime literal compared with same DateTime (hour, tz different)'
+        expression: '@2018-02-02T22-04:00 = @2018-02-03T06+04:00'
+        result: [true]
+
+      - desc:  'DateTime literal compared with different precision DateTime (hour, tz diff)'
+        expression: '@2018-02-02T22-04:00 = @2018-02-03T06:03+04:00'
+        result: []
+
+      - desc:  'DateTime literal compared with different precision DateTime (hour, tz diff)'
+        expression: '@2018-02-02T22-04:00 = @2018-02-03T05:03+04:00'
+        result: [false]
 
       - desc:  'DateTime literal compared with different DateTime (hour,tz)'
         expression: '@2018-02-02T11+04:00 = @2018-02-02T12+04:00'
@@ -271,6 +291,7 @@ tests:
       - desc: 'Time literal compared with different precision time in resource'
         expression: '@T12 = time1'
         result: []
+      focus: true
 
 
   - 'group: 6.1.2. ~ (Equivalent)':

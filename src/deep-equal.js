@@ -124,15 +124,8 @@ var deepEqual = function (actual, expected, opts) {
     var actualIsFPT = actual instanceof FP_Type;
     var expectedIsFPT = expected instanceof FP_Type;
     if (actualIsFPT && expectedIsFPT) { // if both are FP_Type
-      let rtn = actual.equals(expected); // May return undefined
-      if (opts.fuzzy && rtn === undefined && (actual instanceof FP_DateTime ||
-          actual instanceof FP_Time)) {
-        // The case where a DateTime or Time returns undefined for "equals"
-        // means there were differing precisions.  opts.fuzzy means we are doing
-        // equivalence (~) not equality (=), and in that case differing
-        // precisions should result in false.
-        rtn = false;
-      }
+      let rtn = opts.fuzzy ? actual.equivalentTo(expected) :
+        actual.equals(expected); // May return undefined
       return rtn;
     }
     else if (actualIsFPT || expectedIsFPT) { // if only one is an FP_Type
@@ -150,12 +143,8 @@ var deepEqual = function (actual, expected, opts) {
       if (rtn) {
         let d = fpt.constructor.checkString(nonFPT);
         if (d) {
-          rtn = fpt.equals(d);
-          if (opts.fuzzy && rtn === undefined &&
-              (actual instanceof FP_DateTime ||
-              actual instanceof FP_Time)) {
-            rtn = false;  // see note for similar case above
-          }
+          rtn = opts.fuzzy ? actual.equivalentTo(d) :
+            actual.equals(d); // May return undefined
         }
       }
       return rtn;
