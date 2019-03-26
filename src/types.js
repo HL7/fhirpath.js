@@ -14,7 +14,9 @@ class FP_Type {
   /**
    *  Tests whether this object is equal to another.  Returns either true,
    *  false, or undefined (where in the FHIRPath specification empty would be
-   *  returned).
+   *  returned).  The undefined return value indicates that the values were the
+   *  same to the shared precision, but that they had differnent levels of
+   *  precision.
    */
   equals(/* otherObj */) {
     return false;
@@ -52,6 +54,63 @@ class FP_TimeBase extends FP_Type {
     super();
     this.asStr = timeStr;
   }
+
+  /**
+   *  Tests whether this object is equal to another.  Returns either true,
+   *  false, or undefined (where in the FHIRPath specification empty would be
+   *  returned).  The undefined return value indicates that the values were the
+   *  same to the shared precision, but that they had differnent levels of
+   *  precision.
+   * @param otherDateTime any sub-type of FP_TimeBase, but it should be the same
+   *  as the type of "this".
+   */
+  equals(otherDateTime) {
+    // From the 2019May ballot:
+    // For Date, DateTime and Time equality, the comparison is performed by
+    // considering each precision in order, beginning with years (or hours for
+    // time values), and respecting timezone offsets. If the values are the
+    // same, comparison proceeds to the next precision; if the values are
+    // different, the comparison stops and the result is false. If one input has
+    // a value for the precision and the other does not, the comparison stops
+    // and the result is empty ({ }); if neither input has a value for the
+    // precision, or the last precision has been reached, the comparison stops
+    // and the result is true.
+    // Note:  Per the spec above
+    //   2012-01 = 2012 //  empty
+    //   2012-01 = 2011 //  false
+    //   2012-01 ~ 2012 //  false
+    var rtn;
+    if (!(otherDateTime instanceof this.constructor))
+      rtn = false;
+    else {
+      var thisPrec = this._getPrecision();
+      var otherPrec = otherDateTime._getPrecision();
+      if (thisPrec == otherPrec)
+        rtn = this._getDateObj().getTime()==otherDateTime._getDateObj().getTime();
+      else {
+        // The dates are not equal, but decide whether to return empty or false.
+        var commonPrec = thisPrec <= otherPrec ? thisPrec : otherPrec;
+        // Adjust for timezone offsets, if any, so they are at a common timezone
+        var thisUTCStr = this._getDateObj().toISOString();
+        var otherUTCStr = otherDateTime._getDateObj().toISOString();
+        // Now parse the strings and compare the adjusted time parts.
+        var thisAdj = (new FP_DateTime(thisUTCStr))._getTimeParts();
+        var otherAdj = (new FP_DateTime(otherUTCStr))._getTimeParts();
+        if (this.constructor === FP_Time)
+          commonPrec += 3; // because we now have year, month, and day
+        for (var i=0; i<=commonPrec && rtn !== false; ++i) {
+          rtn = thisAdj[i] == otherAdj[i];
+        }
+        // if rtn is still true, then return empty to indicate the difference in
+        // precision.
+        if (rtn)
+          rtn = undefined;
+      }
+    }
+    // else return undefined (empty)
+    return rtn;
+  }
+
 
   /**
    *  Returns -1, 0, or 1 if this (date) time is less then, equal to, or greater
@@ -166,52 +225,6 @@ class FP_DateTime extends FP_TimeBase {
    */
   constructor(dateStr) {
     super(dateStr);
-  }
-
-
-  equals(otherDateTime) {
-    // From the 2019May ballot:
-    // For Date, DateTime and Time equality, the comparison is performed by
-    // considering each precision in order, beginning with years (or hours for
-    // time values), and respecting timezone offsets. If the values are the
-    // same, comparison proceeds to the next precision; if the values are
-    // different, the comparison stops and the result is false. If one input has
-    // a value for the precision and the other does not, the comparison stops
-    // and the result is empty ({ }); if neither input has a value for the
-    // precision, or the last precision has been reached, the comparison stops
-    // and the result is true.
-    // Note:  Per the spec above
-    //   2012-01 = 2012 //  empty
-    //   2012-01 = 2011 //  false
-    //   2012-01 ~ 2012 //  false
-    var rtn;
-    if (!(otherDateTime instanceof FP_DateTime))
-      rtn = false;
-    else {
-      var thisPrec = this._getPrecision();
-      var otherPrec = otherDateTime._getPrecision();
-      if (thisPrec == otherPrec)
-        rtn = this._getDateObj().getTime() == otherDateTime._getDateObj().getTime();
-      else {
-        // The dates are not equal, but decide whether to return empty or false.
-        var commonPrec = thisPrec <= otherPrec ? thisPrec : otherPrec;
-        // Adjust for timezone offsets, if any, so they are at a common timezone
-        var thisUTCStr = this._getDateObj().toISOString();
-        var otherUTCStr = otherDateTime._getDateObj().toISOString();
-        // Now parse the strings and compare the adjusted time parts.
-        var thisAdj = (new FP_DateTime(thisUTCStr))._getTimeParts();
-        var otherAdj = (new FP_DateTime(otherUTCStr))._getTimeParts();
-        for (var i=0; i<=commonPrec && rtn !== false; ++i) {
-          rtn = thisAdj[i] == otherAdj[i];
-        }
-        // if rtn is still true, then return empty to indicate the difference in
-        // precision.
-        if (rtn)
-          rtn = undefined;
-      }
-    }
-    // else return undefined (empty)
-    return rtn;
   }
 
 
@@ -338,19 +351,6 @@ class FP_Time extends FP_TimeBase {
     if (timeStr[0] == 'T')
       timeStr = timeStr.slice(1);
     super(timeStr);
-  }
-
-  /**
-   *  Returns times are equal have the same level of precision, empty if the
-   *  have different levels of precision, and false otherwise.
-   */
-  equals(otherTime) {
-    var rtn;
-    if (!(otherTime instanceof FP_Time))
-      rtn = false;
-    else if (this._getPrecision() == otherTime._getPrecision())
-      rtn = this._getDateObj().getTime() == otherTime._getDateObj().getTime();
-    return rtn;
   }
 
 
