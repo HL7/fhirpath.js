@@ -113,6 +113,25 @@ class FP_TimeBase extends FP_Type {
 
 
   /**
+   *  Tests whether this object is equivalant to another.  Returns either true
+   *  or false.
+   */
+  equivalentTo(otherDateTime) {
+    var rtn = otherDateTime instanceof this.constructor;
+    if (rtn) {
+      var thisPrec = this._getPrecision();
+      var otherPrec = otherDateTime._getPrecision();
+      rtn = thisPrec == otherPrec;
+      if (rtn) {
+        rtn = this._getDateObj().getTime() ==
+          otherDateTime._getDateObj().getTime();
+      }
+    }
+    return rtn;
+  }
+
+
+  /**
    *  Returns -1, 0, or 1 if this (date) time is less then, equal to, or greater
    *  than otherTime.  Comparisons are made at the lesser of the two time
    *  precisions.
@@ -225,21 +244,6 @@ class FP_DateTime extends FP_TimeBase {
    */
   constructor(dateStr) {
     super(dateStr);
-  }
-
-
-  equivalentTo(otherDateTime) {
-    var rtn = otherDateTime instanceof FP_DateTime;
-    if (rtn) {
-      var thisPrec = this._getPrecision();
-      var otherPrec = otherDateTime._getPrecision();
-      rtn = thisPrec == otherPrec;
-      if (rtn) {
-        rtn = this._getDateObj().getTime() ==
-          otherDateTime._getDateObj().getTime();
-      }
-    }
-    return rtn;
   }
 
 

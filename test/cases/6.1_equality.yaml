@@ -280,6 +280,14 @@ tests:
         expression: '@T10:04:23-04:00 = @T14:04:24Z'
         result: [false]
 
+      - desc: 'Same time, different timezone and precision'
+        expression: '@T10:04:23-04:00 = @T14:04Z'
+        result: []
+
+      - desc: 'Different time and different precision'
+        expression: '@T10:05:23-04:00 = @T14:04Z'
+        result: [false]
+
       - desc: 'Time literal compared with same time in resource'
         expression: '@T12:34:45 = time1'
         result: [true]
@@ -410,6 +418,7 @@ tests:
       - desc: 'Time literal compared with different precision time in resource'
         expression: '@T12:34:46.123 ~ time1'
         result: [false]
+      focus: true
 
   # If both operands are collections with multiple items:
 
@@ -511,9 +520,17 @@ tests:
         expression: '@2018 != @2017'
         result: [true]
 
-      - desc: 'DateTime literal compared with different precision DateTime'
+      - desc: 'DateTime literal compared with different precision DateTime (1)'
         expression: '@2018 != @2018-02'
         result: []
+
+      - desc: 'DateTime literal compared with different precision DateTime (2)'
+        expression: '@2018 != @2018-01'
+        result: []
+
+      - desc: 'DateTime literal compared with different precision DateTime (3)'
+        expression: '@2018-02-03 != @2018-01'
+        result: [true]
 
       - desc: 'DateTime literal compared with same DateTime in resource'
         expression: '@2018-02 != date1'
@@ -551,10 +568,13 @@ tests:
         expression: '@T12:35:46 != time1'
         result: [true]
 
-      - desc: 'Time literal compared with different precision time in resource'
+      - desc: 'Time literal compared with different precision time in resource (1)'
         expression: '@T12:34 != time1'
         result: []
-
+      - desc: 'Time literal compared with different precision time in resource (2)'
+        expression: '@T12:35 != time1'
+        result: [true]
+      focus: true
 
   - 'group: 6.1.4. !~ (Not Equivalent)':
 # The inverse of the equivalent operator.
@@ -567,8 +587,12 @@ tests:
         expression: '@2018 !~ @2017'
         result: [true]
 
-      - desc: 'DateTime literal compared with different precision DateTime'
+      - desc: 'DateTime literal compared with different precision DateTime (1)'
         expression: '@2018 !~ @2018-02'
+        result: [true]
+
+      - desc: 'DateTime literal compared with different precision DateTime (2)'
+        expression: '@2019 !~ @2018-02'
         result: [true]
 
       - desc: 'DateTime literal compared with same DateTime in resource'
@@ -607,10 +631,13 @@ tests:
         expression: '@T12:35:46 !~ time1'
         result: [true]
 
-      - desc: 'Time literal compared with different precision time in resource'
+      - desc: 'Time literal compared with different precision time in resource (1)'
         expression: '@T12:34 !~ time1'
         result: [true]
-
+      - desc: 'Time literal compared with different precision time in resource (2)'
+        expression: '@T12:35 !~ time1'
+        result: [true]
+      focus: true
 
 
     - desc: '* collections for equivalence { } !~ { } will result in true.'
