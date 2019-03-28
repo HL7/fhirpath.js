@@ -268,6 +268,10 @@ tests:
         expression: '@2018 = int1'
         result: [false]
 
+      - desc: 'DateTime literal compared with a string literal'
+        expression: "@2018 = 'zzz'"
+        result: [false]
+
       - desc: 'Time literal compared with same time in different timezone'
         expression: '@T10:04:23-04:00 = @T18:04:23+04:00'
         result: [true]

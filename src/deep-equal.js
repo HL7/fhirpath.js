@@ -146,6 +146,8 @@ var deepEqual = function (actual, expected, opts) {
           rtn = opts.fuzzy ? actual.equivalentTo(d) :
             fpt.equals(d); // May return undefined
         }
+        else
+          rtn = false; // not a date string
       }
       return rtn;
     }
