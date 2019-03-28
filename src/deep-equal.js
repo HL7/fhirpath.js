@@ -144,7 +144,7 @@ var deepEqual = function (actual, expected, opts) {
         let d = fpt.constructor.checkString(nonFPT);
         if (d) {
           rtn = opts.fuzzy ? actual.equivalentTo(d) :
-            actual.equals(d); // May return undefined
+            fpt.equals(d); // May return undefined
         }
       }
       return rtn;

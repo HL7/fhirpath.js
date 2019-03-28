@@ -248,8 +248,12 @@ tests:
         expression: '@2018-02-02T11:01:03.123+02:00 = @2018-02-02T11:01:03.123+04:00'
         result: [false]
 
-      - desc: 'DateTime literal compared with same DateTime in resource'
+      - desc: 'DateTime literal compared with same DateTime in resource (1)'
         expression: '@2018-02 = date1'
+        result: [true]
+
+      - desc: 'DateTime literal compared with same DateTime in resource (2)'
+        expression: 'date1 = @2018-02'
         result: [true]
 
       - desc: 'DateTime literal compared with different DateTime in resource'
