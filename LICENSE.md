@@ -1,9 +1,9 @@
 # LICENSE
 
-Owner Notice: The software, fhirpath.js, was jointly developed and is co-owned by
-the Lister Hill National Center for Biomedical Communications (LHNCBC), a
-research and development division of the U.S. National Library of Medicine
-(NLM), and niquola@gmail.com (Health Samurai).
+The software, fhirpath.js, was jointly developed by the Lister Hill National
+Center for Biomedical Communications (LHNCBC), a research and development
+division of the U.S. National Library of Medicine (NLM), and niquola@gmail.com
+(Health Samurai).
 
 The following terms and conditions are based on the BSD open-source license.
 
@@ -14,11 +14,13 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted for commercial and non-commercial purposes and products alike,
 provided that the following conditions are met:
 
-  * Redistributions of source code shall retain the above Owner Notice, this
-  list of conditions and the following disclaimer.
-  * Redistributions in binary form shall reproduce the above Owner Notice, this
-  list of conditions and the following disclaimer in the documentation and/or
-  other materials provided with the distribution.
+  * Redistributions of source code shall retain this license file, including the
+  list of contributing developers and organizations, this list of conditions and
+  the following disclaimer.
+  * Redistributions in binary form shall include this license file, including the
+  list of contributing developers and organizations, this list of conditions and
+  the following disclaimer, in the documentation and/or other materials provided
+  with the distribution.
   * Neither the names of the National Library of Medicine (NLM), the Lister Hill
   National Center for Biomedical Communications (LHNCBC), the National
   Institutes of Health (NIH), nor the names of any of the software contributors
