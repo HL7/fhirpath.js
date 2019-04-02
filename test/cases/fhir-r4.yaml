@@ -433,7 +433,6 @@ tests:
           - true
       - desc: '** testLiteralDate'
         inputfile: patient-example.json
-        disable: true
         expression: now() > Patient.birthDate
         result:
           - true
@@ -1568,7 +1567,6 @@ tests:
         expression: now().toString().length() > 10
         result:
           - true
-    disable: true
   - 'group: testEquality':
       - desc: '** test'
         inputfile: patient-example.json
