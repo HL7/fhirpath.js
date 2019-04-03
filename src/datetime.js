@@ -15,7 +15,6 @@ function formatNum(num, len) {
   var rtn = num;
   if (len === 3 && num < 100)
     rtn = '0' + num;
-  // else assume len === 2
   if (num < 10)
     rtn = '0' + rtn;
   return rtn;

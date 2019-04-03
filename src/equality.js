@@ -40,9 +40,9 @@ engine.unequival = function(a, b){
 /**
  *  Checks that the types of a and b are suitable for comparison in an
  *  inequality expression.
- * @param a the left side of the inequality expression (which should an array of
+ * @param a the left side of the inequality expression (which should be an array of
  *  one value).
- * @param b the right side of the inequality expression (which should an array of
+ * @param b the right side of the inequality expression (which should be an array of
  *  one value).
  * @return the singleton values of the arrays a, and b.  If one was an FP_Type
  *  and the other was convertible, the coverted value will be retureed.
