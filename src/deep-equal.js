@@ -4,8 +4,6 @@
 
 var types = require('./types');
 var FP_Type = types.FP_Type;
-var FP_DateTime = types.FP_DateTime;
-var FP_Time = types.FP_Time;
 var pSlice = Array.prototype.slice;
 var objectKeys = Object.keys;
 var isArguments = function (object) {
