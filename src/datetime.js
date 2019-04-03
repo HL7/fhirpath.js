@@ -22,6 +22,9 @@ function formatNum(num, len) {
 }
 
 
+/**
+ *  Implements FHIRPath now().
+ */
 engine.now = function(){
   // return new FP_DateTime((new Date()).toISOString());
   // The above would construct an FP_DateTime with a timezone of "Z", which
@@ -48,9 +51,17 @@ engine.now = function(){
     mil + tzSign + tzHour + ':' + formatNum(tzMin));
 };
 
-engine.today = function(){
 
-  // TBD - implement before PR
+/**
+ *  Implements FHIRPath today().  See comments in now().
+ */
+engine.today = function(){
+  // Construct the string ourselves to preserve timezone
+  var now = new Date();
+  var year = now.getFullYear();
+  var month = formatNum(now.getMonth() + 1);
+  var day = formatNum(now.getDate());
+  return new FP_DateTime(''+year+'-'+month+'-'+day);
 };
 
 module.exports = engine;
