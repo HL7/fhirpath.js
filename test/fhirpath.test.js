@@ -14,8 +14,7 @@ const focusFile = /.*.yaml/;
 
 
 const endWith = (s, postfix) => {
-  const idx = s.indexOf(postfix);
-  return (idx > 0 && idx === s.length - postfix.length);
+  return s.length >= postfix.length && s.substr(-postfix.length) === postfix;
 };
 
 const resources = {};
