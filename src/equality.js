@@ -39,7 +39,8 @@ engine.unequival = function(a, b){
 
 /**
  *  Checks that the types of a and b are suitable for comparison in an
- *  inequality expression.
+ *  inequality expression.  It is assumed that a check has already been made
+ *  that there is at least one value in a and b.
  * @param a the left side of the inequality expression (which should be an array of
  *  one value).
  * @param b the right side of the inequality expression (which should be an array of
