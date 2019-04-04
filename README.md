@@ -5,7 +5,7 @@
 [FHIRPath](http://hl7.org/fhirpath/) implementation in JavaScript.
 
 ## Demo
-Try it out on the [demo page](https://lhncbc.github.io/fhirpath.js/).
+Try it out on the [demo page](https://hl7.github.io/fhirpath.js/).
 
 
 
@@ -24,7 +24,7 @@ const fhirpath = require('fhirpath');
 ### Web-browser:
 
 Download the zip file from the [releases
-page](https://github.com/lhncbc/fhirpath.js/releases).  It contains a JavaScript
+page](https://github.com/HL7/fhirpath.js/releases).  It contains a JavaScript
 file, fhirpath.min.js, which defines a global "fhirpath" variable, which you can
 then use as shown below.
 

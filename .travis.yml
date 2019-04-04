@@ -20,7 +20,7 @@ deploy:
     on:
       branch: master
       tags: true
-      repo: lhncbc/fhirpath.js
+      repo: HL7/fhirpath.js
   - provider: pages
     local-dir: demo/build
     skip-cleanup: true
