@@ -12,6 +12,7 @@ This log documents significant changes for each release.  This project follows
   see whether the string is convertible to a DateTime or Time, and if that is
   possible the comparison will be made based on the result of that conversion.
 
+
 ## [0.10.3] - 2019-03-07
 ### Fixed
  - bin/fhirpath now works after npm install.
