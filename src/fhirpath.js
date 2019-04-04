@@ -43,6 +43,9 @@ let strings   = require("./strings");
 let navigation= require("./navigation");
 let datetime  = require("./datetime");
 let logic  = require("./logic");
+let types = require("./types");
+let FP_DateTime = types.FP_DateTime;
+let FP_Time = types.FP_Time;
 
 // * fn: handler
 // * arity: is index map with type signature
@@ -80,6 +83,8 @@ engine.invocationTable = {
   toInteger:    {fn: misc.toInteger},
   toDecimal:    {fn: misc.toDecimal},
   toString:     {fn: misc.toString},
+  toDateTime:   {fn: misc.toDateTime},
+  toTime:       {fn: misc.toTime},
 
   indexOf:        {fn: strings.indexOf,          arity: {1: ["String"]}},
   substring:      {fn: strings.substring,        arity: {1: ["Integer"], 2: ["Integer","Integer"]}},
@@ -162,6 +167,16 @@ engine.BooleanLiteral = function(ctx, parentData, node) {
   } else {
     return [false];
   }
+};
+
+engine.DateTimeLiteral = function(ctx, parentData, node) {
+  var dateStr = node.text.slice(1); // Remove the @
+  return [new FP_DateTime(dateStr)];
+};
+
+engine.TimeLiteral = function(ctx, parentData, node) {
+  var timeStr = node.text.slice(1); // Remove the @
+  return [new FP_Time(timeStr)];
 };
 
 engine.NumberLiteral = function(ctx, parentData, node) {
@@ -474,6 +489,7 @@ var parse = function(path) {
  *  Applies the given parsed FHIRPath expression to the given resource,
  *  returning the result of doEval.
  * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
+ *  This resource will be modified by this function to add type information.
  * @param {string} parsedPath - fhirpath expression, sample 'Patient.name.given'
  * @param {object} context - a hash of variable name/value pairs.
  */
@@ -492,6 +508,7 @@ function applyParsedPath(resource, parsedPath, context) {
  *  Evaluates the "path" FHIRPath expression on the given resource, using data
  *  from "context" for variables mentioned in the "path" expression.
  * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
+ *  This resource will be modified by this function to add type information.
  * @param {string} path - fhirpath expression, sample 'Patient.name.given'
  * @param {object} context - a hash of variable name/value pairs.
  */

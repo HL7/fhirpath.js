@@ -7,8 +7,8 @@ tests:
           - '1974-12-25'
       - desc: '** patient has a birthDate'
         inputfile: patient-example.json
-        disable: true
         expression: birthDate
+        disable: true
         result:
           - true
       - desc: '** patient telecom types'
@@ -386,7 +386,6 @@ tests:
         expression: Observation.value.value < 'test'
       - desc: '** testLiteralDate'
         inputfile: patient-example.json
-        disable: true
         expression: Patient.birthDate = @1974-12-25
         result:
           - true
@@ -428,13 +427,11 @@ tests:
           - true
       - desc: '** testLiteralDate'
         inputfile: patient-example.json
-        disable: true
         expression: Patient.birthDate < today()
         result:
           - true
       - desc: '** testLiteralDate'
         inputfile: patient-example.json
-        disable: true
         expression: now() > Patient.birthDate
         result:
           - true
@@ -1557,7 +1554,6 @@ tests:
         expression: today().toString().length() = 10
         result:
           - true
-    disable: true
   - 'group: testNow':
       - desc: '** test'
         inputfile: patient-example.json
@@ -1569,7 +1565,6 @@ tests:
         expression: now().toString().length() > 10
         result:
           - true
-    disable: true
   - 'group: testEquality':
       - desc: '** test'
         inputfile: patient-example.json

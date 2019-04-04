@@ -1,6 +1,6 @@
 # fhirpath.js
 
-[![Build Status](https://travis-ci.org/lhncbc/fhirpath.js.svg?branch=master)](https://travis-ci.org/lhncbc/fhirpath.js)
+[![Build Status](https://travis-ci.org/HL7/fhirpath.js.svg?branch=master)](https://travis-ci.org/HL7/fhirpath.js)
 
 [FHIRPath](http://hl7.org/fhirpath/) implementation in JavaScript.
 
@@ -32,6 +32,7 @@ then use as shown below.
 ```
 // Evaluating FHIRPath
 // API: evaluate(resourceObject, fhirPathExpression, environment)
+// Note:  The resource will be modified by this function to add type information.
 fhirpath.evaluate({"resourceType": "Patient", ...}, 'Patient.name.given');
 
 // Environment variables can be passed in as third argument as a hash of
@@ -45,7 +46,7 @@ var res2 = path({"resourceType": "Patient", ...});
 ```
 
 
-## fhirpath CLI 
+## fhirpath CLI
 
 bin/fhirpath is a command-line tool for experimenting with FHIRPath.
 
@@ -109,6 +110,7 @@ Completed sections:
 - 5.7 (Tree Navigation)
 - 5.8 (Utility Functions)
 - 6.1 (Equality)
+- 6.2 (Comparison)
 - 6.4 (Collections)
 - 6.5 (Boolean logic)
 - 6.6 (Math)
@@ -116,18 +118,13 @@ Completed sections:
 - 7   (Lexical Elements) - handled by ANTLR parser
 - 8   (Environment Variables)
 
-Partially completed sections:
-- 6.2 (Comparison) - type checking is not completely performed, and dates are
-  treated as strings (for now).
-
 We are deferring handling information about FHIR resources, as much as
 possible.  This affects implementation of the following sections:
 - 6.3 (Types) - deferred
-
-Deviations:
-- The library compares dateTime strings as strings, because it does not know
-  which strings are dates.  If your times consistently use "Z" for their
-  timezone, or consistently avoid using "Z", this should not cause a problem.
+Also, because in JSON DateTime and Time types are represented as strings, if a
+string in a resource looks like a DateTime or Time (matches the regular
+expression defined for those types in FHIR), the string will be interpreted as a
+DateTime or Time.
 
 ## Development Notes
 
@@ -143,9 +140,9 @@ the root of the project directory, and then run "npm run generateParser".
 ### Building the demo page
 
 ```
-npm run build
+npm install && npm run build
 cd demo
-npm install && npm run start
+npm install && npm run build && npm run start
 ```
 
 open browser on localhost:8080

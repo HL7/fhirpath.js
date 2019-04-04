@@ -63,6 +63,30 @@ tests:
     expression: decstr.toDecimal()
     result: [101.99]
 
+  - 'group: toDateTime':
+    - desc: equality
+      expression: "datetime.toDateTime() = @2019-02-06T19:17-05:00"
+      result: [true]
+
+    - desc: inequality
+      expression: "datetime.toDateTime() = @2010-02-06T19:17-05:00"
+      result: [false]
+    focus: true
+
+  - 'group: toTime':
+    - desc: equality
+      expression: "time.toTime() = @T19:15-05:00"
+      result: [true]
+
+    - desc: inequality
+      expression: "time.toTime() = @T18:15-05:00"
+      result: [false]
+
+    - desc: inequality operator
+      expression: "time.toTime() != @T18:15-05:00"
+      result: [true]
+    focus: true
+
 
   - desc: '5.5.4. toString() : string'
 # If the input collection contains a single item, this function will return a single string if:
@@ -111,6 +135,8 @@ subject:
   intstr: '101'
   decstr: '101.99'
   attrdec: 101.99
+  datetime:  "2019-02-06T19:17-05:00"
+  time:  "T19:15-05:00"
   attrsingle:
     - 1
   coll1:
