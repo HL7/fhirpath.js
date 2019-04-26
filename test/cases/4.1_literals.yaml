@@ -1,5 +1,8 @@
 tests:
   - expression: '{}'
     result: []
+  - expression: "'a\\\\b\\'\\\"\\`\\r\\n\\t\\u0065'" # double escape for YAML
+    result: ["a\\b'\"`\r\n\te"]
+    focus: true
 subject:
   prop: val
