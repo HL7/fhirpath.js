@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.11.0] - 2019-04-26
+### Added
+- Added support for string escape sequences (which was also needed for regex
+  escapes).
+
 ## [0.10.1] - 2019-01-04
 ### Fixed
  - Variables referenced in expressions are now only wrapped in arrays if they
