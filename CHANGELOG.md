@@ -3,10 +3,29 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [0.11.0] - 2019-04-26
+## [0.12.0] - 2019-04-26
 ### Added
 - Added support for string escape sequences (which was also needed for regex
   escapes).
+
+## [0.11.0] - 2019-03-08
+### Added
+- Support for DateTime and Time literals, along with equality, equivalence,
+  and comparison operators.
+### Changed
+- If a string is compared against a DateTime or Time, a check will be made to
+  see whether the string is convertible to a DateTime or Time, and if that is
+  possible the comparison will be made based on the result of that conversion.
+
+
+## [0.10.3] - 2019-03-07
+### Fixed
+ - bin/fhirpath now works after npm install.
+
+## [0.10.2] - 2019-02-26
+### Fixed
+ - Corrected the behavior of xor with an empty set.
+>>>>>>> master
 
 ## [0.10.1] - 2019-01-04
 ### Fixed

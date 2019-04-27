@@ -9,14 +9,13 @@ const _    = require('lodash');
 const items = fs.readdirSync(__dirname + '/cases/');
 
 // Set "focus" to true to turn on focus option
+const focus = false;
+const focusFile = /.*.yaml/;
+
 
 const endWith = (s, postfix) => {
-  const idx = s.indexOf(postfix);
-  return (idx > 0 && idx === s.length - postfix.length);
+  return s.length >= postfix.length && s.substr(-postfix.length) === postfix;
 };
-
-const focus = false;
-const focusFile = /\*.yaml/;
 
 const resources = {};
 
@@ -120,7 +119,7 @@ const generateSuite = (fileName, testcase) => {
   if((focus && focusFile.test(fileName)) || !focus) {
     return describe(fileName, () => testcase.tests.map(item => addType(item)).forEach(test => {
       const testResource = testcase.subject;
-        isGroup(test)
+      isGroup(test)
         ? generateGroup(test, testResource)
         : generateTest(test, testResource);
     }));
