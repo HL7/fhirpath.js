@@ -30,37 +30,37 @@ const transform = (node) => {
   return Object.keys(node).reduce((acc, key) => {
 
     switch(key) {
-    case 'tests':
-      return { tests: transform(node[key]) };
+      case 'tests':
+        return { tests: transform(node[key]) };
 
-    case 'group':
-      return [...acc, ...node[key].map(item =>
-        ({ [`group: ${item['$'].name}`]: transform(_.pick(item, 'test')) }))];
+      case 'group':
+        return [...acc, ...node[key].map(item =>
+          ({ [`group: ${item['$'].name}`]: transform(_.pick(item, 'test')) }))];
 
-    case 'test':
-      return [...acc, ...node[key].map(item => transform(item))];
+      case 'test':
+        return [...acc, ...node[key].map(item => transform(item))];
 
-    case '$': {
-      const value = node[key];
-      const updated = { desc: `** ${node[key].name || 'test'}` };
-      if (_.has(value, 'inputfile')) {
-        updated.inputfile = value.inputfile.replace(/.xml$/, '.json');
+      case '$': {
+        const value = node[key];
+        const updated = { desc: `** ${node[key].name || 'test'}` };
+        if (_.has(value, 'inputfile')) {
+          updated.inputfile = value.inputfile.replace(/.xml$/, '.json');
+        }
+        return updated;
       }
-      return updated;
-    }
-    case 'expression': {
-      const value = _.first(node[key]);
-      const updated = { ...acc, [key]: value['_'] };
-      if (_.has(value, ['$', 'invalid'])) {
-        updated.error = true;
+      case 'expression': {
+        const value = _.first(node[key]);
+        const updated = { ...acc, [key]: value['_'] };
+        if (_.has(value, ['$', 'invalid'])) {
+          updated.error = true;
+        }
+        return updated;
       }
-      return updated;
-    }
-    case 'output':
-      return { ...acc, result: node[key].map(({ '$': { type }, '_': value = '' }) => castValue(value, type)) };
-    default:
-      console.log('Warning, unhandled node');
-      return acc;
+      case 'output':
+        return { ...acc, result: node[key].map(({ '$': { type }, '_': value = '' }) => castValue(value, type)) };
+      default:
+        console.log('Warning, unhandled node');
+        return acc;
     }
   }, []);
 };
