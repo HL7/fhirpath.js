@@ -49,6 +49,14 @@ class FP_Type {
 }
 
 
+class FP_Quantity extends FP_Type {
+  constructor(value, unit) {
+    super();
+    this.asStr = value + ' ' + unit;
+  }
+}
+
+
 class FP_TimeBase extends FP_Type {
   constructor(timeStr) {
     super();
@@ -429,6 +437,7 @@ module.exports = {
   FP_Type: FP_Type,
   FP_DateTime: FP_DateTime,
   FP_Time: FP_Time,
+  FP_Quantity: FP_Quantity,
   timeRE: timeRE,
   dateTimeRE: dateTimeRE
 };
