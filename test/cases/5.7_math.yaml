@@ -11,6 +11,14 @@ tests:
     expression: Math.n3.ln(n4)
     error: true
   
+  - desc: '5.7.6  log(base : Decimal) : Decimal'
+  - desc: '** Can take the logarithm of the number with a given base'
+    expression: Math.n4.log(2)
+    result: [3]
+  - desc: '** Empty result when taking logarithm from empty collection'
+    expression: Math.n2.log(8)
+    result: []
+    
 subject:
   resourceType: Math
   n1: 1

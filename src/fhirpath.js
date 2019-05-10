@@ -97,6 +97,7 @@ engine.invocationTable = {
   length:         {fn: strings.length },
 
   ln:             {fn: math.natlog},
+  log:            {fn: math.baselog, arity:  {1: ["Number"]}, nullable: true},
 
   now:            {fn: datetime.now },
   today:          {fn: datetime.today },

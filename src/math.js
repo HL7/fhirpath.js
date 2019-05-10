@@ -54,4 +54,8 @@ engine.natlog = function(x){
   }
 };
 
+engine.baselog = function(x, y){
+  return (Math.log(x) / Math.log(y));
+};
+
 module.exports = engine;
