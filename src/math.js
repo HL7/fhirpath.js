@@ -46,5 +46,12 @@ engine.mod = function(x, y){
   return x % y;
 };
 
+engine.natlog = function(x){
+  if (x.length > 0){
+    return Math.log(x);
+  }else{
+    return [];
+  }
+};
 
 module.exports = engine;

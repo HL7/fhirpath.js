@@ -1,0 +1,19 @@
+tests:
+  - desc: '5.7 Math'
+  - desc: '5.7.5 ln() : Decimal'
+  - desc: '** Can take the natural logarithm of the number'
+    expression: Math.n1.ln()
+    result: [0]
+  - desc: '** Empty result when taking logarithm from empty collection'
+    expression: Math.n2.ln()
+    result: []
+  - desc: '** Error taking logarithm due to too many input parameters'
+    expression: Math.n3.ln(n4)
+    error: true
+  
+subject:
+  resourceType: Math
+  n1: 1
+  n2: []
+  n3: 2
+  n4: 8
