@@ -42,6 +42,6 @@
   "bin": {
     "fhirpath": "bin/fhirpath"
   },
-  "repository": "github:lhncbc/fhirpath.js",
+  "repository": "github:HL7/fhirpath.js",
   "license": "MIT"
 }
