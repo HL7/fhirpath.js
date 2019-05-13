@@ -18,6 +18,9 @@ tests:
   - desc: '** Empty result when taking logarithm from empty collection'
     expression: Math.n2.log(8)
     result: []
+  - desc: '** Empty result when taking logarithm with empty base'
+    expression: Math.n3.log()
+    result: []
     
 subject:
   resourceType: Math
