@@ -6,6 +6,13 @@
 
 var engine = {};
 
+function ensureNumberSingleton(x){
+  if(x.length == 1 && typeof x[0] === "number") {
+    return x[0];
+  }
+  throw new Error("Expected number, but got " + JSON.stringify(x));
+}
+
 engine.amp = function(x, y){
   return (x || "") + (y || "");
 };
@@ -48,14 +55,16 @@ engine.mod = function(x, y){
 
 engine.natlog = function(x){
   if (x.length > 0){
-    return Math.log(x);
+    let num = ensureNumberSingleton(x);
+    return Math.log(num);
   }else{
     return [];
   }
 };
 
 engine.baselog = function(x, base){
-  return (Math.log(x) / Math.log(base));
+  let num = ensureNumberSingleton(x);
+  return (Math.log(num) / Math.log(base));
 };
 
 module.exports = engine;

@@ -10,6 +10,9 @@ tests:
   - desc: '** Error taking logarithm due to too many input parameters'
     expression: Math.n3.ln(n4)
     error: true
+  - desc: '** Error taking logarithm if the input collection contains multiple items'
+    expression: Math.arr.ln()
+    error: true
   
   - desc: '5.7.6  log(base : Decimal) : Decimal'
   - desc: '** Can take the logarithm of the number with a given base'
@@ -19,8 +22,11 @@ tests:
     expression: Math.n2.log(8)
     result: []
   - desc: '** Empty result when taking logarithm with empty base'
-    expression: Math.n3.log()
+    expression: Math.n3.log(n2)
     result: []
+  - desc: '** Error taking logarithm if the input collection contains multiple items'
+    expression: Math.arr.log(16)
+    error: true
     
 subject:
   resourceType: Math
@@ -28,3 +34,4 @@ subject:
   n2: []
   n3: 2
   n4: 8
+  arr: [3, 5]
