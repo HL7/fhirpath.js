@@ -29,13 +29,24 @@ function evaluate(){
   try  {
     var inputType = document.querySelector('input[name="inputType"]:checked').value
     var inputText = cm.getValue();
-    var res = inputType === 'yaml' ? yaml.safeLoad(inputText) : JSON.parse(inputText);
-    console.log(pathNode.value, res);
-    var result = fhirpath.evaluate(res, pathNode.value);
-    outNode.innerHTML = '<pre />';
-    outNode.childNodes.item(0).textContent = yaml.dump(result);
+    var expr = pathNode.value;
+    if (expr.trim() != '') {
+      var res = inputType === 'yaml' ? yaml.safeLoad(inputText) : JSON.parse(inputText);
+      console.log(pathNode.value, res);
+      var result = fhirpath.evaluate(res, expr);
+      outNode.innerHTML = '<pre />';
+      // yaml.dump will pick up internal keys, e.g. "asStr" in the FP_Type
+      // objects (dates and times).  Apparently, toString() is not called on the
+      // objects during yaml.dump, so we take care of that by calling toJSON
+      // first, parsing that, and then creating the yaml output.
+      outNode.childNodes.item(0).textContent =
+      yaml.dump(JSON.parse(JSON.stringify(result)));
+    }
   } catch (e) {
-    outNode.innerHTML = '<pre style="color: red;" />';
+
+    outNode.innerHTML = '<div style="color: red;" />';
+    var msg = e.toString();
+    msg.replace(/\n/, '<br>');
     outNode.childNodes.item(0).textContent = e.toString();
     console.error(e);
   }

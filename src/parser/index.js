@@ -85,8 +85,8 @@ var parse = function(path){
     let errMsgs = [];
     for (let i=0, len=errors.length; i<len; ++i) {
       let err = errors[i];
-      errMsgs.push("rec: "+err[0]+"; sym: "+err[1]+"; line: "+err[2]+"; col: "+
-        err[3]+"; msg: "+err[4]+"; e: "+err[5]);
+      let msg = "line: "+err[2]+"; column: "+ err[3]+"; message: "+err[4];
+      errMsgs.push(msg);
     }
     var e = new Error(errMsgs.join("\n"));
     e.errors = errors;

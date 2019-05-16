@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.12.2] - 2019-05-15
+### Fixed
+- Corrected output in the demo website for results containing dates and times.
+- Cleaned up the error message output for parsing errors.
+
 ## [0.12.1] - 2019-05-13
 ### Fixed
 - Updated links to the repository to point to the new location.
