@@ -159,7 +159,7 @@ engine.LiteralTerm = function(ctx, parentData, node) {
 };
 
 engine.StringLiteral = function(ctx, parentData, node) {
-  // Remote the beginning and ending quotes.
+  // Remove the beginning and ending quotes.
   var rtn = node.text.replace(/(^['"]|['"]$)/g, "");
   rtn = rtn.replace(/\\(u\d{4}|.)/g, function(match, submatch) {
     switch(match) {
