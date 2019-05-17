@@ -7,10 +7,15 @@
 var engine = {};
 
 function ensureNumberSingleton(x){
-  if(x.length == 1 && typeof x[0] === "number") {
-    return x[0];
+  if (typeof x !== "number"){
+    if (x.length == 1){
+      return x[0];
+    }else{
+      throw new Error("Expected number, but got " + JSON.stringify(x));
+    }
+  }else{
+    return x;
   }
-  throw new Error("Expected number, but got " + JSON.stringify(x));
 }
 
 engine.amp = function(x, y){
@@ -53,7 +58,7 @@ engine.mod = function(x, y){
   return x % y;
 };
 
-engine.natlog = function(x){
+engine.ln = function(x){
   if (x.length > 0){
     let num = ensureNumberSingleton(x);
     return Math.log(num);
@@ -62,9 +67,10 @@ engine.natlog = function(x){
   }
 };
 
-engine.baselog = function(x, base){
+engine.log = function(x, base){
   let num = ensureNumberSingleton(x);
-  return (Math.log(num) / Math.log(base));
+  let num2 = ensureNumberSingleton(base);
+  return (Math.log(num) / Math.log(num2));
 };
 
 module.exports = engine;
