@@ -7,7 +7,7 @@
 var engine = {};
 
 function ensureNumberSingleton(x){
-  if (typeof x !== "number"){
+  if (typeof x != 'number'){
     if (x.length == 1){
       return x[0];
     }else{
@@ -16,6 +16,13 @@ function ensureNumberSingleton(x){
   }else{
     return x;
   }
+}
+
+function isEmpty(x) {
+  if(typeof(x) == 'number'){
+    return false;
+  }
+  return x.length == 0;
 }
 
 engine.amp = function(x, y){
@@ -59,18 +66,22 @@ engine.mod = function(x, y){
 };
 
 engine.ln = function(x){
-  if (x.length > 0){
+  if (isEmpty(x)){
+    return [];
+  }else{
     let num = ensureNumberSingleton(x);
     return Math.log(num);
-  }else{
-    return [];
   }
 };
 
 engine.log = function(x, base){
-  let num = ensureNumberSingleton(x);
-  let num2 = ensureNumberSingleton(base);
-  return (Math.log(num) / Math.log(num2));
+  if (isEmpty(x) || isEmpty(base)){
+    return [];
+  }else{
+    let num = ensureNumberSingleton(x);
+    let num2 = ensureNumberSingleton(base);
+    return (Math.log(num) / Math.log(num2));
+  }
 };
 
 module.exports = engine;

@@ -38,3 +38,4 @@ subject:
   n3: 2
   n4: 8
   arr: [3, 5]
+  t: true
