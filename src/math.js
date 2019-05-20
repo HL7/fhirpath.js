@@ -6,6 +6,25 @@
 
 var engine = {};
 
+function ensureNumberSingleton(x){
+  if (typeof x != 'number'){
+    if (x.length == 1){
+      return x[0];
+    }else{
+      throw new Error("Expected number, but got " + JSON.stringify(x));
+    }
+  }else{
+    return x;
+  }
+}
+
+function isEmpty(x) {
+  if(typeof(x) == 'number'){
+    return false;
+  }
+  return x.length == 0;
+}
+
 engine.amp = function(x, y){
   return (x || "") + (y || "");
 };
@@ -46,5 +65,23 @@ engine.mod = function(x, y){
   return x % y;
 };
 
+engine.ln = function(x){
+  if (isEmpty(x)){
+    return [];
+  }else{
+    let num = ensureNumberSingleton(x);
+    return Math.log(num);
+  }
+};
+
+engine.log = function(x, base){
+  if (isEmpty(x) || isEmpty(base)){
+    return [];
+  }else{
+    let num = ensureNumberSingleton(x);
+    let num2 = ensureNumberSingleton(base);
+    return (Math.log(num) / Math.log(num2));
+  }
+};
 
 module.exports = engine;
