@@ -16,7 +16,6 @@ body {
 #header a {
   font-size: 20px;
   font-weight: 400;
-  color: #666;
   text-decoration: none;
 }
 
@@ -24,8 +23,10 @@ body {
   display: flex;
   flex-direction: row;
 }
-#input {
+#inputWrapper {
   flex: 1;
+}
+#input {
   margin-top: 3px;
 }
 
