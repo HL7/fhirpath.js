@@ -97,6 +97,9 @@ engine.invocationTable = {
   replaceMatches: {fn: strings.replaceMatches,   arity: {2: ["String", "String"]}},
   length:         {fn: strings.length },
 
+  ln:             {fn: math.ln},
+  log:            {fn: math.log, arity:  {1: ["Number"]}, nullable: true},
+
   now:            {fn: datetime.now },
   today:          {fn: datetime.today },
 

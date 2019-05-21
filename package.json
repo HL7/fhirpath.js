@@ -1,6 +1,6 @@
 {
   "name": "fhirpath",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "dependencies": {
@@ -43,6 +43,6 @@
   "bin": {
     "fhirpath": "bin/fhirpath"
   },
-  "repository": "github:lhncbc/fhirpath.js",
+  "repository": "github:HL7/fhirpath.js",
   "license": "MIT"
 }

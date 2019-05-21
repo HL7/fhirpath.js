@@ -1,0 +1,41 @@
+tests:
+  - desc: '5.7 Math'
+  - desc: '5.7.5 ln() : Decimal'
+  - desc: '** Can take the natural logarithm of the number'
+    expression: Math.n1.ln()
+    result: [0]
+  - desc: '** Empty result when taking logarithm from empty collection'
+    expression: Math.n2.ln()
+    result: []
+  - desc: '** Error taking logarithm due to too many input parameters'
+    expression: Math.n3.ln(n4)
+    error: true
+  - desc: '** Error taking logarithm if the input collection contains multiple items'
+    expression: Math.arr.ln()
+    error: true
+  
+  - desc: '5.7.6  log(base : Decimal) : Decimal'
+  - desc: '** Can take the logarithm of the number with a given base'
+    expression: Math.n4.log(2)
+    result: [3]
+  - desc: '** Empty result when taking logarithm from empty collection'
+    expression: Math.n2.log(8)
+    result: []
+  - desc: '** Empty result when taking logarithm with empty base'
+    expression: Math.n3.log(n2)
+    result: []
+  - desc: '** Error taking logarithm if the input collection contains multiple items'
+    expression: Math.arr.log(8)
+    error: true
+  - desc: '** Error taking logarithm due to too many input parameters'
+    expression: Math.n3.log([3, 5])
+    error: true
+  
+subject:
+  resourceType: Math
+  n1: 1
+  n2: []
+  n3: 2
+  n4: 8
+  arr: [3, 5]
+  t: true

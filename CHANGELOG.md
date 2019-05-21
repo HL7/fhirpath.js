@@ -3,6 +3,19 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.13.0] - 2019-05-21
+### Added
+- Functions ln() and log() in 5.7 (Math) of the FHIRPath specification.
+
+## [0.12.2] - 2019-05-15
+### Fixed
+- Corrected output in the demo website for results containing dates and times.
+- Cleaned up the error message output for parsing errors.
+
+## [0.12.1] - 2019-05-13
+### Fixed
+- Updated links to the repository to point to the new location.
+
 ## [0.12.0] - 2019-04-26
 ### Added
 - Added support for string escape sequences (which was also needed for regex
