@@ -64,6 +64,15 @@ class FP_TimeBase extends FP_Type {
   }
 
   /**
+   *  Adds a time-based quantity to this date/time.
+   * @param timeQuantity a quantity to be added to this date/time.  See the
+   *  FHIRPath specification for supported units.
+   */
+  plus(timeQuantity) {
+    throw 'Not implemented (except by subclasses)';
+  }
+
+  /**
    *  Tests whether this object is equal to another.  Returns either true,
    *  false, or undefined (where in the FHIRPath specification empty would be
    *  returned).  The undefined return value indicates that the values were the
@@ -266,6 +275,28 @@ class FP_DateTime extends FP_TimeBase {
     return super.compare(otherDateTime);
   }
 
+
+  /**
+   *  Adds a time-based quantity to this date/time.
+   * @param timeQuantity a quantity to be added to this date/time.  See the
+   *  FHIRPath specification for supported units.
+   */
+  plus(timeQuantity) {
+    var validUnits = { // TBD - define outside of function
+      'years': 'a',
+      'months': 'mo',
+      'weeks': 'wk',
+      'days': 'd',
+      'hours': 'h',
+      'minutes': 'min',
+      'seconds': 's',
+      'milliseconds': 'ms'
+      // maybe also say 'a' : 'a', etc.
+    }
+    // TBD - How will this work? We are supposed to make 2018-02-01 + 1 'mo'
+    // become 2018-03-01-- but perhaps this is only for integer quantities.
+    // (Check fhirpath trackers).
+  }
 
   /**
    *  Returns the match data from matching timeRE against the time string.

@@ -21,6 +21,9 @@ engine.plus = function(xs, ys){
     if(typeof x == "number" && typeof y == "number") {
       return x + y;
     }
+    if(x instanceof FP_TimeBase && y instanceof "FP_Quantity") {
+      return x.plus(y);
+    }
   }
   throw new Error("Can not " + JSON.stringify(xs) + " + " + JSON.stringify(ys));
 };
