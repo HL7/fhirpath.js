@@ -111,4 +111,13 @@ engine.log = function(x, base){
   }
 };
 
+engine.truncate = function(x){
+  if (isEmpty(x)){
+    return [];
+  }else{
+    let num = ensureNumberSingleton(x);
+    return Math.trunc(num);
+  }
+};
+
 module.exports = engine;

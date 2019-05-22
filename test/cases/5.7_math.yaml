@@ -86,6 +86,20 @@ tests:
     expression: Math.n3.log([3, 5])
     error: true
   
+  - desc: '5.7.10 truncate() : Integer'
+  - desc: '** Can return the integer part of the number'
+    expression: Math.d1.truncate()
+    result: [1]
+  - desc: '** Empty result when taking integer part from empty collection'
+    expression: Math.n2.truncate()
+    result: []
+  - desc: '** Error taking integer part due to too many input parameters'
+    expression: Math.n3.truncate(n4)
+    error: true
+  - desc: '** Error taking integer part if the input collection contains multiple items'
+    expression: Math.arr.truncate()
+    error: true
+    
 subject:
   resourceType: Math
   n0: 0
