@@ -86,6 +86,23 @@ tests:
     expression: Math.n3.log([3, 5])
     error: true
   
+  - desc: '5.7.9 sqrt() : Decimal'
+  - desc: '** Can take square root'
+    expression: Math.n5.sqrt()
+    result: [4]
+  - desc: '** Empty result when taking square root of a negative number'
+    expression: Math.d2.sqrt()
+    result: []
+  - desc: '** Empty result when taking square root of an empty collection'
+    expression: Math.n2.sqrt()
+    result: []
+  - desc: '** Error taking square root due to too many input parameters'
+    expression: Math.n3.sqrt(n4)
+    error: true
+  - desc: '** Error taking square root if the input collection contains multiple items'
+    expression: Math.arr.sqrt()
+    error: true
+  
   - desc: '5.7.10 truncate() : Integer'
   - desc: '** Can return the integer part of the number'
     expression: Math.d1.truncate()
@@ -107,6 +124,7 @@ subject:
   n2: []
   n3: 2
   n4: 8
+  n5: 16
   d1: 1.1
   d2: -1.1
   arr: [3, 5]

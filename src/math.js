@@ -111,6 +111,19 @@ engine.log = function(x, base){
   }
 };
 
+engine.sqrt = function(x){
+  if (isEmpty(x)){
+    return [];
+  }else{
+    if (x < 0){
+      return [];
+    }else{
+      let num = ensureNumberSingleton(x);
+      return Math.sqrt(num);
+    }
+  }
+};
+
 engine.truncate = function(x){
   if (isEmpty(x)){
     return [];

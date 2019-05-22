@@ -101,6 +101,7 @@ engine.invocationTable = {
   floor:          {fn: math.floor},
   ln:             {fn: math.ln},
   log:            {fn: math.log, arity:  {1: ["Number"]}, nullable: true},
+  sqrt:           {fn: math.sqrt},
   truncate:       {fn: math.truncate},
 
   now:            {fn: datetime.now },
