@@ -97,6 +97,7 @@ engine.invocationTable = {
   length:         {fn: strings.length },
 
   ceiling:        {fn: math.ceiling},
+  exp:            {fn: math.exp},
   ln:             {fn: math.ln},
   log:            {fn: math.log, arity:  {1: ["Number"]}, nullable: true},
 

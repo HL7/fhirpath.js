@@ -74,6 +74,16 @@ engine.ceiling = function(x){
   }
 };
 
+engine.exp = function(x){
+  if (isEmpty(x)){
+    return [];
+  }else{
+    let num = ensureNumberSingleton(x);
+    return Math.exp(num);
+  }
+};
+
+
 engine.ln = function(x){
   if (isEmpty(x)){
     return [];

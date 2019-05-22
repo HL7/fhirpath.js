@@ -21,6 +21,20 @@ tests:
     expression: Math.arr.ceiling()
     error: true
     
+  - desc: '5.7.3 exp() : Decimal'
+  - desc: '** Can raise e to the input number power'
+    expression: Math.n0.exp()
+    result: [1]
+  - desc: '** Empty result for empty degree'
+    expression: Math.n2.exp()
+    result: []
+  - desc: '** Error exponentiation due to too many input parameters'
+    expression: Math.n3.exp(n4)
+    error: true
+  - desc: '** Error exponentiation if the input collection contains multiple items'
+    expression: Math.arr.exp()
+    error: true
+    
   - desc: '5.7.5 ln() : Decimal'
   - desc: '** Can take the natural logarithm of the number'
     expression: Math.n1.ln()
@@ -54,6 +68,7 @@ tests:
   
 subject:
   resourceType: Math
+  n0: 0
   n1: 1
   n2: []
   n3: 2
