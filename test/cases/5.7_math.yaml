@@ -1,5 +1,26 @@
 tests:
   - desc: '5.7 Math'
+  
+  - desc: '5.7.2 ceiling() : Integer'
+  - desc: '** Can return a number equal to the input'
+    expression: Math.n1.ceiling()
+    result: [1]
+  - desc: '** Can round a number upward to its nearest integer'
+    expression: Math.d1.ceiling()
+    result: [2]
+  - desc: '** Can round a number upward to its nearest integer'
+    expression: Math.d2.ceiling()
+    result: [-1]
+  - desc: '** Empty result when rounding a number upward to its nearest integer from empty collection'
+    expression: Math.n2.ceiling()
+    result: []
+  - desc: '** Error rounding a number due to too many input parameters'
+    expression: Math.n3.ceiling(n4)
+    error: true
+  - desc: '** Error rounding a number if the input collection contains multiple items'
+    expression: Math.arr.ceiling()
+    error: true
+    
   - desc: '5.7.5 ln() : Decimal'
   - desc: '** Can take the natural logarithm of the number'
     expression: Math.n1.ln()
@@ -37,5 +58,7 @@ subject:
   n2: []
   n3: 2
   n4: 8
+  d1: 1.1
+  d2: -1.1
   arr: [3, 5]
-  t: true
+  

@@ -96,6 +96,7 @@ engine.invocationTable = {
   replaceMatches: {fn: strings.replaceMatches,   arity: {2: ["String", "String"]}},
   length:         {fn: strings.length },
 
+  ceiling:        {fn: math.ceiling},
   ln:             {fn: math.ln},
   log:            {fn: math.log, arity:  {1: ["Number"]}, nullable: true},
 

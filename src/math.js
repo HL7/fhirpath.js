@@ -65,6 +65,15 @@ engine.mod = function(x, y){
   return x % y;
 };
 
+engine.ceiling = function(x){
+  if (isEmpty(x)){
+    return [];
+  }else{
+    let num = ensureNumberSingleton(x);
+    return Math.ceil(num);
+  }
+};
+
 engine.ln = function(x){
   if (isEmpty(x)){
     return [];
