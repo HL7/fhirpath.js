@@ -98,6 +98,7 @@ engine.invocationTable = {
 
   ceiling:        {fn: math.ceiling},
   exp:            {fn: math.exp},
+  floor:          {fn: math.floor},
   ln:             {fn: math.ln},
   log:            {fn: math.log, arity:  {1: ["Number"]}, nullable: true},
 

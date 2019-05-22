@@ -83,6 +83,14 @@ engine.exp = function(x){
   }
 };
 
+engine.floor = function(x){
+  if (isEmpty(x)){
+    return [];
+  }else{
+    let num = ensureNumberSingleton(x);
+    return Math.floor(num);
+  }
+};
 
 engine.ln = function(x){
   if (isEmpty(x)){
