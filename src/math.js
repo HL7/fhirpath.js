@@ -138,6 +138,21 @@ engine.power = function(x, degree){
   }
 };
 
+engine.round = function(x, acc){
+  if (isEmpty(x)){
+    return [];
+  }else{
+    let num = ensureNumberSingleton(x);
+    if (isEmpty(acc)){
+      return (Math.round(num));
+    }else{
+      let num2 = ensureNumberSingleton(acc);
+      let degree = Math.pow(10, num2);
+      return (Math.round(num * degree) / degree);
+    }
+  }
+};
+
 engine.sqrt = function(x){
   if (isEmpty(x)){
     return [];

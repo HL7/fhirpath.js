@@ -123,6 +123,24 @@ tests:
     expression: Math.n3.power([3, 5])
     error: true
     
+  - desc: '5.7.8  round([precision : Integer]) : Decimal'
+  - desc: '** Can round number with a given accuracy'
+    expression: Math.d3.round(2)
+    result: [13.85]
+  - desc: '** Can round a number to the nearest integer if a given accuracy is empty'
+    expression: Math.d2.round(n2)
+    disable: true
+    result: [-1]
+  - desc: '** Empty result when rounding empty number'
+    expression: Math.n2.round(n3)
+    result: []
+  - desc: '** Error rounding if the input collection contains multiple items'
+    expression: Math.arr.round(8)
+    error: true
+  - desc: '** Error rounding due to too many input parameters'
+    expression: Math.n3.round([3, 5])
+    error: true
+    
   - desc: '5.7.9 sqrt() : Decimal'
   - desc: '** Can take square root'
     expression: Math.n5.sqrt()
@@ -165,6 +183,7 @@ subject:
   n6: -1
   d1: 1.1
   d2: -1.1
+  d3: 13.84512
   arr: [3, 5]
   quan: [4.5 'mg']
   
