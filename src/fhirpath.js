@@ -103,7 +103,7 @@ engine.invocationTable = {
   ln:             {fn: math.ln},
   log:            {fn: math.log, arity:  {1: ["Number"]}, nullable: true},
   power:          {fn: math.power, arity:  {1: ["Number"]}, nullable: true},
-  round:          {fn: math.round, arity:  {1: ["Number"]}, nullable: true},
+  round:          {fn: math.round, arity:  {1: ["Number"]}},
   sqrt:           {fn: math.sqrt},
   truncate:       {fn: math.truncate},
 

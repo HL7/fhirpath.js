@@ -129,7 +129,6 @@ tests:
     result: [13.85]
   - desc: '** Can round a number to the nearest integer if a given accuracy is empty'
     expression: Math.d2.round(n2)
-    disable: true
     result: [-1]
   - desc: '** Empty result when rounding empty number'
     expression: Math.n2.round(n3)
