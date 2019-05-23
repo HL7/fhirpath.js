@@ -103,6 +103,26 @@ tests:
     expression: Math.n3.log([3, 5])
     error: true
   
+  - desc: '5.7.7  power(exponent : Integer | Decimal) : Integer | Decimal'
+  - desc: '** Can raise input number to the power of given degree'
+    expression: Math.n4.power(2)
+    result: [64]
+  - desc: '** Empty result if the power cannot be represented'
+    expression: Math.n6.power(0.5)
+    result: []
+  - desc: '** Empty result when raising empty collection to a power'
+    expression: Math.n2.power(8)
+    result: []
+  - desc: '** Empty result when raising collection to the empty power'
+    expression: Math.n3.power(n2)
+    result: []
+  - desc: '** Error raising to a power if the input collection contains multiple items'
+    expression: Math.arr.power(8)
+    error: true
+  - desc: '** Error raising to a power due to too many input parameters'
+    expression: Math.n3.power([3, 5])
+    error: true
+    
   - desc: '5.7.9 sqrt() : Decimal'
   - desc: '** Can take square root'
     expression: Math.n5.sqrt()
@@ -142,6 +162,7 @@ subject:
   n3: 2
   n4: 8
   n5: 16
+  n6: -1
   d1: 1.1
   d2: -1.1
   arr: [3, 5]

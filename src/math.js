@@ -124,6 +124,20 @@ engine.log = function(x, base){
   }
 };
 
+engine.power = function(x, degree){
+  if (isEmpty(x) || isEmpty(degree)){
+    return [];
+  }else{
+    let num = ensureNumberSingleton(x);
+    let num2 = ensureNumberSingleton(degree);
+    if (num < 0 && num2 > -1 && num2 < 1 && num2 !== 0){
+      return [];
+    }else{
+      return Math.pow(num, num2);
+    }
+  }
+};
+
 engine.sqrt = function(x){
   if (isEmpty(x)){
     return [];
