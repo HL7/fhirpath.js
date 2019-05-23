@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.14.0] - 2019-05-23
+### Added
+- Support for unary - and +.
+
 ## [0.13.0] - 2019-05-21
 ### Added
 - Functions ln() and log() in 5.7 (Math) of the FHIRPath specification.

@@ -141,6 +141,18 @@ engine.TermExpression = function(ctx, parentData, node) {
   return engine.doEval(ctx,parentData, node.children[0]);
 };
 
+engine.PolarityExpression = function(ctx, parentData, node) {
+  var sign = node.terminalNodeText[0]; // either - or + per grammar
+  var rtn = engine.doEval(ctx,parentData, node.children[0]);
+  // TBD - File ticket asking for clarification on multi-valued results
+  // TBD - File ticket asking for clarification on non-numeric results
+  if (typeof rtn[0] != 'number')
+    throw new Error('Unary ' + sign + ' can only be applied to a number.');
+  if (sign === '-')
+    rtn[0] = -rtn[0];
+  return rtn;
+};
+
 engine.ExternalConstantTerm = function(ctx, parentData, node) {
   var extConstant = node.children[0];
   var identifier = extConstant.children[0];

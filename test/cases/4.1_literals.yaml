@@ -3,6 +3,20 @@ tests:
     result: []
   - expression: "'a\\\\b\\'\\\"\\`\\r\\n\\t\\u0065'" # double escape for YAML
     result: ["a\\b'\"`\r\n\te"]
-    focus: true
+  - expression: '-7'
+    result: [-7]
+  - expression: '-7.3'
+    result: [-7.3]
+  - expression: '+7'
+    result: [+7]
+  - expression: '(-7).combine(3)'
+    result: [-7, 3]
+  - expression: '-((7).combine(3))'
+    result: [-7, 3] # per Grahame
+  - expression: '-true'
+    error: true
+  - expression: "-'zzz'"
+    error: true
+
 subject:
   prop: val
