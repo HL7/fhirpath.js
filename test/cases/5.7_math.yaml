@@ -1,6 +1,23 @@
 tests:
   - desc: '5.7 Math'
   
+  - desc: '5.7.1 abs() : Integer | Decimal | Quantity'
+  - desc: '** Can take the absolute value of a number'
+    expression: Math.d2.abs()
+    result: [1.1]
+  - desc: '** Can return a number equal to the input if input value is a quantity'
+    expression: Math.quan.abs()
+    result: [4.5 'mg']
+  - desc: '** Empty result when taking the absolute value of empty collection'
+    expression: Math.n2.abs()
+    result: []
+  - desc: '** Error taking the absolute value due to too many input parameters'
+    expression: Math.n3.abs(n4)
+    error: true
+  - desc: '** Error taking the absolute value if the input collection contains multiple items'
+    expression: Math.arr.abs()
+    error: true
+  
   - desc: '5.7.2 ceiling() : Integer'
   - desc: '** Can return a number equal to the input'
     expression: Math.n1.ceiling()
@@ -128,4 +145,5 @@ subject:
   d1: 1.1
   d2: -1.1
   arr: [3, 5]
+  quan: [4.5 'mg']
   

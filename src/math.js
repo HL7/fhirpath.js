@@ -65,6 +65,19 @@ engine.mod = function(x, y){
   return x % y;
 };
 
+engine.abs = function(x){
+  if (isEmpty(x)){
+    return [];
+  }else{
+    let num = ensureNumberSingleton(x);
+    if (typeof num != 'number'){
+      return num;
+    }else{
+      return Math.abs(num);
+    }
+  }
+};
+
 engine.ceiling = function(x){
   if (isEmpty(x)){
     return [];
