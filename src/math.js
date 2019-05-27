@@ -8,7 +8,7 @@ var engine = {};
 
 function ensureNumberSingleton(x){
   if (typeof x != 'number'){
-    if (x.length == 1){
+    if (x.length == 1 && typeof x[0] == 'number'){
       return x[0];
     }else{
       throw new Error("Expected number, but got " + JSON.stringify(x));
@@ -70,11 +70,7 @@ engine.abs = function(x){
     return [];
   }else{
     let num = ensureNumberSingleton(x);
-    if (typeof num != 'number'){
-      return num;
-    }else{
-      return Math.abs(num);
-    }
+    return Math.abs(num);
   }
 };
 
