@@ -108,6 +108,9 @@ tests:
     expression: Math.n4.power(2)
     result: [64]
   - desc: '** Empty result if the power cannot be represented'
+    expression: n6.power(1.5)
+    result: []
+  - desc: '** Empty result if the power cannot be represented'
     expression: Math.n6.power(0.5)
     result: []
   - desc: '** Empty result when raising empty collection to a power'

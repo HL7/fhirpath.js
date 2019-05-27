@@ -130,7 +130,7 @@ engine.power = function(x, degree){
   }else{
     let num = ensureNumberSingleton(x);
     let num2 = ensureNumberSingleton(degree);
-    if (num < 0 && num2 > -1 && num2 < 1 && num2 !== 0){
+    if (num < 0 && (Math.floor(num2) != num2)){
       return [];
     }else{
       return Math.pow(num, num2);
