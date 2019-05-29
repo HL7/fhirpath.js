@@ -144,9 +144,11 @@ engine.TermExpression = function(ctx, parentData, node) {
 engine.PolarityExpression = function(ctx, parentData, node) {
   var sign = node.terminalNodeText[0]; // either - or + per grammar
   var rtn = engine.doEval(ctx,parentData, node.children[0]);
-  // TBD - File ticket asking for clarification on multi-valued results
-  // TBD - File ticket asking for clarification on non-numeric results
-  if (typeof rtn[0] != 'number')
+  if (rtn.length != 1) {  // not yet in spec, but per Bryn Rhodes
+    throw new Error('Unary ' + sign +
+     ' can only be applied to an individual number.')
+  }
+  if (typeof rtn[0] != 'number' || isNaN(rtn[0]))
     throw new Error('Unary ' + sign + ' can only be applied to a number.');
   if (sign === '-')
     rtn[0] = -rtn[0];
