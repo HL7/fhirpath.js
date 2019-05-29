@@ -8,7 +8,7 @@ var engine = {};
 
 function ensureNumberSingleton(x){
   if (typeof x != 'number'){
-    if (x.length == 1){
+    if (x.length == 1 && typeof x[0] == 'number'){
       return x[0];
     }else{
       throw new Error("Expected number, but got " + JSON.stringify(x));
@@ -68,6 +68,42 @@ engine.mod = function(x, y){
   return x % y;
 };
 
+engine.abs = function(x){
+  if (isEmpty(x)){
+    return [];
+  }else{
+    let num = ensureNumberSingleton(x);
+    return Math.abs(num);
+  }
+};
+
+engine.ceiling = function(x){
+  if (isEmpty(x)){
+    return [];
+  }else{
+    let num = ensureNumberSingleton(x);
+    return Math.ceil(num);
+  }
+};
+
+engine.exp = function(x){
+  if (isEmpty(x)){
+    return [];
+  }else{
+    let num = ensureNumberSingleton(x);
+    return Math.exp(num);
+  }
+};
+
+engine.floor = function(x){
+  if (isEmpty(x)){
+    return [];
+  }else{
+    let num = ensureNumberSingleton(x);
+    return Math.floor(num);
+  }
+};
+
 engine.ln = function(x){
   if (isEmpty(x)){
     return [];
@@ -84,6 +120,57 @@ engine.log = function(x, base){
     let num = ensureNumberSingleton(x);
     let num2 = ensureNumberSingleton(base);
     return (Math.log(num) / Math.log(num2));
+  }
+};
+
+engine.power = function(x, degree){
+  if (isEmpty(x) || isEmpty(degree)){
+    return [];
+  }else{
+    let num = ensureNumberSingleton(x);
+    let num2 = ensureNumberSingleton(degree);
+    if (num < 0 && (Math.floor(num2) != num2)){
+      return [];
+    }else{
+      return Math.pow(num, num2);
+    }
+  }
+};
+
+engine.round = function(x, acc){
+  if (isEmpty(x)){
+    return [];
+  }else{
+    let num = ensureNumberSingleton(x);
+    if (isEmpty(acc)){
+      return (Math.round(num));
+    }else{
+      let num2 = ensureNumberSingleton(acc);
+      let degree = Math.pow(10, num2);
+      return (Math.round(num * degree) / degree);
+    }
+  }
+};
+
+engine.sqrt = function(x){
+  if (isEmpty(x)){
+    return [];
+  }else{
+    if (x < 0){
+      return [];
+    }else{
+      let num = ensureNumberSingleton(x);
+      return Math.sqrt(num);
+    }
+  }
+};
+
+engine.truncate = function(x){
+  if (isEmpty(x)){
+    return [];
+  }else{
+    let num = ensureNumberSingleton(x);
+    return Math.trunc(num);
   }
 };
 

@@ -97,8 +97,16 @@ engine.invocationTable = {
   replaceMatches: {fn: strings.replaceMatches,   arity: {2: ["String", "String"]}},
   length:         {fn: strings.length },
 
+  abs:            {fn: math.abs},
+  ceiling:        {fn: math.ceiling},
+  exp:            {fn: math.exp},
+  floor:          {fn: math.floor},
   ln:             {fn: math.ln},
   log:            {fn: math.log, arity:  {1: ["Number"]}, nullable: true},
+  power:          {fn: math.power, arity:  {1: ["Number"]}, nullable: true},
+  round:          {fn: math.round, arity:  {1: ["Number"]}},
+  sqrt:           {fn: math.sqrt},
+  truncate:       {fn: math.truncate},
 
   now:            {fn: datetime.now },
   today:          {fn: datetime.today },
@@ -145,9 +153,11 @@ engine.TermExpression = function(ctx, parentData, node) {
 engine.PolarityExpression = function(ctx, parentData, node) {
   var sign = node.terminalNodeText[0]; // either - or + per grammar
   var rtn = engine.doEval(ctx,parentData, node.children[0]);
-  // TBD - File ticket asking for clarification on multi-valued results
-  // TBD - File ticket asking for clarification on non-numeric results
-  if (typeof rtn[0] != 'number')
+  if (rtn.length != 1) {  // not yet in spec, but per Bryn Rhodes
+    throw new Error('Unary ' + sign +
+     ' can only be applied to an individual number.')
+  }
+  if (typeof rtn[0] != 'number' || isNaN(rtn[0]))
     throw new Error('Unary ' + sign + ' can only be applied to a number.');
   if (sign === '-')
     rtn[0] = -rtn[0];
