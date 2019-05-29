@@ -154,7 +154,7 @@ engine.PolarityExpression = function(ctx, parentData, node) {
   var rtn = engine.doEval(ctx,parentData, node.children[0]);
   if (rtn.length != 1) {  // not yet in spec, but per Bryn Rhodes
     throw new Error('Unary ' + sign +
-     ' can only be applied to an individual number.')
+     ' can only be applied to an individual number.');
   }
   if (typeof rtn[0] != 'number' || isNaN(rtn[0]))
     throw new Error('Unary ' + sign + ' can only be applied to a number.');
