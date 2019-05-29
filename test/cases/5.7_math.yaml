@@ -1,5 +1,77 @@
 tests:
   - desc: '5.7 Math'
+  
+  - desc: '5.7.1 abs() : Integer | Decimal | Quantity'
+  - desc: '** Can take the absolute value of a number'
+    expression: Math.d2.abs()
+    result: [1.1]
+#  - desc: '** Can return a number equal to the input if input value is a quantity'
+#    expression: Math.quan.abs()
+#    result: [4.5 'mg']
+  - desc: '** Empty result when taking the absolute value of empty collection'
+    expression: Math.n2.abs()
+    result: []
+  - desc: '** Error taking the absolute value due to too many input parameters'
+    expression: Math.n3.abs(n4)
+    error: true
+  - desc: '** Error taking the absolute value if the input collection contains multiple items'
+    expression: Math.arr.abs()
+    error: true
+  
+  - desc: '5.7.2 ceiling() : Integer'
+  - desc: '** Can return a number equal to the input'
+    expression: Math.n1.ceiling()
+    result: [1]
+  - desc: '** Can round a number upward to its nearest integer'
+    expression: Math.d1.ceiling()
+    result: [2]
+  - desc: '** Can round a number upward to its nearest integer'
+    expression: Math.d2.ceiling()
+    result: [-1]
+  - desc: '** Empty result when rounding a number upward to its nearest integer from empty collection'
+    expression: Math.n2.ceiling()
+    result: []
+  - desc: '** Error rounding a number due to too many input parameters'
+    expression: Math.n3.ceiling(n4)
+    error: true
+  - desc: '** Error rounding a number if the input collection contains multiple items'
+    expression: Math.arr.ceiling()
+    error: true
+    
+  - desc: '5.7.3 exp() : Decimal'
+  - desc: '** Can raise e to the input number power'
+    expression: Math.n0.exp()
+    result: [1]
+  - desc: '** Empty result for empty degree'
+    expression: Math.n2.exp()
+    result: []
+  - desc: '** Error exponentiation due to too many input parameters'
+    expression: Math.n3.exp(n4)
+    error: true
+  - desc: '** Error exponentiation if the input collection contains multiple items'
+    expression: Math.arr.exp()
+    error: true
+    
+  - desc: '5.7.4 floor() : Integer'
+  - desc: '** Can return a number equal to the input'
+    expression: Math.n1.floor()
+    result: [1]
+  - desc: '** Can round a number downward to its nearest integer'
+    expression: Math.d1.floor()
+    result: [1]
+  - desc: '** Can round a number downward to its nearest integer'
+    expression: Math.d2.floor()
+    result: [-2]
+  - desc: '** Empty result when rounding a number downward to its nearest integer from empty collection'
+    expression: Math.n2.floor()
+    result: []
+  - desc: '** Error rounding a number due to too many input parameters'
+    expression: Math.n3.floor(n4)
+    error: true
+  - desc: '** Error rounding a number if the input collection contains multiple items'
+    expression: Math.arr.floor()
+    error: true
+    
   - desc: '5.7.5 ln() : Decimal'
   - desc: '** Can take the natural logarithm of the number'
     expression: Math.n1.ln()
@@ -31,11 +103,89 @@ tests:
     expression: Math.n3.log([3, 5])
     error: true
   
+  - desc: '5.7.7  power(exponent : Integer | Decimal) : Integer | Decimal'
+  - desc: '** Can raise input number to the power of given degree'
+    expression: Math.n4.power(2)
+    result: [64]
+  - desc: '** Empty result if the power cannot be represented'
+    expression: n6.power(1.5)
+    result: []
+  - desc: '** Empty result if the power cannot be represented'
+    expression: Math.n6.power(0.5)
+    result: []
+  - desc: '** Empty result when raising empty collection to a power'
+    expression: Math.n2.power(8)
+    result: []
+  - desc: '** Empty result when raising collection to the empty power'
+    expression: Math.n3.power(n2)
+    result: []
+  - desc: '** Error raising to a power if the input collection contains multiple items'
+    expression: Math.arr.power(8)
+    error: true
+  - desc: '** Error raising to a power due to too many input parameters'
+    expression: Math.n3.power([3, 5])
+    error: true
+    
+  - desc: '5.7.8  round([precision : Integer]) : Decimal'
+  - desc: '** Can round number with a given accuracy'
+    expression: Math.d3.round(2)
+    result: [13.85]
+  - desc: '** Can round a number to the nearest integer if a given accuracy is empty'
+    expression: Math.d2.round(n2)
+    result: [-1]
+  - desc: '** Empty result when rounding empty number'
+    expression: Math.n2.round(n3)
+    result: []
+  - desc: '** Error rounding if the input collection contains multiple items'
+    expression: Math.arr.round(8)
+    error: true
+  - desc: '** Error rounding due to too many input parameters'
+    expression: Math.n3.round([3, 5])
+    error: true
+    
+  - desc: '5.7.9 sqrt() : Decimal'
+  - desc: '** Can take square root'
+    expression: Math.n5.sqrt()
+    result: [4]
+  - desc: '** Empty result when taking square root of a negative number'
+    expression: Math.d2.sqrt()
+    result: []
+  - desc: '** Empty result when taking square root of an empty collection'
+    expression: Math.n2.sqrt()
+    result: []
+  - desc: '** Error taking square root due to too many input parameters'
+    expression: Math.n3.sqrt(n4)
+    error: true
+  - desc: '** Error taking square root if the input collection contains multiple items'
+    expression: Math.arr.sqrt()
+    error: true
+  
+  - desc: '5.7.10 truncate() : Integer'
+  - desc: '** Can return the integer part of the number'
+    expression: Math.d1.truncate()
+    result: [1]
+  - desc: '** Empty result when taking integer part from empty collection'
+    expression: Math.n2.truncate()
+    result: []
+  - desc: '** Error taking integer part due to too many input parameters'
+    expression: Math.n3.truncate(n4)
+    error: true
+  - desc: '** Error taking integer part if the input collection contains multiple items'
+    expression: Math.arr.truncate()
+    error: true
+    
 subject:
   resourceType: Math
+  n0: 0
   n1: 1
   n2: []
   n3: 2
   n4: 8
+  n5: 16
+  n6: -1
+  d1: 1.1
+  d2: -1.1
+  d3: 13.84512
   arr: [3, 5]
-  t: true
+  quan: [4.5 'mg']
+  
