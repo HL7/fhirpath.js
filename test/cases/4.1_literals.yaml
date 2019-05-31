@@ -19,6 +19,10 @@ tests:
     error: true
   - expression: "-'zzz'"
     error: true
+  - expresion: "2 'mo'"
+    result: ["2 'mo'"]
+  - expresion: "2 years"
+    result: ["2 years"]
 
 subject:
   prop: val
