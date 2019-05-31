@@ -208,8 +208,13 @@ engine.BooleanLiteral = function(ctx, parentData, node) {
 
 engine.QuantityLiteral = function(ctx, parentData, node) {
   var valueNode = node.children[0];
-  var value = valueNode.terminalNodeText
-  var unit = valueNode.children[0].terminalNodeText
+  var value = valueNode.terminalNodeText[0];
+  var unitNode = valueNode.children[0];
+  var unit = unitNode.terminalNodeText[0];
+  // Sometimes the unit is in a child node of the child
+  if (!unit && unitNode.children)
+    unit = unitNode.children[0].terminalNodeText[0];
+
   return [new FP_Quantity(value, unit)];
 };
 
