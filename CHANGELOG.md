@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.16.0] - 2019-05-30
+### Added
+- Quantity types can now be parsed, though arithmetic is not yet supported.
+
 ## [0.14.0] - 2019-05-28
 ### Added
 - Math functions defined in paragraphs 5.7.1 - 5.7.4 and 5.7.7 - 5.7.10 of the FHIRPath specification.
