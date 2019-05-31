@@ -53,6 +53,8 @@ class FP_Quantity extends FP_Type {
   constructor(value, unit) {
     super();
     this.asStr = value + ' ' + unit;
+    this.value = value;
+    this.unit = unit;
   }
 }
 
