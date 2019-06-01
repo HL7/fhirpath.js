@@ -7,6 +7,10 @@ This log documents significant changes for each release.  This project follows
 ### Added
 - Quantity types can now be parsed, though arithmetic is not yet supported.
 
+## [0.15.0] - 2019-05-23
+### Added
+- Support for unary - and +.
+
 ## [0.14.0] - 2019-05-28
 ### Added
 - Math functions defined in paragraphs 5.7.1 - 5.7.4 and 5.7.7 - 5.7.10 of the FHIRPath specification.
