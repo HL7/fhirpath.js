@@ -7,6 +7,8 @@ tests:
     result: ["2 'mo'"]
   - expression: "2 years"
     result: ["2 years"]
+  - expression: "(2 years).value" # test of internal structure, not FHIRPath
+    result: [2]
   - expression: "@2019"
     result: ["2019"]
   - expression: '-7'

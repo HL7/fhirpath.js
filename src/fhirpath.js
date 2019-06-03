@@ -222,7 +222,7 @@ engine.BooleanLiteral = function(ctx, parentData, node) {
 
 engine.QuantityLiteral = function(ctx, parentData, node) {
   var valueNode = node.children[0];
-  var value = valueNode.terminalNodeText[0];
+  var value = Number(valueNode.terminalNodeText[0]);
   var unitNode = valueNode.children[0];
   var unit = unitNode.terminalNodeText[0];
   // Sometimes the unit is in a child node of the child
