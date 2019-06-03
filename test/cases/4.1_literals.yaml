@@ -3,6 +3,12 @@ tests:
     result: []
   - expression: "'a\\\\b\\'\\\"\\`\\r\\n\\t\\u0065'" # double escape for YAML
     result: ["a\\b'\"`\r\n\te"]
+  - expression: "2 'mo'"
+    result: ["2 'mo'"]
+  - expression: "2 years"
+    result: ["2 years"]
+  - expression: "@2019"
+    result: ["2019"]
   - expression: '-7'
     result: [-7]
   - expression: '-7.3'
@@ -19,10 +25,6 @@ tests:
     error: true
   - expression: "-'zzz'"
     error: true
-  - expresion: "2 'mo'"
-    result: ["2 'mo'"]
-  - expresion: "2 years"
-    result: ["2 years"]
 
 subject:
   prop: val
