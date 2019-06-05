@@ -55,7 +55,9 @@ const generateTest = (test, testResource) => {
     }
     if (!test.error && test.expression) {
       const result = calcExpression(expression, test, testResource);
-      expect(result).toEqual(test.result);
+      // Run the result through JSON so the FP_Type quantities get converted to
+      // strings.
+      expect(JSON.parse(JSON.stringify(result))).toEqual(test.result);
     }
     else if (test.error) {
       let exception = null;

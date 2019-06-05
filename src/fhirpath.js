@@ -46,6 +46,7 @@ let logic  = require("./logic");
 let types = require("./types");
 let FP_DateTime = types.FP_DateTime;
 let FP_Time = types.FP_Time;
+let FP_Quantity = types.FP_Quantity;
 
 // * fn: handler
 // * arity: is index map with type signature
@@ -217,6 +218,18 @@ engine.BooleanLiteral = function(ctx, parentData, node) {
   } else {
     return [false];
   }
+};
+
+engine.QuantityLiteral = function(ctx, parentData, node) {
+  var valueNode = node.children[0];
+  var value = Number(valueNode.terminalNodeText[0]);
+  var unitNode = valueNode.children[0];
+  var unit = unitNode.terminalNodeText[0];
+  // Sometimes the unit is in a child node of the child
+  if (!unit && unitNode.children)
+    unit = unitNode.children[0].terminalNodeText[0];
+
+  return [new FP_Quantity(value, unit)];
 };
 
 engine.DateTimeLiteral = function(ctx, parentData, node) {
