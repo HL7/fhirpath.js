@@ -94,11 +94,13 @@ const generateGroup = (group, testResource) => {
     test => isGroup(test) ? generateGroup(test, testResource) : generateTest(test, testResource));
   switch (group.type) {
   case 'skipped':
-    return describe.skip(groupName, () => getTestGroupData());
+    describe.skip(groupName, () => {getTestGroupData()});
+    break;
   case 'focused':
-    return describe.only(groupName, () => getTestGroupData());
+    describe.only(groupName, () => {getTestGroupData()});
+    break;
   default:
-    return describe(groupName, () => getTestGroupData());
+    describe(groupName, () => {getTestGroupData()});
   }
 };
 
@@ -119,7 +121,7 @@ function isGroup(test) {
 
 const generateSuite = (fileName, testcase) => {
   if((focus && focusFile.test(fileName)) || !focus) {
-    return describe(fileName, () => testcase.tests.map(item => addType(item)).forEach(test => {
+    describe(fileName, () => testcase.tests.map(item => addType(item)).forEach(test => {
       const testResource = testcase.subject;
       isGroup(test)
         ? generateGroup(test, testResource)
