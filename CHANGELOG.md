@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.16.1] - 2019-06-11
+### Fixed
+- Updated packages for the demo to get packages for vulnerabilities.
+
 ## [0.16.0] - 2019-05-30
 ### Added
 - Quantity types can now be parsed, though arithmetic is not yet supported.
