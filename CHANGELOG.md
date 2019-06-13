@@ -5,7 +5,7 @@ This log documents significant changes for each release.  This project follows
 
 ## [0.16.1] - 2019-06-11
 ### Fixed
-- Updated packages for the demo to get packages for vulnerabilities.
+- Updated packages for the demo to get patches for vulnerabilities.
 
 ## [0.16.0] - 2019-05-30
 ### Added
