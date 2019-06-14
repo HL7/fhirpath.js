@@ -30,6 +30,7 @@
 
 const parser = require("./parser");
 const util = require("./utilities");
+require("./polyfill");
 
 let engine    = {}; // the object with all FHIRPath functions and operations
 let existence = require("./existence");

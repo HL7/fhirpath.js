@@ -114,7 +114,13 @@ tests:
   - desc: '** Empty collection in concatenation is empty string (3)'
     expression: n4 & n4
     result: [""]
-
+  - 'group:  6.7 Date/Time Arithmetic':
+    - expression: "@2018 + 1 'a'"
+      result: ['2019']
+    - expression: "@2018 + 1 year"
+      result: ['2019']
+    - expression: "@2018 + 2 years"
+      result: ['2020']
 
 subject:
   resourceType: MathTestData

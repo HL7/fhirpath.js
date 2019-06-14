@@ -1,3 +1,12 @@
+//import * as moment from 'moment';
+//const moment = require('moment');
+const addYears = require('date-fns/add_years');
+const addMonths = require('date-fns/add_months');
+const addWeeks = require('date-fns/add_weeks');
+const addDays = require('date-fns/add_days');
+const addHours = require('date-fns/add_hours');
+const ucumUtils = require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance();
+
 let timeFormat =
   '[0-9][0-9](\\:[0-9][0-9](\\:[0-9][0-9](\\.[0-9]+)?)?)?(Z|(\\+|-)[0-9][0-9]\\:[0-9][0-9])?';
 let timeRE = new RegExp('^T?'+timeFormat+'$');
@@ -8,7 +17,6 @@ let dateTimeRE = new RegExp(
 //let fhirTimeRE = /([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?/;
 //let fhirDateTimeRE =
 ///([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1])(T([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?/;
-
 
 class FP_Type {
   /**
@@ -49,6 +57,9 @@ class FP_Type {
 }
 
 
+/**
+ *  A class for Quantities.
+ */
 class FP_Quantity extends FP_Type {
   constructor(value, unit) {
     super();
@@ -56,6 +67,50 @@ class FP_Quantity extends FP_Type {
     this.value = value;
     this.unit = unit;
   }
+}
+
+/**
+ *  Defines a map from FHIRPath time units to UCUM.
+ */
+FP_Quantity.timeUnitsToUCUM = {
+  'years': "'a'",
+  'months': "'mo'",
+  'weeks': "'wk'",
+  'days': "'d'",
+  'hours': "'h'",
+  'minutes': "'min'",
+  'seconds': "'s'",
+  'milliseconds': "'ms'",
+  'year': "'a'",
+  'month': "'mo'",
+  'week': "'wk'",
+  'day': "'d'",
+  'hour': "'h'",
+  'minute': "'min'",
+  'second': "'s'",
+  'millisecond': "'ms'",
+  "'a'": "'a'",
+  "'mo'": "'mo'",
+  "'wk'": "'wk'",
+  "'d'": "'d'",
+  "'h'": "'h'",
+  "'min'": "'min'",
+  "'s'": "'s'",
+  "'ms'": "'ms'"
+}
+
+
+/**
+ *  A map of the UCUM units that must be paired with integer values when doing
+ *  arithmetic.
+ */
+FP_Quantity.integerUnits = {
+  "'a'": true,
+  "'mo'": true,
+  "'wk'": true,
+  "'d'": true,
+  "'h'": true,
+  "'min'": true
 }
 
 
@@ -255,6 +310,21 @@ class FP_TimeBase extends FP_Type {
   }
 }
 
+/**
+ *  A map from a UCUM time based unit to a function used to add that quantity to
+ *  a date/time.
+ */
+FP_TimeBase.timeUnitToAddFn = {
+  "'a'": require('date-fns/add_years'),
+  "'mo'": require('date-fns/add_months'),
+  "'wk'": require('date-fns/add_weeks'),
+  "'d'": require('date-fns/add_days'),
+  "'h'": require('date-fns/add_hours'),
+  "'min'": require('date-fns/add_minutes'),
+  "'s'": require('date-fns/add_seconds'),
+  "'ms'": require('date-fns/add_milliseconds')
+};
+
 
 class FP_DateTime extends FP_TimeBase {
   /**
@@ -281,23 +351,64 @@ class FP_DateTime extends FP_TimeBase {
   /**
    *  Adds a time-based quantity to this date/time.
    * @param timeQuantity a quantity to be added to this date/time.  See the
-   *  FHIRPath specification for supported units.
+   *  FHIRPath specification for supported units.  The quantity may be negative
+   *  for subtraction.
+   * @return a new FP_DateTime that represents the result of adding timeQuantity
+   *  to this datetime.
    */
   plus(timeQuantity) {
-    var validUnits = { // TBD - define outside of function
-      'years': 'a',
-      'months': 'mo',
-      'weeks': 'wk',
-      'days': 'd',
-      'hours': 'h',
-      'minutes': 'min',
-      'seconds': 's',
-      'milliseconds': 'ms'
-      // maybe also say 'a' : 'a', etc.
+console.log("%%% dateObj = "+this._getDateObj());
+    var unit = timeQuantity.unit;
+    var ucumUnit = FP_Quantity.timeUnitsToUCUM[unit];
+    if (!ucumUnit) {
+      throw new Error('For date/time arithmetic, the unit of the quantity '+
+        'must be a recognized time-based unit');
     }
-    // TBD - How will this work? We are supposed to make 2018-02-01 + 1 'mo'
-    // become 2018-03-01-- but perhaps this is only for integer quantities.
-    // (Check fhirpath trackers).
+    var isIntUnit = FP_Quantity.integerUnits[ucumUnit];
+    var qVal = timeQuantity.value;
+    if (isIntUnit && !Number.isInteger(qVal)) {
+      throw new Error('When adding a quantity of unit '+unit+' to a date/time,'+
+        ' the value must be an integer.');
+    }
+
+    // If the precision of the time quantity is higher than the precision of the
+    // date, we need to convert the time quantity to the precision of the date.
+    var ucumToDatePrecision = {
+      "'a'": 0,
+      "'mo'": 1,
+      "'wk'": 2, // wk is just 7*d
+      "'d'": 2,
+      "'h'": 3,
+      "'min'": 4,
+      "'s'": 5,
+      "'ms'": 6
+    };
+    var datePrecisionToUnquotedUcum = ["a", "mo", "d", "h", "min", "s",
+      "ms"];
+
+    if (this._getPrecision() < ucumToDatePrecision[ucumUnit]) {
+      var unquotedUnit = ucumUnit.slice(1, ucumUnit.length-1);
+      var neededUnit = datePrecisionToUnquotedUcum[this._getPrecision()];
+      var convResult = ucumUtils.convertUnitTo(unquotedUnit, qVal, neededUnit);
+      if (convResult.status != 'succeeded') {
+        throw new Error(convResult.msg.join("\n"));
+      }
+      ucumUnit = "'"+neededUnit+"'";
+      qVal = Math.floor(convResult.toVal);
+    }
+
+
+console.log("%%% ucumUnit = "+ucumUnit);
+console.log("%%% qVal = "+qVal);
+    var newDate = FP_TimeBase.timeUnitToAddFn[ucumUnit](this._getDateObj(), qVal);
+    // newDate is a Date.  We need to make a string with the correct precision.
+    // date -> string -> truncate precision -> fp_date
+console.log("%%% newDate = "+newDate.toISOString());
+    var fpDate = new FP_DateTime(newDate.toISOString());
+console.log("%%% fpDate = "+fpDate);
+console.log("%%% thisPrecision ="+this._getPrecision());
+console.log("%%% fpDate._dateStrAtPrecision ="+fpDate._dateStrAtPrecision(this._getPrecision()));
+    return new FP_DateTime(fpDate._dateStrAtPrecision(this._getPrecision()));
   }
 
   /**
@@ -345,12 +456,12 @@ class FP_DateTime extends FP_TimeBase {
 
 
   /**
-   *  Returns a new Date object for a time equal to what this time would be if
+   *  Returns a datetime string for a time equal to what this time would be if
    *  the string passed into the constructor had the given precision.
    * @param precision the new precision, which is assumed to be less than the
    *  or equal to the current precision.
    */
-  _dateAtPrecision(precision) {
+  _dateStrAtPrecision(precision) {
     var timeParts = this._getTimeParts().slice(0, precision+1);
     var timeZone = this._getMatchData()[7];
     var hasTime = timeParts.length > 3;
@@ -359,17 +470,32 @@ class FP_DateTime extends FP_TimeBase {
       if (timeParts.length === 4)
         timeParts[4] = ':00'; // Date constructor requires minutes with hour
     }
-    else if (timeZone) {
+/*
+    else if (timeZone) { // TBD- In FHIRPath R2, this can be present without a
+time
       // The date constructor requires a time if a time zone is present.
       timeParts[3] = 'T00';
       timeParts[4]= ':00';
     }
+*/
     var timeStr = timeParts.join('');
     if (timeParts.length > 3) { // has a time part
       if (timeZone)
         timeStr += timeZone;
     }
-    return new Date(timeStr);
+console.log("%%% date at precision="+timeStr);
+    return timeStr;
+  }
+
+
+  /**
+   *  Returns a new Date object for a time equal to what this time would be if
+   *  the string passed into the constructor had the given precision.
+   * @param precision the new precision, which is assumed to be less than the
+   *  or equal to the current precision.
+   */
+  _dateAtPrecision(precision) {
+    return new Date(this._dateStrAtPrecision(precision));
   }
 }
 
@@ -468,6 +594,7 @@ FP_Time.checkString = function(str) {
 
 module.exports = {
   FP_Type: FP_Type,
+  FP_TimeBase: FP_TimeBase,
   FP_DateTime: FP_DateTime,
   FP_Time: FP_Time,
   FP_Quantity: FP_Quantity,
