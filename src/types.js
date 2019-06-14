@@ -357,7 +357,6 @@ class FP_DateTime extends FP_TimeBase {
    *  to this datetime.
    */
   plus(timeQuantity) {
-console.log("%%% dateObj = "+this._getDateObj());
     var unit = timeQuantity.unit;
     var ucumUnit = FP_Quantity.timeUnitsToUCUM[unit];
     if (!ucumUnit) {
@@ -373,22 +372,10 @@ console.log("%%% dateObj = "+this._getDateObj());
 
     // If the precision of the time quantity is higher than the precision of the
     // date, we need to convert the time quantity to the precision of the date.
-    var ucumToDatePrecision = {
-      "'a'": 0,
-      "'mo'": 1,
-      "'wk'": 2, // wk is just 7*d
-      "'d'": 2,
-      "'h'": 3,
-      "'min'": 4,
-      "'s'": 5,
-      "'ms'": 6
-    };
-    var datePrecisionToUnquotedUcum = ["a", "mo", "d", "h", "min", "s",
-      "ms"];
-
-    if (this._getPrecision() < ucumToDatePrecision[ucumUnit]) {
+    if (this._getPrecision() < FP_DateTime._ucumToDatePrecision[ucumUnit]) {
       var unquotedUnit = ucumUnit.slice(1, ucumUnit.length-1);
-      var neededUnit = datePrecisionToUnquotedUcum[this._getPrecision()];
+      var neededUnit = FP_DateTime._datePrecisionToUnquotedUcum[
+        this._getPrecision()];
       var convResult = ucumUtils.convertUnitTo(unquotedUnit, qVal, neededUnit);
       if (convResult.status != 'succeeded') {
         throw new Error(convResult.msg.join("\n"));
@@ -397,19 +384,13 @@ console.log("%%% dateObj = "+this._getDateObj());
       qVal = Math.floor(convResult.toVal);
     }
 
-
-console.log("%%% ucumUnit = "+ucumUnit);
-console.log("%%% qVal = "+qVal);
     var newDate = FP_TimeBase.timeUnitToAddFn[ucumUnit](this._getDateObj(), qVal);
     // newDate is a Date.  We need to make a string with the correct precision.
     // date -> string -> truncate precision -> fp_date
-console.log("%%% newDate = "+newDate.toISOString());
     var fpDate = new FP_DateTime(newDate.toISOString());
-console.log("%%% fpDate = "+fpDate);
-console.log("%%% thisPrecision ="+this._getPrecision());
-console.log("%%% fpDate._dateStrAtPrecision ="+fpDate._dateStrAtPrecision(this._getPrecision()));
     return new FP_DateTime(fpDate._dateStrAtPrecision(this._getPrecision()));
   }
+
 
   /**
    *  Returns the match data from matching timeRE against the time string.
@@ -483,7 +464,6 @@ time
       if (timeZone)
         timeStr += timeZone;
     }
-console.log("%%% date at precision="+timeStr);
     return timeStr;
   }
 
@@ -510,6 +490,27 @@ FP_DateTime.checkString = function(str) {
     d = null;
   return d;
 };
+
+/**
+ *  A map from UCUM units (in quotation marks, which is the FHIRPath syntax for
+ *  UCUM) to the internal DateTime "precision" number.
+ */
+FP_DateTime._ucumToDatePrecision = {
+  "'a'": 0,
+  "'mo'": 1,
+  "'wk'": 2, // wk is just 7*d
+  "'d'": 2,
+  "'h'": 3,
+  "'min'": 4,
+  "'s'": 5,
+  "'ms'": 6
+};
+
+/**
+ *  The inverse of _ucumToDatePrecision, except with unquoted UCUM units.
+ */
+FP_DateTime._datePrecisionToUnquotedUcum = ["a", "mo", "d", "h", "min", "s",
+      "ms"];
 
 
 
