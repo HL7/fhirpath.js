@@ -5,6 +5,7 @@ const addMonths = require('date-fns/add_months');
 const addWeeks = require('date-fns/add_weeks');
 const addDays = require('date-fns/add_days');
 const addHours = require('date-fns/add_hours');
+const addMinutes = require('date-fns/add_minutes');
 const ucumUtils = require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance();
 
 let timeFormat =
@@ -126,8 +127,56 @@ class FP_TimeBase extends FP_Type {
    *  FHIRPath specification for supported units.
    */
   plus(timeQuantity) {
-    throw 'Not implemented (except by subclasses)';
+    var unit = timeQuantity.unit;
+    var ucumUnit = FP_Quantity.timeUnitsToUCUM[unit];
+    if (!ucumUnit) {
+      throw new Error('For date/time arithmetic, the unit of the quantity '+
+        'must be a recognized time-based unit');
+    }
+    var cls = this.constructor;
+    var unitPrecision = cls._ucumToDatePrecision[ucumUnit];
+    if (unitPrecision === undefined) {
+      throw new Error('Unsupported unit for +.  The unit should be one of '+
+        Object.keys(cls._ucumToDatePrecision).join(', ') + '.');
+    }
+    var isIntUnit = FP_Quantity.integerUnits[ucumUnit];
+    var qVal = timeQuantity.value;
+    if (isIntUnit && !Number.isInteger(qVal)) {
+      throw new Error('When adding a quantity of unit '+unit+' to a date/time,'+
+        ' the value must be an integer.');
+    }
+
+    // If the precision of the time quantity is higher than the precision of the
+    // date, we need to convert the time quantity to the precision of the date.
+    if (this._getPrecision() < unitPrecision) {
+      var unquotedUnit = ucumUnit.slice(1, ucumUnit.length-1);
+      var neededUnit = cls._datePrecisionToUnquotedUcum[
+        this._getPrecision()];
+      var convResult = ucumUtils.convertUnitTo(unquotedUnit, qVal, neededUnit);
+      if (convResult.status != 'succeeded') {
+        throw new Error(convResult.msg.join("\n"));
+      }
+      ucumUnit = "'"+neededUnit+"'";
+      qVal = Math.floor(convResult.toVal);
+    }
+
+console.log("%%% oldDate = "+this._getDateObj());
+    var newDate = FP_TimeBase.timeUnitToAddFn[ucumUnit](this._getDateObj(), qVal);
+console.log("%%% newDate = "+newDate);
+    // newDate is a Date.  We need to make a string with the correct precision.
+    var isTime = (cls === FP_Time);
+    var precision = this._getPrecision();
+    if (isTime)
+      precision += 4; // based on dateTimeRE, not timeRE
+    var newDateStr = isoDateTime(newDate, precision);
+    if (cls === FP_Time) {
+      // FP_Time just needs the time part of the string
+      newDateStr = newDateStr.slice(newDateStr.indexOf('T') + 1);
+    }
+
+    return new cls(newDateStr);
   }
+
 
   /**
    *  Tests whether this object is equal to another.  Returns either true,
@@ -349,50 +398,6 @@ class FP_DateTime extends FP_TimeBase {
 
 
   /**
-   *  Adds a time-based quantity to this date/time.
-   * @param timeQuantity a quantity to be added to this date/time.  See the
-   *  FHIRPath specification for supported units.  The quantity may be negative
-   *  for subtraction.
-   * @return a new FP_DateTime that represents the result of adding timeQuantity
-   *  to this datetime.
-   */
-  plus(timeQuantity) {
-    var unit = timeQuantity.unit;
-    var ucumUnit = FP_Quantity.timeUnitsToUCUM[unit];
-    if (!ucumUnit) {
-      throw new Error('For date/time arithmetic, the unit of the quantity '+
-        'must be a recognized time-based unit');
-    }
-    var isIntUnit = FP_Quantity.integerUnits[ucumUnit];
-    var qVal = timeQuantity.value;
-    if (isIntUnit && !Number.isInteger(qVal)) {
-      throw new Error('When adding a quantity of unit '+unit+' to a date/time,'+
-        ' the value must be an integer.');
-    }
-
-    // If the precision of the time quantity is higher than the precision of the
-    // date, we need to convert the time quantity to the precision of the date.
-    if (this._getPrecision() < FP_DateTime._ucumToDatePrecision[ucumUnit]) {
-      var unquotedUnit = ucumUnit.slice(1, ucumUnit.length-1);
-      var neededUnit = FP_DateTime._datePrecisionToUnquotedUcum[
-        this._getPrecision()];
-      var convResult = ucumUtils.convertUnitTo(unquotedUnit, qVal, neededUnit);
-      if (convResult.status != 'succeeded') {
-        throw new Error(convResult.msg.join("\n"));
-      }
-      ucumUnit = "'"+neededUnit+"'";
-      qVal = Math.floor(convResult.toVal);
-    }
-
-    var newDate = FP_TimeBase.timeUnitToAddFn[ucumUnit](this._getDateObj(), qVal);
-    // newDate is a Date.  We need to make a string with the correct precision.
-    // date -> string -> truncate precision -> fp_date
-    var fpDate = new FP_DateTime(newDate.toISOString());
-    return new FP_DateTime(fpDate._dateStrAtPrecision(this._getPrecision()));
-  }
-
-
-  /**
    *  Returns the match data from matching timeRE against the time string.
    *  Also sets this.precision.
    */
@@ -443,27 +448,23 @@ class FP_DateTime extends FP_TimeBase {
    *  or equal to the current precision.
    */
   _dateStrAtPrecision(precision) {
+console.log("%%% precision = "+precision);
     var timeParts = this._getTimeParts().slice(0, precision+1);
     var timeZone = this._getMatchData()[7];
+console.log("%%% timeZone="+timeZone);
     var hasTime = timeParts.length > 3;
     if (hasTime) {
       timeParts[3] = 'T' + timeParts[3]; // restore the T removed before
       if (timeParts.length === 4)
         timeParts[4] = ':00'; // Date constructor requires minutes with hour
     }
-/*
-    else if (timeZone) { // TBD- In FHIRPath R2, this can be present without a
-time
-      // The date constructor requires a time if a time zone is present.
-      timeParts[3] = 'T00';
-      timeParts[4]= ':00';
-    }
-*/
+    // TBD- In FHIRPath R2, a timezone can be present without a time
     var timeStr = timeParts.join('');
     if (timeParts.length > 3) { // has a time part
       if (timeZone)
         timeStr += timeZone;
     }
+console.log("%%% dateStrAtPrecision = "+timeStr);
     return timeStr;
   }
 
@@ -539,6 +540,23 @@ class FP_Time extends FP_TimeBase {
 
 
   /**
+   *  Returns a time string for a time equal to what this time would be if
+   *  the string passed into the constructor had the given precision.  This
+   *  string will just be the time, without a "T", and not the date part.
+   * @param precision the new precision, which is assumed to be less than the
+   *  or equal to the current precision.
+   */
+  _dateStrAtPrecision(precision) {
+    var timeParts = this._getTimeParts().slice(0, precision+1);
+    var timeStr = timeParts.join('');
+    var timeZone = this._getMatchData()[4];
+    if (timeZone)
+      timeStr += timeZone;
+    return timeStr;
+  }
+
+
+  /**
    *  Returns a new Date object for a time equal to what this time would be if
    *  the string passed into the constructor had the given precision.
    * @param precision the new precision, which is assumed to be less than the
@@ -546,13 +564,12 @@ class FP_Time extends FP_TimeBase {
    */
   _dateAtPrecision(precision) {
     var timeParts = this._getTimeParts().slice(0, precision+1);
-    if (timeParts.length === 1)
-      timeParts[1] = ':00'; // Date constructor requires minutes
-    var timeStr = '2010T'+timeParts.join('');
+    if (precision === 0)
+      timeParts[2] = ':00'; // Date constructor requires minutes
     var timeZone = this._getMatchData()[4];
     if (timeZone)
-      timeStr += timeZone;
-    return new Date(timeStr);
+      timeParts.push(timeZone);
+    return new Date('2010T'+timeParts.join(''));
   }
 
 
@@ -592,6 +609,84 @@ FP_Time.checkString = function(str) {
   return d;
 };
 
+/**
+ *  A map from UCUM units (in quotation marks, which is the FHIRPath syntax for
+ *  UCUM) to the internal DateTime "precision" number.
+ */
+FP_Time._ucumToDatePrecision = {
+  "'h'": 0,
+  "'min'": 1,
+  "'s'": 2,
+  "'ms'": 3
+};
+
+/**
+ *  The inverse of _ucumToDatePrecision, except with unquoted UCUM units.
+ */
+FP_Time._datePrecisionToUnquotedUcum = ["h", "min", "s", "ms"];
+
+
+/**
+ *  Returns either the given number or a string with the number prefixed by
+ *  zeros if the given number is less than the given length.
+ * @param num the nubmer to format
+ * @param len the number of returned digits.  For now this must either be 2 or
+ *  3. (Optional-- default is 2).
+ */
+function formatNum(num, len) {
+  // Could use String.repeat, but that requires convertin num to an string first
+  // to get its length.  This might be slightly faster given that we only need 2
+  // or three 3 digit return values.
+  var rtn = num;
+  if (len === 3 && num < 100)
+    rtn = '0' + num;
+  if (num < 10)
+    rtn = '0' + rtn;
+  return rtn;
+}
+
+
+/**
+ *  Formats the given date object into an ISO8601 datetime string, preserving
+ *  the time offset.
+ * @date the date to format
+ * @precision the precision at which to terminate string string.  (This is
+ *  optional). If present, it will be an integer into the matching components of
+ *  dateTimeRE.
+ * @return a string in ISO8601 format.
+ */
+function isoDateTime(date, precision) {
+  // YYYY-MM-DDTHH:mm:ss.sss[+-]HH:mm
+  // Note:  Date.toISOString sets the timezone at 'Z', which we don't want to do
+  var rtn = date.getFullYear();
+  if (precision > 1) {
+    rtn += '-' + formatNum(date.getMonth() + 1);
+    if (precision > 2 {
+      rtn += '-' + formatNum(date.getDate());
+      if (precision > 3) {
+        rtn += 'T' + formatNum(date.getHours());
+        if (precision > 4) {
+          rtn += ':' + formatNum(date.getMinutes());
+          if (precision > 5) {
+            rtn += ':' + formatNum(date.getSeconds());
+            if (precision > 6)
+              rtn += formatNum(date.getMilliseconds(), 3);
+          }
+        }
+      }
+    }
+  }
+  var tzOffset = date.getTimezoneOffset();
+  // tzOffset is a number of minutes, and is positive for negative timezones,
+  // and negative for positive timezones.
+  var tzSign = tzOffset < 0 ? '+' : '-';
+  tzOffset = Math.abs(tzOffset);
+  var tzMin = tzOffset % 60;
+  var tzHour = formatNum((tzOffset - tzMin) / 60);
+  return ''+year+'-'+month+'-'+day+'T'+hour+':'+min+':'+sec+'.'+
+    mil + tzSign + tzHour + ':' + formatNum(tzMin));
+}
+
 
 module.exports = {
   FP_Type: FP_Type,
@@ -600,5 +695,5 @@ module.exports = {
   FP_Time: FP_Time,
   FP_Quantity: FP_Quantity,
   timeRE: timeRE,
-  dateTimeRE: dateTimeRE
+  dateTimeRE: dateTimeRE,
 };
