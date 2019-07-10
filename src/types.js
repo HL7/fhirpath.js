@@ -7,6 +7,7 @@ const addDays = require('date-fns/add_days');
 const addHours = require('date-fns/add_hours');
 const addMinutes = require('date-fns/add_minutes');
 const ucumUtils = require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance();
+const constants = require('./constants');
 
 let timeFormat =
   '[0-9][0-9](\\:[0-9][0-9](\\:[0-9][0-9](\\.[0-9]+)?)?)?(Z|(\\+|-)[0-9][0-9]\\:[0-9][0-9])?';
@@ -163,12 +164,13 @@ class FP_TimeBase extends FP_Type {
 console.log("%%% oldDate = "+this._getDateObj());
     var newDate = FP_TimeBase.timeUnitToAddFn[ucumUnit](this._getDateObj(), qVal);
 console.log("%%% newDate = "+newDate);
+console.log(newDate.toISOString());
     // newDate is a Date.  We need to make a string with the correct precision.
     var isTime = (cls === FP_Time);
     var precision = this._getPrecision();
     if (isTime)
       precision += 4; // based on dateTimeRE, not timeRE
-    var newDateStr = isoDateTime(newDate, precision);
+    var newDateStr = FP_DateTime.isoDateTime(newDate, precision);
     if (cls === FP_Time) {
       // FP_Time just needs the time part of the string
       newDateStr = newDateStr.slice(newDateStr.indexOf('T') + 1);
@@ -260,8 +262,11 @@ console.log("%%% newDate = "+newDate);
    *  precisions.
    */
   compare(otherTime) {
+console.log("%%% otherTime = "+otherTime);
     var thisPrecision = this._getPrecision();
+console.log("%%% thisPrecision = "+thisPrecision);
     var otherPrecision = otherTime._getPrecision();
+console.log("%%% otherPrecision = "+otherPrecision);
     var thisTimeInt = thisPrecision <= otherPrecision ?
       this._getDateObj().getTime(): this._dateAtPrecision(otherPrecision).getTime();
     var otherTimeInt = otherPrecision <= thisPrecision ?
@@ -300,6 +305,8 @@ console.log("%%% newDate = "+newDate);
         }
       }
     }
+console.log("%%% for regEx="+regEx);
+console.log("%%% matchdata =  "+this.timeMatchData);
     return this.timeMatchData;
   }
 
@@ -339,6 +346,8 @@ console.log("%%% newDate = "+newDate);
         }
       }
     }
+console.log("%%% timeParts=");
+console.log(timeParts);
     return timeParts;
   }
 
@@ -442,41 +451,54 @@ class FP_DateTime extends FP_TimeBase {
 
 
   /**
-   *  Returns a datetime string for a time equal to what this time would be if
-   *  the string passed into the constructor had the given precision.
-   * @param precision the new precision, which is assumed to be less than the
-   *  or equal to the current precision.
-   */
-  _dateStrAtPrecision(precision) {
-console.log("%%% precision = "+precision);
-    var timeParts = this._getTimeParts().slice(0, precision+1);
-    var timeZone = this._getMatchData()[7];
-console.log("%%% timeZone="+timeZone);
-    var hasTime = timeParts.length > 3;
-    if (hasTime) {
-      timeParts[3] = 'T' + timeParts[3]; // restore the T removed before
-      if (timeParts.length === 4)
-        timeParts[4] = ':00'; // Date constructor requires minutes with hour
-    }
-    // TBD- In FHIRPath R2, a timezone can be present without a time
-    var timeStr = timeParts.join('');
-    if (timeParts.length > 3) { // has a time part
-      if (timeZone)
-        timeStr += timeZone;
-    }
-console.log("%%% dateStrAtPrecision = "+timeStr);
-    return timeStr;
-  }
-
-
-  /**
    *  Returns a new Date object for a time equal to what this time would be if
    *  the string passed into the constructor had the given precision.
    * @param precision the new precision, which is assumed to be less than the
    *  or equal to the current precision.
    */
   _dateAtPrecision(precision) {
-    return new Date(this._dateStrAtPrecision(precision));
+    var timeParts = this._getTimeParts().slice(0, precision+1);
+console.log("%%% timeParts = "+timeParts);
+    // Note: timeParts includes things like : and - which we must remove
+    var year = parseInt(timeParts[0]);
+    var month = precision > 0 ? parseInt(timeParts[1].slice(1)) - 1 : 0;
+    var day = precision > 1 ? parseInt(timeParts[2].slice(1)) : 1;
+    var hour = precision > 2 ? parseInt(timeParts[3]) : 0;
+    var minutes = precision > 3 ? parseInt(timeParts[4].slice(1)): 0;
+    var seconds = precision > 4 ? parseInt(timeParts[5].slice(1)): 0;
+    var ms = precision > 5 ? parseInt(timeParts[6].slice(1)): 0;
+console.log("%%% date args = "+[year, month, day, hour, minutes, seconds, ms]);
+    var d = new Date(year, month, day, hour, minutes, seconds, ms);
+    // d is a date object for those values in the local timezone.  We need to
+    // adjust the time if a different timezone offset was specified.  If no
+    // timezone offset was specified, we assume the local one, and we are done.
+console.log('%%% d = '+d);
+console.log('%%% timeParts = ');
+console.log(timeParts);
+    var timezoneOffset = this._getMatchData()[7];
+    var timezoneMinutes = 0;
+    if (timezoneOffset) {
+      // Add the timezone minutes
+      var localTimezoneMinutes = d.getTimezoneOffset();
+      var timezoneMinutes = 0; // if Z
+      if (timezoneOffset != 'Z') {
+        var timezoneParts = timezoneOffset.split(':'); // (+-)hours:minutes
+        var hours = parseInt(timezoneParts[0]);
+        timezoneMinutes = parseInt(timezoneParts[1]);
+        if (hours < 0)
+          timezoneMinutes = -timezoneMinutes;
+        timezoneMinutes += 60*hours;
+      }
+      // localTimezoneMinutes has the inverse sign of its timezone offset
+console.log('%%% timezoneMinutes='+timezoneMinutes);
+console.log('%%% localTimezoneMinutes='+localTimezoneMinutes);
+console.log(timeParts);
+      d = addMinutes(d, -localTimezoneMinutes-timezoneMinutes);
+    }
+console.log("%%% d2=");
+console.log(d);
+console.log(d.toISOString());
+    return d;
   }
 }
 
@@ -538,22 +560,6 @@ class FP_Time extends FP_TimeBase {
     return super.compare(otherTime);
   }
 
-
-  /**
-   *  Returns a time string for a time equal to what this time would be if
-   *  the string passed into the constructor had the given precision.  This
-   *  string will just be the time, without a "T", and not the date part.
-   * @param precision the new precision, which is assumed to be less than the
-   *  or equal to the current precision.
-   */
-  _dateStrAtPrecision(precision) {
-    var timeParts = this._getTimeParts().slice(0, precision+1);
-    var timeStr = timeParts.join('');
-    var timeZone = this._getMatchData()[4];
-    if (timeZone)
-      timeStr += timeZone;
-    return timeStr;
-  }
 
 
   /**
@@ -647,46 +653,71 @@ function formatNum(num, len) {
 
 
 /**
- *  Formats the given date object into an ISO8601 datetime string, preserving
- *  the time offset.
+ *  Formats the given date object into an ISO8601 datetime string, expressing it
+ *  in the local timezone.
  * @date the date to format
  * @precision the precision at which to terminate string string.  (This is
  *  optional). If present, it will be an integer into the matching components of
  *  dateTimeRE.
  * @return a string in ISO8601 format.
  */
-function isoDateTime(date, precision) {
+FP_DateTime.isoDateTime = function(date, precision) {
+  if (precision === undefined)
+    precision = 6; // maximum
   // YYYY-MM-DDTHH:mm:ss.sss[+-]HH:mm
-  // Note:  Date.toISOString sets the timezone at 'Z', which we don't want to do
+  // Note:  Date.toISOString sets the timezone at 'Z', which I did not want.
+  // Actually, I wanted to keep the original timezone given in the constructor,
+  // but that is difficult due to daylight savings time changes.  (For instance,
+  // if you add 6 months, the timezone offset could change).
   var rtn = date.getFullYear();
-  if (precision > 1) {
+  if (precision > 0) {
     rtn += '-' + formatNum(date.getMonth() + 1);
-    if (precision > 2 {
+    if (precision > 1) {
       rtn += '-' + formatNum(date.getDate());
-      if (precision > 3) {
+      if (precision > 2) {
         rtn += 'T' + formatNum(date.getHours());
-        if (precision > 4) {
+        if (precision > 3) {
           rtn += ':' + formatNum(date.getMinutes());
-          if (precision > 5) {
+          if (precision > 4) {
             rtn += ':' + formatNum(date.getSeconds());
-            if (precision > 6)
-              rtn += formatNum(date.getMilliseconds(), 3);
+            if (precision > 5)
+              rtn += '.' + formatNum(date.getMilliseconds(), 3);
           }
         }
       }
     }
   }
+  // Note:  getTimezoneoffset returns the offset for the local system at the
+  // given date.
   var tzOffset = date.getTimezoneOffset();
   // tzOffset is a number of minutes, and is positive for negative timezones,
   // and negative for positive timezones.
   var tzSign = tzOffset < 0 ? '+' : '-';
   tzOffset = Math.abs(tzOffset);
   var tzMin = tzOffset % 60;
-  var tzHour = formatNum((tzOffset - tzMin) / 60);
-  return ''+year+'-'+month+'-'+day+'T'+hour+':'+min+':'+sec+'.'+
-    mil + tzSign + tzHour + ':' + formatNum(tzMin));
+  var tzHour = (tzOffset - tzMin) / 60;
+  if (precision < 3) // add T before offset
+    rtn += 'T';
+  return rtn + tzSign + formatNum(tzHour) + ':' + formatNum(tzMin);
 }
 
+
+/**
+ *  Returns a date string in ISO format at the given precision level.
+ * @date the date to format
+ * @precision the precision at which to terminate string string.  (This is
+ *  optional). If present, it will be an integer into the matching components of
+ *  dateTimeRE.
+ * @return a string in ISO8601 format.
+ */
+FP_DateTime.isoDate = function(date, precision) {
+  if (precision === undefined || precision > 2)
+    precision = 2;
+  var rtn = FP_DateTime.isoDateTime(date, precision);
+  // Strip off the timezone offset.
+  var tPos = rtn.indexOf('T');
+  return rtn.slice(0, tPos);
+}
 
 module.exports = {
   FP_Type: FP_Type,

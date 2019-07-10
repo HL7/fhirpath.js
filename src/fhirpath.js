@@ -31,6 +31,7 @@
 const parser = require("./parser");
 const util = require("./utilities");
 require("./polyfill");
+const constants = require('./constants');
 
 let engine    = {}; // the object with all FHIRPath functions and operations
 let existence = require("./existence");
@@ -558,6 +559,7 @@ var parse = function(path) {
  * @param {object} context - a hash of variable name/value pairs.
  */
 function applyParsedPath(resource, parsedPath, context) {
+  constants.reset();
   let dataRoot = util.arraify(resource);
   // doEval takes a "ctx" object, and we store things in that as we parse, so we
   // need to put user-provided variable data in a sub-object, ctx.vars.
