@@ -189,6 +189,10 @@ tests:
       - desc: Comparison with later DateTime from resource (2)
         expression: '@2018-12-21T12:02+02:00 > dateTime'
         result: [false]
+      - expression: '@2020-08-04T12:34-04:00  < @2020T-04:00'
+        result: [false]
+      - expression: '@2020-08-04T12:34  < @2020'
+        result: [false]
     - 'group:  Time':
       - desc: Time comparison; GT (1)
         expression: '@T12:03 > @T12:01'

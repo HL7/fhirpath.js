@@ -262,11 +262,10 @@ console.log(newDate.toISOString());
    *  precisions.
    */
   compare(otherTime) {
-console.log("%%% otherTime = "+otherTime);
     var thisPrecision = this._getPrecision();
-console.log("%%% thisPrecision = "+thisPrecision);
     var otherPrecision = otherTime._getPrecision();
-console.log("%%% otherPrecision = "+otherPrecision);
+console.log("%%% this date at prec="+this._dateAtPrecision(otherPrecision));
+console.log("%%% other date "+otherTime._getDateObj());
     var thisTimeInt = thisPrecision <= otherPrecision ?
       this._getDateObj().getTime(): this._dateAtPrecision(otherPrecision).getTime();
     var otherTimeInt = otherPrecision <= thisPrecision ?
@@ -306,6 +305,7 @@ console.log("%%% otherPrecision = "+otherPrecision);
       }
     }
 console.log("%%% for regEx="+regEx);
+console.log("%%% on "+this.asStr);
 console.log("%%% matchdata =  "+this.timeMatchData);
     return this.timeMatchData;
   }
@@ -669,7 +669,7 @@ FP_DateTime.isoDateTime = function(date, precision) {
   // Actually, I wanted to keep the original timezone given in the constructor,
   // but that is difficult due to daylight savings time changes.  (For instance,
   // if you add 6 months, the timezone offset could change).
-  var rtn = date.getFullYear();
+  var rtn = '' + date.getFullYear();
   if (precision > 0) {
     rtn += '-' + formatNum(date.getMonth() + 1);
     if (precision > 1) {
@@ -687,18 +687,22 @@ FP_DateTime.isoDateTime = function(date, precision) {
       }
     }
   }
-  // Note:  getTimezoneoffset returns the offset for the local system at the
-  // given date.
-  var tzOffset = date.getTimezoneOffset();
-  // tzOffset is a number of minutes, and is positive for negative timezones,
-  // and negative for positive timezones.
-  var tzSign = tzOffset < 0 ? '+' : '-';
-  tzOffset = Math.abs(tzOffset);
-  var tzMin = tzOffset % 60;
-  var tzHour = (tzOffset - tzMin) / 60;
-  if (precision < 3) // add T before offset
-    rtn += 'T';
-  return rtn + tzSign + formatNum(tzHour) + ':' + formatNum(tzMin);
+  // FHIRPath STU1 does not allow a timezone offset on a dateTime that does not
+  // have a time part (except that the grammar allows 'Z', which is
+  // inconsistent).
+  if (precision > 2) {
+    // Note:  getTimezoneoffset returns the offset for the local system at the
+    // given date.
+    var tzOffset = date.getTimezoneOffset();
+    // tzOffset is a number of minutes, and is positive for negative timezones,
+    // and negative for positive timezones.
+    var tzSign = tzOffset < 0 ? '+' : '-';
+    tzOffset = Math.abs(tzOffset);
+    var tzMin = tzOffset % 60;
+    var tzHour = (tzOffset - tzMin) / 60;
+    rtn += tzSign + formatNum(tzHour) + ':' + formatNum(tzMin);
+  }
+  return rtn;
 }
 
 
@@ -713,10 +717,7 @@ FP_DateTime.isoDateTime = function(date, precision) {
 FP_DateTime.isoDate = function(date, precision) {
   if (precision === undefined || precision > 2)
     precision = 2;
-  var rtn = FP_DateTime.isoDateTime(date, precision);
-  // Strip off the timezone offset.
-  var tPos = rtn.indexOf('T');
-  return rtn.slice(0, tPos);
+  return FP_DateTime.isoDateTime(date, precision);
 }
 
 module.exports = {

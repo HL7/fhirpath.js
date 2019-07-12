@@ -115,8 +115,8 @@ tests:
     expression: n4 & n4
     result: [""]
   - 'group:  6.7 Date/Time Arithmetic':
-    - expression: "@2018 + 1 'a'"
-      result: ['2019']
+    - expression: "@2018 + 1 'a' = @2019"
+      result: [true]
     - expression: "@2018 + 1 year"
       result: ['2019']
     - expression: "@2018 + 2 years"
@@ -150,6 +150,8 @@ tests:
     - expression: "@T09:45:23Z + 2 minutes = @T04:47:23.000-05:00"
       result: [true]
     - expression: "@T23:59:23Z + 2 minutes = @T00:01:23Z"
+      result: [true]
+    - expression: "@T23:59:23-05:00 + 2 minutes = @T00:01:23-05:00"
       result: [true]
 
 subject:
