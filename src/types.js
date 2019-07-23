@@ -356,6 +356,38 @@ class FP_TimeBase extends FP_Type {
     }
     return this.dateObj;
   }
+
+
+  /**
+   *  Creates a date object for the given timezone.  The returned date object
+   *  will have the specified date and time in the specified timezone.
+   * @param year...ms Just as in the Date constructor.
+   * @param timezoneOffset (optiona) a string in the format (+-)HH:mm or Z, representing the
+   *  timezone offset.  If not provided, the local timzone will be assumed (as the
+   *  Date constructor does).
+   */
+  _createDate(year, month, day, hour, minutes, seconds, ms, timezoneOffset) {
+    var d = new Date(year, month, day, hour, minutes, seconds, ms);
+    if (timezoneOffset) {
+      // d is in local time.  Adjust for the timezone offset.
+      // First adjust the date by the timezone offset before reducing its
+      // precision.  Otherwise,
+      // @2018-11-01T-04:00 < @2018T-05:00
+      var localTimezoneMinutes = d.getTimezoneOffset();
+      var timezoneMinutes = 0; // if Z
+      if (timezoneOffset != 'Z') {
+        var timezoneParts = timezoneOffset.split(':'); // (+-)hours:minutes
+        var hours = parseInt(timezoneParts[0]);
+        timezoneMinutes = parseInt(timezoneParts[1]);
+        if (hours < 0)
+          timezoneMinutes = -timezoneMinutes;
+        timezoneMinutes += 60*hours;
+      }
+      // localTimezoneMinutes has the inverse sign of its timezone offset
+      d = addMinutes(d, -localTimezoneMinutes-timezoneMinutes);
+    }
+    return d;
+  }
 }
 
 /**
@@ -458,26 +490,8 @@ class FP_DateTime extends FP_TimeBase {
     var minutes = thisPrecision > 3 ? parseInt(timeParts[4].slice(1)): 0;
     var seconds = thisPrecision > 4 ? parseInt(timeParts[5].slice(1)): 0;
     var ms = thisPrecision > 5 ? parseInt(timeParts[6].slice(1)): 0;
-    var d = new Date(year, month, day, hour, minutes, seconds, ms);
-    if (timezoneOffset) {
-      // d is in local time.  Adjust for the timezone offset.
-      // First adjust the date by the timezone offset before reducing its
-      // precision.  Otherwise,
-      // @2018-11-01T-04:00 < @2018T-05:00
-      var timezoneMinutes = 0;
-      var localTimezoneMinutes = d.getTimezoneOffset();
-      var timezoneMinutes = 0; // if Z
-      if (timezoneOffset != 'Z') {
-        var timezoneParts = timezoneOffset.split(':'); // (+-)hours:minutes
-        var hours = parseInt(timezoneParts[0]);
-        timezoneMinutes = parseInt(timezoneParts[1]);
-        if (hours < 0)
-          timezoneMinutes = -timezoneMinutes;
-        timezoneMinutes += 60*hours;
-      }
-      // localTimezoneMinutes has the inverse sign of its timezone offset
-      d = addMinutes(d, -localTimezoneMinutes-timezoneMinutes);
-    }
+    var d = this._createDate(year, month, day, hour, minutes, seconds, ms,
+      timezoneOffset);
     if (precision < this._getPrecision()) {
       // Adjust the precision
       var year = d.getFullYear();
@@ -553,6 +567,9 @@ class FP_Time extends FP_TimeBase {
 
 
 
+
+
+
   /**
    *  Returns a new Date object for a time equal to what this time would be if
    *  the string passed into the constructor had the given precision.
@@ -560,7 +577,6 @@ class FP_Time extends FP_TimeBase {
    *  or equal to the current precision.  A precision of 0 means the hour.
    */
   _dateAtPrecision(precision) {
-    // TBD - refactor code common with other _dateAtPrecision
     var timeParts = this._getTimeParts();
     var timezoneOffset = this._getMatchData()[4];
     // Get the date object first at the current precision.
@@ -572,26 +588,11 @@ class FP_Time extends FP_TimeBase {
     var minutes = thisPrecision > 0 ? parseInt(timeParts[1].slice(1)): 0;
     var seconds = thisPrecision > 1 ? parseInt(timeParts[2].slice(1)): 0;
     var ms = thisPrecision > 2 ? parseInt(timeParts[3].slice(1)): 0;
-    var d = new Date(year, month, day, hour, minutes, seconds, ms);
+    var d = this._createDate(year, month, day, hour, minutes, seconds, ms,
+      timezoneOffset);
     if (timezoneOffset) {
-      // d is in local time.  Adjust for the timezone offset.
-      // First adjust the date by the timezone offset before reducing its
-      // precision.  Otherwise,
-      // @2018-11-01T-04:00 < @2018T-05:00
-      var timezoneMinutes = 0;
-      var localTimezoneMinutes = d.getTimezoneOffset();
-      var timezoneMinutes = 0; // if Z
-      if (timezoneOffset != 'Z') {
-        var timezoneParts = timezoneOffset.split(':'); // (+-)hours:minutes
-        var hours = parseInt(timezoneParts[0]);
-        timezoneMinutes = parseInt(timezoneParts[1]);
-        if (hours < 0)
-          timezoneMinutes = -timezoneMinutes;
-        timezoneMinutes += 60*hours;
-      }
-      // localTimezoneMinutes has the inverse sign of its timezone offset
-      d = addMinutes(d, -localTimezoneMinutes-timezoneMinutes);
-      // Keep the date the same
+      // Keep the date the same (in the local timezone), so it is not a relevant
+      // factor when comparing different times.
       d.setYear(year)
       d.setMonth(month);
       d.setDate(day);
