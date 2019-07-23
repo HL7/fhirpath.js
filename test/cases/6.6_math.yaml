@@ -148,7 +148,7 @@ tests:
     - expression: "@T09:45:23 + 2 years"
       error: true
     - expression: "@T09:45:23Z + 2 minutes = @T04:47:23.000-05:00"
-      result: [true]
+      result: []
     - expression: "@T23:59:23Z + 2 minutes = @T00:01:23Z"
       result: [true]
     - expression: "@T23:59:23-05:00 + 2 minutes = @T00:01:23-05:00"

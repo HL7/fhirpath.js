@@ -47,10 +47,6 @@ engine.plus = function(xs, ys){
     if(x instanceof FP_TimeBase && y instanceof FP_Quantity) {
       return x.plus(y);
     }
-console.log("%%% typeof x ="+(typeof x));
-console.log("%%% class x ="+(x.constructor.name));
-console.log("%%% typeof y ="+(typeof y));
-console.log("%%% class y ="+(y.constructor.name));
   }
   throw new Error("Can not " + JSON.stringify(xs) + " + " + JSON.stringify(ys));
 };

@@ -160,16 +160,12 @@ class FP_TimeBase extends FP_Type {
       ucumUnit = "'"+neededUnit+"'";
       qVal = Math.floor(convResult.toVal);
     }
-
-console.log("%%% oldDate = "+this._getDateObj());
     var newDate = FP_TimeBase.timeUnitToAddFn[ucumUnit](this._getDateObj(), qVal);
-console.log("%%% newDate = "+newDate);
-console.log(newDate.toISOString());
     // newDate is a Date.  We need to make a string with the correct precision.
     var isTime = (cls === FP_Time);
     var precision = this._getPrecision();
     if (isTime)
-      precision += 4; // based on dateTimeRE, not timeRE
+      precision += 3; // based on dateTimeRE, not timeRE
     var newDateStr = FP_DateTime.isoDateTime(newDate, precision);
     if (cls === FP_Time) {
       // FP_Time just needs the time part of the string
@@ -210,8 +206,9 @@ console.log(newDate.toISOString());
     else {
       var thisPrec = this._getPrecision();
       var otherPrec = otherDateTime._getPrecision();
-      if (thisPrec == otherPrec)
+      if (thisPrec == otherPrec) {
         rtn = this._getDateObj().getTime()==otherDateTime._getDateObj().getTime();
+      }
       else {
         // The dates are not equal, but decide whether to return empty or false.
         var commonPrec = thisPrec <= otherPrec ? thisPrec : otherPrec;
@@ -264,8 +261,6 @@ console.log(newDate.toISOString());
   compare(otherTime) {
     var thisPrecision = this._getPrecision();
     var otherPrecision = otherTime._getPrecision();
-console.log("%%% this date at prec="+this._dateAtPrecision(otherPrecision));
-console.log("%%% other date "+otherTime._getDateObj());
     var thisTimeInt = thisPrecision <= otherPrecision ?
       this._getDateObj().getTime(): this._dateAtPrecision(otherPrecision).getTime();
     var otherTimeInt = otherPrecision <= thisPrecision ?
@@ -304,9 +299,6 @@ console.log("%%% other date "+otherTime._getDateObj());
         }
       }
     }
-console.log("%%% for regEx="+regEx);
-console.log("%%% on "+this.asStr);
-console.log("%%% matchdata =  "+this.timeMatchData);
     return this.timeMatchData;
   }
 
@@ -346,8 +338,6 @@ console.log("%%% matchdata =  "+this.timeMatchData);
         }
       }
     }
-console.log("%%% timeParts=");
-console.log(timeParts);
     return timeParts;
   }
 
@@ -457,28 +447,24 @@ class FP_DateTime extends FP_TimeBase {
    *  or equal to the current precision.
    */
   _dateAtPrecision(precision) {
-    var timeParts = this._getTimeParts().slice(0, precision+1);
-console.log("%%% timeParts = "+timeParts);
-    // Note: timeParts includes things like : and - which we must remove
-    var year = parseInt(timeParts[0]);
-    var month = precision > 0 ? parseInt(timeParts[1].slice(1)) - 1 : 0;
-    var day = precision > 1 ? parseInt(timeParts[2].slice(1)) : 1;
-    var hour = precision > 2 ? parseInt(timeParts[3]) : 0;
-    var minutes = precision > 3 ? parseInt(timeParts[4].slice(1)): 0;
-    var seconds = precision > 4 ? parseInt(timeParts[5].slice(1)): 0;
-    var ms = precision > 5 ? parseInt(timeParts[6].slice(1)): 0;
-console.log("%%% date args = "+[year, month, day, hour, minutes, seconds, ms]);
-    var d = new Date(year, month, day, hour, minutes, seconds, ms);
-    // d is a date object for those values in the local timezone.  We need to
-    // adjust the time if a different timezone offset was specified.  If no
-    // timezone offset was specified, we assume the local one, and we are done.
-console.log('%%% d = '+d);
-console.log('%%% timeParts = ');
-console.log(timeParts);
+    var timeParts = this._getTimeParts();
     var timezoneOffset = this._getMatchData()[7];
-    var timezoneMinutes = 0;
+    // Get the date object first at the current precision.
+    var thisPrecision = this._getPrecision();
+    var year = parseInt(timeParts[0]);
+    var month = thisPrecision > 0 ? parseInt(timeParts[1].slice(1)) - 1 : 0;
+    var day = thisPrecision > 1 ? parseInt(timeParts[2].slice(1)) : 1;
+    var hour = thisPrecision > 2 ? parseInt(timeParts[3]) : 0;
+    var minutes = thisPrecision > 3 ? parseInt(timeParts[4].slice(1)): 0;
+    var seconds = thisPrecision > 4 ? parseInt(timeParts[5].slice(1)): 0;
+    var ms = thisPrecision > 5 ? parseInt(timeParts[6].slice(1)): 0;
+    var d = new Date(year, month, day, hour, minutes, seconds, ms);
     if (timezoneOffset) {
-      // Add the timezone minutes
+      // d is in local time.  Adjust for the timezone offset.
+      // First adjust the date by the timezone offset before reducing its
+      // precision.  Otherwise,
+      // @2018-11-01T-04:00 < @2018T-05:00
+      var timezoneMinutes = 0;
       var localTimezoneMinutes = d.getTimezoneOffset();
       var timezoneMinutes = 0; // if Z
       if (timezoneOffset != 'Z') {
@@ -490,14 +476,19 @@ console.log(timeParts);
         timezoneMinutes += 60*hours;
       }
       // localTimezoneMinutes has the inverse sign of its timezone offset
-console.log('%%% timezoneMinutes='+timezoneMinutes);
-console.log('%%% localTimezoneMinutes='+localTimezoneMinutes);
-console.log(timeParts);
       d = addMinutes(d, -localTimezoneMinutes-timezoneMinutes);
     }
-console.log("%%% d2=");
-console.log(d);
-console.log(d.toISOString());
+    if (precision < this._getPrecision()) {
+      // Adjust the precision
+      var year = d.getFullYear();
+      var month = precision > 0 ? d.getMonth() : 0;
+      var day = precision > 1 ? d.getDate() : 1;
+      var hour = precision > 2 ? d.getHours() : 0;
+      var minutes = precision > 3 ? d.getMinutes(): 0;
+      var seconds = precision > 4 ? d.getSeconds(): 0;
+      var ms = precision > 5 ? d.getMilliseconds(): 0;
+      d = new Date(year, month, day, hour, minutes, seconds, ms);
+    }
     return d;
   }
 }
@@ -566,16 +557,54 @@ class FP_Time extends FP_TimeBase {
    *  Returns a new Date object for a time equal to what this time would be if
    *  the string passed into the constructor had the given precision.
    * @param precision the new precision, which is assumed to be less than the
-   *  or equal to the current precision.
+   *  or equal to the current precision.  A precision of 0 means the hour.
    */
   _dateAtPrecision(precision) {
-    var timeParts = this._getTimeParts().slice(0, precision+1);
-    if (precision === 0)
-      timeParts[2] = ':00'; // Date constructor requires minutes
-    var timeZone = this._getMatchData()[4];
-    if (timeZone)
-      timeParts.push(timeZone);
-    return new Date('2010T'+timeParts.join(''));
+    // TBD - refactor code common with other _dateAtPrecision
+    var timeParts = this._getTimeParts();
+    var timezoneOffset = this._getMatchData()[4];
+    // Get the date object first at the current precision.
+    var thisPrecision = this._getPrecision();
+    var year = 2010; // Have to pick some year for the date object
+    var month = 0;
+    var day = 1;
+    var hour = parseInt(timeParts[0]);
+    var minutes = thisPrecision > 0 ? parseInt(timeParts[1].slice(1)): 0;
+    var seconds = thisPrecision > 1 ? parseInt(timeParts[2].slice(1)): 0;
+    var ms = thisPrecision > 2 ? parseInt(timeParts[3].slice(1)): 0;
+    var d = new Date(year, month, day, hour, minutes, seconds, ms);
+    if (timezoneOffset) {
+      // d is in local time.  Adjust for the timezone offset.
+      // First adjust the date by the timezone offset before reducing its
+      // precision.  Otherwise,
+      // @2018-11-01T-04:00 < @2018T-05:00
+      var timezoneMinutes = 0;
+      var localTimezoneMinutes = d.getTimezoneOffset();
+      var timezoneMinutes = 0; // if Z
+      if (timezoneOffset != 'Z') {
+        var timezoneParts = timezoneOffset.split(':'); // (+-)hours:minutes
+        var hours = parseInt(timezoneParts[0]);
+        timezoneMinutes = parseInt(timezoneParts[1]);
+        if (hours < 0)
+          timezoneMinutes = -timezoneMinutes;
+        timezoneMinutes += 60*hours;
+      }
+      // localTimezoneMinutes has the inverse sign of its timezone offset
+      d = addMinutes(d, -localTimezoneMinutes-timezoneMinutes);
+      // Keep the date the same
+      d.setYear(year)
+      d.setMonth(month);
+      d.setDate(day);
+    }
+    if (precision < this._getPrecision()) {
+      // Adjust the precision
+      var hour = d.getHours();
+      var minutes = precision > 0 ? d.getMinutes(): 0;
+      var seconds = precision > 1 ? d.getSeconds(): 0;
+      var ms = precision > 2 ? d.getMilliseconds(): 0;
+      d = new Date(year, month, day, hour, minutes, seconds, ms);
+    }
+    return d;
   }
 
 
