@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.17.0] - 2019-07-24
+### Added
+- Support for adding time-based Quantities to DateTimes and Times.
+
 ## [0.16.0] - 2019-05-30
 ### Added
 - Quantity types can now be parsed, though arithmetic is not yet supported.
