@@ -2,8 +2,6 @@
 // expression (e.g. the return value of today(), per the spec.)  They are
 // constant during at least one evaluation.
 
-var today, now, localTimezoneOffset;
-
 module.exports = {
   /**
    *  Resets the constants.  Should be called when before the engine starts its
@@ -33,4 +31,4 @@ module.exports = {
       this.localTimezoneOffset = (new Date()).getTimezoneOffset();
     return  this.localTimezoneOffset;
   }
-}
+};

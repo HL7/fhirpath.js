@@ -1,13 +1,5 @@
-//import * as moment from 'moment';
-//const moment = require('moment');
-const addYears = require('date-fns/add_years');
-const addMonths = require('date-fns/add_months');
-const addWeeks = require('date-fns/add_weeks');
-const addDays = require('date-fns/add_days');
-const addHours = require('date-fns/add_hours');
 const addMinutes = require('date-fns/add_minutes');
 const ucumUtils = require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance();
-const constants = require('./constants');
 
 let timeFormat =
   '[0-9][0-9](\\:[0-9][0-9](\\:[0-9][0-9](\\.[0-9]+)?)?)?(Z|(\\+|-)[0-9][0-9]\\:[0-9][0-9])?';
@@ -99,7 +91,7 @@ FP_Quantity.timeUnitsToUCUM = {
   "'min'": "'min'",
   "'s'": "'s'",
   "'ms'": "'ms'"
-}
+};
 
 
 /**
@@ -113,7 +105,7 @@ FP_Quantity.integerUnits = {
   "'d'": true,
   "'h'": true,
   "'min'": true
-}
+};
 
 
 class FP_TimeBase extends FP_Type {
@@ -494,13 +486,13 @@ class FP_DateTime extends FP_TimeBase {
       timezoneOffset);
     if (precision < this._getPrecision()) {
       // Adjust the precision
-      var year = d.getFullYear();
-      var month = precision > 0 ? d.getMonth() : 0;
-      var day = precision > 1 ? d.getDate() : 1;
-      var hour = precision > 2 ? d.getHours() : 0;
-      var minutes = precision > 3 ? d.getMinutes(): 0;
-      var seconds = precision > 4 ? d.getSeconds(): 0;
-      var ms = precision > 5 ? d.getMilliseconds(): 0;
+      year = d.getFullYear();
+      month = precision > 0 ? d.getMonth() : 0;
+      day = precision > 1 ? d.getDate() : 1;
+      hour = precision > 2 ? d.getHours() : 0;
+      minutes = precision > 3 ? d.getMinutes(): 0;
+      seconds = precision > 4 ? d.getSeconds(): 0;
+      ms = precision > 5 ? d.getMilliseconds(): 0;
       d = new Date(year, month, day, hour, minutes, seconds, ms);
     }
     return d;
@@ -538,7 +530,7 @@ FP_DateTime._ucumToDatePrecision = {
  *  The inverse of _ucumToDatePrecision, except with unquoted UCUM units.
  */
 FP_DateTime._datePrecisionToUnquotedUcum = ["a", "mo", "d", "h", "min", "s",
-      "ms"];
+  "ms"];
 
 
 
@@ -593,16 +585,16 @@ class FP_Time extends FP_TimeBase {
     if (timezoneOffset) {
       // Keep the date the same (in the local timezone), so it is not a relevant
       // factor when comparing different times.
-      d.setYear(year)
+      d.setYear(year);
       d.setMonth(month);
       d.setDate(day);
     }
     if (precision < this._getPrecision()) {
       // Adjust the precision
-      var hour = d.getHours();
-      var minutes = precision > 0 ? d.getMinutes(): 0;
-      var seconds = precision > 1 ? d.getSeconds(): 0;
-      var ms = precision > 2 ? d.getMilliseconds(): 0;
+      hour = d.getHours();
+      minutes = precision > 0 ? d.getMinutes(): 0;
+      seconds = precision > 1 ? d.getSeconds(): 0;
+      ms = precision > 2 ? d.getMilliseconds(): 0;
       d = new Date(year, month, day, hour, minutes, seconds, ms);
     }
     return d;
@@ -733,7 +725,7 @@ FP_DateTime.isoDateTime = function(date, precision) {
     rtn += tzSign + formatNum(tzHour) + ':' + formatNum(tzMin);
   }
   return rtn;
-}
+};
 
 
 /**
@@ -748,7 +740,7 @@ FP_DateTime.isoDate = function(date, precision) {
   if (precision === undefined || precision > 2)
     precision = 2;
   return FP_DateTime.isoDateTime(date, precision);
-}
+};
 
 module.exports = {
   FP_Type: FP_Type,
