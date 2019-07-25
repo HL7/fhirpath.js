@@ -601,5 +601,7 @@ var compile = function(path, context) {
 module.exports = {
   parse: parse,
   compile: compile,
-  evaluate: evaluate
+  evaluate: evaluate,
+  // Might as well export the UCUM library, since we are using it.
+  ucumUtils: require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance()
 };
