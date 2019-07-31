@@ -12,6 +12,10 @@ This log documents significant changes for each release.  This project follows
 - The ucum-lhc instance is exported for convenience, as ucumUtils.  See
   https://lhncbc.github.io/ucum-lhc/ for instructions if you want to use it.
 
+## [0.16.1] - 2019-06-11
+### Fixed
+- Updated packages for the demo to get patches for vulnerabilities.
+
 ## [0.16.0] - 2019-05-30
 ### Added
 - Quantity types can now be parsed, though arithmetic is not yet supported.
