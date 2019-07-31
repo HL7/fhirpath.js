@@ -130,7 +130,7 @@ tests:
     - expression: "@2018-01-03 + 2 years"
       result: ['2020-01-03']
     - expression: "@2018-02-18T12:23:45-05:00 + 2 years"
-      result: ['2020-02-18T12:23:45-05:00']
+      result: ['2020-02-18T14:23:45-03:00']
     - expression: "@2016-02-29 + 1 month"
       result: ['2016-03-29']
     - expression: "@2016-02-29 + 1 year"
