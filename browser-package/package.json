@@ -1,6 +1,6 @@
 {
   "name": "fhirpath-browser",
-  "version": "0.16.1",
+  "version": "0.16.2",
   "description": "Wrapper for hl7 fhirpath.min.js",
   "main": "index.js",
   "license": "MIT"
