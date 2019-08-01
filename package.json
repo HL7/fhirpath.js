@@ -34,7 +34,7 @@
   "scripts": {
     "generateParser": "cd src/parser; rm -rf ./generated/*; java -Xmx500M -cp \"../../antlr-4.7.1-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o generated -Dlanguage=JavaScript FHIRPath.g4",
     "build:browser": "cp LICENSE.md browser-build && cd browser-build && webpack && rm -f fhirpath.zip && zip fhirpath.zip LICENSE.md fhirpath.min.js && rm LICENSE.md",
-    "build:browser-package": "npm run build && cp ./browser-build/fhirpath.min.js ./browser-package/fhirpath.min.js && cd browser-package",
+    "build:browser-package": "npm run build && cp ./browser-build/fhirpath.min.js ./browser-package/fhirpath.min.js",
     "build": "webpack && npm run build:browser",
     "test:unit": "jest",
     "test:demo": "npm run build && cd demo && npm run build && grunt test:e2e",
