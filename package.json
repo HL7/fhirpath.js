@@ -8,9 +8,7 @@
     "antlr4": "^4.7.1",
     "commander": "^2.18.0",
     "date-fns": "^1.30.1",
-    "js-yaml": "^3.13.1",
-    "moment": "^2.24.0",
-    "moment-locales-webpack-plugin": "^1.0.7"
+    "js-yaml": "^3.13.1"
   },
   "devDependencies": {
     "babel-eslint": "^9.0.0",
@@ -40,7 +38,7 @@
     "test:demo": "npm run build && cd demo && npm run build && grunt test:e2e",
     "test:browser-build": "cd browser-build && grunt test:e2e",
     "pretest": "npm run build",
-    "test": "npm run lint && npm run test:unit && npm run test:demo && npm run test:browser-build",
+    "test": "npm run lint && npm run test:unit && npm run update-webdriver && npm run test:demo && npm run test:browser-build",
     "lint": "eslint src/parser/index.js src/*.js converter/",
     "update-webdriver": "node node_modules/protractor/bin/webdriver-manager update"
   },
