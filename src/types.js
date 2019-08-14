@@ -159,7 +159,7 @@ class FP_TimeBase extends FP_Type {
     if (isTime)
       precision += 3; // based on dateTimeRE, not timeRE
     var newDateStr = FP_DateTime.isoDateTime(newDate, precision);
-    if (cls === FP_Time) {
+    if (isTime) {
       // FP_Time just needs the time part of the string
       newDateStr = newDateStr.slice(newDateStr.indexOf('T') + 1);
     }
@@ -354,7 +354,7 @@ class FP_TimeBase extends FP_Type {
    *  Creates a date object for the given timezone.  The returned date object
    *  will have the specified date and time in the specified timezone.
    * @param year...ms Just as in the Date constructor.
-   * @param timezoneOffset (optiona) a string in the format (+-)HH:mm or Z, representing the
+   * @param timezoneOffset (optional) a string in the format (+-)HH:mm or Z, representing the
    *  timezone offset.  If not provided, the local timzone will be assumed (as the
    *  Date constructor does).
    */
@@ -467,7 +467,7 @@ class FP_DateTime extends FP_TimeBase {
   /**
    *  Returns a new Date object for a time equal to what this time would be if
    *  the string passed into the constructor had the given precision.
-   * @param precision the new precision, which is assumed to be less than the
+   * @param precision the new precision, which is assumed to be less than
    *  or equal to the current precision.
    */
   _dateAtPrecision(precision) {
@@ -558,13 +558,11 @@ class FP_Time extends FP_TimeBase {
   }
 
 
-
-
-
-
   /**
    *  Returns a new Date object for a time equal to what this time would be if
    *  the string passed into the constructor had the given precision.
+   *  The "date" portion of the returned Date object is not meaningful, and
+   *  should be ignored.
    * @param precision the new precision, which is assumed to be less than the
    *  or equal to the current precision.  A precision of 0 means the hour.
    */
