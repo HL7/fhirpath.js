@@ -13,7 +13,7 @@ engine.now = function(){
     // would not make a difference for computation, but if the end result of an
     // expression is "now()", then it would look different when output to a user.
     // Construct it ourselves to preserve timezone
-    var now = new Date();
+    var now = constants.nowDate; // a JS Date
     var isoStr = FP_DateTime.isoDateTime(now);
     constants.now = new FP_DateTime(isoStr);
   }
@@ -28,7 +28,7 @@ engine.now = function(){
 engine.today = function(){
   if (!constants.today) {
     // Construct the string ourselves to preserve timezone
-    var now = new Date();
+    var now = constants.nowDate; // a JS Date
     var isoStr = FP_DateTime.isoDate(now);
     constants.today = new FP_DateTime(isoStr);
   }

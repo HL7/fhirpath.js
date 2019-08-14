@@ -8,6 +8,7 @@ module.exports = {
    *  processing.
    */
   reset: function() {
+    this.nowDate = new Date(); // a Date object representint "now"
     this.today = null;
     this.now = null;
     this.localTimezoneOffset = null;
@@ -21,14 +22,5 @@ module.exports = {
   /**
    *  The cached value of now().
    */
-  now: null,
-
-  /**
-   *  Returns the value of the local timezone offset in minutes.
-   */
-  getLocalTimezoneOffset: function () {
-    if (!this.localTimezoneOffset)
-      this.localTimezoneOffset = (new Date()).getTimezoneOffset();
-    return  this.localTimezoneOffset;
-  }
+  now: null
 };
