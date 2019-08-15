@@ -12,6 +12,10 @@ This log documents significant changes for each release.  This project follows
 - The ucum-lhc instance is exported for convenience, as ucumUtils.  See
   https://lhncbc.github.io/ucum-lhc/ for instructions if you want to use it.
 
+## [0.16.2] - 2019-08-01
+### Fixed
+- IE 10 compatibility issues were fixed (by "bpacJoseph")
+
 ## [0.16.1] - 2019-06-11
 ### Fixed
 - Updated packages for the demo to get patches for vulnerabilities.
