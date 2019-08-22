@@ -276,6 +276,9 @@ tests:
         expression: '@T10:04:23-04:00 = @T18:04:23+04:00'
         result: [true]
 
+      - expression: '@T19:01:23-05:00 = @T00:01:23-00:00'
+        result: [true]
+
       - desc: 'Time literal compared with different time'
         expression: '@T10:04:23-04:00 = @T18:04:24+04:00'
         result: [false]

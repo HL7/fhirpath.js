@@ -11,6 +11,10 @@ tests:
     result: [2]
   - expression: "@2019"
     result: ["2019"]
+  - expression: "@2019-02-03T01:00Z = @2019-02-02T21:00-04:00"
+    result: [true]
+  - expression: "@2019-02-03T02:00Z = @2019-02-02T21:00-04:00"
+    result: [false]
   - expression: '-7'
     result: [-7]
   - expression: '-7.3'

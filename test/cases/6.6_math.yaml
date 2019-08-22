@@ -114,7 +114,45 @@ tests:
   - desc: '** Empty collection in concatenation is empty string (3)'
     expression: n4 & n4
     result: [""]
-
+  - 'group:  6.7 Date/Time Arithmetic':
+    - expression: "@2018 + 1 'a' = @2019"
+      result: [true]
+    - expression: "@2018 + 1 year"
+      result: ['2019']
+    - expression: "@2018 + 2 years"
+      result: ['2020']
+    - expression: "@2018-02 + 1 'mo'"
+      result: ['2018-03']
+    - expression: "@2018-02 + 1 month"
+      result: ['2018-03']
+    - expression: "@2018-02 + 2 months"
+      result: ['2018-04']
+    - expression: "@2018-01-03 + 2 years"
+      result: ['2020-01-03']
+    - expression: "@2018-02-18T12:23:45-05:00 + 2 years"
+      result: ['2020-02-18T14:23:45-03:00']
+    - expression: "@2016-02-29 + 1 month"
+      result: ['2016-03-29']
+    - expression: "@2016-02-29 + 1 year"
+      result: ['2017-02-28']
+    - expression: "@2016-01-31 + 1 month"
+      result: ['2016-02-29']
+    - expression: "@2016-01-31 + 1 month + 1 day"
+      result: ['2016-03-01']
+    - expression: "@2016-02-28 + 1 day"
+      result: ['2016-02-29']
+    - expression: "@2016-02-28 + 2 days"
+      result: ['2016-03-01']
+    - expression: "@2016-01-01 + 1 month"
+      result: ['2016-02-01']
+    - expression: "@T09:45:23 + 2 years"
+      error: true
+    - expression: "@T09:45:23Z + 2 minutes = @T04:47:23.000-05:00"
+      result: []
+    - expression: "@T23:59:23Z + 2 minutes = @T00:01:23Z"
+      result: [true]
+    - expression: "@T23:59:23-05:00 + 2 minutes = @T00:01:23-05:00"
+      result: [true]
 
 subject:
   resourceType: MathTestData

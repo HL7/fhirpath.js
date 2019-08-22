@@ -1,11 +1,13 @@
 {
   "name": "fhirpath",
-  "version": "0.16.2",
+  "version": "0.17.0",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "dependencies": {
+    "@lhncbc/ucum-lhc": "^2.6.2",
     "antlr4": "^4.7.1",
     "commander": "^2.18.0",
+    "date-fns": "^1.30.1",
     "js-yaml": "^3.13.1"
   },
   "devDependencies": {
@@ -22,9 +24,10 @@
     "jasmine-spec-reporter": "^4.2.1",
     "jest": "^24.1.0",
     "jit-grunt": "^0.10.0",
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.15",
     "tmp": "0.0.33",
-    "webpack": "^4.36.1",
+    "webpack": "^4.16.3",
+    "webpack-bundle-analyzer": "^3.3.2",
     "webpack-cli": "^3.1.0",
     "xml2js": "^0.4.19"
   },
@@ -39,7 +42,7 @@
     "test:demo": "npm run build && cd demo && npm run build && grunt test:e2e",
     "test:browser-build": "cd browser-build && grunt test:e2e",
     "pretest": "npm run build",
-    "test": "npm run lint && npm run test:unit && npm run test:demo && npm run test:browser-build",
+    "test": "npm run lint && npm run test:unit && npm run update-webdriver && npm run test:demo && npm run test:browser-build",
     "lint": "eslint src/parser/index.js src/*.js converter/",
     "update-webdriver": "node node_modules/protractor/bin/webdriver-manager update"
   },

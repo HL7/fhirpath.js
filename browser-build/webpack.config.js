@@ -1,3 +1,4 @@
+//const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
 module.exports = {
   node: {
     fs: "empty"
