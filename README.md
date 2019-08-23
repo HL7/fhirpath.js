@@ -26,7 +26,9 @@ const fhirpath = require('fhirpath');
 Download the zip file from the [releases
 page](https://github.com/HL7/fhirpath.js/releases).  It contains a JavaScript
 file, fhirpath.min.js, which defines a global "fhirpath" variable, which you can
-then use as shown below.
+then use as shown below.  Note that this file is UTF-8 encoded, and the script
+needs to be loaded as such.  For an example, see the
+browser-build/test/protractor/index.html file, which sets the page to be UTF-8.
 
 ## Usage
 ```

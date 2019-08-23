@@ -1,6 +1,6 @@
 {
   "name": "fhirpath",
-  "version": "0.17.0",
+  "version": "0.17.1",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "dependencies": {
