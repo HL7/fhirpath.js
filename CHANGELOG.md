@@ -6,7 +6,7 @@ This log documents significant changes for each release.  This project follows
 ## [0.17.1] - 2019-08-22
 ### Fixed
 - Set the charset of the test pages to UTF-8, because fhirpath.min.js is UTF-8,
-  and added a note the README about the need to set the character encoding.
+  and added a note to the README about the need to set the character encoding.
 
 ## [0.17.0] - 2019-07-24
 ### Added
