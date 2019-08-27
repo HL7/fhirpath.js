@@ -16,6 +16,7 @@
     "@babel/preset-env": "^7.5.5",
     "babel-eslint": "^9.0.0",
     "babel-loader": "^8.0.6",
+    "copy-webpack-plugin": "^5.0.4",
     "eslint": "^5.2.0",
     "grunt": "^1.0.4",
     "grunt-cli": "^1.3.1",
@@ -36,7 +37,7 @@
   },
   "scripts": {
     "generateParser": "cd src/parser; rm -rf ./generated/*; java -Xmx500M -cp \"../../antlr-4.7.1-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o generated -Dlanguage=JavaScript FHIRPath.g4",
-    "build:browser": "cp LICENSE.md browser-build && cd browser-build && webpack && rm -f fhirpath.zip && zip fhirpath.zip LICENSE.md fhirpath.min.js && rm LICENSE.md",
+    "build:browser": "cd browser-build && webpack && rm -f fhirpath.zip && zip fhirpath.zip LICENSE.md fhirpath.min.js && rm LICENSE.md",
     "build": "webpack && npm run build:browser",
     "test:unit": "jest",
     "test:demo": "npm run build && cd demo && npm run build && grunt test:e2e",
