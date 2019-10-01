@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.17.2] - 2019-09-30
+### Fixed
+- Updated packages for the demo to get patches for vulnerabilities.
+
 ## [0.17.1] - 2019-08-22
 ### Fixed
 - Set the charset of the test pages to UTF-8, because fhirpath.min.js is UTF-8,
