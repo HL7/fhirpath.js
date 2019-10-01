@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.17.3] - 2019-09-30
+### Fixed
+- Removed Linux-specific commands from the build process.
+
 ## [0.17.2] - 2019-09-30
 ### Fixed
 - Updated packages for the demo to get patches for vulnerabilities.
