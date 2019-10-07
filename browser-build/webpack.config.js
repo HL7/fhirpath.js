@@ -1,4 +1,5 @@
-//const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
+
 module.exports = {
   node: {
     fs: "empty"
@@ -24,5 +25,10 @@ module.exports = {
         }
       }
     ]
-  }
+  },
+  plugins: [
+    new CopyPlugin([
+      { from: '../LICENSE.md', to: '.' }
+    ]),
+  ],
 };
