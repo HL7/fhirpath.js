@@ -43,7 +43,7 @@ fhirpath.evaluate({}, '%a - 1', {a: 5});
 
 // Precompiling fhirpath - result can be reused against multiple resources
 const path = fhirpath.compile('Patient.name.given');
-var res2 = path({"resourceType": "Patient", ...});
+var res2 = path({"resourceType": "Patient", ...}, {a: 5, ...});
 
 ```
 

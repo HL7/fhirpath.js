@@ -584,16 +584,24 @@ var evaluate = function(resource, path, context) {
 };
 
 /**
- *  Returns a function that takes a resource and returns the result of
- *  evaluating the given FHIRPath expression on that resource.  The advantage
- *  of this function over "evaluate" is that if you have multiple resources,
- *  the given FHIRPath expression will only be parsed once.
+ *  Returns a function that takes a resource and an optional context hash (see
+ *  "evaluate"), and returns the result of evaluating the given FHIRPath
+ *  expression on that resource.  The advantage of this function over "evaluate"
+ *  is that if you have multiple resources, the given FHIRPath expression will
+ *  only be parsed once.
  * @param path the FHIRPath expression to be parsed.
- * @param {object} context - a hash of variable name/value pairs.
+ * @param {object} (deprecated) context - a hash of variable name/value pairs.  This is
+ *  optional now, and is deprecated, because it was probably a mistake.  Instead
+ *  of passing in this hash of variables here, pass it to the returned function
+ *  as a second argument.  If context is provided both here and to the returned
+ *  function, the argument to the returned function will be used instead of this
+ *  one.
  */
 var compile = function(path, context) {
   const node = parse(path);
-  return function(resource) {
+  return function(resource, contextOverride) {
+    if (contextOverride)
+      context = contextOverride;
     return applyParsedPath(resource, node, context);
   };
 };

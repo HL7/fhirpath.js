@@ -3,6 +3,14 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.17.4] - 2019-10-22
+### Fixed
+- Fixed the compile API, so that the returned function now takes the "context"
+  hash of environment variables as a second argument (after the resource data).
+  Previously this context hash was passed into the compile function, not the
+  returned function, which meant that the parsed expression could only be reused
+  if the context variable hash was the same object.
+
 ## [0.17.3] - 2019-09-30
 ### Fixed
 - Removed Linux-specific commands from the build process.
