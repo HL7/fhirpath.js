@@ -593,7 +593,9 @@ var evaluate = function(resource, path, context) {
  * @param {object} (deprecated) context - a hash of variable name/value pairs.  This is
  *  optional now, and is deprecated, because it was probably a mistake.  Instead
  *  of passing in this hash of variables here, pass it to the returned function
- *  as a second argument.
+ *  as a second argument.  If context is provided both here and to the returned
+ *  function, the argument to the returned function will be used instead of this
+ *  one.
  */
 var compile = function(path, context) {
   const node = parse(path);
