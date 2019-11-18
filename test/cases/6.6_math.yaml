@@ -143,6 +143,8 @@ tests:
       result: ['2016-02-29']
     - expression: "@2016-02-28 + 2 days"
       result: ['2016-03-01']
+    - expression: "@2016-02-28 - 2 days"
+      result: ['2016-02-26']
     - expression: "@2016-01-01 + 1 month"
       result: ['2016-02-01']
     - expression: "@T09:45:23 + 2 years"
