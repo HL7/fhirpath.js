@@ -7,6 +7,8 @@ This log documents significant changes for each release.  This project follows
 ### Fixed
 - Although one could add a Quantity to a date, subtracting the quantity resulted
   in an error.
+- Fixed functions toDateTime() and toTime(), for the minified versions of the
+  code.
 
 ## [0.17.4] - 2019-10-22
 ### Fixed

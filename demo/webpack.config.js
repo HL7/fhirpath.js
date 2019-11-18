@@ -7,7 +7,7 @@ module.exports = {
   devServer: {
     contentBase: './build'
   },
-  devtool: 'inline-source-map',
+  devtool: 'source-map',
   module: {
     rules: [
       {

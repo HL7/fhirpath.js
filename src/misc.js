@@ -4,8 +4,6 @@
 
 var util = require("./utilities");
 var types = require("./types");
-var FP_DateTime = types.FP_DateTime;
-var FP_Time = types.FP_Time;
 
 var engine = {};
 
@@ -73,23 +71,23 @@ engine.toString = function(coll){
 
 /**
  *  Defines a function on engine called to+timeType (e.g., toDateTime, etc.).
- * @param timeType a class (contsructor) for a time type (e.g. FP_DateTime).
+ * @param timeType The string name of a class for a time type (e.g. "FP_DateTime").
  */
 function defineTimeConverter(timeType) {
-  let timeName = timeType.name.slice(3);
+  let timeName = timeType.slice(3); // Remove 'FP_'
   engine['to'+timeName] = function(coll) {
     var rtn = [];
     if (coll.length > 1)
       throw Error('to '+timeName+' called for a collection of length '+coll.length);
     if (coll.length === 1) {
-      var t = timeType.checkString(coll[0]);
+      var t = types[timeType].checkString(coll[0]);
       if (t)
         rtn[0] = t;
     }
     return rtn;
   };
 }
-defineTimeConverter(FP_DateTime);
-defineTimeConverter(FP_Time);
+defineTimeConverter('FP_DateTime');
+defineTimeConverter('FP_Time');
 
 module.exports = engine;
