@@ -61,7 +61,7 @@ engine.minus = function(xs, ys){
     if(x instanceof FP_TimeBase && y instanceof FP_Quantity)
       return x.plus(new FP_Quantity(-y.value, y.unit));
   }
-  throw new Error("Can not " + JSON.stringify(x) + " - " + JSON.stringify(y));
+  throw new Error("Can not " + JSON.stringify(xs) + " - " + JSON.stringify(ys));
 };
 
 
