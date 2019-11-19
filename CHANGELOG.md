@@ -3,6 +3,13 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [0.17.5] - 2019-11-18
+### Fixed
+- Although one could add a Quantity to a date, subtracting the quantity resulted
+  in an error.
+- Fixed functions toDateTime() and toTime(), for the minified versions of the
+  code.
+
 ## [0.17.4] - 2019-10-22
 ### Fixed
 - Fixed the compile API, so that the returned function now takes the "context"

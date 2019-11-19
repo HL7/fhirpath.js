@@ -10,6 +10,7 @@ module.exports = {
     ]
   },
   mode: 'production',
+  devtool: 'source-map',
   output: {
     path: __dirname,
     filename: 'build/fhirpath.js',

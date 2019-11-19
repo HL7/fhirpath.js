@@ -34,6 +34,7 @@ engine.amp = function(x, y){
 };
 
 //HACK: for only polymorphic function
+//  Actually, "minus" is now also polymorphic
 engine.plus = function(xs, ys){
   if(xs.length == 1 && ys.length == 1) {
     var x = xs[0];
@@ -51,8 +52,16 @@ engine.plus = function(xs, ys){
   throw new Error("Can not " + JSON.stringify(xs) + " + " + JSON.stringify(ys));
 };
 
-engine.minus = function(x, y){
-  return x - y;
+engine.minus = function(xs, ys){
+  if(xs.length == 1 && ys.length == 1) {
+    var x = xs[0];
+    var y = ys[0];
+    if(typeof x == "number" && typeof y == "number")
+      return x - y;
+    if(x instanceof FP_TimeBase && y instanceof FP_Quantity)
+      return x.plus(new FP_Quantity(-y.value, y.unit));
+  }
+  throw new Error("Can not " + JSON.stringify(xs) + " - " + JSON.stringify(ys));
 };
 
 
