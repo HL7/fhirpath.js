@@ -52,8 +52,8 @@ function typecheck(a, b){
   let rtn = null;
   util.assertAtMostOne(a, "Singleton was expected");
   util.assertAtMostOne(b, "Singleton was expected");
-  a = a[0];
-  b = b[0];
+  a = util.valData(a[0]);
+  b = util.valData(b[0]);
   let lClass = a.constructor;
   let rClass = b.constructor;
   if (lClass != rClass) {

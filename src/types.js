@@ -12,6 +12,10 @@ let dateTimeRE = new RegExp(
 //let fhirDateTimeRE =
 ///([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1])(T([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?/;
 
+/**
+ *   Class FP_Type is the superclass for FHIRPath types that required special
+ *   handling.
+ */
 class FP_Type {
   /**
    *  Tests whether this object is equal to another.  Returns either true,
@@ -740,6 +744,45 @@ FP_DateTime.isoDate = function(date, precision) {
   return FP_DateTime.isoDateTime(date, precision);
 };
 
+/**
+ *  A class that represents a node in a FHIR resource, with path and possibly type
+ *  information.
+ */
+class ResourceNode {
+  /**
+   *  Constructs a instance for the given node ("data") of a resource.  If the
+   *  data is the top-level node of a resouce, the path and type parameters will
+   *  be ignored in favor of the resource's resourceType field.
+   * @param path the node's path in the resource (e.g. Patient.name)
+   * @param data the node's data or value (which might be an object with
+   *  sub-nodes, an array, or FHIR data type)
+   * @param type (optional) the node's data type (if the value is a FHIR data type)
+   */
+  constructor(path, data, type) {
+    // If data is a resource (maybe a contained resource) reset the path
+    // information to the resource type.
+    if (data.resourceType)
+      path = type = data.resourceType;
+    this.path = path;
+    this.data = data;
+    if (type)
+      this.type = type;
+  }
+
+  toJSON {
+    return JSON.stringify(data);
+  }
+}
+
+/**
+ *  Returns a ResourceNode for the given data node, checking first to see if the
+ *  given node is already a ResourceNode.  Takes the same arguments as the
+ *  constructor for ResourceNode.
+ */
+ResourceNode.makeResNode = function(path, data, type) {
+  return data instanceof ResourceNode ? data : new ResourceNode(path, data ,type);
+}
+
 module.exports = {
   FP_Type: FP_Type,
   FP_TimeBase: FP_TimeBase,
@@ -748,4 +791,5 @@ module.exports = {
   FP_Quantity: FP_Quantity,
   timeRE: timeRE,
   dateTimeRE: dateTimeRE,
+  ResourceNode: ResourceNode
 };

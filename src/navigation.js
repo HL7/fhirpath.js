@@ -1,12 +1,15 @@
+var util = require("./utilities");
+//let makeResNode = util.ResourceNode.makeResNode;
 
 var engine = {};
 
 engine.children = function(coll){
   return coll.reduce(function(acc, x){
-    if(typeof x === 'object'){
-      for (var prop in x) {
-        if(x.hasOwnProperty(prop)) {
-          var v = x[prop];
+    let d = util.valData(x);
+    if(typeof d === 'object'){
+      for (var prop in d) {
+        if(d.hasOwnProperty(prop)) {
+          var v = d[prop];
           if(Array.isArray(v)){
             acc.push.apply(acc, v);
           } else {

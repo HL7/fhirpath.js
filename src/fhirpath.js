@@ -46,9 +46,7 @@ let navigation= require("./navigation");
 let datetime  = require("./datetime");
 let logic  = require("./logic");
 let types = require("./types");
-let FP_DateTime = types.FP_DateTime;
-let FP_Time = types.FP_Time;
-let FP_Quantity = types.FP_Quantity;
+let {FP_DateTime, FP_Time, FP_Quantity, FP_Type, ResourceNode} = types;
 
 // * fn: handler
 // * arity: is index map with type signature
@@ -256,21 +254,46 @@ engine.InvocationTerm = function(ctx, parentData, node) {
   return engine.doEval(ctx,parentData, node.children[0]);
 };
 
-engine.MemberInvocation = function(ctx, parentData ,node ) {
+
+engine.MemberInvocation = function(ctx, parentData, node ) {
   const key = engine.doEval(ctx, parentData, node.children[0])[0];
 
   if (parentData) {
     if(util.isCapitalized(key)) {
-      return parentData.filter(function(x) { return x.resourceType === key; });
+      return parentData.filter(function(x) { return x.resourceType === key; }).
+        map((x)=>new ResourceNode(key, x, key));
     } else {
       return parentData.reduce(function(acc, res) {
-        var toAdd = res[key];
-        if(util.isSome(toAdd)) {
+        if (! (res instanceof ResourceNode)) {
+          // This happens when the FHIRPath expression did not start with a
+          // resource type (capitalized).  "res" should be a top-level resource
+          // in this case.
+          let parentType = res.resourceType;
+          res = new ResourceNode(parentType, res, parentType);
+        }
+        var childPath = res.path + '.' + key;
+        let type, toAdd;
+        let actualTypes = ctx.model && ctx.model.choiceTypePaths[childPath];
+        if (actualTypes) {
+          // Use actualTypes to find the field's value
+          for (let t of actualTypes) {
+            let field = key + t;
+            toAdd = res.data[field];
+            if (toAdd) {
+              type = t;
+              break;
+            }
+          }
+        }
+        else
+          toAdd = res.data[key];
+
+        if (util.isSome(toAdd)) {
           if(Array.isArray(toAdd)) {
-            // replace with array modification
-            acc = acc.concat(toAdd);
+            acc = acc.concat(toAdd.map((x)=>
+              new ResourceNode(childPath, x, type)));
           } else {
-            acc.push(toAdd);
+            acc.push(new ResourceNode(childPath, toAdd, type));
           }
           return acc;
         } else {
@@ -319,26 +342,30 @@ engine.realizeParams = function(ctx, parentData, args) {
 
 const paramTable = {
   "Integer": function(val){
-    if(typeof val !== "number" || !Number.isInteger(val)){
-      throw new Error("Expected integer, got: " + JSON.stringify(val));
+    let d = util.valData(val);
+    if(typeof d !== "number" || !Number.isInteger(d)){
+      throw new Error("Expected integer, got: " + JSON.stringify(d));
     }
     return val;
   },
   "Boolean": function(val){
-    if(val === true || val === false){
+    let d = util.valData(val);
+    if(d === true || val === d){
       return val;
     }
-    throw new Error("Expected boolean, got: " + JSON.stringify(val));
+    throw new Error("Expected boolean, got: " + JSON.stringify(d));
   },
   "Number": function(val){
-    if(typeof val !== "number"){
-      throw new Error("Expected number, got: " + JSON.stringify(val));
+    let d = util.valData(val);
+    if(typeof d !== "number"){
+      throw new Error("Expected number, got: " + JSON.stringify(d));
     }
     return val;
   },
   "String": function(val){
-    if(typeof val !== "string"){
-      throw new Error("Expected string, got: " + JSON.stringify(val));
+    let d = util.valData(val);
+    if(typeof d !== "string"){
+      throw new Error("Expected string, got: " + JSON.stringify(d));
     }
     return val;
   }
@@ -557,8 +584,10 @@ var parse = function(path) {
  *  This resource will be modified by this function to add type information.
  * @param {string} parsedPath - fhirpath expression, sample 'Patient.name.given'
  * @param {object} context - a hash of variable name/value pairs.
+ * @param {object} model - The "model" data object specific to a domain, e.g. R4.
+ *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  */
-function applyParsedPath(resource, parsedPath, context) {
+function applyParsedPath(resource, parsedPath, context, model) {
   constants.reset();
   let dataRoot = util.arraify(resource);
   // doEval takes a "ctx" object, and we store things in that as we parse, so we
@@ -566,8 +595,24 @@ function applyParsedPath(resource, parsedPath, context) {
   // Set up default standard variables, and allow override from the variables.
   // However, we'll keep our own copy of dataRoot for internal processing.
   let vars = {context: resource, ucum: 'http://unitsofmeasure.org'};
-  let ctx = {dataRoot, vars: Object.assign(vars, context)};
-  return engine.doEval(ctx, dataRoot, parsedPath.children[0]);
+  let ctx = {dataRoot, vars: Object.assign(vars, context), model: model};
+  let rtn = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
+  // Resolve any internal "ResourceNode" instances.  Continue to let FT_Type
+  // subclasses through.
+  rtn = (function visit(n) {
+    if (n instanceof ResourceNode)
+      n = n.data;
+    else if (Array.isArray(n)) {
+      for (let i=0, len=n.length; i<len; ++i)
+        n[i] = visit(n[i]);
+    }
+    else if (typeof n === 'object' && !(n instanceof FP_Type)) {
+      for (let k of Object.keys(n))
+        n[k] = visit(n[k]);
+    }
+    return n;
+  })(rtn);
+  return rtn;
 }
 
 /**
@@ -577,10 +622,12 @@ function applyParsedPath(resource, parsedPath, context) {
  *  This resource will be modified by this function to add type information.
  * @param {string} path - fhirpath expression, sample 'Patient.name.given'
  * @param {object} context - a hash of variable name/value pairs.
+ * @param {object} model - The "model" data object specific to a domain, e.g. R4.
+ *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  */
-var evaluate = function(resource, path, context) {
+var evaluate = function(resource, path, context, model) {
   const node = parser.parse(path);
-  return applyParsedPath(resource, node, context);
+  return applyParsedPath(resource, node, context, model);
 };
 
 /**
@@ -590,19 +637,13 @@ var evaluate = function(resource, path, context) {
  *  is that if you have multiple resources, the given FHIRPath expression will
  *  only be parsed once.
  * @param path the FHIRPath expression to be parsed.
- * @param {object} (deprecated) context - a hash of variable name/value pairs.  This is
- *  optional now, and is deprecated, because it was probably a mistake.  Instead
- *  of passing in this hash of variables here, pass it to the returned function
- *  as a second argument.  If context is provided both here and to the returned
- *  function, the argument to the returned function will be used instead of this
- *  one.
+ * @param {object} model - The "model" data object specific to a domain, e.g. R4.
+ *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  */
-var compile = function(path, context) {
+var compile = function(path, model) {
   const node = parse(path);
-  return function(resource, contextOverride) {
-    if (contextOverride)
-      context = contextOverride;
-    return applyParsedPath(resource, node, context);
+  return function(resource, context) {
+    return applyParsedPath(resource, node, context, model);
   };
 };
 

@@ -1,6 +1,8 @@
 // This file holds utility functions used in implementing the public functions.
 
 var util =  {};
+var types = require('./types');
+let {ResourceNode} = types;
 
 /**
  *  Reports and error to the calling environment and stops processing.
@@ -77,5 +79,13 @@ util.arraify = function(x){
   if(util.isSome(x)){ return [x]; }
   return [];
 };
+
+/**
+ *  Returns the data value of the given parameter, which might be a ResourceNode.
+ *  Otherwise, it returns the value that was passed in.
+ */
+util.valData = function(val) {
+  return (val instanceof ResourceNode) ? val.data : val;
+}
 
 module.exports = util;

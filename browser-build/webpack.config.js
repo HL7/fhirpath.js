@@ -4,13 +4,14 @@ module.exports = {
   node: {
     fs: "empty"
   },
-  entry: './fhirpathRequire.js',
+  entry: '../src/fhirpath',
   mode: 'production',
   // mode: 'development',
   devtool: 'source-map',
   output: {
     path: __dirname,
     filename: './fhirpath.min.js',
+    library: 'fhirpath' // global variable for the library
   },
   module: {
     rules: [

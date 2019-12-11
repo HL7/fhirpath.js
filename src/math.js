@@ -1,8 +1,8 @@
 // This file holds code to hande the FHIRPath Math functions.
 
 var types = require('./types');
-const FP_TimeBase = types.FP_TimeBase;
-const FP_Quantity = types.FP_Quantity;
+let {FP_TimeBase, FP_Quantity, ResourceNode} = types;
+const util = require("./utilities");
 
 /**
  *  Adds the math functions to the given FHIRPath engine.
@@ -37,8 +37,12 @@ engine.amp = function(x, y){
 //  Actually, "minus" is now also polymorphic
 engine.plus = function(xs, ys){
   if(xs.length == 1 && ys.length == 1) {
-    var x = xs[0];
-    var y = ys[0];
+    var x = util.valData(xs[0]);
+    var y = util.valData(ys[0]);
+    // In the future, this and other functions might need to return ResourceNode
+    // to preserve the type information (integer vs decimal, and maybe decimal
+    // vs string if decimals are represented as strings), in order to support
+    // "as" and "is", but that support is deferred for now.
     if(typeof x == "string" && typeof y == "string") {
       return x + y;
     }
@@ -49,19 +53,19 @@ engine.plus = function(xs, ys){
       return x.plus(y);
     }
   }
-  throw new Error("Can not " + JSON.stringify(xs) + " + " + JSON.stringify(ys));
+  throw new Error("Cannot " + JSON.stringify(xs) + " + " + JSON.stringify(ys));
 };
 
 engine.minus = function(xs, ys){
   if(xs.length == 1 && ys.length == 1) {
-    var x = xs[0];
-    var y = ys[0];
+    var x = util.valData(xs[0]);
+    var y = util.valData(ys[0]);
     if(typeof x == "number" && typeof y == "number")
       return x - y;
     if(x instanceof FP_TimeBase && y instanceof FP_Quantity)
       return x.plus(new FP_Quantity(-y.value, y.unit));
   }
-  throw new Error("Can not " + JSON.stringify(xs) + " - " + JSON.stringify(ys));
+  throw new Error("Cannot " + JSON.stringify(xs) + " - " + JSON.stringify(ys));
 };
 
 

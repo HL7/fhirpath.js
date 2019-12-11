@@ -80,7 +80,7 @@ function defineTimeConverter(timeType) {
     if (coll.length > 1)
       throw Error('to '+timeName+' called for a collection of length '+coll.length);
     if (coll.length === 1) {
-      var t = types[timeType].checkString(coll[0]);
+      var t = types[timeType].checkString(util.valData(coll[0]));
       if (t)
         rtn[0] = t;
     }

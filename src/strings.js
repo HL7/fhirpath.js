@@ -1,8 +1,9 @@
 var engine = {};
 
 function ensureStringSingleton(x){
-  if(x.length == 1 && typeof x[0] === "string") {
-    return x[0];
+  let d;
+  if(x.length == 1 && typeof (d=valData(x[0]) === "string") {
+    return d;
   }
   throw new Error('Expected string, but got ' + JSON.stringify(x));
 }

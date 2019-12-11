@@ -30,6 +30,12 @@ then use as shown below.  Note that this file is UTF-8 encoded, and the script
 needs to be loaded as such.  For an example, see the
 browser-build/test/protractor/index.html file, which sets the page to be UTF-8.
 
+For FHIR-specific features (e.g. handling of choice type fields), you will also
+want to include the a second file with the desired FHIR version model data, e.g.
+fhirpath.r4.min.js for pulling in the R4 model.  (At the moment, those files are
+small, but it would not be surprising if they grew as more support for FHIR type
+handling is added, so they are kept seperate from the main FHIRPath file.)
+
 ## Usage
 ```
 // Evaluating FHIRPath
