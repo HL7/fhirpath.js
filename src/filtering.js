@@ -90,7 +90,7 @@ function checkFHIRType(x, tp){
 // understand only basic types like string, number etc
 engine.ofTypeFn = function(coll, type) {
   return coll.filter(function(x){
-    return checkFHIRType(x, type);
+    return checkFHIRType(util.valData(x), type);
   });
 };
 

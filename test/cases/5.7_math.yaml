@@ -1,6 +1,6 @@
 tests:
   - desc: '5.7 Math'
-  
+
   - desc: '5.7.1 abs() : Integer | Decimal | Quantity'
   - desc: '** Can take the absolute value of a number'
     expression: Math.d2.abs()
@@ -17,7 +17,7 @@ tests:
   - desc: '** Error taking the absolute value if the input collection contains multiple items'
     expression: Math.arr.abs()
     error: true
-  
+
   - desc: '5.7.2 ceiling() : Integer'
   - desc: '** Can return a number equal to the input'
     expression: Math.n1.ceiling()
@@ -37,7 +37,7 @@ tests:
   - desc: '** Error rounding a number if the input collection contains multiple items'
     expression: Math.arr.ceiling()
     error: true
-    
+
   - desc: '5.7.3 exp() : Decimal'
   - desc: '** Can raise e to the input number power'
     expression: Math.n0.exp()
@@ -51,7 +51,7 @@ tests:
   - desc: '** Error exponentiation if the input collection contains multiple items'
     expression: Math.arr.exp()
     error: true
-    
+
   - desc: '5.7.4 floor() : Integer'
   - desc: '** Can return a number equal to the input'
     expression: Math.n1.floor()
@@ -71,7 +71,7 @@ tests:
   - desc: '** Error rounding a number if the input collection contains multiple items'
     expression: Math.arr.floor()
     error: true
-    
+
   - desc: '5.7.5 ln() : Decimal'
   - desc: '** Can take the natural logarithm of the number'
     expression: Math.n1.ln()
@@ -85,7 +85,7 @@ tests:
   - desc: '** Error taking logarithm if the input collection contains multiple items'
     expression: Math.arr.ln()
     error: true
-  
+
   - desc: '5.7.6  log(base : Decimal) : Decimal'
   - desc: '** Can take the logarithm of the number with a given base'
     expression: Math.n4.log(2)
@@ -102,7 +102,7 @@ tests:
   - desc: '** Error taking logarithm due to too many input parameters'
     expression: Math.n3.log([3, 5])
     error: true
-  
+
   - desc: '5.7.7  power(exponent : Integer | Decimal) : Integer | Decimal'
   - desc: '** Can raise input number to the power of given degree'
     expression: Math.n4.power(2)
@@ -125,7 +125,7 @@ tests:
   - desc: '** Error raising to a power due to too many input parameters'
     expression: Math.n3.power([3, 5])
     error: true
-    
+
   - desc: '5.7.8  round([precision : Integer]) : Decimal'
   - desc: '** Can round number with a given accuracy'
     expression: Math.d3.round(2)
@@ -142,7 +142,7 @@ tests:
   - desc: '** Error rounding due to too many input parameters'
     expression: Math.n3.round([3, 5])
     error: true
-    
+
   - desc: '5.7.9 sqrt() : Decimal'
   - desc: '** Can take square root'
     expression: Math.n5.sqrt()
@@ -159,7 +159,7 @@ tests:
   - desc: '** Error taking square root if the input collection contains multiple items'
     expression: Math.arr.sqrt()
     error: true
-  
+
   - desc: '5.7.10 truncate() : Integer'
   - desc: '** Can return the integer part of the number'
     expression: Math.d1.truncate()
@@ -173,7 +173,7 @@ tests:
   - desc: '** Error taking integer part if the input collection contains multiple items'
     expression: Math.arr.truncate()
     error: true
-    
+
 subject:
   resourceType: Math
   n0: 0
@@ -188,4 +188,4 @@ subject:
   d3: 13.84512
   arr: [3, 5]
   quan: [4.5 'mg']
-  
+

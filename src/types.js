@@ -769,8 +769,8 @@ class ResourceNode {
       this.type = type;
   }
 
-  toJSON {
-    return JSON.stringify(data);
+  toJSON() {
+    return JSON.stringify(this.data);
   }
 }
 

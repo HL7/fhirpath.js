@@ -29,17 +29,21 @@ util.assertAtMostOne = function (collection, errorMsgPrefix) {
 
 /**
  *  Throws an exception if the data is not one of the expected types.
- * @param data the value to be checked
+ * @param data the value to be checked.  This may be a ResourceNode.
  * @param types an array of the permitted types
  * @param errorMsgPrefix An optional prefix for the error message to assist in
  *  debugging.
+ * @return the value that was checked.  If "data" was a ResourceNode, this will
+ *  be the ReourceNode's data.
  */
 util.assertType = function(data, types, errorMsgPrefix) {
-  if (types.indexOf(typeof data) < 0) {
+  let val = this.valData(data);
+  if (types.indexOf(typeof val) < 0) {
     let typeList = types.length > 1 ? "one of "+types.join(", ") : types[0];
     util.raiseError("Found type '"+(typeof data)+"' but was expecting " +
       typeList, errorMsgPrefix);
   }
+  return val;
 };
 
 util.isEmpty = function(x){

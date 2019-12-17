@@ -12,10 +12,11 @@ var engine = {};
 
 function ensureNumberSingleton(x){
   if (typeof x != 'number'){
-    if (x.length == 1 && typeof x[0] == 'number'){
-      return x[0];
+    let d;
+    if (x.length == 1 && typeof (d=util.valData(x[0])) == 'number') {
+      return d;
     }else{
-      throw new Error("Expected number, but got " + JSON.stringify(x));
+      throw new Error("Expected number, but got " + JSON.stringify(d || x));
     }
   }else{
     return x;
@@ -173,10 +174,10 @@ engine.sqrt = function(x){
   if (isEmpty(x)){
     return [];
   }else{
-    if (x < 0){
+    let num = ensureNumberSingleton(x);
+    if (num < 0) {
       return [];
     }else{
-      let num = ensureNumberSingleton(x);
       return Math.sqrt(num);
     }
   }

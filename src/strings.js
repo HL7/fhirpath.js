@@ -1,8 +1,10 @@
+const util = require("./utilities");
+
 var engine = {};
 
 function ensureStringSingleton(x){
   let d;
-  if(x.length == 1 && typeof (d=valData(x[0]) === "string") {
+  if(x.length == 1 && typeof (d=util.valData(x[0])) === "string") {
     return d;
   }
   throw new Error('Expected string, but got ' + JSON.stringify(x));

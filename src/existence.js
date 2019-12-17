@@ -8,7 +8,7 @@ var engine = {};
 engine.emptyFn = util.isEmpty;
 
 engine.notFn = function(x) {
-  return (x.length === 1 && typeof x[0] === 'boolean') ? !x[0] : [];
+  return (x.length === 1 && typeof (d=util.valData(x[0])) === 'boolean') ? !d : [];
 };
 
 engine.existsMacro  = function(coll, expr) {
@@ -31,8 +31,8 @@ engine.allMacro = function(coll, expr) {
 engine.allTrueFn  = function(x) {
   let rtn = true;
   for (let i=0, len=x.length; i<len && rtn; ++i) {
-    util.assertType(x[i], ["boolean"], "allTrue");
-    rtn = x[i] === true;
+    let xi = util.assertType(x[i], ["boolean"], "allTrue");
+    rtn = xi === true;
   }
   return [rtn];
 };
@@ -40,8 +40,8 @@ engine.allTrueFn  = function(x) {
 engine.anyTrueFn  = function(x) {
   let rtn = false;
   for (let i=0, len=x.length; i<len && !rtn; ++i) {
-    util.assertType(x[i], ["boolean"], "anyTrue");
-    rtn = x[i] === true;
+    let xi = util.assertType(x[i], ["boolean"], "anyTrue");
+    rtn = xi === true;
   }
   return [rtn];
 };
@@ -49,8 +49,8 @@ engine.anyTrueFn  = function(x) {
 engine.allFalseFn  = function(x) {
   let rtn = true;
   for (let i=0, len=x.length; i<len && rtn; ++i) {
-    util.assertType(x[i], ["boolean"], "allFalse");
-    rtn = x[i] === false;
+    let xi = util.assertType(x[i], ["boolean"], "allFalse");
+    rtn = xi === false;
   }
   return [rtn];
 };
@@ -58,8 +58,8 @@ engine.allFalseFn  = function(x) {
 engine.anyFalseFn  = function(x) {
   let rtn = false;
   for (let i=0, len=x.length; i<len && !rtn; ++i) {
-    util.assertType(x[i], ["boolean"], "anyFalse");
-    rtn = x[i] === false;
+    let xi = util.assertType(x[i], ["boolean"], "anyFalse");
+    rtn = xi === false;
   }
   return [rtn];
 };
@@ -106,13 +106,13 @@ function subsetOf(coll1, coll2) {
     // Optimize by building a hashmap of JSON versions of the objects.
     var c2Hash = {};
     for (let p=0, pLen=coll1.length; p<pLen && rtn; ++p) {
-      let obj1 = coll1[p];
+      let obj1 = util.valData(coll1[p]);
       let obj1Str = orderedJsonStringify(obj1);
       let found = false;
       if (p===0) { // c2Hash is not yet built
         for (let i=0, len=coll2.length; i<len; ++i) {
           // No early return from this loop, because we're building c2Hash.
-          let obj2 = coll2[i];
+          let obj2 = util.valData(coll2[i]);
           let obj2Str = orderedJsonStringify(obj2);
           c2Hash[obj2Str] = obj2;
           found = found || (obj1Str === obj2Str);

@@ -47,6 +47,7 @@ let datetime  = require("./datetime");
 let logic  = require("./logic");
 let types = require("./types");
 let {FP_DateTime, FP_Time, FP_Quantity, FP_Type, ResourceNode} = types;
+let makeResNode = ResourceNode.makeResNode;
 
 // * fn: handler
 // * arity: is index map with type signature
@@ -261,7 +262,7 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
   if (parentData) {
     if(util.isCapitalized(key)) {
       return parentData.filter(function(x) { return x.resourceType === key; }).
-        map((x)=>new ResourceNode(key, x, key));
+        map((x)=>makeResNode(key, x, key));
     } else {
       return parentData.reduce(function(acc, res) {
         if (! (res instanceof ResourceNode)) {
@@ -291,9 +292,9 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
         if (util.isSome(toAdd)) {
           if(Array.isArray(toAdd)) {
             acc = acc.concat(toAdd.map((x)=>
-              new ResourceNode(childPath, x, type)));
+              makeResNode(childPath, x, type)));
           } else {
-            acc.push(new ResourceNode(childPath, toAdd, type));
+            acc.push(makeResNode(childPath, toAdd, type));
           }
           return acc;
         } else {
@@ -346,12 +347,12 @@ const paramTable = {
     if(typeof d !== "number" || !Number.isInteger(d)){
       throw new Error("Expected integer, got: " + JSON.stringify(d));
     }
-    return val;
+    return d;
   },
   "Boolean": function(val){
     let d = util.valData(val);
-    if(d === true || val === d){
-      return val;
+    if (d === true || d === false) {
+      return d;
     }
     throw new Error("Expected boolean, got: " + JSON.stringify(d));
   },
@@ -360,14 +361,14 @@ const paramTable = {
     if(typeof d !== "number"){
       throw new Error("Expected number, got: " + JSON.stringify(d));
     }
-    return val;
+    return d;
   },
   "String": function(val){
     let d = util.valData(val);
     if(typeof d !== "string"){
       throw new Error("Expected string, got: " + JSON.stringify(d));
     }
-    return val;
+    return d;
   }
 };
 
@@ -600,9 +601,8 @@ function applyParsedPath(resource, parsedPath, context, model) {
   // Resolve any internal "ResourceNode" instances.  Continue to let FT_Type
   // subclasses through.
   rtn = (function visit(n) {
-    if (n instanceof ResourceNode)
-      n = n.data;
-    else if (Array.isArray(n)) {
+    n = util.valData(n);
+    if (Array.isArray(n)) {
       for (let i=0, len=n.length; i<len; ++i)
         n[i] = visit(n[i]);
     }
