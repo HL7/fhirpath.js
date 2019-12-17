@@ -115,7 +115,6 @@ tests:
     result: []
   - desc: '* implies (false implies {})'
     expression: ups1 implies emp
-    focus: true
     result: [true]
   - desc: '* implies ({} implies {})'
     expression: emp implies emp

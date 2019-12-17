@@ -100,7 +100,6 @@ tests:
   - desc: '** object (not fhir)'
     expression: heteroattr.ofType(object)
     result: [{a: 1}]
-    focus: true
 
 subject:
   resourceType: Functions
