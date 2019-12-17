@@ -781,7 +781,7 @@ class ResourceNode {
  */
 ResourceNode.makeResNode = function(path, data, type) {
   return data instanceof ResourceNode ? data : new ResourceNode(path, data ,type);
-}
+};
 
 module.exports = {
   FP_Type: FP_Type,

@@ -8,6 +8,7 @@ var engine = {};
 engine.emptyFn = util.isEmpty;
 
 engine.notFn = function(x) {
+  let d;
   return (x.length === 1 && typeof (d=util.valData(x[0])) === 'boolean') ? !d : [];
 };
 

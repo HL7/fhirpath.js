@@ -1,7 +1,7 @@
 // This file holds code to hande the FHIRPath Math functions.
 
 var types = require('./types');
-let {FP_TimeBase, FP_Quantity, ResourceNode} = types;
+let {FP_TimeBase, FP_Quantity} = types;
 const util = require("./utilities");
 
 /**

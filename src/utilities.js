@@ -90,6 +90,6 @@ util.arraify = function(x){
  */
 util.valData = function(val) {
   return (val instanceof ResourceNode) ? val.data : val;
-}
+};
 
 module.exports = util;
