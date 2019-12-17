@@ -598,7 +598,7 @@ function applyParsedPath(resource, parsedPath, context, model) {
   let vars = {context: resource, ucum: 'http://unitsofmeasure.org'};
   let ctx = {dataRoot, vars: Object.assign(vars, context), model: model};
   let rtn = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
-  // Resolve any internal "ResourceNode" instances.  Continue to let FT_Type
+  // Resolve any internal "ResourceNode" instances.  Continue to let FP_Type
   // subclasses through.
   rtn = (function visit(n) {
     n = util.valData(n);
