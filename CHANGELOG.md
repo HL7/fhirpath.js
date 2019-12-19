@@ -7,7 +7,7 @@ This log documents significant changes for each release.  This project follows
 ### Added
 - Support for FHIR "choice types" (e.g. Observation.value).  The support is
   currently limited to being able to specify paths like Observation.value (when
-  resource might actually contain Observation.valueString).
+  the resource might actually contain Observation.valueString).
 ### Changed
 - Remove the deprecated "context" parameter from the "compile" function.  The
   context should be passed into the function that "compile" returns.  This
