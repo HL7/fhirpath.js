@@ -3,6 +3,16 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [1.0.0] - 2019-12-19
+### Added
+- Support for FHIR "choice types" (e.g. Observation.value).  The support is
+  currently limited to being able to specify paths like Observation.value (when
+  resource might actually contain Observation.valueString).
+### Changed
+- Remove the deprecated "context" parameter from the "compile" function.  The
+  context should be passed into the function that "compile" returns.  This
+  breaking change is the reason for the major version number increment.
+
 ## [0.17.5] - 2019-11-18
 ### Fixed
 - Although one could add a Quantity to a date, subtracting the quantity resulted
