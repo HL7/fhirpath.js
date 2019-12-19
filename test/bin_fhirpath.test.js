@@ -65,5 +65,11 @@ describe ('bin/fhirpath', function () {
       checkOutput("bin/fhirpath --expression '%v1 + 2' --resourceJSON '{}'"+
         " --variables '{\"v1\": 5}'", /7/g);
     });
+
+    it('should accept a FHIR model object', function() {
+      checkOutput("bin/fhirpath --expression 'Observation.value' --resourceJSON "+
+        "'{\"resourceType\": \"Observation\", \"valueString\": \"green\"}'"+
+        " --model r4", /green/);
+    });
   });
 })
