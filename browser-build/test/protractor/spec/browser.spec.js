@@ -9,4 +9,18 @@ describe('Browser build of FHIRPath', function() {
     resource.sendKeys('{}');
     expect(result.getAttribute('value')).toBe('[3]');
   });
+
+  it('should have working model files', function() {
+    browser.get(demoURL);
+    let expression = $('#expression');
+    let resource = $('#resource');
+    resource.sendKeys('{"resourceType": "Observation", "valueString": "green"}');
+    expression.sendKeys('Observation.value');
+    let result = $('#result');
+    expect(result.getAttribute('value')).toBe('[]'); // no model yet
+    for (let fhirVers of ['stu3', 'r4']) {
+      $('#'+fhirVers).click(); // changes the model used
+      expect(result.getAttribute('value')).toBe('["green"]');
+    }
+  });
 });
