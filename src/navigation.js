@@ -7,14 +7,12 @@ engine.children = function(coll){
   return coll.reduce(function(acc, x){
     let d = util.valData(x);
     if(typeof d === 'object'){
-      for (var prop in d) {
-        if(d.hasOwnProperty(prop)) {
-          var v = d[prop];
-          if(Array.isArray(v)){
-            acc.push.apply(acc, v);
-          } else {
-            acc.push(v);
-          }
+      for (var prop of Object.keys(d)) {
+        var v = d[prop];
+        if(Array.isArray(v)){
+          acc.push.apply(acc, v);
+        } else {
+          acc.push(v);
         }
       }
       return acc;
