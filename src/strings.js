@@ -7,7 +7,7 @@ function ensureStringSingleton(x){
   if(x.length == 1 && typeof (d=util.valData(x[0])) === "string") {
     return d;
   }
-  throw new Error('Expected string, but got ' + JSON.stringify(x));
+  throw new Error('Expected string, but got ' + JSON.stringify(d || x));
 }
 
 engine.indexOf = function(coll, substr){

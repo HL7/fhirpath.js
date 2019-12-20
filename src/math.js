@@ -11,16 +11,16 @@ const util = require("./utilities");
 var engine = {};
 
 function ensureNumberSingleton(x){
-  if (typeof x != 'number'){
-    let d;
-    if (x.length == 1 && typeof (d=util.valData(x[0])) == 'number') {
+  let d = util.valData(x);
+  if (typeof d !== 'number') {
+    if (d.length == 1 && typeof (d=util.valData(d[0])) === 'number') {
       return d;
     }else{
       throw new Error("Expected number, but got " + JSON.stringify(d || x));
     }
-  }else{
-    return x;
   }
+  else
+    return d;
 }
 
 function isEmpty(x) {
