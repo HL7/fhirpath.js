@@ -23,7 +23,8 @@ function evaluateFP() {
   var model;
   for (let modelChoice of modelChoices) {
     if (modelChoice.checked) {
-      model = modelChoices.value === 'r4' ? fhirpath_r4 : fhirpath_stu3;
+      model = modelChoices.value === 'r4' ? fhirpath_r4_model :
+        fhirpath_stu3_model;
       break;
     }
   }

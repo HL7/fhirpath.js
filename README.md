@@ -20,7 +20,7 @@ npm install –save fhirpath
 ```js
 const fhirpath = require('fhirpath');
 // For FHIR model data (choice type support) pull in the model file:
-const fhirpath_r4 = require('fhirpath/fhir-context/r4');
+const fhirpath_r4_model = require('fhirpath/fhir-context/r4');
 ```
 
 ### Web-browser:
@@ -37,8 +37,8 @@ want to include a second file with the desired FHIR version model data, e.g.
 fhirpath.r4.min.js for pulling in the R4 model.  (At the moment, those files are
 small, but it would not be surprising if they grew as more support for FHIR type
 handling is added, so they are kept seperate from the main FHIRPath file.)
-These will define additional global variables like "fhirpath_r4" or
-"fhirpath_stu3".
+These will define additional global variables like "fhirpath_r4_model" or
+"fhirpath_stu3_model".
 
 ## Usage
 ```
@@ -53,7 +53,8 @@ fhirpath.evaluate({}, '%a - 1', {a: 5});
 
 // To include FHIR model data (for support of choice types), pass in the model
 // data object as the fourth argument:
-fhirpath.evaluate({"resourceType": "Observation", "valueString": "green"}, 'Observation.value', null, fhirpath_r4);
+fhirpath.evaluate({"resourceType": "Observation", "valueString": "green"},
+                  'Observation.value', null, fhirpath_r4_model);
 
 // Precompiling fhirpath - result can be reused against multiple resources
 const path = fhirpath.compile('Patient.name.given');

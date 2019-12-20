@@ -50,6 +50,6 @@ for (let fhirVers of ['stu3', 'r4']) {
   config = makeBaseConfig();
   config.entry = '../fhir-context/'+fhirVers+'/index';
   config.output.filename = './fhirpath.'+fhirVers+'.min.js';
-  config.output.library = 'fhirpath_'+fhirVers;
+  config.output.library = 'fhirpath_'+fhirVers+'_model';
   module.exports.push(config);
 }
