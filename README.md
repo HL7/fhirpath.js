@@ -19,6 +19,8 @@ npm install –save fhirpath
 
 ```js
 const fhirpath = require('fhirpath');
+// For FHIR model data (choice type support) pull in the model file:
+const fhirpath_r4_model = require('fhirpath/fhir-context/r4');
 ```
 
 ### Web-browser:
@@ -29,6 +31,14 @@ file, fhirpath.min.js, which defines a global "fhirpath" variable, which you can
 then use as shown below.  Note that this file is UTF-8 encoded, and the script
 needs to be loaded as such.  For an example, see the
 browser-build/test/protractor/index.html file, which sets the page to be UTF-8.
+
+For FHIR-specific features (e.g. handling of choice type fields), you will also
+want to include a second file with the desired FHIR version model data, e.g.
+fhirpath.r4.min.js for pulling in the R4 model.  (At the moment, those files are
+small, but it would not be surprising if they grew as more support for FHIR type
+handling is added, so they are kept seperate from the main FHIRPath file.)
+These will define additional global variables like "fhirpath_r4_model" or
+"fhirpath_stu3_model".
 
 ## Usage
 ```
@@ -41,10 +51,14 @@ fhirpath.evaluate({"resourceType": "Patient", ...}, 'Patient.name.given');
 // name/value pairs:
 fhirpath.evaluate({}, '%a - 1', {a: 5});
 
+// To include FHIR model data (for support of choice types), pass in the model
+// data object as the fourth argument:
+fhirpath.evaluate({"resourceType": "Observation", "valueString": "green"},
+                  'Observation.value', null, fhirpath_r4_model);
+
 // Precompiling fhirpath - result can be reused against multiple resources
 const path = fhirpath.compile('Patient.name.given');
 var res2 = path({"resourceType": "Patient", ...}, {a: 5, ...});
-
 ```
 
 
@@ -87,6 +101,13 @@ fhirpath --expression '%v + 2' --resourceJSON '{}' --variables '{"v": 5}'
 > ]
 ```
 
+FHIR model data can be included via --model and the FHIR release version (in
+lower case, e.g., 'stu3' or 'r4').
+
+```sh
+fhirpath --expression 'Observation.value' --resourceJSON '{"resourceType": "Observation", "valueString": "Green"}' --model r4
+```
+
 If given just the FHIRPath expression, the utility will print the parsed tree:
 
 ```sh
@@ -121,7 +142,8 @@ Completed sections:
 - 8   (Environment Variables)
 
 We are deferring handling information about FHIR resources, as much as
-possible.  This affects implementation of the following sections:
+possible, with the exception of support for choice types.  This affects
+implementation of the following sections:
 - 6.3 (Types) - deferred
 Also, because in JSON DateTime and Time types are represented as strings, if a
 string in a resource looks like a DateTime or Time (matches the regular

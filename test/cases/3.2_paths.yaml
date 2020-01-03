@@ -1,0 +1,53 @@
+tests:
+  - 'group: Paths with choice types':
+    - desc: 'Observation.value with an R4 FHIR model'
+      expression: 'Observation.value'
+      result: ["high"]
+      model: 'r4'
+
+    - desc: 'Observation.value with an STU3 FHIR model'
+      expression: 'Observation.value'
+      result: ["high"]
+      model: 'stu3'
+
+    - desc: 'Observation.value without a model'
+      expression: 'Observation.value'
+      result: []
+
+    - desc: 'Observation.value contained in another resource (1)'
+      expression: 'Observation.contained[0].value'
+      model: 'r4'
+      result: ['medium']
+
+    - desc: 'Observation.value contained in another resource (2)'
+      expression: 'Observation.contained.value'
+      model: 'r4'
+      result: ['medium', 'low']
+
+    - desc: 'Getting choice type fields via children()'
+      expression: 'Observation.children().value'
+      model: 'r4'
+      result: ['medium', 'low']
+
+    - desc: 'Getting choice type fields via children() (2)'
+      expression: 'Observation.children().children().value'
+      model: 'r4'
+      result: ['zero']
+
+    - desc: 'Getting choice type fields via descendants()'
+      expression: 'Observation.descendants().value'
+      model: 'r4'
+      result: ['medium', 'low', 'zero']
+
+
+subject:
+  resourceType: Observation
+  valueString: "high"
+  contained:
+    - resourceType: Observation
+      valueString: "medium"
+    - resourceType: Observation
+      valueString: "low"
+      contained:
+      - resourceType: Observation
+        valueString: "zero"

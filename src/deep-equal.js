@@ -4,6 +4,7 @@
 
 var types = require('./types');
 var FP_Type = types.FP_Type;
+var util = require('./utilities');
 var pSlice = Array.prototype.slice;
 var objectKeys = Object.keys;
 var isArguments = function (object) {
@@ -72,6 +73,8 @@ function roundToDecimalPlaces(x, n) {
 }
 
 var deepEqual = function (actual, expected, opts) {
+  actual = util.valData(actual);
+  expected = util.valData(expected);
   if (!opts) opts = {};
 
   // 7.1. All identical values are equivalent, as determined by ===.

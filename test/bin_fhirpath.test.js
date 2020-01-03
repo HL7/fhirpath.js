@@ -31,7 +31,7 @@ describe ('bin/fhirpath', function () {
     checkOutput("bin/fhirpath -e '1 + 2' -r '{}'", /3/g);
   });
 
-  it ('should evaluate when given a reource file', function() {
+  it ('should evaluate when given a resource file', function() {
     let tempFileObj = createTempResource('{"a": {"b": 1}}');
     checkOutput("bin/fhirpath -e 'a.b + 3' -f "+tempFileObj.name, /4/g);
     tempFileObj.removeCallback();
@@ -54,7 +54,7 @@ describe ('bin/fhirpath', function () {
       checkOutput("bin/fhirpath --expression '1 + 2' --resourceJSON '{}'", /3/g);
     });
 
-    it ('should evaluate when given a reource file', function() {
+    it ('should evaluate when given a resource file', function() {
       let tempFileObj = createTempResource('{"a": {"b": 1}}');
       checkOutput("bin/fhirpath --expression 'a.b + 3' --resourceFile "+
         tempFileObj.name, /4/g);
@@ -64,6 +64,12 @@ describe ('bin/fhirpath', function () {
     it ('should accept a hash of variables', function() {
       checkOutput("bin/fhirpath --expression '%v1 + 2' --resourceJSON '{}'"+
         " --variables '{\"v1\": 5}'", /7/g);
+    });
+
+    it('should accept a FHIR model object', function() {
+      checkOutput("bin/fhirpath --expression 'Observation.value' --resourceJSON "+
+        "'{\"resourceType\": \"Observation\", \"valueString\": \"green\"}'"+
+        " --model r4", /green/);
     });
   });
 })

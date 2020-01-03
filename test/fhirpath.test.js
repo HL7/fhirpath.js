@@ -3,6 +3,11 @@ const yaml = require('js-yaml');
 const fs   = require('fs');
 const _    = require('lodash');
 const FP_DateTime = require('../src/types').FP_DateTime;
+const models = {
+  'r4': require('../fhir-context/r4'),
+  'stu3': require('../fhir-context/stu3')
+}
+const util = require('../src/utilities');
 
 // Get document, or throw exception on error
 // const testcase = yaml.safeLoad(fs.readFileSync( __dirname + '/cases/simple.yaml', 'utf8'));
@@ -22,6 +27,22 @@ const resources = {};
 
 const files = items.filter(fileName => endWith(fileName, '.yaml'))
   .map(fileName =>({ fileName, data: yaml.safeLoad(fs.readFileSync(__dirname + '/cases/' + fileName, 'utf8')) }));
+
+/**
+ *  Returns the FHIR model for the given fhir version.
+ * @param fhirVersion If not undefined, must be one of the supported release
+ *  versions, or an exception will be thrown.  If it is undefined, undefined will
+ *  be returned.
+ */
+function getFHIRModel(fhirVersion) {
+  let rtn;
+  if (fhirVersion) {
+    rtn = models[fhirVersion];
+    if (!rtn)
+      throw new Error('No FHIR model available for version '+fhirVersion);
+  }
+  return rtn;
+}
 
 const calcExpression = (expression, test, testResource) => {
   if (_.has(test, 'inputfile')) {
@@ -43,7 +64,7 @@ const calcExpression = (expression, test, testResource) => {
     variables.context = fhirpath.evaluate(testResource, test.context)[0];
   if (test.variables)
     Object.assign(variables, test.variables);
-  return fhirpath.evaluate(testResource, expression, variables);
+  return fhirpath.evaluate(testResource, expression, variables, getFHIRModel(test.model));
 };
 
 const generateTest = (test, testResource) => {
@@ -68,7 +89,8 @@ const generateTest = (test, testResource) => {
       let exception = null;
       let result = null;
       try {
-        result = fhirpath.evaluate(testResource, expression);
+        result = fhirpath.evaluate(testResource, expression, null,
+          getFHIRModel(test.model));
       }
       catch (error) {
         exception = error;

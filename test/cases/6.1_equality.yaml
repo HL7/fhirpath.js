@@ -310,7 +310,6 @@ tests:
       - desc: 'Time literal compared with different precision time in resource'
         expression: '@T12 = time1'
         result: []
-      focus: true
 
 
   - 'group: 6.1.2. ~ (Equivalent)':
@@ -429,7 +428,6 @@ tests:
       - desc: 'Time literal compared with different precision time in resource'
         expression: '@T12:34:46.123 ~ time1'
         result: [false]
-      focus: true
 
   # If both operands are collections with multiple items:
 
@@ -585,7 +583,6 @@ tests:
       - desc: 'Time literal compared with different precision time in resource (2)'
         expression: '@T12:35 != time1'
         result: [true]
-      focus: true
 
   - 'group: 6.1.4. !~ (Not Equivalent)':
 # The inverse of the equivalent operator.
@@ -648,7 +645,6 @@ tests:
       - desc: 'Time literal compared with different precision time in resource (2)'
         expression: '@T12:35 !~ time1'
         result: [true]
-      focus: true
 
 
     - desc: '* collections for equivalence { } !~ { } will result in true.'

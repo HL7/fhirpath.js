@@ -1,4 +1,6 @@
+var EC = protractor.ExpectedConditions;
 var demoURL = 'http://localhost:8080/index.html'
+
 describe('JSON entry mode', function() {
   it('should be enabled by clicking on the JSON radio button', function() {
     browser.get(demoURL);
@@ -23,7 +25,16 @@ describe('minified FHIRPath', function() {
   it('should have a working toDateTime()', function () {
     $('#path').clear();
     $('#path').sendKeys('birthDate.toDateTime()');
-    var EC = protractor.ExpectedConditions;
     browser.wait(EC.textToBePresentInElement($('#output'), '1974'), 3000);
+  });
+});
+
+describe('Choice types', function() {
+  it('should be understood' , function() {
+    browser.executeScript(
+      'window.cm.setValue(\'{"resourceType": "Observation", "valueString": "green"}\')');
+    $('#path').clear();
+    $('#path').sendKeys('Observation.value');
+    browser.wait(EC.textToBePresentInElement($('#output'), 'green'), 3000);
   });
 });

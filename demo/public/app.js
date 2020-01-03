@@ -2,6 +2,7 @@ require('file-loader?name=index.html!./index.html');
 require('./app.css');
 
 const fhirpath = require('../../build/fhirpath.js');
+const fhirpath_r4_model = require('../../fhir-context/r4');
 const codeMirror = require("codemirror");
 const yaml = require('js-yaml');
 
@@ -33,7 +34,7 @@ function evaluate(){
     if (expr.trim() != '') {
       var res = inputType === 'yaml' ? yaml.safeLoad(inputText) : JSON.parse(inputText);
       console.log(pathNode.value, res);
-      var result = fhirpath.evaluate(res, expr);
+      var result = fhirpath.evaluate(res, expr, null, fhirpath_r4_model);
       outNode.innerHTML = '<pre />';
       // yaml.dump will pick up internal keys, e.g. "asStr" in the FP_Type
       // objects (dates and times).  Apparently, toString() is not called on the
