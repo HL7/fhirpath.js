@@ -39,7 +39,7 @@
   },
   "scripts": {
     "generateParser": "cd src/parser; rimraf ./generated/*; java -Xmx500M -cp \"../../antlr-4.7.1-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o generated -Dlanguage=JavaScript FHIRPath.g4",
-    "build:browser": "cd browser-build && webpack && rimraf fhirpath.zip && bestzip fhirpath.zip LICENSE.md fhirpath.min.js && rimraf  LICENSE.md",
+    "build:browser": "cd browser-build && webpack && rimraf fhirpath.zip && bestzip fhirpath.zip LICENSE.md fhirpath.min.js fhirpath.r4.min.js fhirpath.stu3.min.js && rimraf  LICENSE.md",
     "build": "webpack && npm run build:browser",
     "test:unit": "jest",
     "test:demo": "npm run build && cd demo && npm run build && grunt test:e2e",
