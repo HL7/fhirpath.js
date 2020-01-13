@@ -39,6 +39,36 @@ tests:
       model: 'r4'
       result: ['medium', 'low', 'zero']
 
+    - desc: 'Getting choice type fields via descendants() and where()'
+      expression: "Observation.descendants().where(resourceType = 'Observation').value"
+      model: 'r4'
+      result: ['medium', 'low', 'zero']
+
+    - desc: "QR with where()"
+      expression: "contained.where(resourceType = 'QuestionnaireResponse').item.where(linkId = 1).answer.value"
+      model: 'r4'
+      result: ['Red']
+
+    - desc: "QR with descendants() and where()"
+      expression: "contained.where(resourceType = 'QuestionnaireResponse').descendants().where(linkId = 1).answer.value"
+      model: 'r4'
+      result: ['Red']
+
+    - desc: "QR with item.answer.value"
+      expression: "contained.where(resourceType = 'QuestionnaireResponse').item.answer.value"
+      model: 'r4'
+      result: ['Red']
+
+    - desc: "QR with item.item.answer.value"
+      expression: "contained.where(resourceType = 'QuestionnaireResponse').item.item.answer.value"
+      model: 'r4'
+      result: ['Blue']
+
+    - desc: "QR with item.answer.item.answer.value"
+      expression: "contained.where(resourceType = 'QuestionnaireResponse').item.answer.item.answer.value"
+      model: 'r4'
+      result: ['Green']
+
 
 subject:
   resourceType: Observation
@@ -51,3 +81,16 @@ subject:
       contained:
       - resourceType: Observation
         valueString: "zero"
+    - resourceType: QuestionnaireResponse
+      item:
+        - linkId: "1"
+          answer:
+            - valueString: "Red"
+              item:
+                - linkId: "1.0"
+                  answer:
+                  - valueString: "Green"
+          item:
+            - linkId: "1.1"
+              answer:
+                - valueString: "Blue"
