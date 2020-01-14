@@ -1,18 +1,22 @@
-var util = require("./utilities");
-//let makeResNode = util.ResourceNode.makeResNode;
+const util = require("./utilities");
+const {ResourceNode}  = require("./types");
+let makeResNode = ResourceNode.makeResNode;
 
 var engine = {};
 
 engine.children = function(coll){
   return coll.reduce(function(acc, x){
     let d = util.valData(x);
+//    console.log("%%% x is ResourceNode? = "+(x instanceof ResourceNode));
+    x = makeResNode(x);
     if(typeof d === 'object'){
       for (var prop of Object.keys(d)) {
         var v = d[prop];
+        var childPath = x.path + '.' + prop;
         if(Array.isArray(v)){
-          acc.push.apply(acc, v);
+          acc.push.apply(acc, v.map((n)=>makeResNode(n, childPath)));
         } else {
-          acc.push(v);
+          acc.push(makeResNode(v, childPath));
         }
       }
       return acc;

@@ -37,7 +37,7 @@ tests:
     - desc: 'Getting choice type fields via descendants()'
       expression: 'Observation.descendants().value'
       model: 'r4'
-      result: ['medium', 'low', 'zero']
+      result: ['medium', 'low', 'zero', 'Red']
 
     - desc: 'Getting choice type fields via descendants() and where()'
       expression: "Observation.descendants().where(resourceType = 'Observation').value"

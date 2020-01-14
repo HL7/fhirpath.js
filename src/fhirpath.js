@@ -262,18 +262,13 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
   if (parentData) {
     if(util.isCapitalized(key)) {
       return parentData.filter(function(x) { return x.resourceType === key; }).
-        map((x)=>makeResNode(key, x, key));
+        map((x)=>makeResNode(x, key));
     } else {
       return parentData.reduce(function(acc, res) {
-        if (! (res instanceof ResourceNode)) {
-          // This happens when the FHIRPath expression did not start with a
-          // resource type (capitalized).  "res" should be a top-level resource
-          // in this case.
-          let parentType = res.resourceType;
-          res = new ResourceNode(parentType, res, parentType);
-        }
+        res = makeResNode(res);
         var childPath = res.path + '.' + key;
-        let type, toAdd;
+        let toAdd;
+//console.log("%%% res.path = "+res.path+"; childPath="+childPath+', flag='+(ctx.model && ctx.model.choiceTypePaths[childPath]));
         let actualTypes = ctx.model && ctx.model.choiceTypePaths[childPath];
         if (actualTypes) {
           // Use actualTypes to find the field's value
@@ -281,7 +276,7 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
             let field = key + t;
             toAdd = res.data[field];
             if (toAdd) {
-              type = t;
+              childPath = t;
               break;
             }
           }
@@ -292,9 +287,9 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
         if (util.isSome(toAdd)) {
           if(Array.isArray(toAdd)) {
             acc = acc.concat(toAdd.map((x)=>
-              makeResNode(childPath, x, type)));
+              makeResNode(x, childPath)));
           } else {
-            acc.push(makeResNode(childPath, toAdd, type));
+            acc.push(makeResNode(toAdd, childPath));
           }
           return acc;
         } else {

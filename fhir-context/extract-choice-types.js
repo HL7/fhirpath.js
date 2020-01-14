@@ -44,19 +44,6 @@ for (let f of choiceTypeFiles) {
     }
   }
   visitNode(fData);
-
-  /*
-  let stdOut = childProcess.execSync("grep '\\[x\\]' "+path.join(fhirDefDir, f)+
-    " | grep -P '\"path\" ?: '").toString();
-  for (let line of stdOut.split("\n")) {
-    let match = line.match(/: "([^"]+)\[x\]"/);
-    if (match) {
-      let path = match[1];
-      if (path)
-        choiceTypePaths[path] = true;
-    }
-  }
-  */
 }
 
 // Output the results as JSON hash for ease of import and ease of checking
