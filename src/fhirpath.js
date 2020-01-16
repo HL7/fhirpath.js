@@ -258,6 +258,7 @@ engine.InvocationTerm = function(ctx, parentData, node) {
 
 engine.MemberInvocation = function(ctx, parentData, node ) {
   const key = engine.doEval(ctx, parentData, node.children[0])[0];
+  const model = ctx.model;
 
   if (parentData) {
     if(util.isCapitalized(key)) {
@@ -267,9 +268,13 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
       return parentData.reduce(function(acc, res) {
         res = makeResNode(res);
         var childPath = res.path + '.' + key;
+        if (model) {
+          let defPath = model.pathsDefinedElsewhere[childPath];
+          if (defPath)
+            childPath = defPath;
+        }
         let toAdd;
-//console.log("%%% res.path = "+res.path+"; childPath="+childPath+', flag='+(ctx.model && ctx.model.choiceTypePaths[childPath]));
-        let actualTypes = ctx.model && ctx.model.choiceTypePaths[childPath];
+        let actualTypes = model && model.choiceTypePaths[childPath];
         if (actualTypes) {
           // Use actualTypes to find the field's value
           for (let t of actualTypes) {

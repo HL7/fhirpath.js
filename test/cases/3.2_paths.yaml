@@ -69,6 +69,11 @@ tests:
       model: 'r4'
       result: ['Green']
 
+    - desc: "QR with item.answer.item.answer.value (STU3)"
+      expression: "contained.where(resourceType = 'QuestionnaireResponse').item.answer.item.answer.value"
+      model: 'stu3'
+      result: ['Green']
+
 
 subject:
   resourceType: Observation
