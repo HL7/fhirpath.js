@@ -596,7 +596,7 @@ function applyParsedPath(resource, parsedPath, context, model) {
   // Set up default standard variables, and allow override from the variables.
   // However, we'll keep our own copy of dataRoot for internal processing.
   let vars = {context: resource, ucum: 'http://unitsofmeasure.org'};
-  let ctx = {dataRoot, vars: Object.assign(vars, context), model: model};
+  let ctx = {dataRoot, vars: Object.assign(vars, context), model};
   let rtn = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
   // Resolve any internal "ResourceNode" instances.  Continue to let FP_Type
   // subclasses through.

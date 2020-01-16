@@ -5,14 +5,20 @@ let makeResNode = ResourceNode.makeResNode;
 var engine = {};
 
 engine.children = function(coll){
+  let model = this.model; // "this" is the context object
+
   return coll.reduce(function(acc, x){
     let d = util.valData(x);
-//    console.log("%%% x is ResourceNode? = "+(x instanceof ResourceNode));
     x = makeResNode(x);
     if(typeof d === 'object'){
       for (var prop of Object.keys(d)) {
         var v = d[prop];
         var childPath = x.path + '.' + prop;
+        if (model) {
+          let defPath = model.pathsDefinedElsewhere[childPath];
+          if (defPath)
+            childPath = defPath;
+        }
         if(Array.isArray(v)){
           acc.push.apply(acc, v.map((n)=>makeResNode(n, childPath)));
         } else {
@@ -27,11 +33,11 @@ engine.children = function(coll){
 };
 
 engine.descendants = function(coll){
-  var ch = engine.children(coll);
+  var ch = engine.children.call(this, coll); // "this" is the context object
   var res = [];
   while(ch.length > 0){
     res.push.apply(res, ch);
-    ch = engine.children(ch);
+    ch = engine.children.call(this, ch);
   }
   return res;
 };
