@@ -258,30 +258,30 @@ engine.InvocationTerm = function(ctx, parentData, node) {
 
 engine.MemberInvocation = function(ctx, parentData, node ) {
   const key = engine.doEval(ctx, parentData, node.children[0])[0];
+  const model = ctx.model;
 
   if (parentData) {
     if(util.isCapitalized(key)) {
       return parentData.filter(function(x) { return x.resourceType === key; }).
-        map((x)=>makeResNode(key, x, key));
+        map((x)=>makeResNode(x, key));
     } else {
       return parentData.reduce(function(acc, res) {
-        if (! (res instanceof ResourceNode)) {
-          // This happens when the FHIRPath expression did not start with a
-          // resource type (capitalized).  "res" should be a top-level resource
-          // in this case.
-          let parentType = res.resourceType;
-          res = new ResourceNode(parentType, res, parentType);
-        }
+        res = makeResNode(res);
         var childPath = res.path + '.' + key;
-        let type, toAdd;
-        let actualTypes = ctx.model && ctx.model.choiceTypePaths[childPath];
+        if (model) {
+          let defPath = model.pathsDefinedElsewhere[childPath];
+          if (defPath)
+            childPath = defPath;
+        }
+        let toAdd;
+        let actualTypes = model && model.choiceTypePaths[childPath];
         if (actualTypes) {
           // Use actualTypes to find the field's value
           for (let t of actualTypes) {
             let field = key + t;
             toAdd = res.data[field];
             if (toAdd) {
-              type = t;
+              childPath = t;
               break;
             }
           }
@@ -292,9 +292,9 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
         if (util.isSome(toAdd)) {
           if(Array.isArray(toAdd)) {
             acc = acc.concat(toAdd.map((x)=>
-              makeResNode(childPath, x, type)));
+              makeResNode(x, childPath)));
           } else {
-            acc.push(makeResNode(childPath, toAdd, type));
+            acc.push(makeResNode(toAdd, childPath));
           }
           return acc;
         } else {
@@ -596,7 +596,7 @@ function applyParsedPath(resource, parsedPath, context, model) {
   // Set up default standard variables, and allow override from the variables.
   // However, we'll keep our own copy of dataRoot for internal processing.
   let vars = {context: resource, ucum: 'http://unitsofmeasure.org'};
-  let ctx = {dataRoot, vars: Object.assign(vars, context), model: model};
+  let ctx = {dataRoot, vars: Object.assign(vars, context), model};
   let rtn = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
   // Resolve any internal "ResourceNode" instances.  Continue to let FP_Type
   // subclasses through.

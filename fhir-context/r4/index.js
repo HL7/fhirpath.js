@@ -7,5 +7,11 @@ module.exports = {
    *  A hash of resource element paths (e.g. Observation.value) that are known
    *  to point to fiels that are choice types.
    */
-  choiceTypePaths: require('./choiceTypePaths')
+  choiceTypePaths: require('./choiceTypePaths'),
+
+  /**
+   *  A hash from paths to the path for which their content is defined, e.g.
+   *  Questionnaire.item.item -> Questionnaire.item.
+   */
+  pathsDefinedElsewhere: require('./pathsDefinedElsewhere')
 }

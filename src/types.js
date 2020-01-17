@@ -753,20 +753,19 @@ class ResourceNode {
    *  Constructs a instance for the given node ("data") of a resource.  If the
    *  data is the top-level node of a resouce, the path and type parameters will
    *  be ignored in favor of the resource's resourceType field.
-   * @param path the node's path in the resource (e.g. Patient.name)
    * @param data the node's data or value (which might be an object with
    *  sub-nodes, an array, or FHIR data type)
-   * @param type (optional) the node's data type (if the value is a FHIR data type)
+   * @param path the node's path in the resource (e.g. Patient.name).  If the
+   *  data's type can be determined from data, that will take precedence over
+   *  this parameter.
    */
-  constructor(path, data, type) {
+  constructor(data, path) {
     // If data is a resource (maybe a contained resource) reset the path
     // information to the resource type.
     if (data.resourceType)
-      path = type = data.resourceType;
+      path = data.resourceType;
     this.path = path;
     this.data = data;
-    if (type)
-      this.type = type;
   }
 
   toJSON() {
@@ -779,8 +778,8 @@ class ResourceNode {
  *  given node is already a ResourceNode.  Takes the same arguments as the
  *  constructor for ResourceNode.
  */
-ResourceNode.makeResNode = function(path, data, type) {
-  return data instanceof ResourceNode ? data : new ResourceNode(path, data ,type);
+ResourceNode.makeResNode = function(data, path) {
+  return (data instanceof ResourceNode) ? data : new ResourceNode(data, path);
 };
 
 module.exports = {
