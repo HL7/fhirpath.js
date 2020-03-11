@@ -5,7 +5,7 @@ This log documents significant changes for each release.  This project follows
 
 ## [1.0.2] - 2020-03-11
 ### Changed
-- Package dependencies updated.
+- ucum-lhc package updated to 4.1.1, which saves about 200k (uncompressed).
 
 ## [1.0.1] - 2020-01-17
 ### Fixed
