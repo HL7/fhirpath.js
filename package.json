@@ -1,10 +1,10 @@
 {
   "name": "fhirpath",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "dependencies": {
-    "@lhncbc/ucum-lhc": "^3.0.0",
+    "@lhncbc/ucum-lhc": "^4.1.1",
     "antlr4": "^4.7.1",
     "commander": "^2.18.0",
     "date-fns": "^1.30.1",
