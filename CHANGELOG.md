@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [1.0.2] - 2020-03-11
+### Changed
+- Package dependencies updated.
+
 ## [1.0.1] - 2020-01-17
 ### Fixed
 - Issues with the new choice type support raised in
