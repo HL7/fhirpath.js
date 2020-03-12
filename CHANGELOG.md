@@ -5,7 +5,7 @@ This log documents significant changes for each release.  This project follows
 
 ## [2.0.0] - 2020-03-11
 ### Changed
-- FHIRPath grammar updated to version 2.0.0
+- FHIRPath grammar updated to version 2.0.0 (N1)
 
 ## [1.0.2] - 2020-03-11
 ### Changed
