@@ -272,6 +272,24 @@ FHIRPathListener.prototype.exitThisInvocation = function(ctx) {
 };
 
 
+// Enter a parse tree produced by FHIRPathParser#indexInvocation.
+FHIRPathListener.prototype.enterIndexInvocation = function(ctx) {
+};
+
+// Exit a parse tree produced by FHIRPathParser#indexInvocation.
+FHIRPathListener.prototype.exitIndexInvocation = function(ctx) {
+};
+
+
+// Enter a parse tree produced by FHIRPathParser#totalInvocation.
+FHIRPathListener.prototype.enterTotalInvocation = function(ctx) {
+};
+
+// Exit a parse tree produced by FHIRPathParser#totalInvocation.
+FHIRPathListener.prototype.exitTotalInvocation = function(ctx) {
+};
+
+
 // Enter a parse tree produced by FHIRPathParser#functn.
 FHIRPathListener.prototype.enterFunctn = function(ctx) {
 };

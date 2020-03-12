@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.0.0] - 2020-03-11
+### Changed
+- FHIRPath grammar updated to version 2.0.0
+
 ## [1.0.2] - 2020-03-11
 ### Changed
 - ucum-lhc package updated to 4.1.1, which saves about 200k (uncompressed).

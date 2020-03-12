@@ -1,6 +1,7 @@
 grammar FHIRPath;
 
 // Grammar rules
+// [FHIRPath](http://hl7.org/fhirpath/N1) Normative Release
 
 //prog: line (line)*;
 //line: ID ( '(' expr ')') ':' expr '\r'? '\n';
@@ -41,13 +42,15 @@ literal
         ;
 
 externalConstant
-        : '%' identifier
+        : '%' ( identifier | STRING )
         ;
 
 invocation                          // Terms that can be used after the function/member invocation '.'
         : identifier                                            #memberInvocation
         | functn                                              #functionInvocation
         | '$this'                                               #thisInvocation
+        | '$index'                                              #indexInvocation
+        | '$total'                                              #totalInvocation
         ;
 
 functn
@@ -86,10 +89,11 @@ qualifiedIdentifier
 
 identifier
         : IDENTIFIER
-        | QUOTEDIDENTIFIER
+        | DELIMITEDIDENTIFIER
         | 'as'
         | 'is'
         | 'contains'
+        | 'in'
         ;
 
 
@@ -97,16 +101,11 @@ identifier
     Lexical rules
 *****************************************************************/
 
-// Not sure why, but with these as lexical rules, when the grammar is imported into CQL, they are not correctly recognized
-// Moving the same rules into the literal production rule above corrects the issue
-//EMPTY
-//        : '{' '}'
-//        ;                      // To create an empty array (and avoid a NULL literal)
-
-//BOOL
-//        : 'true'
-//        | 'false'
-//        ;
+/*
+NOTE: The goal of these rules in the grammar is to provide a date
+token to the parser. As such it is not attempting to validate that
+the date is a correct date, that task is for the parser or interpreter.
+*/
 
 DATETIME
         : '@'
@@ -137,8 +136,8 @@ IDENTIFIER
         : ([A-Za-z] | '_')([A-Za-z0-9] | '_')*            // Added _ to support CQL (FHIR could constrain it out)
         ;
 
-QUOTEDIDENTIFIER
-        : '"' (ESC | ~[\\"])* '"'
+DELIMITEDIDENTIFIER
+        : '`' (ESC | ~[\\`])* '`'
         ;
 
 STRING
@@ -164,7 +163,7 @@ LINE_COMMENT
         ;
 
 fragment ESC
-        : '\\' (["'\\/fnrt] | UNICODE)    // allow \", \', \\, \/, \f, etc. and \uXXX
+        : '\\' ([`'\\/fnrt] | UNICODE)    // allow \`, \', \\, \/, \f, etc. and \uXXX
         ;
 
 fragment UNICODE
