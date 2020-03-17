@@ -186,13 +186,9 @@ engine.LiteralTerm = function(ctx, parentData, node) {
 
 engine.StringLiteral = function(ctx, parentData, node) {
   // Remove the beginning and ending quotes.
-  var rtn = node.text.replace(/(^['`]|['`]$)/g, "");
+  var rtn = node.text.replace(/(^'|'$)/g, "");
   rtn = rtn.replace(/\\(u\d{4}|.)/g, function(match, submatch) {
     switch(match) {
-      case "\\'":
-        return "'";
-      case '\\"':
-        return '"';
       case '\\r':
         return '\r';
       case '\\n':
@@ -201,8 +197,6 @@ engine.StringLiteral = function(ctx, parentData, node) {
         return '\t';
       case '\\f':
         return '\f';
-      case '\\\\':
-        return '\\';
       default:
         if (submatch.length > 1)
           return String.fromCharCode('0x'+submatch.slice(1));
