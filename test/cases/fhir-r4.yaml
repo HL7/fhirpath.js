@@ -500,6 +500,61 @@ tests:
         expression: (1|2).not() = false
         result:
           - true
+  - 'group: testTypes - toQuantity':
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: 1.toQuantity() = 1 '1'
+        result:
+          - true
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: 1.0.toQuantity() = 1.0 '1'
+        result:
+          - true
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''1''.toQuantity()'
+        result:
+          - 1 '1'
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''1 day''.toQuantity() = 1 day'
+        result:
+          - true
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''1 day''.toQuantity() = 1 ''d'''
+        result:
+          - true
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''1 \''wk\''''.toQuantity() = 1 week'
+        result:
+          - true
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''1.0''.toQuantity() ~ 1 ''1'''
+        result:
+          - true
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''1 \''wk\''''.toQuantity() = 7 days'
+        result:
+          - false
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''1 \''wk\''''.toQuantity(''days'') = 7 days'
+        result:
+          - true
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''1 \''wk\''''.toQuantity(''\''d\'''') = 7 days'
+        result:
+          - true
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''1 \''wk\''''.toQuantity(''exception'')'
+        error: true
   - 'group: testTypes':
       - desc: '** test'
         inputfile: patient-example.json
@@ -696,41 +751,6 @@ tests:
         expression: true.isQuantity()
         result:
           - false
-      - desc: '** test'
-        inputfile: patient-example.json
-        expression: 1.toQuantity() = 1 '1'
-        result:
-          - true
-      - desc: '** test'
-        inputfile: patient-example.json
-        expression: 1.0.toQuantity() = 1.0 '1'
-        result:
-          - true
-      - desc: '** test'
-        inputfile: patient-example.json
-        expression: '''1''.toQuantity()'
-        result:
-          - 1 '1'
-      - desc: '** test'
-        inputfile: patient-example.json
-        expression: '''1 day''.toQuantity() = 1 day'
-        result:
-          - true
-      - desc: '** test'
-        inputfile: patient-example.json
-        expression: '''1 day''.toQuantity() = 1 ''d'''
-        result:
-          - true
-      - desc: '** test'
-        inputfile: patient-example.json
-        expression: '''1 \''wk\''''.toQuantity() = 1 week'
-        result:
-          - true
-      - desc: '** test'
-        inputfile: patient-example.json
-        expression: '''1.0''.toQuantity() ~ 1 ''1'''
-        result:
-          - true
       - desc: '** test'
         inputfile: patient-example.json
         expression: 1.isBoolean()

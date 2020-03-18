@@ -65,7 +65,47 @@ class FP_Quantity extends FP_Type {
     this.value = value;
     this.unit = unit;
   }
+
+  equals(otherQuantity) {
+    if (!(otherQuantity instanceof this.constructor))
+      return false;
+
+    const ucumUnit = FP_Quantity.getUcumUnitCode(this.unit),
+        otherUcumUnit = FP_Quantity.getUcumUnitCode(otherQuantity.unit);
+
+
+    return this.value === otherQuantity.value && ucumUnit === otherUcumUnit;
+  }
+
+  equivalentTo(otherQuantity) {
+    if (!(otherQuantity instanceof this.constructor))
+      return false;
+
+    const ucumUnitCode = FP_Quantity.getUcumUnitCode(this.unit),
+        otherUcumUnitCode = FP_Quantity.getUcumUnitCode(otherQuantity.unit),
+        convResult = ucumUtils.convertUnitTo(otherUcumUnitCode, otherQuantity.value, ucumUnitCode);
+
+    if (convResult.status !== 'succeeded') {
+      return false;
+    }
+
+    return this.value === convResult.toVal;
+  }
 }
+
+/**
+ * Converts a FHIR path unit to a UCUM unit code by converting a calendar duration keyword to a UCUM unit code
+ * or removing single quotes for a UCUM unit.
+ * @param {string} unit
+ * @return {string}
+ */
+FP_Quantity.getUcumUnitCode = function (unit) {
+  if (/'([^']+)'/.test(FP_Quantity.timeUnitsToUCUM[unit]||unit)) {
+    return RegExp.$1;
+  } else {
+    throw new Error('Unsupported unit: ' + unit);
+  }
+};
 
 /**
  *  Defines a map from FHIRPath time units to UCUM.
