@@ -19,7 +19,7 @@ tests:
         a: 5
       result: [4]
     - desc: 'Escaped variables'
-      expression: '%"a.b() - 1" - 2'
+      expression: '%`a.b() - 1` - 2'
       variables:
         "a.b() - 1": 5
       result: [3]

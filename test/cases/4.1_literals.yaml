@@ -3,6 +3,10 @@ tests:
     result: []
   - expression: "'a\\\\b\\'\\\"\\`\\r\\n\\t\\u0065'" # double escape for YAML
     result: ["a\\b'\"`\r\n\te"]
+  - expression: "\"a\\\\b\\'\\\"\\`\\r\\n\\t\\u0065\"" # using " to wrap a string is not allowed by grammar
+    error: true
+  - expression: "`a\\\\b\\'\\\"\\`\\r\\n\\t\\u0065`" # using ` to wrap a string is not allowed by grammar
+    error: true
   - expression: "2 'mo'"
     result: ["2 'mo'"]
   - expression: "2 years"

@@ -2,7 +2,7 @@ tests:
   - expression:
       - Patient.name.family
       - name.family
-      - name."family"
+      - name.`family`
     result:
       - Chalmers
       - Windsor
