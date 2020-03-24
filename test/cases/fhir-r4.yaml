@@ -89,6 +89,7 @@ tests:
       - desc: '** testPolymorphismAsA'
         inputfile: observation-example.json
         expression: Observation.value.as(Quantity).unit
+#        focus: true
         result:
           - lbs
       - desc: '** testPolymorphismAsA'
@@ -540,7 +541,7 @@ tests:
         inputfile: patient-example.json
         expression: '''1 \''wk\''''.toQuantity() = 7 days'
         result:
-          - false
+          - true
       - desc: '** test'
         inputfile: patient-example.json
         expression: '''1 \''wk\''''.toQuantity(''days'') = 7 days'
@@ -553,8 +554,46 @@ tests:
           - true
       - desc: '** test'
         inputfile: patient-example.json
-        expression: '''1 \''wk\''''.toQuantity(''exception'')'
-        error: true
+        expression: '''1 year''.toQuantity() = 1 ''a'''
+        result:
+          - false
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''1 year''.toQuantity() ~ 1 ''a'''
+        result:
+          - true
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''1 cm''.toQuantity(''\''mm\'''').value = 10'
+        result:
+          - true
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''1 cm''.toQuantity(''\''g\'''')'
+        result: []
+      - desc: '** test'
+        inputfile: quantity-example.json
+        expression: Quantity.valueQuantity[0].toQuantity().unit
+        result:
+          - year
+      - desc: '** test'
+        inputfile: quantity-example.json
+        expression: Quantity.valueQuantity[0].toQuantity().value
+        result:
+          - 2
+      - desc: '** test'
+        inputfile: quantity-example.json
+        expression: Quantity.valueQuantity[1].toQuantity() = 3 'min'
+        result:
+          - true
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''1 \''wk\''''.toQuantity(''nonexistent-unit'')'
+        result: []
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''\''wk\''''.toQuantity()'
+        result: []
   - 'group: testTypes':
       - desc: '** test'
         inputfile: patient-example.json

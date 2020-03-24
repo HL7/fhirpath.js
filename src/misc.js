@@ -5,7 +5,7 @@
 var util = require("./utilities");
 var types = require("./types");
 
-const {FP_Quantity} = types;
+const {FP_Quantity, ResourceNode} = types;
 const ucumUtils = require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance();
 
 var engine = {};
@@ -53,26 +53,23 @@ engine.toQuantity = function (coll, toUnit) {
     throw new Error("Could not convert to quantity: input collection contains multiple items");
   } else if (coll.length === 1) {
     const v = util.valData(coll[0]);
+    let quantityRegexRes;
 
-    if (typeof v === "number") {
+    if (coll[0] instanceof ResourceNode && v.system === this.vars.ucum) {
+      if (typeof v.value === 'number' && typeof v.code === 'string') {
+        result = new FP_Quantity(Number(v.value), FP_Quantity.mapUCUMCodeToTimeUnits[v.code] || '\'' + v.code + '\'');
+      }
+    } else if (typeof v === "number") {
       result = new FP_Quantity(v, '\'1\'');
     } else if (v instanceof FP_Quantity) {
       result = v;
-    } else if (typeof v === "string") {
-      let {groups: {value, unit, time}} = quantityReqex.exec(v);
+    } else if (typeof v === "string" && (quantityRegexRes = quantityReqex.exec(v)) ) {
+      let {groups: {value, unit, time}} = quantityRegexRes;
       result = new FP_Quantity(Number(value), unit||time||'\'1\'');
     }
 
     if (result && toUnit) {
-      // TODO: Conversion factors for calendar duration should be used when quantitative time values appear in unoccupied calculations
-      const fromUcumUnitCode = FP_Quantity.getUcumUnitCode(result.unit),
-        toUcumUnitCode = FP_Quantity.getUcumUnitCode(toUnit),
-        convResult = ucumUtils.convertUnitTo(fromUcumUnitCode, result.value, toUcumUnitCode);
-      if (convResult.status === 'succeeded') {
-        result = new FP_Quantity(convResult.toVal, toUnit);
-      } else {
-        throw new Error("Could not convert to quantity with unit " + toUnit + ": " + v);
-      }
+      result = FP_Quantity.convUnitTo(result.unit, result.value, toUnit) || [];
     }
   }
 
