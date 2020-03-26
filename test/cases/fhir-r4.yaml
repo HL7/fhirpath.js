@@ -35,7 +35,7 @@ tests:
         expression: name.suffix
       - desc: '** testSimpleDoubleQuotes'
         inputfile: patient-example.json
-        expression: name."given"
+        expression: name.`given`
         result:
           - Peter
           - James
