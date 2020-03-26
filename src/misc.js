@@ -5,8 +5,7 @@
 var util = require("./utilities");
 var types = require("./types");
 
-const {FP_Quantity, ResourceNode} = types;
-const ucumUtils = require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance();
+const { FP_Quantity } = types;
 
 var engine = {};
 
@@ -46,24 +45,26 @@ engine.toInteger = function(coll){
   return [];
 };
 
-const quantityReqex = /(?<value>(\+|-)?\d+(\.\d+)?)\s*((?<unit>'[^']+')|(?<time>[a-zA-Z]+))?/;
+const quantityRegex = /(?<value>(\+|-)?\d+(\.\d+)?)\s*((?<unit>'[^']+')|(?<time>[a-zA-Z]+))?/;
 engine.toQuantity = function (coll, toUnit) {
   let result = [];
   if (coll.length > 1) {
     throw new Error("Could not convert to quantity: input collection contains multiple items");
   } else if (coll.length === 1) {
-    const v = util.valData(coll[0]);
+    const item = coll[0],
+      v = util.valData(item);
     let quantityRegexRes;
 
-    if (coll[0] instanceof ResourceNode && v.system === this.vars.ucum) {
+    if (item.path === 'Quantity' && v.system === this.vars.ucum) {
+      // The Mapping from FHIR Quantity to FHIRPath System.Quantity is explained here: https://www.hl7.org/fhir/fhirpath.html#quantity
       if (typeof v.value === 'number' && typeof v.code === 'string') {
-        result = new FP_Quantity(Number(v.value), FP_Quantity.mapUCUMCodeToTimeUnits[v.code] || '\'' + v.code + '\'');
+        result = new FP_Quantity(v.value, FP_Quantity.mapUCUMCodeToTimeUnits[v.code] || '\'' + v.code + '\'');
       }
     } else if (typeof v === "number") {
       result = new FP_Quantity(v, '\'1\'');
     } else if (v instanceof FP_Quantity) {
       result = v;
-    } else if (typeof v === "string" && (quantityRegexRes = quantityReqex.exec(v)) ) {
+    } else if (typeof v === "string" && (quantityRegexRes = quantityRegex.exec(v)) ) {
       let {groups: {value, unit, time}} = quantityRegexRes;
       result = new FP_Quantity(Number(value), unit||time||'\'1\'');
     }

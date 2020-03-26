@@ -101,7 +101,7 @@ class FP_Quantity extends FP_Type {
       return false;
     }
 
-    return numbers.isEquival(this.value, convResult.toVal);
+    return numbers.isEquivalent(this.value, convResult.toVal);
   }
 
   /**
@@ -134,6 +134,7 @@ class FP_Quantity extends FP_Type {
 
 }
 
+const  surroundingApostrophesRegex = /^'|'$/g;
 /**
  * Converts a FHIR path unit to a UCUM unit code by converting a calendar duration keyword to an equivalent UCUM unit code
  * or removing single quotes for a UCUM unit.
@@ -141,11 +142,7 @@ class FP_Quantity extends FP_Type {
  * @return {string}
  */
 FP_Quantity.getEquivalentUcumUnitCode = function (unit) {
-  if (/'([^']+)'/.test(FP_Quantity.timeUnitsToUCUM[unit]||unit)) {
-    return RegExp.$1;
-  } else {
-    throw new Error('Unsupported unit: ' + unit);
-  }
+  return FP_Quantity.mapTimeUnitsToUCUMCode[unit] || unit.replace(surroundingApostrophesRegex, '');
 };
 
 /**
@@ -161,14 +158,16 @@ FP_Quantity.toUcumQuantity = function (value, unit) {
       value: magnitude * value,
       unit: 's'
     }
-  } else {
-    unit = unit.replace(/^'|'$/g, '');
   }
-  return { value, unit };
+
+  return {
+    value,
+    unit: unit.replace(surroundingApostrophesRegex, '')
+  };
 };
 
 /**
- * Converts FHIR path value/unit to other FHIR value/unit.
+ * Converts FHIRPath value/unit to other FHIRPath value/unit.
  * @param {string} fromUnit
  * @param {number} value
  * @param {string} toUnit
@@ -279,6 +278,28 @@ FP_Quantity.mapUCUMCodeToTimeUnits = {
   'min': "minute",
   's': "second",
   'ms': "millisecond",
+};
+
+/**
+ *  Defines a map from FHIRPath time units to UCUM code.
+ */
+FP_Quantity.mapTimeUnitsToUCUMCode = {
+  'years': "a",
+  'months': "mo",
+  'weeks': "wk",
+  'days': "d",
+  'hours': "h",
+  'minutes': "min",
+  'seconds': "s",
+  'milliseconds': "ms",
+  'year': "a",
+  'month': "mo",
+  'week': "wk",
+  'day': "d",
+  'hour': "h",
+  'minute': "min",
+  'second': "s",
+  'millisecond': "ms"
 };
 
 

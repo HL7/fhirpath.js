@@ -1,12 +1,12 @@
-let engine = {};
+let numberFns = {};
 
 // Returns the number of digits in the number after the decimal point, ignoring
 // trailing zeros.
 function decimalPlaces(x) {
   // Based on https://stackoverflow.com/a/9539746/360782
   // Make sure it is a number and use the builtin number -> string.
-  var s = "" + (+x);
-  var match = /(\d+)(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/.exec(s);
+  const s = "" + (+x),
+    match = /(\d+)(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/.exec(s);
   // NaN or Infinity or integer.
   // We arbitrarily decide that Infinity is integral.
   if (!match) { return 0; }
@@ -15,11 +15,11 @@ function decimalPlaces(x) {
   // 1.234e+2 has 1 fraction digit and '234'.length -  2 == 1
   // 1.234e-2 has 5 fraction digit and '234'.length - -2 == 5
   //var wholeNum = match[1];
-  var fraction = match[2];
-  var exponent = match[3];
+  const fraction = match[2],
+    exponent = match[3];
   return Math.max(
     0,  // lower limit.
-    (fraction == '0' ? 0 : (fraction || '').length)  // fraction length
+    (fraction === '0' ? 0 : (fraction || '').length)  // fraction length
     - (exponent || 0));  // exponent
 }
 
@@ -30,7 +30,7 @@ function decimalPlaces(x) {
  *  could contain fewer if the decimal digits in x contain zeros).
  */
 function roundToDecimalPlaces (x, n) {
-  var scale = Math.pow(10, n);
+  const scale = Math.pow(10, n);
   return Math.round(x*scale)/scale;
 }
 
@@ -47,17 +47,18 @@ function roundToMaxPrecision(x) {
 }
 
 /**
- * Determines number equality
+ * Determines numbers equivalence
  * @param {number} actual
  * @param {number} expected
  * @return {boolean}
  */
-engine.isEquival = function(actual, expected) {
+numberFns.isEquivalent = function(actual, expected) {
   if(Number.isInteger(actual) && Number.isInteger(expected)) {
     return actual === expected;
   }
 
-  var prec = Math.min(decimalPlaces(actual), decimalPlaces(expected));
+  const prec = Math.min(decimalPlaces(actual), decimalPlaces(expected));
+
   if(prec === 0){
     return Math.round(actual) === Math.round(expected);
   } else {
@@ -74,8 +75,8 @@ engine.isEquival = function(actual, expected) {
  * @param {number} expected
  * @return {boolean}
  */
-engine.isEqual = function(actual, expected) {
+numberFns.isEqual = function(actual, expected) {
   return roundToMaxPrecision(actual) === roundToMaxPrecision(expected);
 };
 
-module.exports = engine;
+module.exports = numberFns;

@@ -572,20 +572,44 @@ tests:
         expression: '''1 cm''.toQuantity(''\''g\'''')'
         result: []
       - desc: '** test'
-        inputfile: quantity-example.json
-        expression: Quantity.valueQuantity[0].toQuantity().unit
-        result:
-          - year
-      - desc: '** test'
-        inputfile: quantity-example.json
-        expression: Quantity.valueQuantity[0].toQuantity().value
-        result:
-          - 2
-      - desc: '** test'
-        inputfile: quantity-example.json
-        expression: Quantity.valueQuantity[1].toQuantity() = 3 'min'
+        inputfile: observation-example.json
+        model: 'r4'
+        expression: Observation.value.toQuantity('kg') ~ 84 'kg'
         result:
           - true
+      - desc: '** Converts ''a'' to year on transform FHIR Quantity to System.Quantity'
+        inputfile: quantity-example.json
+        model: 'r4'
+        expression: QuestionnaireResponse.item[0].answer.value.toQuantity() = 2 year
+        result:
+          - true
+      - desc: '** test'
+        inputfile: quantity-example.json
+        model: 'r4'
+        expression: QuestionnaireResponse.item[0].answer.value.toQuantity() ~ 2 'a'
+        result:
+          - true
+      - desc: '** test'
+        inputfile: quantity-example.json
+        model: 'r4'
+        expression: QuestionnaireResponse.item[0].answer.value.toQuantity() != 2 'a'
+        result:
+          - true
+      - desc: '** test'
+        inputfile: quantity-example.json
+        model: 'r4'
+        expression: QuestionnaireResponse.item[1].answer.value.toQuantity() = 3 'min'
+        result:
+          - true
+      - desc: '** Cant convert from FHIR Quantity without context'
+        inputfile: quantity-example.json
+        expression: QuestionnaireResponse.item[1].answer.value.toQuantity()
+        result: []
+      - desc: '** Not UCUM system ignored'
+        inputfile: quantity-example.json
+        model: 'r4'
+        expression: QuestionnaireResponse.item[2].answer.value.toQuantity()
+        result: []
       - desc: '** test'
         inputfile: patient-example.json
         expression: '''1 \''wk\''''.toQuantity(''nonexistent-unit'')'

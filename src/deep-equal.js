@@ -40,7 +40,7 @@ var deepEqual = function (actual, expected, opts) {
       return normalizeStr(actual) == normalizeStr(expected);
     }
     if(isNumber(actual) && isNumber(expected)) {
-      return numbers.isEquival(actual, expected);
+      return numbers.isEquivalent(actual, expected);
     }
   }
   else { // !opts.fuzzy
