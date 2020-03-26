@@ -69,7 +69,7 @@ engine.toQuantity = function (coll, toUnit) {
       result = new FP_Quantity(Number(value), unit||time||'\'1\'');
     }
 
-    if (result && toUnit) {
+    if (result && toUnit && result.unit !== toUnit) {
       result = FP_Quantity.convUnitTo(result.unit, result.value, toUnit) || [];
     }
   }

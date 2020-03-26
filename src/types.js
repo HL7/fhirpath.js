@@ -68,8 +68,13 @@ class FP_Quantity extends FP_Type {
   }
 
   equals(otherQuantity) {
-    if (!(otherQuantity instanceof this.constructor))
+    if (!(otherQuantity instanceof this.constructor)) {
       return false;
+    }
+
+    if (this.unit === otherQuantity.unit) {
+      return numbers.isEqual(this.value, otherQuantity.value);
+    }
 
     // Special year/month comparison case: 1 year = 12 month
     const compareYearsAndMonths = this._compareYearsAndMonths(otherQuantity);
@@ -90,8 +95,13 @@ class FP_Quantity extends FP_Type {
   }
 
   equivalentTo(otherQuantity) {
-    if (!(otherQuantity instanceof this.constructor))
+    if (!(otherQuantity instanceof this.constructor)) {
       return false;
+    }
+
+    if (this.unit === otherQuantity.unit) {
+      return numbers.isEquivalent(this.value, otherQuantity.value);
+    }
 
     const ucumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(this.unit),
       otherUcumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit),
