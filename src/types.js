@@ -71,13 +71,13 @@ class FP_Quantity extends FP_Type {
     if (!(otherQuantity instanceof this.constructor))
       return false;
 
-    // Special year/month comparision case: 1 year = 12 month
+    // Special year/month comparison case: 1 year = 12 month
     const compareYearsAndMonths = this._compareYearsAndMonths(otherQuantity);
     if (compareYearsAndMonths) {
       return compareYearsAndMonths.isEqual;
     }
 
-    // General comparision case
+    // General comparison case
     const thisQuantity = FP_Quantity.toUcumQuantity(this.value, this.unit),
       normalizedOtherQuantity = FP_Quantity.toUcumQuantity(otherQuantity.value, otherQuantity.unit),
       convResult = ucumUtils.convertUnitTo(normalizedOtherQuantity.unit, normalizedOtherQuantity.value, thisQuantity.unit);
@@ -146,7 +146,7 @@ FP_Quantity.getEquivalentUcumUnitCode = function (unit) {
 };
 
 /**
- * Converts FHIR path value/unit to UCUM value/unit. Usable for comparision.
+ * Converts FHIR path value/unit to UCUM value/unit. Usable for comparison.
  * @param {number} value
  * @param {string} unit
  * @returns { {value: number, unit: string} }
