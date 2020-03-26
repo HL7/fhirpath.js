@@ -136,11 +136,11 @@ class FP_Quantity extends FP_Type {
     if ( magnitude1 && magnitude2) {
       return {
         isEqual: numbers.isEqual(this.value*magnitude1, otherQuantity.value*magnitude2)
-      }
+      };
     }
 
     return null;
-  };
+  }
 
 }
 
@@ -167,7 +167,7 @@ FP_Quantity.toUcumQuantity = function (value, unit) {
     return {
       value: magnitude * value,
       unit: 's'
-    }
+    };
   }
 
   return {
@@ -188,7 +188,7 @@ FP_Quantity.convUnitTo = function (fromUnit, value, toUnit) {
   const fromYearMonthMagnitude = FP_Quantity._yearMonthConversionFactor[fromUnit],
     toYearMonthMagnitude = FP_Quantity._yearMonthConversionFactor[toUnit];
   if (fromYearMonthMagnitude && toYearMonthMagnitude) {
-    return new FP_Quantity( fromYearMonthMagnitude*value/toYearMonthMagnitude, toUnit)
+    return new FP_Quantity( fromYearMonthMagnitude*value/toYearMonthMagnitude, toUnit);
   }
 
   const fromMagnitude = FP_Quantity._calendarDuration2Seconds[fromUnit],
@@ -197,7 +197,7 @@ FP_Quantity.convUnitTo = function (fromUnit, value, toUnit) {
   // To FHIR path calendar duration
   if (toMagnitude) {
     if (fromMagnitude) {
-      return new FP_Quantity( fromMagnitude*value/toMagnitude, toUnit)
+      return new FP_Quantity( fromMagnitude*value/toMagnitude, toUnit);
     } else {
       const convResult = ucumUtils.convertUnitTo(fromUnit.replace(/^'|'$/g, ''), value, 's');
 

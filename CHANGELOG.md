@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.1.0] - 2020-03-26
+### Added
+- Function toQuantity(unit)
+- Operators =(equality) and ~(equivalence) for Quantity
+
 ## [2.0.0] - 2020-03-11
 ### Changed
 - FHIRPath grammar updated to version 2.0.0 (N1)
