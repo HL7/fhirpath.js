@@ -47,7 +47,8 @@ engine.toInteger = function(coll){
 
 const quantityRegex = /(?<value>(\+|-)?\d+(\.\d+)?)\s*((?<unit>'[^']+')|(?<time>[a-zA-Z]+))?/;
 engine.toQuantity = function (coll, toUnit) {
-  let result = [];
+  let result;
+
   if (coll.length > 1) {
     throw new Error("Could not convert to quantity: input collection contains multiple items");
   } else if (coll.length === 1) {
@@ -74,7 +75,7 @@ engine.toQuantity = function (coll, toUnit) {
     }
   }
 
-  return result;
+  return result || [];
 };
 
 var numRegex = /^[+-]?\d+(\.\d+)?$/;
