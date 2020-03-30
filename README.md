@@ -138,8 +138,8 @@ Completed sections:
 - 6.5 (Boolean logic)
 - 6.6 (Math)
 - 6.8 (Operator Precedence) - handled by ANTLR parser
-- 7   (Lexical Elements) - handled by ANTLR parser
-- 8   (Environment Variables)
+- 8   (Lexical Elements) - handled by ANTLR parser
+- 9   (Environment Variables)
 
 We are deferring handling information about FHIR resources, as much as
 possible, with the exception of support for choice types.  This affects
