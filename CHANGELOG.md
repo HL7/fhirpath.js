@@ -7,6 +7,7 @@ This log documents significant changes for each release.  This project follows
 ### Added
 - Function toQuantity(unit)
 - Operators =(equality) and ~(equivalence) for Quantity
+- Implicit conversion from FHIR Quantity to FHIRPath System.Quantity
 
 ## [2.0.0] - 2020-03-11
 ### Changed
