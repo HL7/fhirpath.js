@@ -1,0 +1,116 @@
+tests:
+  - 'group: standart tests from fhir-r4':
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: 1.toQuantity() = 1 '1'
+        result:
+          - true
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: 1.0.toQuantity() = 1.0 '1'
+        result:
+          - true
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''1''.toQuantity()'
+        result:
+          - 1 '1'
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''1 day''.toQuantity() = 1 day'
+        result:
+          - true
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''1 day''.toQuantity() = 1 ''d'''
+        result:
+          - true
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''1 \''wk\''''.toQuantity() = 1 week'
+        result:
+          - true
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''1.0''.toQuantity() ~ 1 ''1'''
+        result:
+          - true
+  - 'group: Additional tests for Quantity':
+    - desc: '** test'
+      inputfile: patient-example.json
+      expression: '''1 \''wk\''''.toQuantity() = 7 days'
+      result:
+        - true
+    - desc: '** test'
+      inputfile: patient-example.json
+      expression: '''1 \''wk\''''.toQuantity(''days'') = 7 days'
+      result:
+        - true
+    - desc: '** test'
+      inputfile: patient-example.json
+      expression: '''1 \''wk\''''.toQuantity(''\''d\'''') = 7 days'
+      result:
+        - true
+    - desc: '** test'
+      inputfile: patient-example.json
+      expression: '''1 year''.toQuantity() = 1 ''a'''
+      result:
+        - false
+    - desc: '** test'
+      inputfile: patient-example.json
+      expression: '''1 year''.toQuantity() ~ 1 ''a'''
+      result:
+        - true
+    - desc: '** test'
+      inputfile: patient-example.json
+      expression: '''1 cm''.toQuantity(''\''mm\'''').value = 10'
+      result:
+        - true
+    - desc: '** test'
+      inputfile: patient-example.json
+      expression: '''1 cm''.toQuantity(''\''g\'''')'
+      result: []
+    - desc: '** test'
+      inputfile: observation-example.json
+      model: 'r4'
+      expression: Observation.value.toQuantity('kg') ~ 84 'kg'
+      result:
+        - true
+    - desc: '** test'
+      inputfile: patient-example.json
+      expression: '''1 \''wk\''''.toQuantity(''nonexistent-unit'')'
+      result: []
+    - desc: '** test'
+      inputfile: patient-example.json
+      expression: '''some not quantity string''.toQuantity()'
+      result: []
+  - 'group: Mapping from FHIR Quantity to FHIRPath System.Quantity':
+      - desc: After converting 'a' to year it is equal to year
+        inputfile: quantity-example.json
+        model: 'r4'
+        expression: QuestionnaireResponse.item[0].answer.value = 2 year
+        result:
+          - true
+      - desc: After converting 'a' to year it is equivalent to 'a'
+        inputfile: quantity-example.json
+        model: 'r4'
+        expression: QuestionnaireResponse.item[0].answer.value ~ 2 'a'
+        result:
+          - true
+      - desc: After converting 'a' to year it isn't equal to 'a'
+        inputfile: quantity-example.json
+        model: 'r4'
+        expression: QuestionnaireResponse.item[0].answer.value != 2 'a'
+        result:
+          - true
+      - desc: After converting 'min' to minute it isn't equal to 'min'
+        inputfile: quantity-example.json
+        model: 'r4'
+        expression: QuestionnaireResponse.item[1].answer.value = 3 'min'
+        result:
+          - true
+      - desc: Unable to convert from non-UCUM system
+        inputfile: quantity-example.json
+        model: 'r4'
+        expression: QuestionnaireResponse.item[2].answer.value.toQuantity()
+        result: []

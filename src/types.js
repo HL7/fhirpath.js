@@ -2,6 +2,7 @@ const addMinutes = require('date-fns/add_minutes');
 const ucumUtils = require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance();
 const numbers = require('./numbers');
 
+const ucumSystemUrl = 'http://unitsofmeasure.org';
 let timeFormat =
   '[0-9][0-9](\\:[0-9][0-9](\\:[0-9][0-9](\\.[0-9]+)?)?)?(Z|(\\+|-)[0-9][0-9]\\:[0-9][0-9])?';
 let timeRE = new RegExp('^T?'+timeFormat+'$');
@@ -982,12 +983,31 @@ class ResourceNode {
     if (data.resourceType)
       path = data.resourceType;
     this.path = path;
-    this.data = data;
+    this.data = getResourceNodeData(data, path);
   }
 
   toJSON() {
     return JSON.stringify(this.data);
   }
+}
+
+/**
+ * Prepare data for ResourceNode:
+ * Converts value from FHIR Quantity to FHIRPath System.Quantity.
+ * The Mapping from FHIR Quantity to FHIRPath System.Quantity is explained here:
+ * https://www.hl7.org/fhir/fhirpath.html#quantity
+ * @param {Object|...} data
+ * @param {string} path
+ * @return {FP_Quantity|Object|...}
+ */
+function getResourceNodeData(data, path) {
+  if (path === 'Quantity' && data.system === ucumSystemUrl) {
+    if (typeof data.value === 'number' && typeof data.code === 'string') {
+      data = new FP_Quantity(data.value, FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\'');
+    }
+  }
+
+  return data;
 }
 
 /**

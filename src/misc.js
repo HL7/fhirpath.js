@@ -56,12 +56,7 @@ engine.toQuantity = function (coll, toUnit) {
       v = util.valData(item);
     let quantityRegexRes;
 
-    if (item.path === 'Quantity' && v.system === this.vars.ucum) {
-      // The Mapping from FHIR Quantity to FHIRPath System.Quantity is explained here: https://www.hl7.org/fhir/fhirpath.html#quantity
-      if (typeof v.value === 'number' && typeof v.code === 'string') {
-        result = new FP_Quantity(v.value, FP_Quantity.mapUCUMCodeToTimeUnits[v.code] || '\'' + v.code + '\'');
-      }
-    } else if (typeof v === "number") {
+    if (typeof v === "number") {
       result = new FP_Quantity(v, '\'1\'');
     } else if (v instanceof FP_Quantity) {
       result = v;
