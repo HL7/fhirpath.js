@@ -294,25 +294,12 @@ FP_Quantity.mapUCUMCodeToTimeUnits = {
 /**
  *  Defines a map from FHIRPath time units to UCUM code.
  */
-FP_Quantity.mapTimeUnitsToUCUMCode = {
-  'years': "a",
-  'months': "mo",
-  'weeks': "wk",
-  'days': "d",
-  'hours': "h",
-  'minutes': "min",
-  'seconds': "s",
-  'milliseconds': "ms",
-  'year': "a",
-  'month': "mo",
-  'week': "wk",
-  'day': "d",
-  'hour': "h",
-  'minute': "min",
-  'second': "s",
-  'millisecond': "ms"
-};
-
+FP_Quantity.mapTimeUnitsToUCUMCode = Object.keys(FP_Quantity.mapUCUMCodeToTimeUnits)
+  .reduce(function (res, key) {
+    res[FP_Quantity.mapUCUMCodeToTimeUnits[key]] = key;
+    res[FP_Quantity.mapUCUMCodeToTimeUnits[key]+'s'] = key;
+    return res;
+  }, {});
 
 /**
  *  A map of the UCUM units that must be paired with integer values when doing
