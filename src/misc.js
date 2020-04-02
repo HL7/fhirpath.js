@@ -66,7 +66,7 @@ engine.toQuantity = function (coll, toUnit) {
     }
 
     if (result && toUnit && result.unit !== toUnit) {
-      result = FP_Quantity.convUnitTo(result.unit, result.value, toUnit) || [];
+      result = FP_Quantity.convUnitTo(result.unit, result.value, toUnit);
     }
   }
 
