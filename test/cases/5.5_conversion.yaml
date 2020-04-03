@@ -126,6 +126,55 @@ tests:
     result: ['101.99']
 
 
+  - desc: '5.5.7. toQuantity([unit:string]) : Quantity'
+  - desc: '** string to Quantity'
+    inputfile: patient-example.json
+    expression: '''1 \''wk\''''.toQuantity() = 7 days'
+    result:
+      - true
+  - desc: '** string to Quantity'
+    inputfile: patient-example.json
+    expression: '''1 \''wk\''''.toQuantity(''days'') = 7 days'
+    result:
+      - true
+  - desc: '** string to Quantity'
+    inputfile: patient-example.json
+    expression: '''1 \''wk\''''.toQuantity(''\''d\'''') = 7 days'
+    result:
+      - true
+  - desc: '** calendar duration conversion factor'
+    inputfile: patient-example.json
+    expression: '''1 year''.toQuantity() != 1 ''a'''
+    result:
+      - true
+  - desc: '** calendar duration conversion factor'
+    inputfile: patient-example.json
+    expression: '''1 year''.toQuantity() ~ 1 ''a'''
+    result:
+      - true
+  - desc: '** UCUM units'
+    inputfile: patient-example.json
+    expression: '''1 cm''.toQuantity(''\''mm\'''').value = 10'
+    result:
+      - true
+  - desc: '** Invalid conversion'
+    inputfile: patient-example.json
+    expression: '''1 cm''.toQuantity(''\''g\'''')'
+    result: []
+  - desc: '** Implicit to quantity + toQuantity'
+    inputfile: observation-example.json
+    model: 'r4'
+    expression: Observation.value.toQuantity('kg') ~ 84 'kg'
+    result:
+      - true
+  - desc: '** Invalid conversion'
+    inputfile: patient-example.json
+    expression: '''1 \''wk\''''.toQuantity(''nonexistent-unit'')'
+    result: []
+  - desc: '** Invalid conversion'
+    inputfile: patient-example.json
+    expression: '''some not quantity string''.toQuantity()'
+    result: []
 
 subject:
   resourceType: Functions

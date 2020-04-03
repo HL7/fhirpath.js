@@ -1,5 +1,5 @@
 tests:
-  - 'group: standart tests from fhir-r4':
+  - 'group: standard tests from fhir-r4':
       - desc: '** test'
         inputfile: patient-example.json
         expression: 1.toQuantity() = 1 '1'
@@ -35,55 +35,7 @@ tests:
         expression: '''1.0''.toQuantity() ~ 1 ''1'''
         result:
           - true
-  - 'group: Additional tests for Quantity':
-    - desc: '** test'
-      inputfile: patient-example.json
-      expression: '''1 \''wk\''''.toQuantity() = 7 days'
-      result:
-        - true
-    - desc: '** test'
-      inputfile: patient-example.json
-      expression: '''1 \''wk\''''.toQuantity(''days'') = 7 days'
-      result:
-        - true
-    - desc: '** test'
-      inputfile: patient-example.json
-      expression: '''1 \''wk\''''.toQuantity(''\''d\'''') = 7 days'
-      result:
-        - true
-    - desc: '** test'
-      inputfile: patient-example.json
-      expression: '''1 year''.toQuantity() = 1 ''a'''
-      result:
-        - false
-    - desc: '** test'
-      inputfile: patient-example.json
-      expression: '''1 year''.toQuantity() ~ 1 ''a'''
-      result:
-        - true
-    - desc: '** test'
-      inputfile: patient-example.json
-      expression: '''1 cm''.toQuantity(''\''mm\'''').value = 10'
-      result:
-        - true
-    - desc: '** test'
-      inputfile: patient-example.json
-      expression: '''1 cm''.toQuantity(''\''g\'''')'
-      result: []
-    - desc: '** test'
-      inputfile: observation-example.json
-      model: 'r4'
-      expression: Observation.value.toQuantity('kg') ~ 84 'kg'
-      result:
-        - true
-    - desc: '** test'
-      inputfile: patient-example.json
-      expression: '''1 \''wk\''''.toQuantity(''nonexistent-unit'')'
-      result: []
-    - desc: '** test'
-      inputfile: patient-example.json
-      expression: '''some not quantity string''.toQuantity()'
-      result: []
+  # see Use of FHIR Quantity: https://www.hl7.org/fhir/fhirpath.html#quantity
   - 'group: Mapping from FHIR Quantity to FHIRPath System.Quantity':
       - desc: After converting 'a' to year it is equal to year
         inputfile: quantity-example.json
