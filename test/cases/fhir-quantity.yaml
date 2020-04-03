@@ -55,7 +55,7 @@ tests:
         expression: QuestionnaireResponse.item[0].answer.value != 2 'a'
         result:
           - true
-      - desc: After converting 'min' to minute it isn't equal to 'min'
+      - desc: After converting 'min' to minute it is equal to 'min'
         inputfile: quantity-example.json
         model: 'r4'
         expression: QuestionnaireResponse.item[1].answer.value = 3 'min'
