@@ -1,6 +1,8 @@
 const addMinutes = require('date-fns/add_minutes');
 const ucumUtils = require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance();
+const numbers = require('./numbers');
 
+const ucumSystemUrl = 'http://unitsofmeasure.org';
 let timeFormat =
   '[0-9][0-9](\\:[0-9][0-9](\\:[0-9][0-9](\\.[0-9]+)?)?)?(Z|(\\+|-)[0-9][0-9]\\:[0-9][0-9])?';
 let timeRE = new RegExp('^T?'+timeFormat+'$');
@@ -65,7 +67,185 @@ class FP_Quantity extends FP_Type {
     this.value = value;
     this.unit = unit;
   }
+
+  equals(otherQuantity) {
+    if (!(otherQuantity instanceof this.constructor)) {
+      return false;
+    }
+
+    if (this.unit === otherQuantity.unit) {
+      return numbers.isEqual(this.value, otherQuantity.value);
+    }
+
+    // Special year/month comparison case: 1 year = 12 month
+    const compareYearsAndMonths = this._compareYearsAndMonths(otherQuantity);
+    if (compareYearsAndMonths) {
+      return compareYearsAndMonths.isEqual;
+    }
+
+    // General comparison case
+    const thisQuantity = FP_Quantity.toUcumQuantity(this.value, this.unit),
+      normalizedOtherQuantity = FP_Quantity.toUcumQuantity(otherQuantity.value, otherQuantity.unit),
+      convResult = ucumUtils.convertUnitTo(normalizedOtherQuantity.unit, normalizedOtherQuantity.value, thisQuantity.unit);
+
+    if (convResult.status !== 'succeeded') {
+      return false;
+    }
+
+    return numbers.isEqual(thisQuantity.value, convResult.toVal);
+  }
+
+  equivalentTo(otherQuantity) {
+    if (!(otherQuantity instanceof this.constructor)) {
+      return false;
+    }
+
+    if (this.unit === otherQuantity.unit) {
+      return numbers.isEquivalent(this.value, otherQuantity.value);
+    }
+
+    const ucumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(this.unit),
+      otherUcumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit),
+      convResult = ucumUtils.convertUnitTo(otherUcumUnitCode, otherQuantity.value, ucumUnitCode);
+
+    if (convResult.status !== 'succeeded') {
+      return false;
+    }
+
+    return numbers.isEquivalent(this.value, convResult.toVal);
+  }
+
+  /**
+   * If both quantities have one of these units: year or month,
+   * then a special case will apply; otherwise returns null.
+   * In the special case of comparison, the fact that 1 year = 12 months is used.
+   *
+   * Just note: in general, for a calendar duration:
+   * 1 year = 365 days
+   * 12 month = 12*30 days = 360 days
+   * so, 1 year != 12 month
+   * That's why this special case is needed
+   *
+   * @param {FP_Quantity} otherQuantity
+   * @return {null|{isEqual: boolean}}
+   * @private
+   */
+  _compareYearsAndMonths(otherQuantity) {
+    const magnitude1 = FP_Quantity._yearMonthConversionFactor[this.unit],
+      magnitude2 = FP_Quantity._yearMonthConversionFactor[otherQuantity.unit];
+
+    if ( magnitude1 && magnitude2) {
+      return {
+        isEqual: numbers.isEqual(this.value*magnitude1, otherQuantity.value*magnitude2)
+      };
+    }
+
+    return null;
+  }
+
 }
+
+const  surroundingApostrophesRegex = /^'|'$/g;
+/**
+ * Converts a FHIR path unit to a UCUM unit code by converting a calendar duration keyword to an equivalent UCUM unit code
+ * or removing single quotes for a UCUM unit.
+ * @param {string} unit
+ * @return {string}
+ */
+FP_Quantity.getEquivalentUcumUnitCode = function (unit) {
+  return FP_Quantity.mapTimeUnitsToUCUMCode[unit] || unit.replace(surroundingApostrophesRegex, '');
+};
+
+/**
+ * Converts FHIR path value/unit to UCUM value/unit. Usable for comparison.
+ * @param {number} value
+ * @param {string} unit
+ * @returns { {value: number, unit: string} }
+ */
+FP_Quantity.toUcumQuantity = function (value, unit) {
+  const magnitude = FP_Quantity._calendarDuration2Seconds[unit];
+  if (magnitude) {
+    return {
+      value: magnitude * value,
+      unit: 's'
+    };
+  }
+
+  return {
+    value,
+    unit: unit.replace(surroundingApostrophesRegex, '')
+  };
+};
+
+/**
+ * Converts FHIRPath value/unit to other FHIRPath value/unit.
+ * @param {string} fromUnit
+ * @param {number} value
+ * @param {string} toUnit
+ * @return {FP_Quantity|null}
+ */
+FP_Quantity.convUnitTo = function (fromUnit, value, toUnit) {
+  // 1 Year <-> 12 Months
+  const fromYearMonthMagnitude = FP_Quantity._yearMonthConversionFactor[fromUnit],
+    toYearMonthMagnitude = FP_Quantity._yearMonthConversionFactor[toUnit];
+  if (fromYearMonthMagnitude && toYearMonthMagnitude) {
+    return new FP_Quantity( fromYearMonthMagnitude*value/toYearMonthMagnitude, toUnit);
+  }
+
+  const fromMagnitude = FP_Quantity._calendarDuration2Seconds[fromUnit],
+    toMagnitude = FP_Quantity._calendarDuration2Seconds[toUnit];
+
+  // To FHIR path calendar duration
+  if (toMagnitude) {
+    if (fromMagnitude) {
+      return new FP_Quantity( fromMagnitude*value/toMagnitude, toUnit);
+    } else {
+      const convResult = ucumUtils.convertUnitTo(fromUnit.replace(/^'|'$/g, ''), value, 's');
+
+      if (convResult.status === 'succeeded') {
+        return new FP_Quantity(convResult.toVal/toMagnitude, toUnit);
+      }
+    }
+  // To Ucum unit
+  } else {
+    const convResult = fromMagnitude ? ucumUtils.convertUnitTo('s', fromMagnitude*value, toUnit.replace(/^'|'$/g, ''))
+      : ucumUtils.convertUnitTo(fromUnit.replace(/^'|'$/g, ''), value, toUnit.replace(/^'|'$/g, ''));
+
+    if(convResult.status === 'succeeded') {
+      return new FP_Quantity(convResult.toVal, toUnit);
+    }
+  }
+
+  return null;
+};
+
+// Defines conversion factors for calendar durations
+FP_Quantity._calendarDuration2Seconds = {
+  'years': 365*24*60*60,
+  'months': 30*24*60*60,
+  'weeks': 7*24*60*60,
+  'days': 24*60*60,
+  'hours': 60*60,
+  'minutes': 60,
+  'seconds': 1,
+  'milliseconds': .001,
+  'year': 365*24*60*60,
+  'month': 30*24*60*60,
+  'week': 7*24*60*60,
+  'day': 24*60*60,
+  'hour': 60*60,
+  'minute': 60,
+  'second': 1,
+  'millisecond': .001
+};
+
+// Defines special case to compare years with months for calendar durations
+FP_Quantity._yearMonthConversionFactor = {
+  'years': 12,
+  'months': 1,
+  'year': 12,
+  'month': 1
+};
 
 /**
  *  Defines a map from FHIRPath time units to UCUM.
@@ -97,6 +277,29 @@ FP_Quantity.timeUnitsToUCUM = {
   "'ms'": "'ms'"
 };
 
+/**
+ *  Defines a map from UCUM code to FHIRPath time units.
+ */
+FP_Quantity.mapUCUMCodeToTimeUnits = {
+  'a': "year",
+  'mo': "month",
+  'wk': "week",
+  'd': "day",
+  'h': "hour",
+  'min': "minute",
+  's': "second",
+  'ms': "millisecond",
+};
+
+/**
+ *  Defines a map from FHIRPath time units to UCUM code.
+ */
+FP_Quantity.mapTimeUnitsToUCUMCode = Object.keys(FP_Quantity.mapUCUMCodeToTimeUnits)
+  .reduce(function (res, key) {
+    res[FP_Quantity.mapUCUMCodeToTimeUnits[key]] = key;
+    res[FP_Quantity.mapUCUMCodeToTimeUnits[key]+'s'] = key;
+    return res;
+  }, {});
 
 /**
  *  A map of the UCUM units that must be paired with integer values when doing
@@ -760,17 +963,38 @@ class ResourceNode {
    *  this parameter.
    */
   constructor(data, path) {
+    // console.log('>>>', path);
+    // console.log(JSON.stringify(data, null, 4));
     // If data is a resource (maybe a contained resource) reset the path
     // information to the resource type.
     if (data.resourceType)
       path = data.resourceType;
     this.path = path;
-    this.data = data;
+    this.data = getResourceNodeData(data, path);
   }
 
   toJSON() {
     return JSON.stringify(this.data);
   }
+}
+
+/**
+ * Prepare data for ResourceNode:
+ * Converts value from FHIR Quantity to FHIRPath System.Quantity.
+ * The Mapping from FHIR Quantity to FHIRPath System.Quantity is explained here:
+ * https://www.hl7.org/fhir/fhirpath.html#quantity
+ * @param {Object|...} data
+ * @param {string} path
+ * @return {FP_Quantity|Object|...}
+ */
+function getResourceNodeData(data, path) {
+  if (path === 'Quantity' && data.system === ucumSystemUrl) {
+    if (typeof data.value === 'number' && typeof data.code === 'string') {
+      data = new FP_Quantity(data.value, FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\'');
+    }
+  }
+
+  return data;
 }
 
 /**

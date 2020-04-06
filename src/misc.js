@@ -5,6 +5,8 @@
 var util = require("./utilities");
 var types = require("./types");
 
+const { FP_Quantity } = types;
+
 var engine = {};
 
 engine.iifMacro = function(data, cond, ok, fail) {
@@ -41,6 +43,34 @@ engine.toInteger = function(coll){
     }
   }
   return [];
+};
+
+const quantityRegex = /(?<value>(\+|-)?\d+(\.\d+)?)\s*((?<unit>'[^']+')|(?<time>[a-zA-Z]+))?/;
+engine.toQuantity = function (coll, toUnit) {
+  let result;
+
+  if (coll.length > 1) {
+    throw new Error("Could not convert to quantity: input collection contains multiple items");
+  } else if (coll.length === 1) {
+    const item = coll[0],
+      v = util.valData(item);
+    let quantityRegexRes;
+
+    if (typeof v === "number") {
+      result = new FP_Quantity(v, '\'1\'');
+    } else if (v instanceof FP_Quantity) {
+      result = v;
+    } else if (typeof v === "string" && (quantityRegexRes = quantityRegex.exec(v)) ) {
+      let {groups: {value, unit, time}} = quantityRegexRes;
+      result = new FP_Quantity(Number(value), unit||time||'\'1\'');
+    }
+
+    if (result && toUnit && result.unit !== toUnit) {
+      result = FP_Quantity.convUnitTo(result.unit, result.value, toUnit);
+    }
+  }
+
+  return result || [];
 };
 
 var numRegex = /^[+-]?\d+(\.\d+)?$/;

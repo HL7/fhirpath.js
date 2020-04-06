@@ -1,6 +1,6 @@
 {
   "name": "fhirpath",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "dependencies": {
@@ -19,7 +19,7 @@
     "bestzip": "^2.1.4",
     "copy-webpack-plugin": "^5.1.1",
     "eslint": "^5.2.0",
-    "grunt": "^1.0.4",
+    "grunt": "^1.1.0",
     "grunt-cli": "^1.3.1",
     "grunt-contrib-connect": "^2.0.0",
     "grunt-protractor-runner": "^5.0.0",
