@@ -18,11 +18,15 @@ function makeBaseConfig() {
       rules: [
         {
           test: /\.m?js$/,
-          exclude: /(node_modules|bower_components)/,
+          exclude: /(node_modules\/(?!@lhncbc)|bower_components)/,
           use: {
             loader: 'babel-loader',
             options: {
-              presets: ['@babel/preset-env']
+              presets: [['@babel/preset-env', {
+                modules: "cjs",
+                useBuiltIns: "usage",
+                corejs: {version: 2, proposal: true}
+              }]]
             }
           }
         }
