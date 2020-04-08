@@ -12,6 +12,7 @@ function makeBaseConfig() {
     mode: 'production',
     devtool: 'source-map',
     output: {
+      libraryTarget: 'window',
       path: __dirname
     },
     module: {
