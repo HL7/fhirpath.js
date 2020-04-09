@@ -21,10 +21,10 @@ function evaluateFP() {
   var resource = document.getElementById('resource').value;
   var modelChoices = document.getElementsByName('model');
   var model;
-  for (let modelChoice of modelChoices) {
-    if (modelChoice.checked) {
-      model = modelChoices.value === 'r4' ? fhirpath_r4_model :
-        fhirpath_stu3_model;
+
+  for (var i = 0; i < modelChoices.length; i++) {
+    if (modelChoices[i].checked) {
+      model = modelChoices[i].value === 'r4' ? fhirpath_r4_model : fhirpath_stu3_model;
       break;
     }
   }
