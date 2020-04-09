@@ -45,7 +45,8 @@ engine.toInteger = function(coll){
   return [];
 };
 
-const quantityRegex = /(?<value>(\+|-)?\d+(\.\d+)?)\s*((?<unit>'[^']+')|(?<time>[a-zA-Z]+))?/;
+const quantityRegex = /((\+|-)?\d+(\.\d+)?)\s*(('[^']+')|([a-zA-Z]+))?/,
+  quantityRegexMap = {value:1,unit:5,time:6};
 engine.toQuantity = function (coll, toUnit) {
   let result;
 
@@ -61,7 +62,10 @@ engine.toQuantity = function (coll, toUnit) {
     } else if (v instanceof FP_Quantity) {
       result = v;
     } else if (typeof v === "string" && (quantityRegexRes = quantityRegex.exec(v)) ) {
-      let {groups: {value, unit, time}} = quantityRegexRes;
+      const value = quantityRegexRes[quantityRegexMap.value],
+        unit = quantityRegexRes[quantityRegexMap.unit],
+        time = quantityRegexRes[quantityRegexMap.time];
+
       result = new FP_Quantity(Number(value), unit||time||'\'1\'');
     }
 
