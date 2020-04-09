@@ -6,6 +6,7 @@ This log documents significant changes for each release.  This project follows
 ## [2.1.1] - 2020-04-08
 ### Changed
 - Browser build fixed to work in IE 11
+- Non-browser build removed
 
 ## [2.1.0] - 2020-03-26
 ### Added
