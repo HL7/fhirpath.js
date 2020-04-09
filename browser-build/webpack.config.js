@@ -23,11 +23,7 @@ function makeBaseConfig() {
           use: {
             loader: 'babel-loader',
             options: {
-              presets: [['@babel/preset-env', {
-                modules: "cjs",
-                useBuiltIns: "usage",
-                corejs: {version: 2, proposal: true}
-              }]]
+              presets: ['@babel/preset-env']
             }
           }
         }
