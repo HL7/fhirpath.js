@@ -36,7 +36,7 @@ function evaluateFP() {
   var modelChoices = document.getElementsByName('model');
   var model;
 
-  for (var i = 0; i < modelChoices.length; i++) {
+  for (var i = 0; i < modelChoices.length; ++i) {
     if (modelChoices[i].checked) {
       model = modelChoices[i].value === 'r4' ? fhirpath_r4_model : fhirpath_stu3_model;
       break;
@@ -51,7 +51,7 @@ function evaluateFP() {
 </script>
 
 <hr>
-Manual check polyfill.js, each below expression should be true:
+Manual check polyfill.js, each of the expressions below should be true:
 <ul id="tests">
   <li class="fail">attempting to run tests...</li>
 </ul>
