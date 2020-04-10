@@ -3,6 +3,20 @@
 <head>
   <meta charset="utf-8">
   <title>Test page for the browser build</title>
+  <style type="text/css">
+    ul {
+      list-style: none;
+    }
+
+    ul li.ok:before {
+      content: "\2714\0020";
+      color: green;
+    }
+    ul li.fail:before {
+      content: "\2716\0020";
+      color: red;
+    }
+  </style>
 </head>
 <body>
 <textarea id="expression" onkeyup="evaluateFP()"></textarea>
@@ -34,6 +48,32 @@ function evaluateFP() {
       JSON.stringify(fhirpath.evaluate(resource, expr, null, model));
   }
 }
+</script>
+
+<hr>
+Manual check polyfill.js, each below expression should be true:
+<ul id="tests">
+  <li class="fail">attempting to run tests...</li>
+</ul>
+<script>
+  document.querySelector('#tests').innerHTML = [
+    'Number.isInteger(1)',
+    '!Number.isInteger(1.1)',
+    '!Number.isInteger("1")',
+    '"Some text".startsWith("Some")',
+    '!"Some text".startsWith("some")',
+    'Object.assign({}, {a:1}).a === 1',
+    'Object.assign("123", {a:1}).a === 1',
+    'Object.assign("123", {a:1})[1] === "2"',
+  ].map(function (expr) {
+    var result;
+    try {
+      result = eval(expr);
+    } catch (e) {
+      result = false;
+    }
+    return '<li class="' + (result ? 'ok' : 'fail') + '"><code>' + expr + '</code></li>';
+  }).join('');
 </script>
 </body>
 </html>
