@@ -17,7 +17,7 @@ Try it out on the [demo page](https://hl7.github.io/fhirpath.js/).
 npm install –save fhirpath
 ```
 
-```javascript
+```js
 const fhirpath = require('fhirpath');
 // For FHIR model data (choice type support) pull in the model file:
 const fhirpath_r4_model = require('fhirpath/fhir-context/r4');
