@@ -1,8 +1,8 @@
 require('file-loader?name=index.html!./index.html');
 require('./app.css');
 
-const fhirpath = require('../../build/fhirpath.js');
-const fhirpath_r4_model = require('../../fhir-context/r4');
+require ('../../browser-build/fhirpath.min.js');
+require('../../browser-build/fhirpath.r4.min');
 const codeMirror = require("codemirror");
 const yaml = require('js-yaml');
 

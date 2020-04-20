@@ -12,13 +12,14 @@ function makeBaseConfig() {
     mode: 'production',
     devtool: 'source-map',
     output: {
+      libraryTarget: 'window',
       path: __dirname
     },
     module: {
       rules: [
         {
           test: /\.m?js$/,
-          exclude: /(node_modules|bower_components)/,
+          exclude: /(node_modules\/(?!@lhncbc)|bower_components)/,
           use: {
             loader: 'babel-loader',
             options: {

@@ -141,10 +141,14 @@ Completed sections:
 - 8   (Lexical Elements) - handled by ANTLR parser
 - 9   (Environment Variables)
 
+Almost completed sections:
+- 5.5 (Conversion) - unimplemented methods: toBoolean, toDate.
+
 We are deferring handling information about FHIR resources, as much as
 possible, with the exception of support for choice types.  This affects
 implementation of the following sections:
 - 6.3 (Types) - deferred
+
 Also, because in JSON DateTime and Time types are represented as strings, if a
 string in a resource looks like a DateTime or Time (matches the regular
 expression defined for those types in FHIR), the string will be interpreted as a
