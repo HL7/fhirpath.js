@@ -22,6 +22,11 @@ engine.selectMacro = function(data, expr) {
   }));
 };
 
+engine.aggregateMacro = function(data, expr, initialValue) {
+  if (data !== false && !data) { return initialValue; }
+  return util.flatten(util.arraify(data.reduce((total, x) => this.$total = expr(x, total), this.$total = initialValue)));
+};
+
 engine.repeatMacro = function(parentData, expr) {
   if(parentData !== false && ! parentData) { return []; }
 

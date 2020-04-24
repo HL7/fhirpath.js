@@ -1103,31 +1103,35 @@ tests:
         result:
           - true
   - 'group: testAggregate':
-      - desc: '** test'
+      - desc: 'Calculate sum of collection'
         inputfile: patient-example.json
-        expression: '(1|2|3|4|5|6|7|8|9).aggregate($this+$total, 0) = 45'
+        expression: '(1|2|3|4|5|6|7|8|9).aggregate($this+$total, 0)'
         result:
-          - true
-      - desc: '** test'
+          - 45
+      - desc: 'Calculate sum of collection, start with 2'
         inputfile: patient-example.json
-        expression: '(1|2|3|4|5|6|7|8|9).aggregate($this+$total, 2) = 47'
+        expression: '(1|2|3|4|5|6|7|8|9).aggregate($this+$total, 2)'
         result:
-          - true
-      - desc: '** test'
+          - 47
+      - desc: 'Find the min value in collection'
         inputfile: patient-example.json
         expression: >-
           (1|2|3|4|5|6|7|8|9).aggregate(iif($total.empty(), $this, iif($this <
-          $total, $this, $total))) = 1
+          $total, $this, $total))) 
         result:
-          - true
-      - desc: '** test'
+          - 1
+      - desc: 'Find the max value in collection'
         inputfile: patient-example.json
         expression: >-
           (1|2|3|4|5|6|7|8|9).aggregate(iif($total.empty(), $this, iif($this >
-          $total, $this, $total))) = 9
+          $total, $this, $total)))
         result:
-          - true
-    disable: true
+          - 9
+      - desc: 'aggregate() function within the aggregate() iterator'
+        inputfile: patient-example.json
+        expression: (1|2|3).aggregate($total + (1|2|3|4).aggregate($total + $this, 0), 0)
+        result:
+          - 30
   - 'group: testIndexer':
       - desc: '** test'
         inputfile: patient-example.json

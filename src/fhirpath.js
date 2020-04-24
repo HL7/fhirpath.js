@@ -72,6 +72,7 @@ engine.invocationTable = {
   count:        {fn: existence.countFn},
   where:        {fn: filtering.whereMacro, arity: {1: ["Expr"]}},
   select:       {fn: filtering.selectMacro, arity: {1: ["Expr"]}},
+  aggregate:    {fn: filtering.aggregateMacro, arity: {1: ["Expr"], 2: ["Expr", "Integer"]}},
   single:       {fn: filtering.singleFn},
   first:        {fn: filtering.firstFn},
   last:         {fn: filtering.lastFn},
@@ -372,6 +373,7 @@ function makeParam(ctx, parentData, type, param) {
   ctx.currentData = parentData;
   if(type === "Expr"){
     return function(data) {
+
       return engine.doEval(ctx, util.arraify(data), param);
     };
   }
@@ -505,6 +507,10 @@ engine.UnionExpression = function(ctx, parentData, node) {
 engine.ThisInvocation = function(ctx) {
   return util.arraify(ctx.currentData);
 };
+engine.TotalInvocation = function(ctx) {
+
+  return util.arraify(ctx.$total);
+};
 
 engine.OpExpression = function(ctx, parentData, node) {
   var op = node.terminalNodeText[0];
@@ -551,6 +557,7 @@ engine.evalTable = { // not every evaluator is listed if they are defined on eng
   StringLiteral: engine.StringLiteral,
   TermExpression: engine.TermExpression,
   ThisInvocation: engine.ThisInvocation,
+  TotalInvocation: engine.TotalInvocation,
   UnionExpression: engine.UnionExpression,
   OrExpression: engine.OpExpression,
   ImpliesExpression: engine.OpExpression,
