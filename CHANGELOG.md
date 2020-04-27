@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.1.2] - 2020-04-27
+### Changed
+- ucum-lhc package updated to 4.1.3
+- added polyfills required to run in IE
+
 ## [2.1.1] - 2020-04-08
 ### Changed
 - Browser build fixed to work in IE 11

@@ -13,7 +13,6 @@ Number.isInteger = Number.isInteger || function(value) {
 if (!String.prototype.startsWith) {
   // From Mozilla docs with little changes
   Object.defineProperty(String.prototype, 'startsWith', {
-    enumerable: false,
     value: function(searchString, position) {
       position = position || 0;
       return this.indexOf(searchString, position) === position;
@@ -21,10 +20,32 @@ if (!String.prototype.startsWith) {
   });
 }
 
+if (!String.prototype.endsWith) {
+  // From Mozilla docs with little changes
+  Object.defineProperty(String.prototype, 'endsWith', {
+    value: function(searchString, position) {
+      var subjectString = this.toString();
+      if (position === undefined || position > subjectString.length) {
+        position = subjectString.length;
+      }
+      position -= searchString.length;
+      var lastIndex = subjectString.indexOf(searchString, position);
+      return lastIndex !== -1 && lastIndex === position;
+    }
+  });
+}
+
+if (!String.prototype.includes) {
+  Object.defineProperty(String.prototype, 'includes', {
+    value: function() {
+      return this.indexOf.apply(this, arguments) !== -1;
+    }
+  });
+}
+
 if (!Object.assign) {
   // From Mozilla docs with little changes
   Object.defineProperty(Object, 'assign', {
-    enumerable: false,
     value: function(target) {
       if (target === undefined || target === null) {
         throw new TypeError('Cannot convert undefined or null to object');
