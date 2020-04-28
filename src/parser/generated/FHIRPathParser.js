@@ -1,6 +1,6 @@
 // Generated from FHIRPath.g4 by ANTLR 4.7.1
 // jshint ignore: start
-var antlr4 = require('antlr4/index');
+var antlr4 = require('../antlr4-index');
 var FHIRPathListener = require('./FHIRPathListener').FHIRPathListener;
 var grammarFileName = "FHIRPath.g4";
 
