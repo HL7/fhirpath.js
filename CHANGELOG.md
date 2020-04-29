@@ -5,7 +5,7 @@ This log documents significant changes for each release.  This project follows
 
 ## [2.1.3] - 2020-04-28
 ### Changed
-- 'fs' excluded from requirements
+- Removed the need to exclude package "fs" when building
 
 ## [2.1.2] - 2020-04-27
 ### Changed
