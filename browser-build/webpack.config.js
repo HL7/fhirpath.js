@@ -6,9 +6,6 @@ const CopyPlugin = require('copy-webpack-plugin');
  */
 function makeBaseConfig() {
   return {
-    node: {
-      fs: "empty"
-    },
     mode: 'production',
     devtool: 'source-map',
     output: {
