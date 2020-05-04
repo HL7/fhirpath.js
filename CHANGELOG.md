@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.1.4] - 2020-05-04
+### Fixed
+- Using "Number.parseFloat" replaced with "parseFloat" for IE11
+
 ## [2.1.3] - 2020-04-28
 ### Changed
 - Removed the need to exclude package "fs" when building
