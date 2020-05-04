@@ -62,7 +62,7 @@ numberFns.isEquivalent = function(actual, expected) {
   if(prec === 0){
     return Math.round(actual) === Math.round(expected);
   } else {
-    // Note: Number.parseFloat(0.00000011).toPrecision(7) ===  "1.100000e-7"
+    // Note: parseFloat(0.00000011).toPrecision(7) ===  "1.100000e-7"
     // It does # of significant digits, not decimal places.
     return roundToDecimalPlaces(actual, prec) ===
       roundToDecimalPlaces(expected, prec);
