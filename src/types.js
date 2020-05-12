@@ -405,10 +405,7 @@ class FP_TimeBase extends FP_Type {
     else {
       var thisPrec  = this._getPrecision();
       var otherPrec = otherDateTime._getPrecision();
-      if (this.constructor === FP_Time)
-        thisPrec += 3; // because we have year, month, and day
-      if (otherDateTime.constructor === FP_Time)
-        otherPrec += 3; // because we have year, month, and day
+
       if (thisPrec == otherPrec) {
         rtn = this._getDateObj().getTime() == otherDateTime._getDateObj().getTime();
       }
@@ -418,6 +415,12 @@ class FP_TimeBase extends FP_Type {
         // Adjust for timezone offsets, if any, so they are at a common timezone
         var thisUTCStr  = this._getDateObj().toISOString();
         var otherUTCStr = otherDateTime._getDateObj().toISOString();
+
+        if (this.constructor === FP_Time) {
+          commonPrec += 3; // because we now have year, month, and day
+          thisPrec += 3;
+          otherPrec += 3;
+        }
 
         // Now parse the strings and compare the adjusted time parts.
         // Dates without time specify no timezone and should be treated as already normalized to UTC. So we do not adjust the timezone, as this would change the date
