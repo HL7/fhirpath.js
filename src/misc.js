@@ -88,7 +88,7 @@ engine.toDecimal = function(coll){
   }
   if(typeof v === "string") {
     if(numRegex.test(v)){
-      return Number.parseFloat(v);
+      return parseFloat(v);
     } else {
       throw new Error("Could not convert to decimal: " + v);
     }

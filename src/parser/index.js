@@ -1,4 +1,4 @@
-const antlr4 = require("antlr4");
+const antlr4 = require("./antlr4-index");
 const Lexer = require("./generated/FHIRPathLexer").FHIRPathLexer;
 const Parser = require("./generated/FHIRPathParser").FHIRPathParser;
 const Listener = require("./generated/FHIRPathListener").FHIRPathListener;
