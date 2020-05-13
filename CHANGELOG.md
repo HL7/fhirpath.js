@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.1.5] - 2020-05-12
+### Fixed
+- Fixed issue with comparing dates (without time) in various time zones
+- Added execution of tests for various time zones
+
 ## [2.1.4] - 2020-05-04
 ### Fixed
 - Using "Number.parseFloat" replaced with "parseFloat" for IE11
