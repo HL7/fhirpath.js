@@ -1,0 +1,8 @@
+tests:
+  - desc: '7 Aggregates'
+  - desc: '7.1 aggregate(aggregator : expression [, init : value]) : value'
+  - desc: 'aggregate() function within the aggregate() iterator'
+    inputfile: patient-example.json
+    expression: (1|2|3).aggregate($total + (1|2|3|4).aggregate($total + $this, 0), 0)
+    result:
+      - 30

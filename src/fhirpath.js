@@ -36,6 +36,7 @@ const constants = require('./constants');
 let engine    = {}; // the object with all FHIRPath functions and operations
 let existence = require("./existence");
 let filtering = require("./filtering");
+let aggregate = require("./aggregate");
 let combining = require("./combining");
 let misc      = require("./misc");
 let equality  = require("./equality");
@@ -72,7 +73,7 @@ engine.invocationTable = {
   count:        {fn: existence.countFn},
   where:        {fn: filtering.whereMacro, arity: {1: ["Expr"]}},
   select:       {fn: filtering.selectMacro, arity: {1: ["Expr"]}},
-  aggregate:    {fn: filtering.aggregateMacro, arity: {1: ["Expr"], 2: ["Expr", "Integer"]}},
+  aggregate:    {fn: aggregate.aggregateMacro, arity: {1: ["Expr"], 2: ["Expr", "Integer"]}},
   single:       {fn: filtering.singleFn},
   first:        {fn: filtering.firstFn},
   last:         {fn: filtering.lastFn},
@@ -373,7 +374,6 @@ function makeParam(ctx, parentData, type, param) {
   ctx.currentData = parentData;
   if(type === "Expr"){
     return function(data) {
-
       return engine.doEval(ctx, util.arraify(data), param);
     };
   }
