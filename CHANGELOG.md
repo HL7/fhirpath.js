@@ -3,6 +3,24 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.1.5] - 2020-05-12
+### Fixed
+- Fixed issue with comparing dates (without time) in various time zones
+- Added execution of tests for various time zones
+
+## [2.1.4] - 2020-05-04
+### Fixed
+- Using "Number.parseFloat" replaced with "parseFloat" for IE11
+
+## [2.1.3] - 2020-04-28
+### Changed
+- Removed the need to exclude package "fs" when building
+
+## [2.1.2] - 2020-04-27
+### Changed
+- ucum-lhc package updated to 4.1.3
+- added polyfills required to run in IE
+
 ## [2.1.1] - 2020-04-08
 ### Changed
 - Browser build fixed to work in IE 11

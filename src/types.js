@@ -403,23 +403,31 @@ class FP_TimeBase extends FP_Type {
     if (!(otherDateTime instanceof this.constructor))
       rtn = false;
     else {
-      var thisPrec = this._getPrecision();
+      var thisPrec  = this._getPrecision();
       var otherPrec = otherDateTime._getPrecision();
+
       if (thisPrec == otherPrec) {
-        rtn = this._getDateObj().getTime()==otherDateTime._getDateObj().getTime();
+        rtn = this._getDateObj().getTime() == otherDateTime._getDateObj().getTime();
       }
       else {
         // The dates are not equal, but decide whether to return empty or false.
-        var commonPrec = thisPrec <= otherPrec ? thisPrec : otherPrec;
+        var commonPrec  = thisPrec <= otherPrec ? thisPrec : otherPrec;
         // Adjust for timezone offsets, if any, so they are at a common timezone
-        var thisUTCStr = this._getDateObj().toISOString();
+        var thisUTCStr  = this._getDateObj().toISOString();
         var otherUTCStr = otherDateTime._getDateObj().toISOString();
-        // Now parse the strings and compare the adjusted time parts.
-        var thisAdj = (new FP_DateTime(thisUTCStr))._getTimeParts();
-        var otherAdj = (new FP_DateTime(otherUTCStr))._getTimeParts();
-        if (this.constructor === FP_Time)
+
+        if (this.constructor === FP_Time) {
           commonPrec += 3; // because we now have year, month, and day
-        for (var i=0; i<=commonPrec && rtn !== false; ++i) {
+          thisPrec += 3;
+          otherPrec += 3;
+        }
+
+        // Now parse the strings and compare the adjusted time parts.
+        // Dates without time specify no timezone and should be treated as already normalized to UTC. So we do not adjust the timezone, as this would change the date
+        var thisAdj  = thisPrec > 2 ? (new FP_DateTime(thisUTCStr))._getTimeParts() : this._getTimeParts();
+        var otherAdj = otherPrec > 2 ? (new FP_DateTime(otherUTCStr))._getTimeParts() : otherDateTime._getTimeParts();
+
+        for (var i = 0; i <= commonPrec && rtn !== false; ++i) {
           rtn = thisAdj[i] == otherAdj[i];
         }
         // if rtn is still true, then return empty to indicate the difference in
