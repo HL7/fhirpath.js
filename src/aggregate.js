@@ -1,8 +1,6 @@
 // Contains the FHIRPath Aggregate functions.
 // (Section 7 of the FHIRPath 2.0.0 (N1) specification).
 
-const util = require('./utilities');
-
 let engine = {};
 
 engine.aggregateMacro = function(data, expr, initialValue) {
