@@ -507,9 +507,13 @@ engine.UnionExpression = function(ctx, parentData, node) {
 engine.ThisInvocation = function(ctx) {
   return util.arraify(ctx.currentData);
 };
-engine.TotalInvocation = function(ctx) {
 
+engine.TotalInvocation = function(ctx) {
   return util.arraify(ctx.$total);
+};
+
+engine.IndexInvocation = function(ctx) {
+  return util.arraify(ctx.$index);
 };
 
 engine.OpExpression = function(ctx, parentData, node) {
@@ -558,6 +562,7 @@ engine.evalTable = { // not every evaluator is listed if they are defined on eng
   TermExpression: engine.TermExpression,
   ThisInvocation: engine.ThisInvocation,
   TotalInvocation: engine.TotalInvocation,
+  IndexInvocation: engine.IndexInvocation,
   UnionExpression: engine.UnionExpression,
   OrExpression: engine.OpExpression,
   ImpliesExpression: engine.OpExpression,
