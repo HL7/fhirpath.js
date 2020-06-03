@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.2.0] - 2020-05-26
+### Added
+- Function aggregate(aggregator, init)
+
 ## [2.1.5] - 2020-05-12
 ### Fixed
 - Fixed issue with comparing dates (without time) in various time zones

@@ -1,0 +1,19 @@
+tests:
+  - desc: '7 Aggregates'
+  - desc: '7.1 aggregate(aggregator : expression [, init : value]) : value'
+  - desc: 'aggregate() function within the aggregate() iterator'
+    expression: (1|2|3).aggregate($total + (1|2|3|4).aggregate($total + $this, 0), 0)
+    result:
+      - 30
+  - desc: 'Calculate sum of undefined input collection, start with 3'
+    expression: UndefinedInput.aggregate($total + $this, 3)
+    result:
+      - 3
+  - desc: 'Using $index in an expression for the aggregate function'
+    expression: (1|2|3|0).aggregate($total + $index, 0)
+    result:
+      - 6
+  - desc: 'Using the result of the aggregate function'
+    expression: 10 + (1|2|3).aggregate($total + $this*$index, 4)
+    result:
+      - 22

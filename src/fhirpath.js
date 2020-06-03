@@ -36,6 +36,7 @@ const constants = require('./constants');
 let engine    = {}; // the object with all FHIRPath functions and operations
 let existence = require("./existence");
 let filtering = require("./filtering");
+let aggregate = require("./aggregate");
 let combining = require("./combining");
 let misc      = require("./misc");
 let equality  = require("./equality");
@@ -72,6 +73,7 @@ engine.invocationTable = {
   count:        {fn: existence.countFn},
   where:        {fn: filtering.whereMacro, arity: {1: ["Expr"]}},
   select:       {fn: filtering.selectMacro, arity: {1: ["Expr"]}},
+  aggregate:    {fn: aggregate.aggregateMacro, arity: {1: ["Expr"], 2: ["Expr", "Integer"]}},
   single:       {fn: filtering.singleFn},
   first:        {fn: filtering.firstFn},
   last:         {fn: filtering.lastFn},
@@ -506,6 +508,14 @@ engine.ThisInvocation = function(ctx) {
   return util.arraify(ctx.currentData);
 };
 
+engine.TotalInvocation = function(ctx) {
+  return util.arraify(ctx.$total);
+};
+
+engine.IndexInvocation = function(ctx) {
+  return util.arraify(ctx.$index);
+};
+
 engine.OpExpression = function(ctx, parentData, node) {
   var op = node.terminalNodeText[0];
   return infixInvoke(ctx, op, parentData, node.children);
@@ -551,6 +561,8 @@ engine.evalTable = { // not every evaluator is listed if they are defined on eng
   StringLiteral: engine.StringLiteral,
   TermExpression: engine.TermExpression,
   ThisInvocation: engine.ThisInvocation,
+  TotalInvocation: engine.TotalInvocation,
+  IndexInvocation: engine.IndexInvocation,
   UnionExpression: engine.UnionExpression,
   OrExpression: engine.OpExpression,
   ImpliesExpression: engine.OpExpression,

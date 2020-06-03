@@ -138,6 +138,7 @@ Completed sections:
 - 6.5 (Boolean logic)
 - 6.6 (Math)
 - 6.8 (Operator Precedence) - handled by ANTLR parser
+- 7   (Aggregates)
 - 8   (Lexical Elements) - handled by ANTLR parser
 - 9   (Environment Variables)
 

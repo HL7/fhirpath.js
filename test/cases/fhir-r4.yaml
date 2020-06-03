@@ -1127,7 +1127,6 @@ tests:
           $total, $this, $total))) = 9
         result:
           - true
-    disable: true
   - 'group: testIndexer':
       - desc: '** test'
         inputfile: patient-example.json
