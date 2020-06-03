@@ -17,6 +17,12 @@ engine.indexOf = function(coll, substr){
 
 engine.substring = function(coll, start, length){
   var str = ensureStringSingleton(coll);
+  if (util.isEmpty(start) || start < 0 || start >= str.length) {
+    return  [];
+  }
+  if (length === undefined || util.isEmpty(length)) {
+    return str.substring(start);
+  }
   return str.substring(start, start + length);
 };
 

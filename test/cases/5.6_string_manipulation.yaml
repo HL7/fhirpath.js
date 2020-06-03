@@ -25,16 +25,22 @@ tests:
 
   - desc: '** substring without length'
     expression: Functions.str.attr.substring(5)
-    disable: true
     result: ['string']
 
   - desc: '** substring with outside index'
     expression: Functions.str.attr.substring(55)
-    disable: true
+    result: []
+
+  - desc: '** substring with empty index'
+    expression: Functions.str.attr.substring(EmptyStart)
     result: []
 
   - desc: '** substring with outside length'
     expression: Functions.str.attr.substring(5, 55)
+    result: ['string']
+
+  - desc: '** substring with empty length'
+    expression: Functions.str.attr.substring(5, EmptyLength)
     result: ['string']
 
 

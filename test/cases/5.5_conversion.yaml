@@ -71,7 +71,6 @@ tests:
     - desc: inequality
       expression: "datetime.toDateTime() = @2010-02-06T19:17-05:00"
       result: [false]
-    focus: true
 
   - 'group: toTime':
     - desc: equality
@@ -85,7 +84,6 @@ tests:
     - desc: inequality operator
       expression: "time.toTime() != @T18:15-05:00"
       result: [true]
-    focus: true
 
 
   - desc: '5.5.4. toString() : string'
