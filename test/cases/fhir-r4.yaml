@@ -107,11 +107,10 @@ tests:
   - 'group: Dollar':
       - desc: '** testDollarThis1'
         inputfile: patient-example.json
-        disable: true
         expression: Patient.name.given.where(substring($this.length()-3) = 'out')
+        result: []
       - desc: '** testDollarThis2'
         inputfile: patient-example.json
-        disable: true
         expression: Patient.name.given.where(substring($this.length()-3) = 'ter')
         result:
           - Peter
@@ -1023,11 +1022,10 @@ tests:
           - ''
       - desc: '** test'
         inputfile: questionnaire-example.json
-        disable: true
         expression: 'Questionnaire.descendants().linkId.select(substring(0,1)).distinct()'
         result:
-          - ''
-          - ''
+          - '1'
+          - '2'
   - 'group: testCount':
       - desc: '** test'
         inputfile: patient-example.json
@@ -1363,7 +1361,6 @@ tests:
   - 'group: testSubstring':
       - desc: '** test'
         inputfile: patient-example.json
-        disable: true
         expression: '''12345''.substring(2) = ''345'''
         result:
           - true
@@ -1374,19 +1371,16 @@ tests:
           - true
       - desc: '** test'
         inputfile: patient-example.json
-        disable: true
         expression: '''12345''.substring(2,5) = ''345'''
         result:
           - true
       - desc: '** test'
         inputfile: patient-example.json
-        disable: true
         expression: '''12345''.substring(25).empty()'
         result:
           - true
       - desc: '** test'
         inputfile: patient-example.json
-        disable: true
         expression: '''12345''.substring(-1).empty()'
         result:
           - true
