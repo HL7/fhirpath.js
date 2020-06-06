@@ -1,14 +1,13 @@
 # FHIR-r4 test converter
 
-CLI-tool for converting fhirpath [XML test cases](https://github.com/hl7-fhir/fhir-svn/blob/master/tests/resources/tests-fhir-r4.xml)
-into fhirpath.js yaml test cases format.
+CLI-tool for converting fhirpath [XML test cases](https://github.com/HL7/FHIRPath/tree/master/tests/r4/)
+into fhirpath.js yaml test cases format with json input files.
 
 ### Installing:
 ```npm ci```
 
-
-### Convert test file:
-```converter/bin/index.js converter/dataset/fhir-r4.xml(path to xml file)  converter/dataset/tests-r4.yaml(path to save result data)```
+### Download and convert test file/input resources:
+```converter/bin/index.js```
 
 ### Converter test in whole test scope:
 ```npm run test```

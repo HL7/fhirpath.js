@@ -2,16 +2,16 @@
 <tests>
   <!-- Some tests thrown in by Brian -->
   <group name="Patient tests">
-    <test name="extract birthDate" inputfile="patient-example.xml" predicate="false">
+    <test name="extract birthDate" inputfile="resource-example.xml" predicate="false">
       <expression>birthDate</expression>
       <output type="date">1974-12-25</output>
     </test>
     <test
-      name="patient has a birthDate" inputfile="patient-example.xml" predicate="true">
+      name="patient has a birthDate" inputfile="resource-example.xml" predicate="true">
       <expression>birthDate</expression>
       <output type="boolean">true</output>
     </test>
-    <test name="patient telecom types" inputfile="patient-example.xml">
+    <test name="patient telecom types" inputfile="resource-example.xml">
       <expression>telecom.use</expression>
       <output type="code">home</output>
       <output type="code">work</output>
@@ -23,7 +23,7 @@
   <!-- Tests ported from the Java Unit Tests -->
   <group name="Basics">
     <!-- test(patient(), "name.given", 3, "string"); -->
-    <test name="testSimple" inputfile="patient-example.xml">
+    <test name="testSimple" inputfile="resource-example.xml">
       <expression>name.given</expression>
       <output type="string">Peter</output>
       <output type="string">James</output>

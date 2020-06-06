@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.2.2] - 2020-06-05
+### Fixed
+- Updated FHIRPath test cases
+
 ## [2.2.1] - 2020-06-03
 ### Fixed
 - Issue with substring function without a second parameter

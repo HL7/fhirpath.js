@@ -1,17 +1,18 @@
 tests:
   - 'group: Patient tests':
       - desc: '** extract birthDate'
-        inputfile: patient-example.json
+        inputfile: resource-example.json
         expression: birthDate
         result:
           - '1974-12-25'
       - desc: '** patient has a birthDate'
-        inputfile: patient-example.json
+        inputfile: resource-example.json
         expression: birthDate
         result:
           - true
+        disable: true
       - desc: '** patient telecom types'
-        inputfile: patient-example.json
+        inputfile: resource-example.json
         expression: telecom.use
         result:
           - home
@@ -20,7 +21,7 @@ tests:
           - old
   - 'group: Basics':
       - desc: '** testSimple'
-        inputfile: patient-example.json
+        inputfile: resource-example.json
         expression: name.given
         result:
           - Peter
