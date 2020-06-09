@@ -27,15 +27,11 @@ function downloadFile(url, dest) {
     https.get(url, function(res) {
       const { statusCode } = res;
 
-      let error;
       if (statusCode !== 200) {
-        error = new Error(`Failed to download ${url}.\n` +
-          `Status Code: ${statusCode}`);
-      }
-      if (error) {
         // Consume response data to free up memory
         res.resume();
-        reject(error.message);
+        reject(`Failed to download ${url}.\n` +
+          `Status Code: ${statusCode}`);
       } else {
         res.pipe(file);
         file.on('finish', function () {

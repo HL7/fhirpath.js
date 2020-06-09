@@ -4,6 +4,7 @@ const _ = require('lodash');
 const xml2js = require('xml2js');
 const yaml = require('js-yaml');
 
+const fhir = new (require('fhir').Fhir);
 const fhirpath = require('../src/fhirpath');
 const { getFHIRModel, calcExpression } = require("../test/test_utils");
 const FP_DateTime = require('../src/types').FP_DateTime;
@@ -42,34 +43,6 @@ function validateTest(test) {
   }
 }
 
-module.exports = {
-  resourceXmlStringToJsonString: async (xmlData) => {
-    const parser = new xml2js.Parser({explicitCharkey: false});
-    const parseString = util.promisify(parser.parseString);
-
-    const parsed = await parseString(xmlData);
-    const resourceType = Object.keys(parsed)[0];
-    const transformed = { resourceType, ...transformResource(parsed[resourceType])};
-    return JSON.stringify(transformed, null, 2);
-  },
-  testsXmlStringToYamlString: async (xmlData) => {
-    const parser = new xml2js.Parser({ explicitCharkey: true });
-    const parseString = util.promisify(parser.parseString);
-
-    const parsed = await parseString(xmlData);
-    const transformed = transform(parsed);
-    transformed.tests.forEach(group => {
-      const groupKey = Object.keys(group)[0];
-      const groupTests = group[groupKey];
-      if (groupTests.some(test => test.disable) && groupTests.every(test => test.disable || test.error)) {
-        group.disable = true;
-        groupTests.forEach(test => delete test.disable);
-      }
-    });
-    return yaml.dump(transformed);
-  }
-};
-
 const mapper = {
   boolean: (v) => v === 'true',
   integer: (v) => Number(v),
@@ -81,6 +54,11 @@ const mapper = {
 
 const castValue = (value, type) => mapper[type](value);
 
+/**
+ * Converts Object representing test cases from XML to Object that can be serialized to YAML
+ * @param {Object} node - result of xml2js.parseString
+ * @return {Object}
+ */
 const transform = (node) => {
 
   return Object.keys(node).reduce((acc, key) => {
@@ -127,75 +105,34 @@ const transform = (node) => {
   }, []);
 };
 
-/**
- * Checks if current path ends with one of string or match regexp.
- * @param {Array<string>} currentPath - array of property names defines the path in the resource object
- * @param {Array<string|RegExp>} paths - array of strings or regexp to check
- * @return {boolean}
- */
-function checkPaths(currentPath, paths) {
-  return paths.some(path => path instanceof RegExp ? path.test(currentPath.join('.')) : currentPath.join('.').endsWith(path));
+module.exports = {
+  /**
+   * Serializes an XML resource to JSON
+   * @param {string} xmlData
+   * @returns {string}
+   */
+  resourceXmlStringToJsonString: async (xmlData) => {
+    return fhir.xmlToJson(xmlData);
+  },
+  /**
+   * Serializes an XML test cases to YAML
+   * @param {string} xmlData
+   * @returns {string}
+   */
+  testsXmlStringToYamlString: async (xmlData) => {
+    const parser = new xml2js.Parser({ explicitCharkey: true });
+    const parseString = util.promisify(parser.parseString);
 
-}
-
-/**
- * Checks if we should convert string value to number for current path in the resource object
- * @param {Array<string>} currentPath - array of property names defines the path in the resource object
- * @return {boolean}
- */
-function isPathForNumber(currentPath) {
-  return checkPaths( currentPath, [/(?<!identifier\.)value\.\$/, 'rank.$', 'total.$', 'offset.$']);
-}
-
-/**
- * Checks if we should use Array value for current path in the resource object
- * @param {Array<string>} currentPath - array of property names defines the path in the resource object
- * @return {boolean}
- */
-function isPathForArray(currentPath) {
-  return checkPaths(currentPath, ['coding', 'category', 'given', /(?<!contact\.)address$/, 'contact', 'relationship',
-    'line', 'telecom', 'subjectType', 'item', 'enableWhen', 'profile', 'include', 'filter', 'extension',
-    'parameter', /^identifier$/, 'item.code']);
-}
-
-/**
- * Converts Object representing resource XML node to resource JSON object
- * @param {Object} node - result of xml2js.parseString
- * @param {Array<string>} [path] - array of property names defines the path in the resource object, for recursion
- */
-function transformResource(node, path) {
-  path = path || [];
-  return Object.keys(node).reduce((acc, key) => {
-    const currentPath = path.concat(key);
-    const v = node[key].value;
-    const predefined = {
-      'true': {val: true},
-      'false': {val: false}
-    };
-
-    switch(key) {
-      case '$':
-        if (predefined[v]) {
-          return predefined[v].val;
-        }
-        if (v) {
-          return (isPathForNumber(currentPath) && !isNaN(v)) ? +v : v;
-        }
-        break;
-      case 'div':
-        break;
-      default:
-        if (Array.isArray(node[key])) {
-          const arr = node[key].map(item => transformResource(item, currentPath));
-          if (arr.length === 1 && !isPathForArray(currentPath)) {
-            acc[key] = arr[0];
-          } else {
-            acc[key] = arr;
-          }
-        } else {
-          acc[key] = transformResource(node[key], currentPath);
-        }
-    }
-    return acc;
-  }, {});
-}
+    const parsed = await parseString(xmlData);
+    const transformed = transform(parsed);
+    transformed.tests.forEach(group => {
+      const groupKey = Object.keys(group)[0];
+      const groupTests = group[groupKey];
+      if (groupTests.some(test => test.disable) && groupTests.every(test => test.disable || test.error)) {
+        group.disable = true;
+        groupTests.forEach(test => delete test.disable);
+      }
+    });
+    return yaml.dump(transformed);
+  }
+};
