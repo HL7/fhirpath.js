@@ -2,12 +2,8 @@ const fhirpath = require('../src/fhirpath');
 const yaml = require('js-yaml');
 const fs   = require('fs');
 const _    = require('lodash');
+const { getFHIRModel, calcExpression } = require("./test_utils");
 const FP_DateTime = require('../src/types').FP_DateTime;
-const models = {
-  'r4': require('../fhir-context/r4'),
-  'stu3': require('../fhir-context/stu3')
-}
-const util = require('../src/utilities');
 
 // Get document, or throw exception on error
 // const testcase = yaml.safeLoad(fs.readFileSync( __dirname + '/cases/simple.yaml', 'utf8'));
@@ -23,49 +19,8 @@ const endWith = (s, postfix) => {
   return s.length >= postfix.length && s.substr(-postfix.length) === postfix;
 };
 
-const resources = {};
-
 const files = items.filter(fileName => endWith(fileName, '.yaml'))
   .map(fileName =>({ fileName, data: yaml.safeLoad(fs.readFileSync(__dirname + '/cases/' + fileName, 'utf8')) }));
-
-/**
- *  Returns the FHIR model for the given fhir version.
- * @param fhirVersion If not undefined, must be one of the supported release
- *  versions, or an exception will be thrown.  If it is undefined, undefined will
- *  be returned.
- */
-function getFHIRModel(fhirVersion) {
-  let rtn;
-  if (fhirVersion) {
-    rtn = models[fhirVersion];
-    if (!rtn)
-      throw new Error('No FHIR model available for version '+fhirVersion);
-  }
-  return rtn;
-}
-
-const calcExpression = (expression, test, testResource) => {
-  if (_.has(test, 'inputfile')) {
-    if(_.has(resources, test.inputfile)) {
-      testResource = resources[test.inputfile];
-    } else {
-      const filePath = __dirname + /resources/ + test.inputfile;
-      if (fs.existsSync(filePath)) {
-        const subjFromFile = JSON.parse(fs.readFileSync(filePath));
-        resources[test.inputfile] = subjFromFile;
-        testResource = subjFromFile;
-      } else {
-        throw new Error("Resource file doesn't exist");
-      }
-    }
-  }
-  let variables = {resource: testResource};
-  if (test.context)
-    variables.context = fhirpath.evaluate(testResource, test.context)[0];
-  if (test.variables)
-    Object.assign(variables, test.variables);
-  return fhirpath.evaluate(testResource, expression, variables, getFHIRModel(test.model));
-};
 
 const generateTest = (test, testResource) => {
   let expressions = Array.isArray(test.expression) ? test.expression : [test.expression];
