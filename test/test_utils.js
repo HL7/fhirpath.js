@@ -24,7 +24,7 @@ function getFHIRModel(fhirVersion) {
   return rtn;
 }
 
-function defineResource(filename, filePath) {
+function loadResource(filename, filePath) {
   if (fs.existsSync(filePath)) {
     resources[filename] = JSON.parse(fs.readFileSync(filePath));
   } else {
@@ -35,7 +35,7 @@ function defineResource(filename, filePath) {
 const calcExpression = (expression, test, testResource) => {
   if (_.has(test, 'inputfile')) {
     if(!_.has(resources, test.inputfile)) {
-      defineResource(test.inputfile, __dirname + '/resources/' + test.inputfile)
+      loadResource(test.inputfile, __dirname + '/resources/' + test.inputfile)
     }
     testResource = resources[test.inputfile];
   }
@@ -48,7 +48,7 @@ const calcExpression = (expression, test, testResource) => {
 };
 
 module.exports = {
-  defineResource,
+  loadResource,
   getFHIRModel,
   calcExpression
 }

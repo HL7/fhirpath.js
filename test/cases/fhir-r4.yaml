@@ -32,7 +32,7 @@ tests:
       - desc: '** testSimpleNone'
         inputfile: patient-example.json
         expression: name.suffix
-        disable: true
+        result: []
       - desc: '** testEscapedIdentifier'
         inputfile: patient-example.json
         expression: name.`given`
@@ -112,12 +112,13 @@ tests:
       - desc: '** testPolymorphismAsBFunction'
         inputfile: observation-example.json
         expression: Observation.value.as(Period).start
+        result: []
     disable: true
   - 'group: testDollar':
       - desc: '** testDollarThis1'
         inputfile: patient-example.json
         expression: Patient.name.given.where(substring($this.length()-3) = 'out')
-        disable: true
+        result: []
       - desc: '** testDollarThis2'
         inputfile: patient-example.json
         expression: Patient.name.given.where(substring($this.length()-3) = 'ter')
@@ -134,7 +135,7 @@ tests:
       - desc: '** testDollarOrderAllowedA'
         inputfile: patient-example.json
         expression: Patient.name.skip(3).given
-        disable: true
+        result: []
       - desc: '** testDollarOrderNotAllowed'
         inputfile: patient-example.json
         expression: Patient.children().skip(1)
@@ -452,7 +453,7 @@ tests:
       - desc: '** testDateNotEqual'
         inputfile: patient-example.json
         expression: 'Patient.birthDate != @1974-12-25T12:34:00'
-        disable: true
+        result: []
       - desc: '** testDateNotEqualTimezoneOffsetBefore'
         inputfile: patient-example.json
         expression: 'Patient.birthDate != @1974-12-25T12:34:00-10:00'
@@ -524,7 +525,7 @@ tests:
       - desc: '** testCollectionNotEqualEmpty'
         inputfile: patient-example.json
         expression: 'Patient.name.given != {}'
-        disable: true
+        result: []
       - desc: '** testExpressions'
         inputfile: patient-example.json
         expression: Patient.name.select(given | family).distinct()
@@ -746,6 +747,7 @@ tests:
       - desc: '** testDecimalLiteralToInteger'
         inputfile: patient-example.json
         expression: '''1.1''.toInteger() = {}'
+        result: []
         disable: true
       - desc: '** testDecimalLiteralToIntegerIsEmpty'
         inputfile: patient-example.json
@@ -1038,6 +1040,7 @@ tests:
       - desc: '** testIntegerLiteralToBooleanEmpty'
         inputfile: patient-example.json
         expression: 2.toBoolean()
+        result: []
         disable: true
       - desc: '** testIntegerLiteralToBooleanFalse'
         inputfile: patient-example.json
@@ -1843,11 +1846,11 @@ tests:
       - desc: '** testEquality2'
         inputfile: patient-example.json
         expression: '{} = {}'
-        disable: true
+        result: []
       - desc: '** testEquality3'
         inputfile: patient-example.json
         expression: 'true = {}'
-        disable: true
+        result: []
       - desc: '** testEquality4'
         inputfile: patient-example.json
         expression: (1) = (1)
@@ -1866,6 +1869,7 @@ tests:
       - desc: '** testEquality7'
         inputfile: patient-example.json
         expression: '(1 | 1) = (1 | 2 | {})'
+        result: []
         disable: true
       - desc: '** testEquality8'
         inputfile: patient-example.json
@@ -1925,7 +1929,7 @@ tests:
       - desc: '** testEquality19'
         inputfile: patient-example.json
         expression: '@2012-04-15 = @2012-04-15T10:00:00'
-        disable: true
+        result: []
       - desc: '** testEquality20'
         inputfile: patient-example.json
         expression: '@2012-04-15T15:00:00 = @2012-04-15T10:00:00'
@@ -1946,6 +1950,7 @@ tests:
       - desc: '** testEquality23'
         inputfile: patient-example.json
         expression: '@2012-04-15T15:00:00Z = @2012-04-15T10:00:00'
+        result: []
         disable: true
       - desc: '** testEquality24'
         inputfile: patient-example.json
@@ -1982,7 +1987,7 @@ tests:
       - desc: '** testNEquality2'
         inputfile: patient-example.json
         expression: '{} != {}'
-        disable: true
+        result: []
       - desc: '** testNEquality3'
         inputfile: patient-example.json
         expression: 1 != 2
@@ -2036,7 +2041,7 @@ tests:
       - desc: '** testNEquality13'
         inputfile: patient-example.json
         expression: '@2012-04-15 != @2012-04-15T10:00:00'
-        disable: true
+        result: []
       - desc: '** testNEquality14'
         inputfile: patient-example.json
         expression: '@2012-04-15T15:00:00 != @2012-04-15T10:00:00'
@@ -2057,6 +2062,7 @@ tests:
       - desc: '** testNEquality17'
         inputfile: patient-example.json
         expression: '@2012-04-15T15:00:00Z != @2012-04-15T10:00:00'
+        result: []
         disable: true
       - desc: '** testNEquality18'
         inputfile: patient-example.json
@@ -2448,14 +2454,17 @@ tests:
       - desc: '** testLessThan23'
         inputfile: patient-example.json
         expression: '@2018-03 < @2018-03-01'
+        result: []
         disable: true
       - desc: '** testLessThan24'
         inputfile: patient-example.json
         expression: '@2018-03-01T10 < @2018-03-01T10:30'
+        result: []
         disable: true
       - desc: '** testLessThan25'
         inputfile: patient-example.json
         expression: '@T10 < @T10:30'
+        result: []
         disable: true
       - desc: '** testLessThan26'
         inputfile: patient-example.json
@@ -2582,14 +2591,17 @@ tests:
       - desc: '** testLessOrEqual23'
         inputfile: patient-example.json
         expression: '@2018-03 <= @2018-03-01'
+        result: []
         disable: true
       - desc: '** testLessOrEqual24'
         inputfile: patient-example.json
         expression: '@2018-03-01T10 <= @2018-03-01T10:30'
+        result: []
         disable: true
       - desc: '** testLessOrEqual25'
         inputfile: patient-example.json
         expression: '@T10 <= @T10:30'
+        result: []
         disable: true
       - desc: '** testLessOrEqual26'
         inputfile: patient-example.json
@@ -2716,14 +2728,17 @@ tests:
       - desc: '** testGreatorOrEqual23'
         inputfile: patient-example.json
         expression: '@2018-03 >= @2018-03-01'
+        result: []
         disable: true
       - desc: '** testGreatorOrEqual24'
         inputfile: patient-example.json
         expression: '@2018-03-01T10 >= @2018-03-01T10:30'
+        result: []
         disable: true
       - desc: '** testGreatorOrEqual25'
         inputfile: patient-example.json
         expression: '@T10 >= @T10:30'
+        result: []
         disable: true
       - desc: '** testGreatorOrEqual26'
         inputfile: patient-example.json
@@ -2850,14 +2865,17 @@ tests:
       - desc: '** testGreaterThan23'
         inputfile: patient-example.json
         expression: '@2018-03 > @2018-03-01'
+        result: []
         disable: true
       - desc: '** testGreaterThan24'
         inputfile: patient-example.json
         expression: '@2018-03-01T10 > @2018-03-01T10:30'
+        result: []
         disable: true
       - desc: '** testGreaterThan25'
         inputfile: patient-example.json
         expression: '@T10 > @T10:30'
+        result: []
         disable: true
       - desc: '** testGreaterThan26'
         inputfile: patient-example.json
@@ -3289,6 +3307,7 @@ tests:
       - desc: '** testDivide6'
         inputfile: patient-example.json
         expression: 1 / 0
+        result: []
         disable: true
   - 'group: testDiv':
       - desc: '** testDiv1'
@@ -3314,6 +3333,7 @@ tests:
       - desc: '** testDiv5'
         inputfile: patient-example.json
         expression: 5 div 0
+        result: []
         disable: true
   - 'group: testMod':
       - desc: '** testMod1'
@@ -3339,6 +3359,7 @@ tests:
       - desc: '** testMod5'
         inputfile: patient-example.json
         expression: 5 mod 0
+        result: []
         disable: true
   - 'group: testRound':
       - desc: '** testRound1'
@@ -3361,7 +3382,7 @@ tests:
       - desc: '** testSqrt2'
         inputfile: patient-example.json
         expression: (-1).sqrt()
-        disable: true
+        result: []
   - 'group: testAbs':
       - desc: '** testAbs1'
         inputfile: patient-example.json
@@ -3458,7 +3479,7 @@ tests:
       - desc: '** testPower3'
         inputfile: patient-example.json
         expression: (-1).power(0.5)
-        disable: true
+        result: []
   - 'group: testTruncate':
       - desc: '** testTruncate1'
         inputfile: patient-example.json

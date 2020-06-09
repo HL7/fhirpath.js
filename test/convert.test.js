@@ -1,6 +1,6 @@
 const fs = require('fs');
 const convert = require('../converter/converter');
-const { defineResource } = require("./test_utils");
+const { loadResource } = require("./test_utils");
 
 const testXmlString = fs.readFileSync(__dirname + '/fixtures/base-data.xml').toString();
 const testYamlString = fs.readFileSync(__dirname + '/fixtures/base-data.yaml').toString();
@@ -10,7 +10,7 @@ const resourceYamlString = fs.readFileSync(__dirname + '/fixtures/resource-examp
 
 describe('Converter base test', () => {
   it('Convert a simple tests from XML to YAML', async () => {
-    defineResource('resource-example.json', __dirname + '/fixtures/resource-example.json');
+    loadResource('resource-example.json', __dirname + '/fixtures/resource-example.json');
     const data = await convert.testsXmlStringToYamlString(testXmlString);
     expect(data).toEqual(testYamlString);
   });

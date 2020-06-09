@@ -74,6 +74,9 @@ const transform = (node) => {
       case 'test':
         return [...acc, ...node[key].map(item => {
           let test = transform(item);
+          if (!test.hasOwnProperty('result') && !test.error) {
+            test.result = [];
+          }
           if (!validateTest(test)) {
             test.disable = true;
           }
@@ -112,7 +115,7 @@ module.exports = {
    * @returns {string}
    */
   resourceXmlStringToJsonString: async (xmlData) => {
-    return fhir.xmlToJson(xmlData);
+    return fhir.xmlToJson(xmlData).replace(/\t/g, '  ');
   },
   /**
    * Serializes an XML test cases to YAML
