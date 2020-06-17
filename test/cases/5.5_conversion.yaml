@@ -30,6 +30,14 @@ tests:
     expression: Functions.iif(coll1[0].coll2[0].attr = 1, coll1[0].coll2[0].attr, coll1[0].coll2[1].attr)
     result: [1]
 
+  - desc: '** iif 4'
+    expression: Functions.iif(true, 'a')
+    result: ['a']
+
+  - desc: '** iif 5'
+    expression: Functions.iif(false, 'a')
+    result: []
+
   - desc: '5.5.2. toInteger() : integer'
     # If the input collection contains a single item, this functio# n will return a single integer if:
     # the item in the input collection is an integer
@@ -152,12 +160,12 @@ tests:
       - true
   - desc: '** UCUM units'
     inputfile: patient-example.json
-    expression: '''1 cm''.toQuantity(''\''mm\'''').value = 10'
+    expression: '''1 \''cm\''''.toQuantity(''\''mm\'''').value = 10'
     result:
       - true
   - desc: '** Invalid conversion'
     inputfile: patient-example.json
-    expression: '''1 cm''.toQuantity(''\''g\'''')'
+    expression: '''1 \''cm\''''.toQuantity(''\''g\'''')'
     result: []
   - desc: '** Implicit to quantity + toQuantity'
     inputfile: observation-example.json

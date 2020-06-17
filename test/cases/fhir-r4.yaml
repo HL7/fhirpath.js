@@ -162,19 +162,16 @@ tests:
         expression: 1.convertsToInteger()
         result:
           - true
-        disable: true
       - desc: '** testLiteralInteger0'
         inputfile: patient-example.json
         expression: 0.convertsToInteger()
         result:
           - true
-        disable: true
       - desc: '** testLiteralIntegerNegative1'
         inputfile: patient-example.json
         expression: (-1).convertsToInteger()
         result:
           - true
-        disable: true
       - desc: '** testLiteralIntegerNegative1Invalid'
         inputfile: patient-example.json
         expression: '-1.convertsToInteger()'
@@ -184,55 +181,46 @@ tests:
         expression: 2147483647.convertsToInteger()
         result:
           - true
-        disable: true
       - desc: '** testLiteralString'
         inputfile: patient-example.json
         expression: '''test''.convertsToString()'
         result:
           - true
-        disable: true
       - desc: '** testLiteralStringEscapes'
         inputfile: patient-example.json
         expression: '''\\\/\f\r\n\t\"\`\''\u002a''.convertsToString()'
         result:
           - true
-        disable: true
       - desc: '** testLiteralBooleanTrue'
         inputfile: patient-example.json
         expression: true.convertsToBoolean()
         result:
           - true
-        disable: true
       - desc: '** testLiteralBooleanFalse'
         inputfile: patient-example.json
         expression: false.convertsToBoolean()
         result:
           - true
-        disable: true
       - desc: '** testLiteralDecimal10'
         inputfile: patient-example.json
         expression: 1.0.convertsToDecimal()
         result:
           - true
-        disable: true
       - desc: '** testLiteralDecimal01'
         inputfile: patient-example.json
         expression: 0.1.convertsToDecimal()
         result:
           - true
-        disable: true
       - desc: '** testLiteralDecimal00'
         inputfile: patient-example.json
         expression: 0.0.convertsToDecimal()
         result:
           - true
-        disable: true
       - desc: '** testLiteralDecimalNegative01'
         inputfile: patient-example.json
         expression: (-0.1).convertsToDecimal()
         result:
           - true
-        disable: true
       - desc: '** testLiteralDecimalNegative01Invalid'
         inputfile: patient-example.json
         expression: '-0.1.convertsToDecimal()'
@@ -242,13 +230,11 @@ tests:
         expression: 1234567890987654321.0.convertsToDecimal()
         result:
           - true
-        disable: true
       - desc: '** testLiteralDecimalStep'
         inputfile: patient-example.json
         expression: 0.00000001.convertsToDecimal()
         result:
           - true
-        disable: true
       - desc: '** testLiteralDateYear'
         inputfile: patient-example.json
         expression: '@2015.is(Date)'
@@ -358,19 +344,16 @@ tests:
         expression: 10.1 'mg'.convertsToQuantity()
         result:
           - true
-        disable: true
       - desc: '** testLiteralQuantityInteger'
         inputfile: patient-example.json
         expression: 10 'mg'.convertsToQuantity()
         result:
           - true
-        disable: true
       - desc: '** testLiteralQuantityDay'
         inputfile: patient-example.json
         expression: 4 days.convertsToQuantity()
         result:
           - true
-        disable: true
       - desc: '** testLiteralIntegerNotEqual'
         inputfile: patient-example.json
         expression: '-3 != 3'
@@ -601,85 +584,71 @@ tests:
         expression: '''2015''.convertsToDateTime()'
         result:
           - true
-        disable: true
       - desc: '** testStringMonthConvertsToDateTime'
         inputfile: patient-example.json
         expression: '''2015-02''.convertsToDateTime()'
         result:
           - true
-        disable: true
       - desc: '** testStringDayConvertsToDateTime'
         inputfile: patient-example.json
         expression: '''2015-02-04''.convertsToDateTime()'
         result:
           - true
-        disable: true
       - desc: '** testStringHourConvertsToDateTime'
         inputfile: patient-example.json
         expression: '''2015-02-04T14''.convertsToDateTime()'
         result:
           - true
-        disable: true
       - desc: '** testStringMinuteConvertsToDateTime'
         inputfile: patient-example.json
         expression: '''2015-02-04T14:34''.convertsToDateTime()'
         result:
           - true
-        disable: true
       - desc: '** testStringSecondConvertsToDateTime'
         inputfile: patient-example.json
         expression: '''2015-02-04T14:34:28''.convertsToDateTime()'
         result:
           - true
-        disable: true
       - desc: '** testStringMillisecondConvertsToDateTime'
         inputfile: patient-example.json
         expression: '''2015-02-04T14:34:28.123''.convertsToDateTime()'
         result:
           - true
-        disable: true
       - desc: '** testStringUTCConvertsToDateTime'
         inputfile: patient-example.json
         expression: '''2015-02-04T14:34:28Z''.convertsToDateTime()'
         result:
           - true
-        disable: true
       - desc: '** testStringTZConvertsToDateTime'
         inputfile: patient-example.json
         expression: '''2015-02-04T14:34:28+10:00''.convertsToDateTime()'
         result:
           - true
-        disable: true
       - desc: '** testStringHourConvertsToTime'
         inputfile: patient-example.json
         expression: '''14''.convertsToTime()'
         result:
           - true
-        disable: true
       - desc: '** testStringMinuteConvertsToTime'
         inputfile: patient-example.json
         expression: '''14:34''.convertsToTime()'
         result:
           - true
-        disable: true
       - desc: '** testStringSecondConvertsToTime'
         inputfile: patient-example.json
         expression: '''14:34:28''.convertsToTime()'
         result:
           - true
-        disable: true
       - desc: '** testStringMillisecondConvertsToTime'
         inputfile: patient-example.json
         expression: '''14:34:28.123''.convertsToTime()'
         result:
           - true
-        disable: true
       - desc: '** testIntegerLiteralConvertsToInteger'
         inputfile: patient-example.json
         expression: 1.convertsToInteger()
         result:
           - true
-        disable: true
       - desc: '** testIntegerLiteralIsInteger'
         inputfile: patient-example.json
         expression: 1.is(Integer)
@@ -697,19 +666,16 @@ tests:
         expression: '''1''.convertsToInteger()'
         result:
           - true
-        disable: true
       - desc: '** testStringLiteralConvertsToIntegerFalse'
         inputfile: patient-example.json
         expression: '''a''.convertsToInteger().not()'
         result:
           - true
-        disable: true
       - desc: '** testStringDecimalConvertsToIntegerFalse'
         inputfile: patient-example.json
         expression: '''1.0''.convertsToInteger().not()'
         result:
           - true
-        disable: true
       - desc: '** testStringLiteralIsNotInteger'
         inputfile: patient-example.json
         expression: '''1''.is(Integer).not()'
@@ -721,7 +687,6 @@ tests:
         expression: true.convertsToInteger()
         result:
           - true
-        disable: true
       - desc: '** testBooleanLiteralIsNotInteger'
         inputfile: patient-example.json
         expression: true.is(Integer).not()
@@ -748,13 +713,11 @@ tests:
         inputfile: patient-example.json
         expression: '''1.1''.toInteger() = {}'
         result: []
-        disable: true
       - desc: '** testDecimalLiteralToIntegerIsEmpty'
         inputfile: patient-example.json
         expression: '''1.1''.toInteger().empty()'
         result:
           - true
-        disable: true
       - desc: '** testBooleanLiteralToInteger'
         inputfile: patient-example.json
         expression: true.toInteger() = 1
@@ -765,7 +728,6 @@ tests:
         expression: 1.convertsToDecimal()
         result:
           - true
-        disable: true
       - desc: '** testIntegerLiteralIsNotDecimal'
         inputfile: patient-example.json
         expression: 1.is(Decimal).not()
@@ -777,7 +739,6 @@ tests:
         expression: 1.0.convertsToDecimal()
         result:
           - true
-        disable: true
       - desc: '** testDecimalLiteralIsDecimal'
         inputfile: patient-example.json
         expression: 1.0.is(Decimal)
@@ -789,7 +750,6 @@ tests:
         expression: '''1''.convertsToDecimal()'
         result:
           - true
-        disable: true
       - desc: '** testStringIntegerLiteralIsNotDecimal'
         inputfile: patient-example.json
         expression: '''1''.is(Decimal).not()'
@@ -807,7 +767,6 @@ tests:
         expression: '''1.0''.convertsToDecimal()'
         result:
           - true
-        disable: true
       - desc: '** testStringDecimalLiteralIsNotDecimal'
         inputfile: patient-example.json
         expression: '''1.0''.is(Decimal).not()'
@@ -819,7 +778,6 @@ tests:
         expression: true.convertsToDecimal()
         result:
           - true
-        disable: true
       - desc: '** testBooleanLiteralIsNotDecimal'
         inputfile: patient-example.json
         expression: true.is(Decimal).not()
@@ -856,7 +814,6 @@ tests:
         expression: 1.convertsToQuantity()
         result:
           - true
-        disable: true
       - desc: '** testIntegerLiteralIsNotQuantity'
         inputfile: patient-example.json
         expression: 1.is(Quantity).not()
@@ -868,7 +825,6 @@ tests:
         expression: 1.0.convertsToQuantity()
         result:
           - true
-        disable: true
       - desc: '** testDecimalLiteralIsNotQuantity'
         inputfile: patient-example.json
         expression: 1.0.is(System.Quantity).not()
@@ -880,7 +836,6 @@ tests:
         expression: '''1''.convertsToQuantity()'
         result:
           - true
-        disable: true
       - desc: '** testStringIntegerLiteralIsNotQuantity'
         inputfile: patient-example.json
         expression: '''1''.is(System.Quantity).not()'
@@ -892,31 +847,26 @@ tests:
         expression: '''1 day''.convertsToQuantity()'
         result:
           - true
-        disable: true
       - desc: '** testStringQuantityWeekConvertsToQuantity'
         inputfile: patient-example.json
         expression: '''1 \''wk\''''.convertsToQuantity()'
         result:
           - true
-        disable: true
       - desc: '** testStringQuantityWeekConvertsToQuantityFalse'
         inputfile: patient-example.json
         expression: '''1 wk''.convertsToQuantity().not()'
         result:
           - true
-        disable: true
       - desc: '** testStringDecimalLiteralConvertsToQuantityFalse'
         inputfile: patient-example.json
         expression: '''1.a''.convertsToQuantity().not()'
         result:
           - true
-        disable: true
       - desc: '** testStringDecimalLiteralConvertsToQuantity'
         inputfile: patient-example.json
         expression: '''1.0''.convertsToQuantity()'
         result:
           - true
-        disable: true
       - desc: '** testStringDecimalLiteralIsNotSystemQuantity'
         inputfile: patient-example.json
         expression: '''1.0''.is(System.Quantity).not()'
@@ -928,7 +878,6 @@ tests:
         expression: true.convertsToQuantity()
         result:
           - true
-        disable: true
       - desc: '** testBooleanLiteralIsNotSystemQuantity'
         inputfile: patient-example.json
         expression: true.is(System.Quantity).not()
@@ -976,96 +925,80 @@ tests:
         expression: 1.convertsToBoolean()
         result:
           - true
-        disable: true
       - desc: '** testIntegerLiteralConvertsToBooleanFalse'
         inputfile: patient-example.json
         expression: 2.convertsToBoolean()
         result:
           - false
-        disable: true
       - desc: '** testNegativeIntegerLiteralConvertsToBooleanFalse'
         inputfile: patient-example.json
         expression: (-1).convertsToBoolean()
         result:
           - false
-        disable: true
       - desc: '** testIntegerLiteralFalseConvertsToBoolean'
         inputfile: patient-example.json
         expression: 0.convertsToBoolean()
         result:
           - true
-        disable: true
       - desc: '** testDecimalLiteralConvertsToBoolean'
         inputfile: patient-example.json
         expression: 1.0.convertsToBoolean()
         result:
           - true
-        disable: true
       - desc: '** testStringTrueLiteralConvertsToBoolean'
         inputfile: patient-example.json
         expression: '''true''.convertsToBoolean()'
         result:
           - true
-        disable: true
       - desc: '** testStringFalseLiteralConvertsToBoolean'
         inputfile: patient-example.json
         expression: '''false''.convertsToBoolean()'
         result:
           - true
-        disable: true
       - desc: '** testStringFalseLiteralAlsoConvertsToBoolean'
         inputfile: patient-example.json
         expression: '''False''.convertsToBoolean()'
         result:
           - true
-        disable: true
       - desc: '** testTrueLiteralConvertsToBoolean'
         inputfile: patient-example.json
         expression: true.convertsToBoolean()
         result:
           - true
-        disable: true
       - desc: '** testFalseLiteralConvertsToBoolean'
         inputfile: patient-example.json
         expression: false.convertsToBoolean()
         result:
           - true
-        disable: true
       - desc: '** testIntegerLiteralToBoolean'
         inputfile: patient-example.json
         expression: 1.toBoolean()
         result:
           - true
-        disable: true
       - desc: '** testIntegerLiteralToBooleanEmpty'
         inputfile: patient-example.json
         expression: 2.toBoolean()
         result: []
-        disable: true
       - desc: '** testIntegerLiteralToBooleanFalse'
         inputfile: patient-example.json
         expression: 0.toBoolean()
         result:
           - false
-        disable: true
       - desc: '** testStringTrueToBoolean'
         inputfile: patient-example.json
         expression: '''true''.toBoolean()'
         result:
           - true
-        disable: true
       - desc: '** testStringFalseToBoolean'
         inputfile: patient-example.json
         expression: '''false''.toBoolean()'
         result:
           - false
-        disable: true
       - desc: '** testIntegerLiteralConvertsToString'
         inputfile: patient-example.json
         expression: 1.convertsToString()
         result:
           - true
-        disable: true
       - desc: '** testIntegerLiteralIsNotString'
         inputfile: patient-example.json
         expression: 1.is(String).not()
@@ -1077,31 +1010,26 @@ tests:
         expression: (-1).convertsToString()
         result:
           - true
-        disable: true
       - desc: '** testDecimalLiteralConvertsToString'
         inputfile: patient-example.json
         expression: 1.0.convertsToString()
         result:
           - true
-        disable: true
       - desc: '** testStringLiteralConvertsToString'
         inputfile: patient-example.json
         expression: '''true''.convertsToString()'
         result:
           - true
-        disable: true
       - desc: '** testBooleanLiteralConvertsToString'
         inputfile: patient-example.json
         expression: true.convertsToString()
         result:
           - true
-        disable: true
       - desc: '** testQuantityLiteralConvertsToString'
         inputfile: patient-example.json
         expression: 1 'wk'.convertsToString()
         result:
           - true
-        disable: true
       - desc: '** testIntegerLiteralToString'
         inputfile: patient-example.json
         expression: 1.toString()
@@ -1553,13 +1481,11 @@ tests:
         expression: '''0.0''.toInteger().empty()'
         result:
           - true
-        disable: true
       - desc: '** testToInteger5'
         inputfile: patient-example.json
         expression: '''st''.toInteger().empty()'
         result:
           - true
-        disable: true
   - 'group: testToDecimal':
       - desc: '** testToDecimal1'
         inputfile: patient-example.json

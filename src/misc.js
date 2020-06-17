@@ -13,7 +13,7 @@ engine.iifMacro = function(data, cond, ok, fail) {
   if(util.isTrue(cond(data))) {
     return ok(data);
   } else {
-    return fail(data);
+    return fail ? fail(data) : [];
   }
 };
 
@@ -38,14 +38,12 @@ engine.toInteger = function(coll){
   if(typeof v === "string") {
     if(intRegex.test(v)){
       return parseInt(v);
-    } else {
-      throw new Error("Could not convert to ineger: " + v);
     }
   }
   return [];
 };
 
-const quantityRegex = /((\+|-)?\d+(\.\d+)?)\s*(('[^']+')|([a-zA-Z]+))?/,
+const quantityRegex = /^((\+|-)?\d+(\.\d+)?)\s*(('[^']+')|([a-zA-Z]+))?$/,
   quantityRegexMap = {value:1,unit:5,time:6};
 engine.toQuantity = function (coll, toUnit) {
   let result;
@@ -61,12 +59,17 @@ engine.toQuantity = function (coll, toUnit) {
       result = new FP_Quantity(v, '\'1\'');
     } else if (v instanceof FP_Quantity) {
       result = v;
+    } else if (typeof v === 'boolean') {
+      result = new FP_Quantity(v ? 1 : 0, '\'1\'');
     } else if (typeof v === "string" && (quantityRegexRes = quantityRegex.exec(v)) ) {
       const value = quantityRegexRes[quantityRegexMap.value],
         unit = quantityRegexRes[quantityRegexMap.unit],
         time = quantityRegexRes[quantityRegexMap.time];
 
-      result = new FP_Quantity(Number(value), unit||time||'\'1\'');
+      // UCUM unit code in the input string must be surrounded with single quotes
+      if (!time || FP_Quantity.mapTimeUnitsToUCUMCode[time]) {
+        result = new FP_Quantity(Number(value), unit || time || '\'1\'');
+      }
     }
 
     if (result && toUnit && result.unit !== toUnit) {
@@ -116,12 +119,80 @@ function defineTimeConverter(timeType) {
     if (coll.length === 1) {
       var t = types[timeType].checkString(util.valData(coll[0]));
       if (t)
-        rtn[0] = t;
+        rtn = t;
     }
     return rtn;
   };
 }
 defineTimeConverter('FP_DateTime');
 defineTimeConverter('FP_Time');
+
+// Possible string values convertible to the true boolean value
+const trueStrings = ['true', 't', 'yes', 'y', '1', '1.0'].reduce((acc, val) => {
+  acc[val] = true;
+  return acc;
+}, {});
+
+// Possible string values convertible to the false boolean value
+const falseStrings = ['false', 'f', 'no', 'n', '0', '0.0'].reduce((acc, val) => {
+  acc[val] = true;
+  return acc;
+}, {});
+
+engine.toBoolean = function (coll) {
+  if(coll.length !== 1) {
+    return [];
+  }
+
+  const v = util.valData(coll[0]);
+  switch (typeof v) {
+    case 'boolean':
+      return v;
+    case 'number':
+      if (v === 1) {
+        return true;
+      }
+      if (v === 0) {
+        return false;
+      }
+      break;
+    case 'string':
+      // eslint-disable-next-line no-case-declarations
+      const lowerCaseValue = v.toLowerCase();
+      if (trueStrings[lowerCaseValue]) {
+        return true;
+      }
+      if (falseStrings[lowerCaseValue]) {
+        return false;
+      }
+  }
+  return [];
+};
+
+/**
+ * Creates function that checks if toFunction returns specified type
+ * @param {function(coll: array): <type|[]>} toFunction
+ * @param {string|class} type - specifies type, for example: 'string' or FP_Quantity
+ * @return {function(coll: array)}
+ */
+engine.createConvertsToFn = function (toFunction, type) {
+  if (typeof type === 'string') {
+    return function (coll) {
+      if (coll.length !== 1) {
+        return [];
+      }
+
+      return typeof toFunction(coll) === type;
+    };
+  }
+
+  return function (coll) {
+    if (coll.length !== 1) {
+      return [];
+    }
+
+    return toFunction(coll) instanceof type;
+  };
+};
 
 module.exports = engine;

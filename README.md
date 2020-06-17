@@ -143,7 +143,7 @@ Completed sections:
 - 9   (Environment Variables)
 
 Almost completed sections:
-- 5.5 (Conversion) - unimplemented methods: toBoolean, toDate.
+- 5.5 (Conversion) - unimplemented methods: toDate, convertsToDate.
 
 We are deferring handling information about FHIR resources, as much as
 possible, with the exception of support for choice types.  This affects
