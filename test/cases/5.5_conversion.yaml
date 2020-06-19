@@ -160,12 +160,12 @@ tests:
       - true
   - desc: '** UCUM units'
     inputfile: patient-example.json
-    expression: '''1 \''cm\''''.toQuantity(''\''mm\'''').value = 10'
+    expression: "'1 \\'cm\\''.toQuantity('\\'mm\\'').value = 10"
     result:
       - true
   - desc: '** Invalid conversion'
     inputfile: patient-example.json
-    expression: '''1 \''cm\''''.toQuantity(''\''g\'''')'
+    expression: "'1 \\'cm\\''.toQuantity('\\'g\\'')"
     result: []
   - desc: '** Implicit to quantity + toQuantity'
     inputfile: observation-example.json

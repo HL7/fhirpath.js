@@ -118,8 +118,9 @@ fhirpath --expression 'Patient.name.given'
 
 ## Implementation Status
 
-We are currently implementing version 1.0 (a.k.a STU1) of
-[FHIRPath](http://hl7.org/fhirpath/).
+We are currently working on updating the implementing version 2.0.0 of
+[FHIRPath](http://hl7.org/fhirpath/);
+some behavior may still be following the previous version, STU1.
 
 The core parser was generated from the FHIRPath ANTLR grammar.
 
