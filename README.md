@@ -118,7 +118,7 @@ fhirpath --expression 'Patient.name.given'
 
 ## Implementation Status
 
-We are currently working on updating the implementing version 2.0.0 of
+We are currently working on implementing version 2.0.0 of
 [FHIRPath](http://hl7.org/fhirpath/);
 some behavior may still be following the previous version, STU1.
 
