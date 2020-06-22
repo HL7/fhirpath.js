@@ -145,7 +145,12 @@ tests:
       - true
   - desc: '** string to Quantity'
     inputfile: patient-example.json
-    expression: '''1 \''wk\''''.toQuantity(''\''d\'''') = 7 days'
+    expression: "'1 \\'wk\\''.toQuantity('d') = 7 days"
+    result:
+      - true
+  - desc: '** string to Quantity - result UCUM unit code must be surrounded with single quotes'
+    inputfile: patient-example.json
+    expression: "'1 \\'wk\\''.toQuantity('d').toString() = '7 \\'d\\''"
     result:
       - true
   - desc: '** calendar duration conversion factor'
@@ -160,12 +165,12 @@ tests:
       - true
   - desc: '** UCUM units'
     inputfile: patient-example.json
-    expression: "'1 \\'cm\\''.toQuantity('\\'mm\\'').value = 10"
+    expression: "'1 \\'cm\\''.toQuantity('mm').value = 10"
     result:
       - true
   - desc: '** Invalid conversion'
     inputfile: patient-example.json
-    expression: "'1 \\'cm\\''.toQuantity('\\'g\\'')"
+    expression: "'1 \\'cm\\''.toQuantity('g')"
     result: []
   - desc: '** Implicit to quantity + toQuantity'
     inputfile: observation-example.json

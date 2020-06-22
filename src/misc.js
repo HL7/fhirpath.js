@@ -47,6 +47,10 @@ const quantityRegex = /^((\+|-)?\d+(\.\d+)?)\s*(('[^']+')|([a-zA-Z]+))?$/,
   quantityRegexMap = {value:1,unit:5,time:6};
 engine.toQuantity = function (coll, toUnit) {
   let result;
+  // Surround UCUM unit code in the toUnit parameter with single quotes
+  if (toUnit && !FP_Quantity.mapTimeUnitsToUCUMCode[toUnit]) {
+    toUnit = `'${toUnit}'`;
+  }
 
   if (coll.length > 1) {
     throw new Error("Could not convert to quantity: input collection contains multiple items");
