@@ -3,6 +3,17 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.3.0] - 2020-06-17
+### Added
+- Functions: toBoolean(), convertsToBoolean(), convertsToInteger(), convertsToDecimal(), convertsToString(),
+  convertsToDateTime(), convertsToTime(), convertsToQuantity()
+### Fixed
+- toInteger() function should return an empty collection for non-convertible string
+- toQuantity() function should work with the entire input string, not part of it (RegExp expression surrounded with ^...$)
+- toQuantity() function should support boolean values
+- toQuantity() function should not accept a string where UCUM unit code is not surrounded with single quotes
+- The third parameter of iif function should be optional
+
 ## [2.2.2] - 2020-06-05
 ### Fixed
 - Updated FHIRPath test cases

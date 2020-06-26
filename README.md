@@ -118,8 +118,9 @@ fhirpath --expression 'Patient.name.given'
 
 ## Implementation Status
 
-We are currently implementing version 1.0 (a.k.a STU1) of
-[FHIRPath](http://hl7.org/fhirpath/).
+We are currently working on implementing version 2.0.0 of
+[FHIRPath](http://hl7.org/fhirpath/);
+some behavior may still be following the previous version, STU1.
 
 The core parser was generated from the FHIRPath ANTLR grammar.
 
@@ -143,7 +144,7 @@ Completed sections:
 - 9   (Environment Variables)
 
 Almost completed sections:
-- 5.5 (Conversion) - unimplemented methods: toBoolean, toDate.
+- 5.5 (Conversion) - unimplemented methods: toDate, convertsToDate.
 
 We are deferring handling information about FHIR resources, as much as
 possible, with the exception of support for choice types.  This affects
