@@ -37,14 +37,15 @@ function evaluateFP() {
   var resource = document.getElementById('resource').value;
   var modelChoices = document.getElementsByName('model');
   var model;
+  var models = {
+    r4: fhirpath_r4_model,
+    stu3: fhirpath_stu3_model,
+    stu2: fhirpath_stu2_model
+  };
 
   for (var i = 0; i < modelChoices.length; ++i) {
     if (modelChoices[i].checked) {
-      model = {
-        r4: fhirpath_r4_model,
-        stu3: fhirpath_stu3_model,
-        stu2: fhirpath_stu2_model
-      }[modelChoices[i].value];
+      model = models[modelChoices[i].value];
       break;
     }
   }
