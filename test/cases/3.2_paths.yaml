@@ -10,7 +10,7 @@ tests:
       result: ["high"]
       model: 'stu3'
 
-    - desc: 'Observation.value with an STU3 FHIR model'
+    - desc: 'Observation.value with an STU2 FHIR model'
       expression: 'Observation.value'
       result: ["high"]
       model: 'stu2'
