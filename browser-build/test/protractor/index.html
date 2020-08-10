@@ -26,11 +26,11 @@
 FHIR model:
 <input id="r4" name="model" type="radio" value="r4" onclick="evaluateFP()"> R4
 <input id="stu3" name="model" type="radio" value="stu3" onclick="evaluateFP()"> STU3
-<input id="stu2" name="model" type="radio" value="stu2" onclick="evaluateFP()"> STU2
+<input id="dstu2" name="model" type="radio" value="dstu2" onclick="evaluateFP()"> DSTU2
 <script src="../../fhirpath.min.js"></script>
 <script src="../../fhirpath.r4.min.js"></script>
 <script src="../../fhirpath.stu3.min.js"></script>
-<script src="../../fhirpath.stu2.min.js"></script>
+<script src="../../fhirpath.dstu2.min.js"></script>
 <script>
 function evaluateFP() {
   var expr = document.getElementById('expression').value;
@@ -40,7 +40,7 @@ function evaluateFP() {
   var models = {
     r4: fhirpath_r4_model,
     stu3: fhirpath_stu3_model,
-    stu2: fhirpath_stu2_model
+    dstu2: fhirpath_dstu2_model
   };
 
   for (var i = 0; i < modelChoices.length; ++i) {

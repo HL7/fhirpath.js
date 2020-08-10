@@ -1,4 +1,4 @@
-// Takes a directory of JSON FHIR definitions (STU2, STU3 or R4) and extracts the information
+// Takes a directory of JSON FHIR definitions (DSTU2, STU3 or R4) and extracts the information
 // about "choice types" (polymorphic fields).
 
 const path = require('path');
@@ -25,7 +25,7 @@ const choiceTypeFiles = ['profiles-types.json', 'profiles-resources.json',
 let choiceTypePaths = {};
 let pathsDefinedElsewhere = {};
 for (let f of choiceTypeFiles) {
-  // for STU2 we use "nameReference" instead of "contentReference"
+  // for DSTU2 we use "nameReference" instead of "contentReference"
   // (https://www.hl7.org/fhir/DSTU2/elementdefinition.html)
   let name2Path = {};
 
@@ -56,7 +56,7 @@ for (let f of choiceTypeFiles) {
         pathsDefinedElsewhere[n.path] = refID;
       }
 
-      // for STU2 we use "nameReference" instead of "contentReference"
+      // for DSTU2 we use "nameReference" instead of "contentReference"
       if (n.path && n.name) {
         // save path for each name
         // name is not unique in the JSON, but it always appears before nameReference which refers to it

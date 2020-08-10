@@ -6,7 +6,7 @@ const resources = {};
 const models = {
   'r4': require('../fhir-context/r4'),
   'stu3': require('../fhir-context/stu3'),
-  'stu2': require('../fhir-context/stu2')
+  'dstu2': require('../fhir-context/dstu2')
 }
 
 /**

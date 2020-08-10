@@ -44,7 +44,7 @@ config.plugins = [
 module.exports.push(config);
 
 // FHIR model files
-for (let fhirVers of ['stu2', 'stu3', 'r4']) {
+for (let fhirVers of ['dstu2', 'stu3', 'r4']) {
   config = makeBaseConfig();
   config.entry = '../fhir-context/'+fhirVers+'/index';
   config.output.filename = './fhirpath.'+fhirVers+'.min.js';
