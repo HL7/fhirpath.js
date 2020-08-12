@@ -37,9 +37,11 @@ config.entry = '../src/fhirpath';
 config.output.filename = './fhirpath.min.js';
 config.output.library = 'fhirpath'; // global variable for the library
 config.plugins = [
-  new CopyPlugin([
-    { from: '../LICENSE.md', to: '.' }
-  ]),
+  new CopyPlugin({
+    patterns: [
+      {from: '../LICENSE.md', to: '.'}
+    ]
+  }),
 ];
 module.exports.push(config);
 

@@ -16,7 +16,7 @@
     "babel-eslint": "^9.0.0",
     "babel-loader": "^8.0.6",
     "bestzip": "^2.1.4",
-    "copy-webpack-plugin": "^5.1.1",
+    "copy-webpack-plugin": "^6.0.3",
     "eslint": "^5.2.0",
     "fhir": "^4.7.9",
     "grunt": "^1.1.0",
