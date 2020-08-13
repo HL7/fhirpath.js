@@ -37,8 +37,8 @@ want to include a second file with the desired FHIR version model data, e.g.
 fhirpath.r4.min.js for pulling in the R4 model.  (At the moment, those files are
 small, but it would not be surprising if they grew as more support for FHIR type
 handling is added, so they are kept seperate from the main FHIRPath file.)
-These will define additional global variables like "fhirpath_r4_model" or
-"fhirpath_stu3_model".
+These will define additional global variables like "fhirpath_dstu2_model",
+"fhirpath_stu3_model" or "fhirpath_r4_model".
 
 ## Usage
 ```
@@ -102,7 +102,7 @@ fhirpath --expression '%v + 2' --resourceJSON '{}' --variables '{"v": 5}'
 ```
 
 FHIR model data can be included via --model and the FHIR release version (in
-lower case, e.g., 'stu3' or 'r4').
+lower case, e.g., 'dstu2', 'stu3' or 'r4').
 
 ```sh
 fhirpath --expression 'Observation.value' --resourceJSON '{"resourceType": "Observation", "valueString": "Green"}' --model r4

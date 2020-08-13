@@ -18,7 +18,7 @@ describe('Browser build of FHIRPath', function() {
     expression.sendKeys('Observation.value');
     let result = $('#result');
     expect(result.getAttribute('value')).toBe('[]'); // no model yet
-    for (let fhirVers of ['stu3', 'r4']) {
+    for (let fhirVers of ['dstu2', 'stu3', 'r4']) {
       $('#'+fhirVers).click(); // changes the model used
       expect(result.getAttribute('value')).toBe('["green"]');
     }

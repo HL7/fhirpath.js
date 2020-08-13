@@ -1,8 +1,6 @@
-// Takes a directory of JSON FHIR definitions (STU3 or R4) and extracts the information
+// Takes a directory of JSON FHIR definitions (DSTU2, STU3 or R4) and extracts the information
 // about "choice types" (polymorphic fields).
 
-const process = require('process');
-const childProcess = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
@@ -27,6 +25,10 @@ const choiceTypeFiles = ['profiles-types.json', 'profiles-resources.json',
 let choiceTypePaths = {};
 let pathsDefinedElsewhere = {};
 for (let f of choiceTypeFiles) {
+  // for DSTU2 we use "nameReference" instead of "contentReference"
+  // (https://www.hl7.org/fhir/DSTU2/elementdefinition.html)
+  let name2Path = {};
+
   // File all of the "path" information from the file.  There will be
   // duplicates, but we will use a hash to get a unique list.
   let fData = JSON.parse(fs.readFileSync(path.join(fhirDefDir, f)));
@@ -53,12 +55,24 @@ for (let f of choiceTypeFiles) {
         refID = refID.replace(/:[^\.]+/g, '');
         pathsDefinedElsewhere[n.path] = refID;
       }
-      if (n.id && n.path && n.type && n.path.match(/\[x\]$/)) {
+
+      // for DSTU2 we use "nameReference" instead of "contentReference"
+      if (n.path && n.name) {
+        // save path for each name
+        // name is not unique in the JSON, but it always appears before nameReference which refers to it
+        name2Path[n.name] = n.path;
+      }
+      if (n.path && n.nameReference) {
+        // we use previously saved path by name
+        pathsDefinedElsewhere[n.path] = name2Path[n.nameReference];
+      }
+
+      if (n.path && n.type && n.path.match(/\[x\]$/)) {
         // Uppercase the first letter of the type codes so they can be appended to
         // the choice field name.
         let types = n.type.map(t=>t.code[0].toUpperCase() + t.code.slice(1));
-        // Remove the [x] from end of the path
-        choiceTypePaths[n.path.slice(0, -3)] = types;
+        // Remove the [x] from end of the path and store only unique "types"
+        choiceTypePaths[n.path.slice(0, -3)] =[...new Set(types)];
       }
       else {
         // Check sub-nodes that are objects or arrays

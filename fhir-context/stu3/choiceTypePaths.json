@@ -1,7 +1,6 @@
 {
   "ActivityDefinition.product": [
     "Reference",
-    "Reference",
     "CodeableConcept"
   ],
   "ActivityDefinition.timing": [
@@ -19,13 +18,10 @@
   ],
   "Annotation.author": [
     "Reference",
-    "Reference",
-    "Reference",
     "String"
   ],
   "CarePlan.activity.detail.product": [
     "CodeableConcept",
-    "Reference",
     "Reference"
   ],
   "CarePlan.activity.detail.scheduled": [
@@ -75,7 +71,6 @@
   ],
   "ClinicalImpression.finding.item": [
     "CodeableConcept",
-    "Reference",
     "Reference"
   ],
   "CodeSystem.concept.property.value": [
@@ -130,27 +125,18 @@
   "Consent.source": [
     "Attachment",
     "Identifier",
-    "Reference",
-    "Reference",
-    "Reference",
     "Reference"
   ],
   "Contract.binding": [
     "Attachment",
-    "Reference",
-    "Reference",
     "Reference"
   ],
   "Contract.friendly.content": [
     "Attachment",
-    "Reference",
-    "Reference",
     "Reference"
   ],
   "Contract.legal.content": [
     "Attachment",
-    "Reference",
-    "Reference",
     "Reference"
   ],
   "Contract.rule.content": [
@@ -548,7 +534,6 @@
   ],
   "Medication.ingredient.item": [
     "CodeableConcept",
-    "Reference",
     "Reference"
   ],
   "Medication.package.content.item": [
@@ -703,18 +688,10 @@
   ],
   "Provenance.agent.onBehalfOf": [
     "Uri",
-    "Reference",
-    "Reference",
-    "Reference",
-    "Reference",
     "Reference"
   ],
   "Provenance.agent.who": [
     "Uri",
-    "Reference",
-    "Reference",
-    "Reference",
-    "Reference",
     "Reference"
   ],
   "Provenance.entity.what": [
@@ -808,18 +785,10 @@
   ],
   "Signature.onBehalfOf": [
     "Uri",
-    "Reference",
-    "Reference",
-    "Reference",
-    "Reference",
     "Reference"
   ],
   "Signature.who": [
     "Uri",
-    "Reference",
-    "Reference",
-    "Reference",
-    "Reference",
     "Reference"
   ],
   "Specimen.collection.collected": [
@@ -892,8 +861,6 @@
   ],
   "SupplyDelivery.suppliedItem.item": [
     "CodeableConcept",
-    "Reference",
-    "Reference",
     "Reference"
   ],
   "SupplyRequest.occurrence": [
@@ -903,8 +870,6 @@
   ],
   "SupplyRequest.orderedItem.item": [
     "CodeableConcept",
-    "Reference",
-    "Reference",
     "Reference"
   ],
   "SupplyRequest.reason": [

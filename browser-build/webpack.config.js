@@ -37,14 +37,16 @@ config.entry = '../src/fhirpath';
 config.output.filename = './fhirpath.min.js';
 config.output.library = 'fhirpath'; // global variable for the library
 config.plugins = [
-  new CopyPlugin([
-    { from: '../LICENSE.md', to: '.' }
-  ]),
+  new CopyPlugin({
+    patterns: [
+      {from: '../LICENSE.md', to: '.'}
+    ]
+  }),
 ];
 module.exports.push(config);
 
 // FHIR model files
-for (let fhirVers of ['stu3', 'r4']) {
+for (let fhirVers of ['dstu2', 'stu3', 'r4']) {
   config = makeBaseConfig();
   config.entry = '../fhir-context/'+fhirVers+'/index';
   config.output.filename = './fhirpath.'+fhirVers+'.min.js';

@@ -1,0 +1,21 @@
+{
+  "Bundle.entry.link": "Bundle.link",
+  "Composition.section.section": "Composition.section",
+  "ConceptMap.element.target.product": "ConceptMap.element.target.dependsOn",
+  "Conformance.rest.searchParam": "Conformance.rest.resource.searchParam",
+  "ImplementationGuide.page.page": "ImplementationGuide.page",
+  "Observation.component.referenceRange": "Observation.referenceRange",
+  "OperationDefinition.parameter.part": "OperationDefinition.parameter",
+  "Parameters.parameter.part": "Parameters.parameter",
+  "QuestionnaireResponse.group.group": "QuestionnaireResponse.group",
+  "QuestionnaireResponse.group.question.answer.group": "QuestionnaireResponse.group",
+  "TestScript.setup.metadata": "TestScript.metadata",
+  "TestScript.teardown.action.operation": "TestScript.setup.action.operation",
+  "TestScript.test.action.assert": "TestScript.setup.action.assert",
+  "TestScript.test.action.operation": "TestScript.setup.action.operation",
+  "TestScript.test.metadata": "TestScript.metadata",
+  "ValueSet.codeSystem.concept.concept": "ValueSet.codeSystem.concept",
+  "ValueSet.compose.exclude": "ValueSet.compose.include",
+  "ValueSet.compose.include.concept.designation": "ValueSet.codeSystem.concept.designation",
+  "ValueSet.expansion.contains.contains": "ValueSet.expansion.contains"
+}
