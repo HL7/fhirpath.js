@@ -2834,13 +2834,11 @@ tests:
         expression: 1.union(2).union(3).count() = 3
         result:
           - true
-        disable: true
       - desc: '** testUnion5'
         inputfile: patient-example.json
         expression: 1.union(2.union(3)).count() = 3
         result:
           - true
-        disable: true
       - desc: '** testUnion6'
         inputfile: patient-example.json
         expression: (1 | 2).combine(2).count() = 3
@@ -2856,7 +2854,6 @@ tests:
         expression: 1.combine(1).union(2).count() = 2
         result:
           - true
-        disable: true
   - 'group: testIntersect':
       - desc: '** testIntersect1'
         inputfile: patient-example.json

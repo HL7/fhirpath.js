@@ -3,7 +3,7 @@
 var combineFns = {};
 var existence = require('./existence');
 
-combineFns.unionOp = function(coll1, coll2){
+combineFns.union = function(coll1, coll2){
   return existence.distinctFn(coll1.concat(coll2));
 };
 
