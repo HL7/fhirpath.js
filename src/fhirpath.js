@@ -82,6 +82,7 @@ engine.invocationTable = {
   take:         {fn: filtering.takeFn, arity: {1: ["Integer"]}},
   skip:         {fn: filtering.skipFn, arity: {1: ["Integer"]}},
   combine:      {fn: combining.combineFn, arity: {1: ["AnyAtRoot"]}},
+  union:        {fn: combining.union,   arity: {1: ["AnyAtRoot"]}},
   iif:          {fn: misc.iifMacro,    arity: {2: ["Expr", "Expr"], 3: ["Expr", "Expr", "Expr"]}},
   trace:        {fn: misc.traceFn,     arity: {0: [], 1: ["String"]}},
   toInteger:    {fn: misc.toInteger},
@@ -127,7 +128,7 @@ engine.invocationTable = {
   children:        {fn: navigation.children },
   descendants:     {fn: navigation.descendants },
 
-  "|":          {fn: combining.unionOp,   arity: {2: ["Any", "Any"]}},
+  "|":          {fn: combining.union,   arity: {2: ["Any", "Any"]}},
   "=":          {fn: equality.equal,   arity: {2: ["Any", "Any"]}, nullable: true},
   "!=":         {fn: equality.unequal,   arity: {2: ["Any", "Any"]}, nullable: true},
   "~":          {fn: equality.equival,   arity: {2: ["Any", "Any"]}},

@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.5.0] - 2020-08-26
+### Added
+- Function union(other: collection)
+
 ## [2.4.0] - 2020-08-05
 ### Added
 - Support for DSTU2 model
