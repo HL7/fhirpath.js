@@ -57,30 +57,31 @@ const castValue = (value, type) => mapper[type](value);
 /**
  * Converts Object representing test cases from XML to Object that can be serialized to YAML
  * @param {Object} node - result of xml2js.parseString
+ * @param {string} model - model name, e.g. 'r4','stu3', 'dstu2'
  * @return {Object}
  */
-const transform = (node) => {
+const transform = (node, model = null) => {
 
   return Object.keys(node).reduce((acc, key) => {
 
     switch(key) {
       case 'tests':
-        return { tests: transform(_.pick(node[key], 'group')) };
+        return { tests: transform(_.pick(node[key], 'group'), model) };
 
       case 'group':
         return [...acc, ...node[key].map(item =>
-          ({ [`group: ${item['$'].description || item['$'].name}`]: transform(_.pick(item, 'test')) }))];
+          ({ [`group: ${item['$'].description || item['$'].name}`]: transform(_.pick(item, 'test'), model) }))];
 
       case 'test':
         return [...acc, ...node[key].map(item => {
-          let test = transform(item);
+          let test = transform(item, model);
           if (!test.hasOwnProperty('result') && !test.error) {
             test.result = [];
           }
           if (!validateTest(test)) {
-            if (validateTest(Object.assign({}, test, {model: 'r4'}))) {
+            if (model && validateTest(Object.assign({}, test, { model }))) {
               // if the test cannot be passed without set the model, we set the model
-              test.model = 'r4';
+              test.model = model;
             } else {
               // if the test cannot be passed at all, we disable it
               test.disable = true;
@@ -126,14 +127,15 @@ module.exports = {
   /**
    * Serializes an XML test cases to YAML
    * @param {string} xmlData
+   * @param {string} model - model name, e.g. 'r4','stu3', 'dstu2'
    * @returns {string}
    */
-  testsXmlStringToYamlString: async (xmlData) => {
+  testsXmlStringToYamlString: async (xmlData, model) => {
     const parser = new xml2js.Parser({ explicitCharkey: true });
     const parseString = util.promisify(parser.parseString);
 
     const parsed = await parseString(xmlData);
-    const transformed = transform(parsed);
+    const transformed = transform(parsed, model);
     transformed.tests.forEach(group => {
       const groupKey = Object.keys(group)[0];
       const groupTests = group[groupKey];
