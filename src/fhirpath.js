@@ -50,7 +50,7 @@ const types = require("./types");
 const {
   FP_DateTime, FP_Time, FP_Quantity,
   FP_Type, ResourceNode, TypeInfo
-} = require("./types");
+} = types;
 let makeResNode = ResourceNode.makeResNode;
 
 // * fn: handler
