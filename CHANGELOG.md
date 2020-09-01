@@ -3,6 +3,13 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.6.0] - 2020-09-01
+### Added
+Limited support(not all types supported) for:
+- Function is(type) and operator "is"
+- Function ofType(type)
+- Function type()
+
 ## [2.5.0] - 2020-08-26
 ### Added
 - Function union(other: collection)

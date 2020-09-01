@@ -78,7 +78,13 @@ const transform = (node) => {
             test.result = [];
           }
           if (!validateTest(test)) {
-            test.disable = true;
+            if (validateTest(Object.assign({}, test, {model: 'r4'}))) {
+              // if the test cannot be passed without the setted model, we set the model
+              test.model = 'r4';
+            } else {
+              // if the test cannot be passed at all, we disable it
+              test.disable = true;
+            }
           }
           return test;
         })];

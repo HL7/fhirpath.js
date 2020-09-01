@@ -76,35 +76,42 @@ tests:
         expression: Observation.value.unit
         result:
           - lbs
+        disable: true
       - desc: '** testPolymorphismB'
         inputfile: observation-example.json
         expression: Observation.valueQuantity.unit
         error: true
+        disable: true
       - desc: '** testPolymorphismIsA'
         inputfile: observation-example.json
         expression: Observation.value.is(Quantity)
         result:
           - true
+        model: r4
       - desc: '** testPolymorphismIsA'
         inputfile: observation-example.json
         expression: Observation.value is Quantity
         result:
           - true
+        model: r4
       - desc: '** testPolymorphismIsB'
         inputfile: observation-example.json
         expression: Observation.value.is(Period).not()
         result:
           - true
+        model: r4
       - desc: '** testPolymorphismAsA'
         inputfile: observation-example.json
         expression: Observation.value.as(Quantity).unit
         result:
           - lbs
+        disable: true
       - desc: '** testPolymorphismAsAFunction'
         inputfile: observation-example.json
         expression: (Observation.value as Quantity).unit
         result:
           - lbs
+        disable: true
       - desc: '** testPolymorphismAsB'
         inputfile: observation-example.json
         expression: (Observation.value as Period).unit
@@ -113,7 +120,7 @@ tests:
         inputfile: observation-example.json
         expression: Observation.value.as(Period).start
         result: []
-    disable: true
+        disable: true
   - 'group: testDollar':
       - desc: '** testDollarThis1'
         inputfile: patient-example.json
@@ -335,10 +342,12 @@ tests:
         inputfile: patient-example.json
         expression: '@T14:34:28Z.is(Time)'
         error: true
+        disable: true
       - desc: '** testLiteralTimeTimezoneOffset'
         inputfile: patient-example.json
         expression: '@T14:34:28+10:00.is(Time)'
         error: true
+        disable: true
       - desc: '** testLiteralQuantityDecimal'
         inputfile: patient-example.json
         expression: 10.1 'mg'.convertsToQuantity()
@@ -404,25 +413,25 @@ tests:
         expression: Observation.value.value > 180.0
         result:
           - true
-        disable: true
+        model: r4
       - desc: '** testLiteralDecimalGreaterThanZeroTrue'
         inputfile: observation-example.json
         expression: Observation.value.value > 0.0
         result:
           - true
-        disable: true
+        model: r4
       - desc: '** testLiteralDecimalGreaterThanIntegerTrue'
         inputfile: observation-example.json
         expression: Observation.value.value > 0
         result:
           - true
-        disable: true
+        model: r4
       - desc: '** testLiteralDecimalLessThanInteger'
         inputfile: observation-example.json
         expression: Observation.value.value < 190
         result:
           - true
-        disable: true
+        model: r4
       - desc: '** testLiteralDecimalLessThanInvalid'
         inputfile: observation-example.json
         expression: Observation.value.value < 'test'
@@ -654,13 +663,11 @@ tests:
         expression: 1.is(Integer)
         result:
           - true
-        disable: true
       - desc: '** testIntegerLiteralIsSystemInteger'
         inputfile: patient-example.json
         expression: 1.is(System.Integer)
         result:
           - true
-        disable: true
       - desc: '** testStringLiteralConvertsToInteger'
         inputfile: patient-example.json
         expression: '''1''.convertsToInteger()'
@@ -681,7 +688,6 @@ tests:
         expression: '''1''.is(Integer).not()'
         result:
           - true
-        disable: true
       - desc: '** testBooleanLiteralConvertsToInteger'
         inputfile: patient-example.json
         expression: true.convertsToInteger()
@@ -692,13 +698,11 @@ tests:
         expression: true.is(Integer).not()
         result:
           - true
-        disable: true
       - desc: '** testDateIsNotInteger'
         inputfile: patient-example.json
         expression: '@2013-04-05.is(Integer).not()'
         result:
           - true
-        disable: true
       - desc: '** testIntegerLiteralToInteger'
         inputfile: patient-example.json
         expression: 1.toInteger() = 1
@@ -733,7 +737,6 @@ tests:
         expression: 1.is(Decimal).not()
         result:
           - true
-        disable: true
       - desc: '** testDecimalLiteralConvertsToDecimal'
         inputfile: patient-example.json
         expression: 1.0.convertsToDecimal()
@@ -755,7 +758,6 @@ tests:
         expression: '''1''.is(Decimal).not()'
         result:
           - true
-        disable: true
       - desc: '** testStringLiteralConvertsToDecimalFalse'
         inputfile: patient-example.json
         expression: '''1.a''.convertsToDecimal().not()'
@@ -772,7 +774,6 @@ tests:
         expression: '''1.0''.is(Decimal).not()'
         result:
           - true
-        disable: true
       - desc: '** testBooleanLiteralConvertsToDecimal'
         inputfile: patient-example.json
         expression: true.convertsToDecimal()
@@ -783,7 +784,6 @@ tests:
         expression: true.is(Decimal).not()
         result:
           - true
-        disable: true
       - desc: '** testIntegerLiteralToDecimal'
         inputfile: patient-example.json
         expression: 1.toDecimal() = 1.0
@@ -819,7 +819,6 @@ tests:
         expression: 1.is(Quantity).not()
         result:
           - true
-        disable: true
       - desc: '** testDecimalLiteralConvertsToQuantity'
         inputfile: patient-example.json
         expression: 1.0.convertsToQuantity()
@@ -830,7 +829,6 @@ tests:
         expression: 1.0.is(System.Quantity).not()
         result:
           - true
-        disable: true
       - desc: '** testStringIntegerLiteralConvertsToQuantity'
         inputfile: patient-example.json
         expression: '''1''.convertsToQuantity()'
@@ -841,7 +839,6 @@ tests:
         expression: '''1''.is(System.Quantity).not()'
         result:
           - true
-        disable: true
       - desc: '** testStringQuantityLiteralConvertsToQuantity'
         inputfile: patient-example.json
         expression: '''1 day''.convertsToQuantity()'
@@ -872,7 +869,6 @@ tests:
         expression: '''1.0''.is(System.Quantity).not()'
         result:
           - true
-        disable: true
       - desc: '** testBooleanLiteralConvertsToQuantity'
         inputfile: patient-example.json
         expression: true.convertsToQuantity()
@@ -883,7 +879,6 @@ tests:
         expression: true.is(System.Quantity).not()
         result:
           - true
-        disable: true
       - desc: '** testIntegerLiteralToQuantity'
         inputfile: patient-example.json
         expression: 1.toQuantity() = 1 '1'
@@ -1004,7 +999,6 @@ tests:
         expression: 1.is(String).not()
         result:
           - true
-        disable: true
       - desc: '** testNegativeIntegerLiteralConvertsToString'
         inputfile: patient-example.json
         expression: (-1).convertsToString()
@@ -1903,7 +1897,7 @@ tests:
         expression: 'Observation.value = 185 ''[lb_av]'''
         result:
           - true
-        disable: true
+        model: r4
   - 'group: testNEquality':
       - desc: '** testNEquality1'
         inputfile: patient-example.json
@@ -2025,7 +2019,7 @@ tests:
         expression: Observation.value != 185 'kg'
         result:
           - true
-        disable: true
+        model: r4
   - 'group: testEquivalent':
       - desc: '** testEquivalent1'
         inputfile: patient-example.json
@@ -2144,7 +2138,7 @@ tests:
         expression: 'Observation.value ~ 185 ''[lb_av]'''
         result:
           - true
-        disable: true
+        model: r4
   - 'group: testNotEquivalent':
       - desc: '** testNotEquivalent1'
         inputfile: patient-example.json
@@ -2264,7 +2258,7 @@ tests:
         expression: Observation.value !~ 185 'kg'
         result:
           - true
-        disable: true
+        model: r4
   - 'group: testLessThan':
       - desc: '** testLessThan1'
         inputfile: patient-example.json
@@ -3434,13 +3428,11 @@ tests:
         expression: 1 > 2 is Boolean
         result:
           - true
-        disable: true
       - desc: '** testPrecedence4'
         inputfile: patient-example.json
         expression: 1 | 1 is Integer
         result:
           - true
-        disable: true
   - 'group: testVariables':
       - desc: '** testVariables1'
         inputfile: patient-example.json
@@ -3602,7 +3594,6 @@ tests:
         expression: Patient.ofType(FHIR.`Patient`).type().name
         result:
           - Patient
-    disable: true
   - 'group: testConformsTo':
       - desc: '** testConformsTo'
         inputfile: patient-example.json

@@ -4,7 +4,8 @@
 /**
  *  Adds the filtering and projection functions to the given FHIRPath engine.
  */
-let util = require('./utilities');
+const util = require('./utilities');
+const {TypeInfo} = require('./types');
 
 var engine = {};
 engine.whereMacro = function(parentData, expr) {
@@ -74,23 +75,9 @@ engine.skipFn = function(x, num) {
   return x.slice(num, x.length);
 };
 
-function checkFHIRType(x, tp){
-  if(typeof x === tp){
-    return true;
-  }
-  if(tp === "integer") {
-    return Number.isInteger(x);
-  }
-  if(tp === "decimal") {
-    return typeof x == "number";
-  }
-  return false;
-}
-// naive typeof implementation
-// understand only basic types like string, number etc
-engine.ofTypeFn = function(coll, type) {
-  return coll.filter(function(x){
-    return checkFHIRType(util.valData(x), type);
+engine.ofTypeFn = function(coll, typeInfo) {
+  return coll.filter(value => {
+    return TypeInfo.fromValue(value).equals(typeInfo);
   });
 };
 

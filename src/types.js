@@ -981,6 +981,21 @@ class ResourceNode {
     this.data = getResourceNodeData(data, path);
   }
 
+  /**
+   * Returns resource node type info.
+   * @return {TypeInfo}
+   */
+  getTypeInfo() {
+    const namespace = TypeInfo.FHIR;
+
+    // TODO: Here we should use property index which we will extract from the specification
+
+    if (this.path.indexOf('.') === -1) {
+      return new TypeInfo({namespace, name: this.path});
+    }
+    return TypeInfo.createByValueInNamespace({namespace, value: this.data});
+  }
+
   toJSON() {
     return JSON.stringify(this.data);
   }
@@ -1014,6 +1029,97 @@ ResourceNode.makeResNode = function(data, path) {
   return (data instanceof ResourceNode) ? data : new ResourceNode(data, path);
 };
 
+/**
+ * Object class defining type information.
+ * Used for minimal type support.
+ * (see http://hl7.org/fhirpath/#types-and-reflection)
+ */
+class TypeInfo {
+  constructor({name, namespace}) {
+    this.name = name;
+    this.namespace = namespace;
+  }
+
+  /**
+   * Checks for equality with another TypeInfo object
+   * @param {TypeInfo} other
+   * @return {boolean}
+   */
+  equals(other) {
+    return other instanceof TypeInfo && this.name === other.name
+      && (!this.namespace || !other.namespace || this.namespace === other.namespace);
+  }
+}
+
+// Available namespaces:
+TypeInfo.System = 'System';
+TypeInfo.FHIR = 'FHIR';
+
+/**
+ * Creates new TypeInfo object for specified namespace and value
+ * @param {String} namespace
+ * @param {*} value
+ * @return {TypeInfo}
+ */
+TypeInfo.createByValueInNamespace = function({namespace, value}) {
+  let name = typeof value;
+
+  if (Number.isInteger(value)) {
+    name = 'integer';
+  } else if (name === "number") {
+    name = 'decimal';
+  }
+
+  if (namespace === TypeInfo.System) {
+    name = name.replace(/^\w/, c => c.toUpperCase());
+  }
+
+  // TODO: currently can return name = 'object" or "Object" which is probably wrong
+  return new TypeInfo({namespace, name}) ;
+};
+
+/**
+ * Retrieves TypeInfo by value
+ * @param {*} value
+ * @return {TypeInfo}
+ */
+TypeInfo.fromValue = function (value) {
+  return value instanceof ResourceNode
+    ? value.getTypeInfo()
+    : TypeInfo.createByValueInNamespace({namespace: TypeInfo.System, value});
+};
+
+/**
+ * Basic "type()" function implementation
+ * (see http://hl7.org/fhirpath/#reflection)
+ * @param {Array<*>} coll - input collection
+ * @return {Array<*>}
+ */
+function typeFn(coll) {
+  return coll.map(value => {
+    return TypeInfo.fromValue(value);
+  });
+}
+
+/**
+ * Implementation of function "is(type : type specifier)" and operator "is"
+ * (see http://hl7.org/fhirpath/#is-type-specifier)
+ * @param {Array<*>} coll - input collection
+ * @param {TypeInfo} typeInfo
+ * @return {boolean|[]}
+ */
+function isFn(coll, typeInfo) {
+  if(coll.length === 0) {
+    return [];
+  }
+
+  if(coll.length > 1) {
+    throw new Error("Expected singleton on left side of is, got " + JSON.stringify(coll));
+  }
+
+  return TypeInfo.fromValue(coll[0]).equals(typeInfo);
+}
+
 module.exports = {
   FP_Type: FP_Type,
   FP_TimeBase: FP_TimeBase,
@@ -1022,5 +1128,8 @@ module.exports = {
   FP_Quantity: FP_Quantity,
   timeRE: timeRE,
   dateTimeRE: dateTimeRE,
-  ResourceNode: ResourceNode
+  ResourceNode: ResourceNode,
+  TypeInfo: TypeInfo,
+  typeFn,
+  isFn
 };

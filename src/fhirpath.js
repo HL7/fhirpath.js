@@ -46,8 +46,11 @@ let strings   = require("./strings");
 let navigation= require("./navigation");
 let datetime  = require("./datetime");
 let logic  = require("./logic");
-let types = require("./types");
-let {FP_DateTime, FP_Time, FP_Quantity, FP_Type, ResourceNode} = types;
+const types = require("./types");
+const {
+  FP_DateTime, FP_Time, FP_Quantity,
+  FP_Type, ResourceNode, TypeInfo
+} = require("./types");
 let makeResNode = ResourceNode.makeResNode;
 
 // * fn: handler
@@ -77,7 +80,9 @@ engine.invocationTable = {
   single:       {fn: filtering.singleFn},
   first:        {fn: filtering.firstFn},
   last:         {fn: filtering.lastFn},
-  ofType:       {fn: filtering.ofTypeFn, arity: {1: ["Identifier"]}},
+  type:         {fn: types.typeFn, arity: {0: []}},
+  ofType:       {fn: filtering.ofTypeFn, arity: {1: ["TypeSpecifier"]}},
+  is:           {fn: types.isFn, arity: {1: ["TypeSpecifier"]}},
   tail:         {fn: filtering.tailFn},
   take:         {fn: filtering.takeFn, arity: {1: ["Integer"]}},
   skip:         {fn: filtering.skipFn, arity: {1: ["Integer"]}},
@@ -139,6 +144,7 @@ engine.invocationTable = {
   ">=":         {fn: equality.gte,  arity: {2: ["Any", "Any"]}, nullable: true},
   "containsOp": {fn: collections.contains,   arity: {2: ["Any", "Any"]}},
   "inOp":       {fn: collections.in,  arity: {2: ["Any", "Any"]}},
+  "isOp":       {fn: types.isFn,  arity: {2: ["Any", "TypeSpecifier"]}},
   "&":          {fn: math.amp,     arity:  {2: ["String", "String"]}},
   "+":          {fn: math.plus,    arity:  {2: ["Any", "Any"]}, nullable: true},
   "-":          {fn: math.minus,   arity:  {2: ["Any", "Any"]}, nullable: true},
@@ -175,6 +181,23 @@ engine.PolarityExpression = function(ctx, parentData, node) {
   if (sign === '-')
     rtn[0] = -rtn[0];
   return rtn;
+};
+
+engine.TypeSpecifier = function(ctx, parentData, node) {
+  let namespace, name;
+  const identifiers = node.text.split('.').map(i => i.replace(/(^`|`$)/g, ""));
+  switch (identifiers.length) {
+    case 2:
+      [namespace, name] = identifiers;
+      break;
+    case 1:
+      [name] = identifiers;
+      break;
+    default:
+      throw new Error("Expected TypeSpecifier node, got " + JSON.stringify(node));
+  }
+
+  return new TypeInfo({ namespace, name });
 };
 
 engine.ExternalConstantTerm = function(ctx, parentData, node) {
@@ -393,9 +416,14 @@ function makeParam(ctx, parentData, type, param) {
     if(param.type == "TermExpression"){
       return param.text;
     } else {
-      throw new Error("Expected identifier node, got ", JSON.stringify(param));
+      throw new Error("Expected identifier node, got " + JSON.stringify(param));
     }
   }
+
+  if(type === "TypeSpecifier") {
+    return engine.TypeSpecifier(ctx, parentData, param);
+  }
+
   var res = engine.doEval(ctx, parentData, param);
   if(type === "Any") {
     return res;
@@ -559,6 +587,7 @@ engine.evalTable = { // not every evaluator is listed if they are defined on eng
   InvocationExpression: engine.InvocationExpression,
   AdditiveExpression: engine.OpExpression,
   MultiplicativeExpression: engine.OpExpression,
+  TypeExpression: engine.AliasOpExpression({"is": "isOp"}),
   MembershipExpression: engine.AliasOpExpression({"contains": "containsOp", "in": "inOp"}),
   NullLiteral: engine.NullLiteral,
   InvocationTerm: engine.InvocationTerm,
