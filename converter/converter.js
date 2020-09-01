@@ -79,7 +79,7 @@ const transform = (node) => {
           }
           if (!validateTest(test)) {
             if (validateTest(Object.assign({}, test, {model: 'r4'}))) {
-              // if the test cannot be passed without the setted model, we set the model
+              // if the test cannot be passed without set the model, we set the model
               test.model = 'r4';
             } else {
               // if the test cannot be passed at all, we disable it
