@@ -1068,6 +1068,8 @@ TypeInfo.createByValueInNamespace = function({namespace, value}) {
     name = 'integer';
   } else if (name === "number") {
     name = 'decimal';
+  } else if (value instanceof FP_DateTime) {
+    name = 'dateTime'
   }
 
   if (namespace === TypeInfo.System) {

@@ -283,37 +283,31 @@ tests:
         expression: '@2015-02-04T14.is(DateTime)'
         result:
           - true
-        disable: true
       - desc: '** testLiteralDateTimeMinute'
         inputfile: patient-example.json
         expression: '@2015-02-04T14:34.is(DateTime)'
         result:
           - true
-        disable: true
       - desc: '** testLiteralDateTimeSecond'
         inputfile: patient-example.json
         expression: '@2015-02-04T14:34:28.is(DateTime)'
         result:
           - true
-        disable: true
       - desc: '** testLiteralDateTimeMillisecond'
         inputfile: patient-example.json
         expression: '@2015-02-04T14:34:28.123.is(DateTime)'
         result:
           - true
-        disable: true
       - desc: '** testLiteralDateTimeUTC'
         inputfile: patient-example.json
         expression: '@2015-02-04T14:34:28Z.is(DateTime)'
         result:
           - true
-        disable: true
       - desc: '** testLiteralDateTimeTimezoneOffset'
         inputfile: patient-example.json
         expression: '@2015-02-04T14:34:28+10:00.is(DateTime)'
         result:
           - true
-        disable: true
       - desc: '** testLiteralTimeHour'
         inputfile: patient-example.json
         expression: '@T14.is(Time)'
