@@ -166,6 +166,15 @@ engine.InvocationExpression = function(ctx, parentData, node) {
 };
 
 engine.TermExpression = function(ctx, parentData, node) {
+  if (parentData) {
+    parentData = parentData.map((x) => {
+      if (x instanceof Object && x.resourceType) {
+        return makeResNode(x, x.resourceType);
+      }
+      return x;
+    });
+  }
+
   return engine.doEval(ctx,parentData, node.children[0]);
 };
 
@@ -291,8 +300,8 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
 
   if (parentData) {
     if(util.isCapitalized(key)) {
-      return parentData.filter(function(x) { return x.resourceType === key; }).
-        map((x)=>makeResNode(x, key));
+      return parentData
+        .filter((x) => x instanceof ResourceNode && x.path === key);
     } else {
       return parentData.reduce(function(acc, res) {
         res = makeResNode(res);
