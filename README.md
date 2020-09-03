@@ -127,7 +127,7 @@ The core parser was generated from the FHIRPath ANTLR grammar.
 Completed sections:
 - 3 (Path selection)
 - 5.1 (Existence)
-- 5.2 (Filtering and Projection) "ofType" - limited support for types(see below)
+- 5.2 (Filtering and Projection) "ofType" - limited support for types (see below)
 - 5.3 (Subsetting)
 - 5.4 (Combining)
 - 5.6 (String Manipulation)
@@ -158,13 +158,12 @@ expression defined for those types in FHIR), the string will be interpreted as a
 DateTime or Time.
 
 ### Limited support for types:
-Currently, type of resource property value determines by value without using FHIR specification.
-
-Which is causing the following:
-- FHIR.uri, FHIR.code, FHIR.oid, FHIR.id, FHIR.uuid, FHIR.sid, FHIR.markdown, FHIR.base64Binary treated as FHIR.string;
-- FHIR.unsignedInt, FHIR.positiveInt treated as FHIR.integer;
-- Also, property could be specified as FHIR.decimal, but treated as FHIR.integer;
-- For date-time related types supported only FHIR.dateTime and System.DateTime.
+Currently, the type of the resource property value is used to determine the type,
+without using the FHIR specification. This shortcut causes the following issues:
+- FHIR.uri, FHIR.code, FHIR.oid, FHIR.id, FHIR.uuid, FHIR.sid, FHIR.markdown, FHIR.base64Binary are treated as FHIR.string;
+- FHIR.unsignedInt, FHIR.positiveInt are treated as FHIR.integer;
+- Also, a property could be specified as FHIR.decimal, but treated as FHIR.integer;
+- For date-time related types, only FHIR.dateTime, FHIR.time, System.DateTime and System.Time are supported.
 
 ## Development Notes
 

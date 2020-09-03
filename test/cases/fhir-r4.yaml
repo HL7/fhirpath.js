@@ -313,25 +313,21 @@ tests:
         expression: '@T14.is(Time)'
         result:
           - true
-        disable: true
       - desc: '** testLiteralTimeMinute'
         inputfile: patient-example.json
         expression: '@T14:34.is(Time)'
         result:
           - true
-        disable: true
       - desc: '** testLiteralTimeSecond'
         inputfile: patient-example.json
         expression: '@T14:34:28.is(Time)'
         result:
           - true
-        disable: true
       - desc: '** testLiteralTimeMillisecond'
         inputfile: patient-example.json
         expression: '@T14:34:28.123.is(Time)'
         result:
           - true
-        disable: true
       - desc: '** testLiteralTimeUTC'
         inputfile: patient-example.json
         expression: '@T14:34:28Z.is(Time)'

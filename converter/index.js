@@ -16,6 +16,8 @@ module.exports = {
     const ymlData = await convert.resourceXmlStringToJsonString(xmlData);
     await writeFile(to, ymlData);
   },
+
+
   /**
    * Converts XML test cases to the YAML format
    * @param {string} from - path to XML file

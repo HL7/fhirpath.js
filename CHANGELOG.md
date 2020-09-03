@@ -5,7 +5,7 @@ This log documents significant changes for each release.  This project follows
 
 ## [2.6.0] - 2020-09-01
 ### Added
-Limited support for types(see README.md for details):
+Limited support for types (see README.md for details):
 - Function is(type) and operator "is"
 - Function ofType(type)
 

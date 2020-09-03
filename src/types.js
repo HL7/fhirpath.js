@@ -1069,7 +1069,11 @@ TypeInfo.createByValueInNamespace = function({namespace, value}) {
   } else if (name === "number") {
     name = 'decimal';
   } else if (value instanceof FP_DateTime) {
-    name = 'dateTime'
+    name = 'dateTime';
+  } else if (value instanceof FP_Time) {
+    name = 'time';
+  } else if (value instanceof FP_Quantity) {
+    name = 'Quantity';
   }
 
   if (namespace === TypeInfo.System) {
