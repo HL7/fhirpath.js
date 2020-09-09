@@ -1041,11 +1041,13 @@ class TypeInfo {
   }
 
   /**
-   * Checks for equality with another TypeInfo object
+   * Checks for equality with another TypeInfo object, or that another TypeInfo
+   * object specifies a superclass for the type specified by this object.
    * @param {TypeInfo} other
    * @return {boolean}
    */
-  equals(other) {
+  is(other) {
+    // TODO: Here we should use type hierarchy index which we will extract from the specification
     return other instanceof TypeInfo && this.name === other.name
       && (!this.namespace || !other.namespace || this.namespace === other.namespace);
   }
@@ -1123,7 +1125,7 @@ function isFn(coll, typeInfo) {
     throw new Error("Expected singleton on left side of is, got " + JSON.stringify(coll));
   }
 
-  return TypeInfo.fromValue(coll[0]).equals(typeInfo);
+  return TypeInfo.fromValue(coll[0]).is(typeInfo);
 }
 
 module.exports = {

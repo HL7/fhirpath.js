@@ -77,7 +77,7 @@ engine.skipFn = function(x, num) {
 
 engine.ofTypeFn = function(coll, typeInfo) {
   return coll.filter(value => {
-    return TypeInfo.fromValue(value).equals(typeInfo);
+    return TypeInfo.fromValue(value).is(typeInfo);
   });
 };
 
