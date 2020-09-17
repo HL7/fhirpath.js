@@ -125,9 +125,9 @@ some behavior may still be following the previous version, STU1.
 The core parser was generated from the FHIRPath ANTLR grammar.
 
 Completed sections:
-- 3 (Path selection) - except that "is" and "as" are not supported yet
+- 3 (Path selection)
 - 5.1 (Existence)
-- 5.2 (Filtering and Projection) "ofType" - basic support for primitives
+- 5.2 (Filtering and Projection) "ofType" - limited support for types (see below)
 - 5.3 (Subsetting)
 - 5.4 (Combining)
 - 5.6 (String Manipulation)
@@ -149,12 +149,22 @@ Almost completed sections:
 We are deferring handling information about FHIR resources, as much as
 possible, with the exception of support for choice types.  This affects
 implementation of the following sections:
-- 6.3 (Types) - deferred
+- 6.3 (Types) - "is" - limited support for types(see below),
+                "as" is not supported yet
 
 Also, because in JSON DateTime and Time types are represented as strings, if a
 string in a resource looks like a DateTime or Time (matches the regular
 expression defined for those types in FHIR), the string will be interpreted as a
 DateTime or Time.
+
+### Limited support for types:
+Currently, the type of the resource property value is used to determine the type,
+without using the FHIR specification. This shortcut causes the following issues:
+- Type hierarchy is not supported;
+- FHIR.uri, FHIR.code, FHIR.oid, FHIR.id, FHIR.uuid, FHIR.sid, FHIR.markdown, FHIR.base64Binary are treated as FHIR.string;
+- FHIR.unsignedInt, FHIR.positiveInt are treated as FHIR.integer;
+- Also, a property could be specified as FHIR.decimal, but treated as FHIR.integer;
+- For date-time related types, only FHIR.dateTime, FHIR.time, System.DateTime and System.Time are supported.
 
 ## Development Notes
 
