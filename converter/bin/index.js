@@ -5,6 +5,8 @@ const sourceDir = __dirname + '/../dataset/';
 // Directory for converter output(for YAML and JSON files)
 const destDir = __dirname + '/../../test/';
 
+// FHIR model used for test cases
+const model = 'r4';
 // Descriptions for file generation:
 // [<relative path to XML source file>, <relative path to YAML/JSON output file>, <download URL>]
 const sources = [
@@ -64,7 +66,7 @@ commander
 
       for (let i = 0; i < testFiles.length; i++) {
         const [xmlFilename, yamlFilename] = testFiles[i];
-        await convert.testsXmlFileToYamlFile(sourceDir + xmlFilename, destDir + yamlFilename);
+        await convert.testsXmlFileToYamlFile(sourceDir + xmlFilename, destDir + yamlFilename, model);
       }
     } catch(e) {
       console.error(e);
