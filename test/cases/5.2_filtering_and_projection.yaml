@@ -93,7 +93,7 @@ tests:
     result: [1]
   - desc: '** decimal'
     expression: heteroattr.ofType(decimal)
-    result: [1, 1.01]
+    result: [1.01]
   - desc: '** boolean'
     expression: heteroattr.ofType(boolean)
     result: [true, false]
