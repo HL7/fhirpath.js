@@ -1850,13 +1850,11 @@ tests:
         expression: '@2012-04-15T15:30:31 = @2012-04-15T15:30:31.0'
         result:
           - true
-        disable: true
       - desc: '** testEquality22'
         inputfile: patient-example.json
         expression: '@2012-04-15T15:30:31 = @2012-04-15T15:30:31.1'
         result:
           - false
-        disable: true
       - desc: '** testEquality23'
         inputfile: patient-example.json
         expression: '@2012-04-15T15:00:00Z = @2012-04-15T10:00:00'
@@ -1962,13 +1960,11 @@ tests:
         expression: '@2012-04-15T15:30:31 != @2012-04-15T15:30:31.0'
         result:
           - false
-        disable: true
       - desc: '** testNEquality16'
         inputfile: patient-example.json
         expression: '@2012-04-15T15:30:31 != @2012-04-15T15:30:31.1'
         result:
           - true
-        disable: true
       - desc: '** testNEquality17'
         inputfile: patient-example.json
         expression: '@2012-04-15T15:00:00Z != @2012-04-15T10:00:00'
@@ -2097,7 +2093,6 @@ tests:
         expression: '@2012-04-15T15:30:31 ~ @2012-04-15T15:30:31.0'
         result:
           - true
-        disable: true
       - desc: '** testEquivalent18'
         inputfile: patient-example.json
         expression: '@2012-04-15T15:30:31 ~ @2012-04-15T15:30:31.1'
@@ -2216,7 +2211,6 @@ tests:
         expression: '@2012-04-15T15:30:31 !~ @2012-04-15T15:30:31.0'
         result:
           - false
-        disable: true
       - desc: '** testNotEquivalent18'
         inputfile: patient-example.json
         expression: '@2012-04-15T15:30:31 !~ @2012-04-15T15:30:31.1'
@@ -2365,17 +2359,14 @@ tests:
         inputfile: patient-example.json
         expression: '@2018-03 < @2018-03-01'
         result: []
-        disable: true
       - desc: '** testLessThan24'
         inputfile: patient-example.json
         expression: '@2018-03-01T10 < @2018-03-01T10:30'
         result: []
-        disable: true
       - desc: '** testLessThan25'
         inputfile: patient-example.json
         expression: '@T10 < @T10:30'
         result: []
-        disable: true
       - desc: '** testLessThan26'
         inputfile: patient-example.json
         expression: '@2018-03-01T10:30:00 < @2018-03-01T10:30:00.0'
@@ -2502,17 +2493,14 @@ tests:
         inputfile: patient-example.json
         expression: '@2018-03 <= @2018-03-01'
         result: []
-        disable: true
       - desc: '** testLessOrEqual24'
         inputfile: patient-example.json
         expression: '@2018-03-01T10 <= @2018-03-01T10:30'
         result: []
-        disable: true
       - desc: '** testLessOrEqual25'
         inputfile: patient-example.json
         expression: '@T10 <= @T10:30'
         result: []
-        disable: true
       - desc: '** testLessOrEqual26'
         inputfile: patient-example.json
         expression: '@2018-03-01T10:30:00  <= @2018-03-01T10:30:00.0'
@@ -2639,17 +2627,14 @@ tests:
         inputfile: patient-example.json
         expression: '@2018-03 >= @2018-03-01'
         result: []
-        disable: true
       - desc: '** testGreatorOrEqual24'
         inputfile: patient-example.json
         expression: '@2018-03-01T10 >= @2018-03-01T10:30'
         result: []
-        disable: true
       - desc: '** testGreatorOrEqual25'
         inputfile: patient-example.json
         expression: '@T10 >= @T10:30'
         result: []
-        disable: true
       - desc: '** testGreatorOrEqual26'
         inputfile: patient-example.json
         expression: '@2018-03-01T10:30:00 >= @2018-03-01T10:30:00.0'
@@ -2776,17 +2761,14 @@ tests:
         inputfile: patient-example.json
         expression: '@2018-03 > @2018-03-01'
         result: []
-        disable: true
       - desc: '** testGreaterThan24'
         inputfile: patient-example.json
         expression: '@2018-03-01T10 > @2018-03-01T10:30'
         result: []
-        disable: true
       - desc: '** testGreaterThan25'
         inputfile: patient-example.json
         expression: '@T10 > @T10:30'
         result: []
-        disable: true
       - desc: '** testGreaterThan26'
         inputfile: patient-example.json
         expression: '@2018-03-01T10:30:00 > @2018-03-01T10:30:00.0'

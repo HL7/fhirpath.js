@@ -106,7 +106,7 @@ tests:
         error: true
       - desc: Comparison based on the lesser precision (1)
         expression: '@2018-12-31 > @2018'
-        result: [false]
+        result: []
       - desc: Comparison based on the lesser precision (2)
         expression: '@2018 > @2017-01'
         result: [true]
@@ -170,7 +170,7 @@ tests:
         result: [false]
       - desc: Comparison with differnet precision (1)
         expression: '@2018-12-20T12 > @2018-12-20T12:01'
-        result: [false]
+        result: []
       - desc: Comparison with differnet precision (2)
         expression: '@2018-12-20T12 > @2018-12-20T11:01'
         result: [true]
@@ -190,9 +190,9 @@ tests:
         expression: '@2018-12-21T12:02+02:00 > dateTime'
         result: [false]
       - expression: '@2020-08-04T12:34-04:00  < @2020T-04:00'
-        result: [false]
+        result: []
       - expression: '@2020-08-04T12:34  < @2020'
-        result: [false]
+        result: []
     - 'group:  Time':
       - desc: Time comparison; GT (1)
         expression: '@T12:03 > @T12:01'
@@ -205,7 +205,7 @@ tests:
         result: [true]
       - desc: Time comparison with based on lesser precision (1)
         expression: '@T12:01 > @T12'
-        result: [false]
+        result: []
       - desc: Time comparison with based on lesser precision (2)
         expression: '@T12:02:34.324 > @T12:01'
         result: [true]
@@ -214,7 +214,7 @@ tests:
         result: [true]
       - desc: Time comparison with based on lesser precision (4)
         expression: '@T12:02:34.324+05:00 > @T12+05:00'
-        result: [false]
+        result: []
       - desc: Comparison with later time in resource (1)
         expression: '@T17:00-05:00 < timeWithT'
         result: [true]

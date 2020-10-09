@@ -472,8 +472,10 @@ class FP_TimeBase extends FP_Type {
       this._getDateObj().getTime(): this._dateAtPrecision(otherPrecision).getTime();
     var otherTimeInt = otherPrecision <= thisPrecision ?
       otherTime._getDateObj().getTime(): otherTime._dateAtPrecision(thisPrecision).getTime();
-    return thisTimeInt < otherTimeInt ?
-      -1 : thisTimeInt === otherTimeInt ? 0 : 1;
+    if (thisPrecision !== otherPrecision && thisTimeInt === otherTimeInt) {
+      return null;
+    }
+    return thisTimeInt - otherTimeInt;
   }
 
 
@@ -640,7 +642,7 @@ class FP_DateTime extends FP_TimeBase {
    *  Also sets this.precision.
    */
   _getMatchData() {
-    return super._getMatchData(dateTimeRE, 6);
+    return super._getMatchData(dateTimeRE, 5);
   }
 
   /**
@@ -696,7 +698,8 @@ class FP_DateTime extends FP_TimeBase {
     var hour = thisPrecision > 2 ? parseInt(timeParts[3]) : 0;
     var minutes = thisPrecision > 3 ? parseInt(timeParts[4].slice(1)): 0;
     var seconds = thisPrecision > 4 ? parseInt(timeParts[5].slice(1)): 0;
-    var ms = thisPrecision > 5 ? parseInt(timeParts[6].slice(1)): 0;
+    var ms = thisPrecision > 4 && timeParts.length > 6 ?
+      parseInt(timeParts[6].slice(1)): 0;
     var d = this._createDate(year, month, day, hour, minutes, seconds, ms,
       timezoneOffset);
     if (precision < this._getPrecision()) {
@@ -792,7 +795,8 @@ class FP_Time extends FP_TimeBase {
     var hour = parseInt(timeParts[0]);
     var minutes = thisPrecision > 0 ? parseInt(timeParts[1].slice(1)): 0;
     var seconds = thisPrecision > 1 ? parseInt(timeParts[2].slice(1)): 0;
-    var ms = thisPrecision > 2 ? parseInt(timeParts[3].slice(1)): 0;
+    var ms = thisPrecision > 1 && timeParts.length > 3 ?
+      parseInt(timeParts[3].slice(1)): 0;
     var d = this._createDate(year, month, day, hour, minutes, seconds, ms,
       timezoneOffset);
     if (timezoneOffset) {
@@ -819,7 +823,7 @@ class FP_Time extends FP_TimeBase {
    *  Also sets this.precision.
    */
   _getMatchData() {
-    return super._getMatchData(timeRE, 3);
+    return super._getMatchData(timeRE, 2);
   }
 
   /**
