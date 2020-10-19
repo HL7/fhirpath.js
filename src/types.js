@@ -461,9 +461,11 @@ class FP_TimeBase extends FP_Type {
 
 
   /**
-   *  Returns -1, 0, or 1 if this (date) time is less then, equal to, or greater
-   *  than otherTime.  Comparisons are made at the lesser of the two time
-   *  precisions.
+   *  Returns a number less than 0, equal to 0 or greater than 0
+   *  if this (date) time is less than, equal to, or greater than otherTime.
+   *  Comparisons are made at the lesser of the two time precisions.
+   *  @param {FP_TimeBase} otherTime
+   *  @return {number}
    */
   compare(otherTime) {
     var thisPrecision = this._getPrecision();
@@ -472,8 +474,10 @@ class FP_TimeBase extends FP_Type {
       this._getDateObj().getTime(): this._dateAtPrecision(otherPrecision).getTime();
     var otherTimeInt = otherPrecision <= thisPrecision ?
       otherTime._getDateObj().getTime(): otherTime._dateAtPrecision(thisPrecision).getTime();
-    return thisTimeInt < otherTimeInt ?
-      -1 : thisTimeInt === otherTimeInt ? 0 : 1;
+    if (thisPrecision !== otherPrecision && thisTimeInt === otherTimeInt) {
+      return null;
+    }
+    return thisTimeInt - otherTimeInt;
   }
 
 
@@ -481,7 +485,9 @@ class FP_TimeBase extends FP_Type {
    *  Returns a number representing the precision of the time string given to
    *  the constructor.  (Higher means more precise).  The number is the number
    *  of components of the time string (ignoring the time zone) produced by
-   *  matching against the time regular expression.
+   *  matching against the time regular expression, except that milliseconds
+   *  and seconds are counted together as a single of level of precision.
+   *  @return {number}
    */
   _getPrecision() {
     if (this.precision === undefined)
@@ -640,7 +646,7 @@ class FP_DateTime extends FP_TimeBase {
    *  Also sets this.precision.
    */
   _getMatchData() {
-    return super._getMatchData(dateTimeRE, 6);
+    return super._getMatchData(dateTimeRE, 5);
   }
 
   /**
@@ -696,19 +702,19 @@ class FP_DateTime extends FP_TimeBase {
     var hour = thisPrecision > 2 ? parseInt(timeParts[3]) : 0;
     var minutes = thisPrecision > 3 ? parseInt(timeParts[4].slice(1)): 0;
     var seconds = thisPrecision > 4 ? parseInt(timeParts[5].slice(1)): 0;
-    var ms = thisPrecision > 5 ? parseInt(timeParts[6].slice(1)): 0;
+    var ms = timeParts.length > 6 ? parseInt(timeParts[6].slice(1)): 0;
     var d = this._createDate(year, month, day, hour, minutes, seconds, ms,
       timezoneOffset);
-    if (precision < this._getPrecision()) {
+    if (precision < thisPrecision) {
       // Adjust the precision
       year = d.getFullYear();
       month = precision > 0 ? d.getMonth() : 0;
       day = precision > 1 ? d.getDate() : 1;
       hour = precision > 2 ? d.getHours() : 0;
       minutes = precision > 3 ? d.getMinutes(): 0;
-      seconds = precision > 4 ? d.getSeconds(): 0;
-      ms = precision > 5 ? d.getMilliseconds(): 0;
-      d = new Date(year, month, day, hour, minutes, seconds, ms);
+      // Here the precision will always be less than the maximum
+      // due to the condition in the if statement: "precision < thisPrecision"
+      d = new Date(year, month, day, hour, minutes);
     }
     return d;
   }
@@ -792,7 +798,7 @@ class FP_Time extends FP_TimeBase {
     var hour = parseInt(timeParts[0]);
     var minutes = thisPrecision > 0 ? parseInt(timeParts[1].slice(1)): 0;
     var seconds = thisPrecision > 1 ? parseInt(timeParts[2].slice(1)): 0;
-    var ms = thisPrecision > 2 ? parseInt(timeParts[3].slice(1)): 0;
+    var ms = timeParts.length > 3 ? parseInt(timeParts[3].slice(1)): 0;
     var d = this._createDate(year, month, day, hour, minutes, seconds, ms,
       timezoneOffset);
     if (timezoneOffset) {
@@ -802,13 +808,13 @@ class FP_Time extends FP_TimeBase {
       d.setMonth(month);
       d.setDate(day);
     }
-    if (precision < this._getPrecision()) {
+    if (precision < thisPrecision) {
       // Adjust the precision
       hour = d.getHours();
       minutes = precision > 0 ? d.getMinutes(): 0;
-      seconds = precision > 1 ? d.getSeconds(): 0;
-      ms = precision > 2 ? d.getMilliseconds(): 0;
-      d = new Date(year, month, day, hour, minutes, seconds, ms);
+      // Here the precision will always be less than the maximum
+      // due to the condition in the if statement: "precision < thisPrecision"
+      d = new Date(year, month, day, hour, minutes);
     }
     return d;
   }
@@ -819,7 +825,7 @@ class FP_Time extends FP_TimeBase {
    *  Also sets this.precision.
    */
   _getMatchData() {
-    return super._getMatchData(timeRE, 3);
+    return super._getMatchData(timeRE, 2);
   }
 
   /**

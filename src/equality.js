@@ -80,34 +80,42 @@ function typecheck(a, b){
 
 engine.lt = function(a, b){
   if (!a.length || !b.length) return [];
-  var vals = typecheck(a,b);
-  var a0 = vals[0];
-  var b0 = vals[1];
-  return a0 instanceof FP_Type ? a0.compare(b0) == -1 : a0 < b0;
+  const [a0, b0] = typecheck(a,b);
+  if (a0 instanceof FP_Type) {
+    const compare = a0.compare(b0);
+    return compare === null ? [] : compare < 0;
+  }
+  return a0 < b0;
 };
 
 engine.gt = function(a, b){
   if (!a.length || !b.length) return [];
-  var vals = typecheck(a,b);
-  var a0 = vals[0];
-  var b0 = vals[1];
-  return a0 instanceof FP_Type ? a0.compare(b0) == 1 : a0 > b0;
+  const [a0, b0] = typecheck(a,b);
+  if (a0 instanceof FP_Type) {
+    const compare = a0.compare(b0);
+    return compare === null ? [] : compare > 0;
+  }
+  return a0 > b0;
 };
 
 engine.lte = function(a, b){
   if (!a.length || !b.length) return [];
-  var vals = typecheck(a,b);
-  var a0 = vals[0];
-  var b0 = vals[1];
-  return a0 instanceof FP_Type ? a0.compare(b0) <= 0 : a0 <= b0;
+  const [a0, b0] = typecheck(a,b);
+  if (a0 instanceof FP_Type) {
+    const compare = a0.compare(b0);
+    return compare === null ? [] : compare <= 0;
+  }
+  return  a0 <= b0;
 };
 
 engine.gte = function(a, b){
   if (!a.length || !b.length) return [];
-  var vals = typecheck(a,b);
-  var a0 = vals[0];
-  var b0 = vals[1];
-  return a0 instanceof FP_Type ? a0.compare(b0) >= 0 : a0 >= b0;
+  const [a0, b0] = typecheck(a,b);
+  if (a0 instanceof FP_Type) {
+    const compare = a0.compare(b0);
+    return compare === null ? [] : compare >= 0;
+  }
+  return a0 >= b0;
 };
 
 

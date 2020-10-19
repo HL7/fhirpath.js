@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.6.2] - 2020-10-09
+### Fixed
+- Comparison of dates indicated with different level of precision
+
 ## [2.6.1] - 2020-09-22
 ### Fixed
 - Module not found errors with TypeScript when importing json files
