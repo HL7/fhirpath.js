@@ -5,9 +5,10 @@ const fs = require('fs');
 const yaml = require('js-yaml');
 const options = require('commander');
 options.description('Parses and/or runs a FHIRPath expression.  If neither --resourceFile nor --resourceJSON is provided, the parse tree of the FHIRPath expression will be output.');
-options.option('-e, --expression <expr>', 'FHIRPath expression');
-options.option('-f, --resourceFile <path name>', 'A file containing the JSON resource.');
-options.option('-r, --resourceJSON <JSON>', 'JSON resource.');
+options.option('-b, --basePath <path>', 'base path in the resource from which the JSON data was extracted.');
+options.option('-e, --expression <expr>', 'FHIRPath expression.');
+options.option('-f, --resourceFile <path name>', 'A file containing the JSON resource or part of it, if basePath is passed.');
+options.option('-r, --resourceJSON <JSON>', 'JSON resource or part of it, if basePath is passed.');
 options.option('-v, --variables <JSON>', 'JSON hash of variables.');
 options.option('-m, --model <dstu2 | stu3 | r4>', 'Include FHIR model data.');
 options.parse(process.argv);
@@ -16,8 +17,10 @@ options.parse(process.argv);
 // it can be extended with understading urls and files
 // TODO: introduce subcommands to inspect, eval fhirpath etc
 
-let expr =  options.expression;
-if (!expr)
+const expression =  options.expression;
+const base =  options.basePath;
+
+if (!expression)
   options.help();
 else {
   let resourceJSON = options.resourceJSON;
@@ -28,8 +31,8 @@ else {
   }
   if (!resourceJSON) {
     // Just display the parse tree
-    let res = fp.parse(expr);
-    console.log('Parse tree for fhirpath(' + expr + ') =>');
+    let res = fp.parse(expression);
+    console.log('Parse tree for fhirpath(' + expression + ') =>');
     console.log(yaml.dump(res));
   }
   else {
@@ -44,8 +47,8 @@ else {
         throw new Error('FHIR model must be one of '+supportedVersions);
       model = require('../fhir-context/'+options.model);
     }
-    let res = fp.evaluate(resource, expr, context, model);
-    console.log('fhirpath(' + expr + ') =>');
+    let res = fp.evaluate(resource, base ? {base, expression} : expression, context, model);
+    console.log('fhirpath(' + expression + ') =>');
     console.log(JSON.stringify(res, null, " "));
   }
 }

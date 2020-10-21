@@ -107,6 +107,13 @@ tests:
     desc: 'Parenthesized expression'
     result: [2,3]
 
+  - desc: Evaluating expression for a part of a resource
+    inputfile: questionnaire-part-example.json
+    model: 'r4'
+    expression: {base: 'QuestionnaireResponse.item', expression: 'answer.value = 2 year'}
+    result:
+      - true
+
 
 
 subject:

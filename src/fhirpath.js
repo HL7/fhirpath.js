@@ -670,17 +670,22 @@ function applyParsedPath(resource, parsedPath, context, model) {
 }
 
 /**
- *  Evaluates the "path" FHIRPath expression on the given resource, using data
- *  from "context" for variables mentioned in the "path" expression.
- * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
- *  This resource will be modified by this function to add type information.
- * @param {string} path - fhirpath expression, sample 'Patient.name.given'
+ *  Evaluates the "path" FHIRPath expression on the given resource or part of the resource,
+ *  using data from "context" for variables mentioned in the "path" expression.
+ * @param {(object|object[])} fhirData -  FHIR resource, part of a resource (in this case
+ *  path.base should be provided), bundle as js object or array of resources.
+ *  This object/array will be modified by this function to add type information.
+ * @param {string|object} path - string with fhirpath expression, sample 'Patient.name.given',
+ *  or object, if fhirData represents the part of the FHIR resource:
+ * @param {string} path.base - base path in resource from which fhirData was extracted
+ * @param {string} path.expression - fhirpath expression relative to path.base
  * @param {object} context - a hash of variable name/value pairs.
  * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  */
-var evaluate = function(resource, path, context, model) {
-  const node = parser.parse(path);
+var evaluate = function(fhirData, path, context, model) {
+  const resource = path instanceof Object ? makeResNode(fhirData, path.base) : fhirData ;
+  const node = parser.parse(path instanceof Object ? path.expression : path);
   return applyParsedPath(resource, node, context, model);
 };
 
