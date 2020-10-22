@@ -684,8 +684,9 @@ function applyParsedPath(resource, parsedPath, context, model) {
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  */
 var evaluate = function(fhirData, path, context, model) {
-  const resource = path instanceof Object ? makeResNode(fhirData, path.base) : fhirData ;
-  const node = parser.parse(path instanceof Object ? path.expression : path);
+  const pathIsObject = typeof path === 'object';
+  const resource = pathIsObject ? makeResNode(fhirData, path.base) : fhirData;
+  const node = parser.parse(pathIsObject ? path.expression : path);
   return applyParsedPath(resource, node, context, model);
 };
 
