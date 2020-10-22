@@ -59,13 +59,14 @@ const generateTest = (test, testResource) => {
   };
 
   expressions.forEach(expression => {
+    const expressionText = expression instanceof Object ? JSON.stringify(expression) : expression;
     switch(test.type) {
     case 'skipped':
       return it.skip(`Disabled test ${test.desc}`, () => {});
     case 'focused':
-      return it.only(((test.desc || '') + ': ' + (expression || '')), () => getTestData(expression));
+      return it.only(((test.desc || '') + ': ' + (expressionText|| '')), () => getTestData(expression));
     default:
-      return it(((test.desc || '') + ': ' + (expression || '')), () => getTestData(expression));
+      return it(((test.desc || '') + ': ' + (expressionText || '')), () => getTestData(expression));
     }
   });
 };

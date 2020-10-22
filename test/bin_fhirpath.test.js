@@ -37,6 +37,12 @@ describe ('bin/fhirpath', function () {
     tempFileObj.removeCallback();
   });
 
+  it ('should evaluate when given a file with a part of a resource', function() {
+    checkOutput("bin/fhirpath -b QuestionnaireResponse.item "
+      +"-e 'answer.value = 2 year' -m r4 -f '"
+      +__dirname+"/resources/questionnaire-part-example.json'", /true/g);
+  });
+
   it ('should accept a hash of variables', function() {
     checkOutput("bin/fhirpath -e '%v1 + 2' -r '{}' -v '{\"v1\": 5}'", /7/g);
   });

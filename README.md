@@ -108,6 +108,17 @@ lower case, e.g., 'dstu2', 'stu3' or 'r4').
 fhirpath --expression 'Observation.value' --resourceJSON '{"resourceType": "Observation", "valueString": "Green"}' --model r4
 ```
 
+Also, you can pass in a filename or a string of JSON representing a part of the resource.
+In that case, you should pass in the base path from which this part of the resource was extracted.
+```sh
+fhirpath --basePath QuestionnaireResponse.item --expression 'answer.value' --model r4 --resourceFile questionnaire-part-example.json
+
+> fhirpath(answer.value) =>
+> [
+>  "2 year"
+> ]
+```
+
 If given just the FHIRPath expression, the utility will print the parsed tree:
 
 ```sh
