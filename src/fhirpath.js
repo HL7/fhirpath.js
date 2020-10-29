@@ -214,14 +214,14 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
   var identifier = extConstant.children[0];
   var varName = engine.Identifier(ctx, parentData, identifier)[0];
   var value = ctx.vars[varName];
-  if (value === undefined) {
+  if (!(varName in ctx.vars)) {
     throw new Error(
       "Attempting to access an undefined environment variable: " + varName
     );
   }
   // For convenience, we all variable values to be passed in without their array
   // wrapper.  However, when evaluating, we need to put the array back in.
-  return value instanceof Array ? value : [value];
+  return value === undefined ? [] : value instanceof Array ? value : [value];
 };
 
 engine.LiteralTerm = function(ctx, parentData, node) {
