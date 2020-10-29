@@ -221,7 +221,9 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
   }
   // For convenience, we all variable values to be passed in without their array
   // wrapper.  However, when evaluating, we need to put the array back in.
-  return value === undefined ? [] : value instanceof Array ? value : [value];
+  return value === undefined || value === null
+    ? []
+    : value instanceof Array ? value : [value];
 };
 
 engine.LiteralTerm = function(ctx, parentData, node) {

@@ -23,6 +23,11 @@ tests:
       variables:
         a: []
       result: []
+    - desc: 'Null variable'
+      expression: '%a'
+      variables:
+        a: null
+      result: []
     - desc: 'Undefined variable'
       expression: '%a'
       error: true
