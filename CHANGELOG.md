@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.7.1] - 2020-10-29
+### Fixed
+- Now, attempting to access an undefined environment variable will result
+  in an error
+
 ## [2.7.0] - 2020-10-21
 ### Added
 - Evaluating expression for a part of a resource
