@@ -18,6 +18,19 @@ tests:
       variables:
         a: 5
       result: [4]
+    - desc: 'Empty variable'
+      expression: '%a'
+      variables:
+        a: []
+      result: []
+    - desc: 'Null variable'
+      expression: '%a'
+      variables:
+        a: null
+      result: []
+    - desc: 'Undefined variable'
+      expression: '%a'
+      error: true
     - desc: 'Escaped variables'
       expression: '%`a.b() - 1` - 2'
       variables:
