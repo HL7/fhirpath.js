@@ -5,7 +5,7 @@ This log documents significant changes for each release.  This project follows
 
 ## [2.7.2] - 2021-01-05
 ### Fixed
-- Fixed atlr4 version in the dependencies section of package.json
+- Fixed antlr4 version in the dependencies section of package.json
 
 ## [2.7.1] - 2020-10-29
 ### Fixed
