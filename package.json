@@ -45,7 +45,6 @@
     "test:unit": "jest && TZ=America/New_York jest && TZ=Europe/Paris jest",
     "test:demo": "npm run build && cd demo && npm run build && grunt test:e2e",
     "test:build": "cd browser-build && grunt test:e2e",
-    "pretest": "npm run build",
     "test": "npm run lint && npm run test:unit && npm run update-webdriver && npm run test:demo && npm run test:build",
     "lint": "eslint src/parser/index.js src/*.js converter/",
     "update-webdriver": "node node_modules/protractor/bin/webdriver-manager update"

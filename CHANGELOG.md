@@ -5,7 +5,10 @@ This log documents significant changes for each release.  This project follows
 
 ## [2.7.2] - 2021-01-05
 ### Fixed
-- Fixed antlr4 version in the dependencies section of package.json
+- Prevented the antlr4 dependency from moving beyond 4.8, because 4.9 has
+  breaking changes. Also, per https://github.com/antlr/antlr4/issues/2970,
+  it seems that antlr 4.9 requires Node.js 14, so we do not plan to update
+  the antlr dependency while Node.js 10 and 12 are still being maintained.
 
 ## [2.7.1] - 2020-10-29
 ### Fixed
