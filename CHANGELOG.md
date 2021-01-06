@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.7.2] - 2021-01-05
+### Fixed
+- Fixed atlr4 version in the dependencies section of package.json
+
 ## [2.7.1] - 2020-10-29
 ### Fixed
 - Now, attempting to access an undefined environment variable will result

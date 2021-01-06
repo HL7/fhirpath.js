@@ -1,11 +1,11 @@
 {
   "name": "fhirpath",
-  "version": "2.7.1",
+  "version": "2.7.2",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "dependencies": {
     "@lhncbc/ucum-lhc": "^4.1.3",
-    "antlr4": "^4.7.1",
+    "antlr4": "~4.8.0",
     "commander": "^2.18.0",
     "date-fns": "^1.30.1",
     "js-yaml": "^3.13.1"
@@ -25,12 +25,12 @@
     "grunt-protractor-runner": "^5.0.0",
     "grunt-text-replace": "^0.4.0",
     "jasmine-spec-reporter": "^4.2.1",
-    "jest": "^24.1.0",
+    "jest": "^26.6.3",
     "jit-grunt": "^0.10.0",
     "lodash": "^4.17.19",
     "rimraf": "^3.0.0",
     "tmp": "0.0.33",
-    "webpack": "^4.16.3",
+    "webpack": "^5.11.1",
     "webpack-bundle-analyzer": "^3.3.2",
     "webpack-cli": "^3.1.0",
     "xml2js": "^0.4.19",
