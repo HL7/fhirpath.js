@@ -7,6 +7,7 @@ module.exports = {
   devServer: {
     contentBase: './build'
   },
+  target: "es5",
   devtool: 'source-map',
   module: {
     rules: [

@@ -7,6 +7,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 function makeBaseConfig() {
   return {
     mode: 'production',
+    target: "es5",
     devtool: 'source-map',
     output: {
       libraryTarget: 'window',
