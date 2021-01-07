@@ -7,6 +7,7 @@ module.exports = {
   devServer: {
     contentBase: './build'
   },
+  target: "es5",
   devtool: 'source-map',
   module: {
     rules: [
@@ -16,20 +17,26 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-env']
+            presets: [['@babel/preset-env',
+              {
+                targets: {
+                  browsers: 'ie >= 11'
+                }
+              }
+            ]]
           }
         }
       },
       {
         test: /\.css$/,
-        loaders: [
+        use: [
           'style-loader',
           'css-loader'
         ]
       },
       {
         test: /\.yaml$/,
-        loaders: ['yaml-loader']
+        use: ['yaml-loader']
       }
 
     ]

@@ -7,6 +7,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 function makeBaseConfig() {
   return {
     mode: 'production',
+    target: "es5",
     devtool: 'source-map',
     output: {
       libraryTarget: 'window',
@@ -20,7 +21,13 @@ function makeBaseConfig() {
           use: {
             loader: 'babel-loader',
             options: {
-              presets: ['@babel/preset-env']
+              presets: [['@babel/preset-env',
+                {
+                  targets: {
+                    browsers: 'ie >= 11'
+                  }
+                }
+              ]]
             }
           }
         }
