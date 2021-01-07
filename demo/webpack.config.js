@@ -22,14 +22,14 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        loaders: [
+        use: [
           'style-loader',
           'css-loader'
         ]
       },
       {
         test: /\.yaml$/,
-        loaders: ['yaml-loader']
+        use: ['yaml-loader']
       }
 
     ]
