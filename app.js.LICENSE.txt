@@ -1,0 +1,8 @@
+/*!
+ * The buffer module from node.js, for the browser.
+ *
+ * @author   Feross Aboukhadijeh <https://feross.org>
+ * @license  MIT
+ */
+
+/*! For license information please see fhirpath.min.js.LICENSE.txt */
