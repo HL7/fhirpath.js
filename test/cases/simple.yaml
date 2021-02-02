@@ -94,6 +94,15 @@ tests:
     disableConsoleLog: true
 
    # $this
+  - expression: Patient.name.given.select($this.single())
+    result: ["Peter", "James", "Jim", "Peter", "James"]
+
+  - expression: Patient.name.given.select($this.contains('Ja'))
+    result: [false, true, false, false, true]
+
+  - expression: Patient.name.given.select($this.length) = Patient.name.given.select(length)
+    result: [true]
+
   - expression:  Patient.telecom.where($this.use = 'work')
     result: [{"use": "work", "rank": 1, "value": "(03) 5555 6473", "system": "phone"}]
 

@@ -22,6 +22,7 @@ engine.existsMacro  = function(coll, expr) {
 
 engine.allMacro = function(coll, expr) {
   for (let i=0, len=coll.length; i<len; ++i) {
+    this.$index = i;
     if(!util.isTrue(expr(coll[i]))){
       return [false];
     }

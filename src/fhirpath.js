@@ -418,10 +418,9 @@ const paramTable = {
 };
 
 function makeParam(ctx, parentData, type, param) {
-  // this is hack for $this
-  ctx.currentData = parentData;
   if(type === "Expr"){
     return function(data) {
+      ctx.$this = data;
       return engine.doEval(ctx, util.arraify(data), param);
     };
   }
@@ -558,7 +557,7 @@ engine.UnionExpression = function(ctx, parentData, node) {
 };
 
 engine.ThisInvocation = function(ctx) {
-  return util.arraify(ctx.currentData);
+  return util.arraify(ctx.$this);
 };
 
 engine.TotalInvocation = function(ctx) {

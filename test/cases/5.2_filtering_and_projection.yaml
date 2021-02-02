@@ -13,6 +13,10 @@ tests:
     expression: Functions.coll1.coll2.attr.where($this = 0)
     result: []
 
+  - desc: '** the ability to use $index in the expression'
+    expression: Functions.coll1.coll2.attr.where($index > 2)
+    result: [4, 5]
+
 # If the input collection is emtpy ({ }), the result is empty.
 
   - desc: '** filter empty coll'
@@ -42,6 +46,9 @@ tests:
     expression: Functions.attrempty.select(nothing)
     result: []
 
+  - desc: '** the ability to use $index in the expression'
+    expression: Functions.coll1.coll2.select(attr + $index)
+    result: [1, 3, 5, 7, 9]
 
   - desc: '5.2.3. repeat(projection: expression) : collection'
 # A version of select that will repeat the projection and add it to the output collection, as long as the projection yields new items (as determined by the equals (=) operator).

@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.7.3] - 2021-02-02
+### Fixed
+- $this wasn't set correctly if it is not used in an operator expression
+- It was unable to use $index in expressions for functions: all, where, select.
+
 ## [2.7.2] - 2021-01-05
 ### Fixed
 - Prevented the antlr4 dependency from moving beyond 4.8, because 4.9 has
