@@ -425,6 +425,7 @@ function makeParam(ctx, parentData, type, param) {
     };
   }
   if(type === "AnyAtRoot"){
+    ctx.$this = ctx.dataRoot;
     return engine.doEval(ctx, ctx.dataRoot, param);
   }
   if(type === "Identifier"){
@@ -439,6 +440,7 @@ function makeParam(ctx, parentData, type, param) {
     return engine.TypeSpecifier(ctx, parentData, param);
   }
 
+  ctx.$this = parentData;
   var res = engine.doEval(ctx, parentData, param);
   if(type === "Any") {
     return res;

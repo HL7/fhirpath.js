@@ -1078,7 +1078,6 @@ tests:
         expression: Patient.name.first().subsetOf($this.name)
         result:
           - true
-        disable: true
       - desc: '** testSubSetOf2'
         inputfile: patient-example.json
         expression: Patient.name.subsetOf($this.name.first()).not()
@@ -1090,7 +1089,6 @@ tests:
         expression: Patient.name.first().supersetOf($this.name).not()
         result:
           - true
-        disable: true
       - desc: '** testSuperSetOf2'
         inputfile: patient-example.json
         expression: Patient.name.supersetOf($this.name.first())
