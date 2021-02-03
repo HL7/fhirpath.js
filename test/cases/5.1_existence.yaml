@@ -117,6 +117,10 @@ tests:
     expression: Functions.coll1.coll2.attr.all($this = 5)
     result: [false]
 
+  - desc: '** the ability to use $index in the expression'
+    expression: (0|1|2|3).all($this = $index)
+    result: [true]
+
 
   - desc: '5.1.5. allTrue() : boolean'
 # Takes a collection of boolean values and returns
