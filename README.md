@@ -14,7 +14,7 @@ Try it out on the [demo page](https://hl7.github.io/fhirpath.js/).
 ### Server-side (Node.js)
 
 ```sh
-npm install –save fhirpath
+npm install –-save fhirpath
 ```
 
 ```js
