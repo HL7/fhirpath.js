@@ -202,4 +202,8 @@ open browser on localhost:8080
 This implemention of the FHIRPath specification was developed as a joint project
 between the U.S. National Library of Medicine (NLM) and Health Samurai, and was
 then donated to HL7.  Current maintenance and additional development is being
-performed by NLM.
+performed by NLM, but we welcome contributions from others.  (For anything
+substantial, we recommend raising an issue first to coordinate with us.)
+
+A complete list of contributors can be found at
+https://github.com/HL7/fhirpath.js/graphs/contributors
