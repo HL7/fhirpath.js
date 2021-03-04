@@ -197,3 +197,9 @@ npm install && npm run build && npm run start
 ```
 
 open browser on localhost:8080
+
+## Credits
+This implemention of the FHIRPath specification was developed as a joint project
+between the U.S. National Library of Medicine (NLM) and Health Samurai, and was
+then donated to HL7.  Current maintenance and additional development is being
+performed by NLM.
