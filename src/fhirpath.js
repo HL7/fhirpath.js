@@ -564,6 +564,7 @@ engine.evalTable = { // not every evaluator is listed if they are defined on eng
   TypeExpression: engine.AliasOpExpression({"is": "isOp"}),
   MembershipExpression: engine.AliasOpExpression({"contains": "containsOp", "in": "inOp"}),
   NullLiteral: engine.NullLiteral,
+  EntireExpression: engine.InvocationTerm,
   InvocationTerm: engine.InvocationTerm,
   LiteralTerm: engine.LiteralTerm,
   MemberInvocation: engine.MemberInvocation,

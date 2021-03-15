@@ -11,6 +11,15 @@ function FHIRPathListener() {
 FHIRPathListener.prototype = Object.create(antlr4.tree.ParseTreeListener.prototype);
 FHIRPathListener.prototype.constructor = FHIRPathListener;
 
+// Enter a parse tree produced by FHIRPathParser#entireExpression.
+FHIRPathListener.prototype.enterEntireExpression = function(ctx) {
+};
+
+// Exit a parse tree produced by FHIRPathParser#entireExpression.
+FHIRPathListener.prototype.exitEntireExpression = function(ctx) {
+};
+
+
 // Enter a parse tree produced by FHIRPathParser#indexerExpression.
 FHIRPathListener.prototype.enterIndexerExpression = function(ctx) {
 };

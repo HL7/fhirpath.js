@@ -6,6 +6,7 @@ This log documents significant changes for each release.  This project follows
 ## [2.7.4] - 2021-03-12
 ### Fixed
 - Evaluation of singleton collections.
+- Removed ignoring the unknown part of the expression.
 
 ## [2.7.3] - 2021-02-02
 ### Fixed
