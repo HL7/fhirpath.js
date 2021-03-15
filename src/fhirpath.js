@@ -386,37 +386,6 @@ engine.realizeParams = function(ctx, parentData, args) {
   }
 };
 
-const paramTable = {
-  "Integer": function(val){
-    let d = util.valData(val);
-    if(typeof d !== "number" || !Number.isInteger(d)){
-      throw new Error("Expected integer, got: " + JSON.stringify(d));
-    }
-    return d;
-  },
-  "Boolean": function(val){
-    let d = util.valData(val);
-    if (d === true || d === false) {
-      return d;
-    }
-    throw new Error("Expected boolean, got: " + JSON.stringify(d));
-  },
-  "Number": function(val){
-    let d = util.valData(val);
-    if(typeof d !== "number"){
-      throw new Error("Expected number, got: " + JSON.stringify(d));
-    }
-    return d;
-  },
-  "String": function(val){
-    let d = util.valData(val);
-    if(typeof d !== "string"){
-      throw new Error("Expected string, got: " + JSON.stringify(d));
-    }
-    return d;
-  }
-};
-
 function makeParam(ctx, parentData, type, param) {
   if(type === "Expr"){
     return function(data) {
@@ -452,19 +421,7 @@ function makeParam(ctx, parentData, type, param) {
       type = type[0];
     }
   }
-  var maker = paramTable[type];
-  if(res.length > 1){
-    throw new Error("Unexpected collection" + JSON.stringify(res) +
-      "; expected singleton of type " + type);
-  }
-  if(res.length == 0){
-    return [];
-  } else  if(maker){
-    return maker(res[0]);
-  } else {
-    console.error(type, param);
-    throw new Error("IMPL me for " + type);
-  }
+  return misc.singleton(res, type);
 }
 
 function doInvoke(ctx, fnName, data, rawParams){

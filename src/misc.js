@@ -199,4 +199,58 @@ engine.createConvertsToFn = function (toFunction, type) {
   };
 };
 
+const singletonEvalByType = {
+  "Integer": function(coll){
+    const d = engine.toInteger(coll);
+    if (Number.isInteger(d)) {
+      return d;
+    }
+  },
+  "Boolean": function(coll){
+    const d = engine.toBoolean(coll);
+    if (d === true || d === false) {
+      return d;
+    } else if (coll.length === 1) {
+      return true;
+    }
+  },
+  "Number": function(coll){
+    const d = engine.toDecimal(coll);
+    if (typeof d === "number") {
+      return d;
+    }
+  },
+  "String": function(coll){
+    let d = engine.toString(coll);
+    if (typeof d === "string") {
+      return d;
+    }
+  }
+};
+
+/**
+ * Converts a collection to a singleton of the specified type.
+ * See http://hl7.org/fhirpath/#singleton-evaluation-of-collections for details.
+ * @param {Array} coll - collection
+ * @param {string} type - 'Integer', 'Boolean', 'Number' or 'String'
+ * @return {*}
+ */
+engine.singleton = function (coll, type) {
+  if(coll.length > 1){
+    throw new Error("Unexpected collection" + JSON.stringify(coll) +
+      "; expected singleton of type " + type);
+  } else if (coll.length === 0) {
+    return [];
+  }
+  const toSingleton = singletonEvalByType[type];
+  if (toSingleton) {
+    const value = toSingleton(coll);
+    if (value !== undefined) {
+      return value;
+    }
+    throw new Error(`Expected ${type.toLowerCase()}, got: ${JSON.stringify(coll)}`);
+  }
+  throw new Error('Not supported type ' + type);
+};
+
 module.exports = engine;

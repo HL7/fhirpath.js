@@ -547,18 +547,15 @@ tests:
         expression: (0).not() = true
         result:
           - true
-        disable: true
       - desc: '** testIntegerBooleanNotFalse'
         inputfile: patient-example.json
         expression: (1).not() = false
         result:
           - true
-        disable: true
       - desc: '** testNotInvalid'
         inputfile: patient-example.json
         expression: (1|2).not() = false
         error: true
-        disable: true
   - 'group: testTypes':
       - desc: '** testStringYearConvertsToDate'
         inputfile: patient-example.json
