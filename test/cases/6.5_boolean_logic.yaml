@@ -57,7 +57,14 @@ tests:
     expression: emp or emp
     result: []
 
-  - desc: '* 6.5.3 xor'
+  - desc: '* 6.5.3 not'
+  - desc: '** not() for non-empty collection'
+    inputfile: patient-example.json
+    expression: (0).not()
+    result:
+      - false
+
+  - desc: '* 6.5.4 xor'
   - desc: '* xor (true xor true)'
     expression: ok1 xor ok2
     result: [false]
@@ -89,7 +96,7 @@ tests:
     result: []
 
 
-  - desc: '* 6.5.4 implies'
+  - desc: '* 6.5.5 implies'
   - desc: '* implies (true implies true)'
     expression: ok1 implies ok2
     result: [true]

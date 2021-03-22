@@ -547,6 +547,7 @@ tests:
         expression: (0).not() = true
         result:
           - true
+        disable: true
       - desc: '** testIntegerBooleanNotFalse'
         inputfile: patient-example.json
         expression: (1).not() = false

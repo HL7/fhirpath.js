@@ -201,27 +201,27 @@ engine.createConvertsToFn = function (toFunction, type) {
 
 const singletonEvalByType = {
   "Integer": function(coll){
-    const d = engine.toInteger(coll);
+    const d = util.valData(coll[0]);
     if (Number.isInteger(d)) {
       return d;
     }
   },
   "Boolean": function(coll){
-    const d = engine.toBoolean(coll);
+    const d = util.valData(coll[0]);
     if (d === true || d === false) {
       return d;
     } else if (coll.length === 1) {
       return true;
     }
   },
-  "Number": function(coll){
-    const d = engine.toDecimal(coll);
+  "Number": function(coll) {
+    const d = util.valData(coll[0]);
     if (typeof d === "number") {
       return d;
     }
   },
   "String": function(coll){
-    let d = engine.toString(coll);
+    const d = util.valData(coll[0]);
     if (typeof d === "string") {
       return d;
     }
