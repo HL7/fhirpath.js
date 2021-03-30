@@ -50,13 +50,9 @@ tests:
     expression: Functions.attrempty.not()
     result: []
 
-  - desc: '** not empty, non-boolean coll with not() is empty'
+  - desc: '** multi-valued coll with not() is invalid'
     expression: Functions.attrdouble.not()
-    result: []
-
-  - desc: '** multi-valued boolean coll with not() is empty'
-    expression: Functions.attrdouble.not()
-    result: []
+    error: true
 
   - desc: '** not nothing is empty coll'
     expression: Functions.nothing.not()

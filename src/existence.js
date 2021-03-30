@@ -1,15 +1,16 @@
 // This file holds code to hande the FHIRPath Existence functions (5.1 in the
 // specification).
 
-var util = require("./utilities");
-var filtering = require("./filtering");
+const util = require("./utilities");
+const filtering = require("./filtering");
+const misc = require("./misc");
 
-var engine = {};
+const engine = {};
 engine.emptyFn = util.isEmpty;
 
-engine.notFn = function(x) {
-  let d;
-  return (x.length === 1 && typeof (d=util.valData(x[0])) === 'boolean') ? !d : [];
+engine.notFn = function(coll) {
+  let d = misc.singleton(coll, 'Boolean');
+  return (typeof (d) === 'boolean') ? !d : [];
 };
 
 engine.existsMacro  = function(coll, expr) {

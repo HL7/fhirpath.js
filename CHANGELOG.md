@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.7.4] - 2021-03-12
+### Fixed
+- Evaluation of singleton collections.
+- Removed ignoring the unknown part of the expression.
+
 ## [2.7.3] - 2021-02-02
 ### Fixed
 - $this wasn't set correctly if it is not used in an operator expression

@@ -33,7 +33,7 @@ var parse = function(path){
   parser.removeErrorListeners();
   parser.addErrorListener(listener);
 
-  var tree = parser.expression();
+  var tree = parser.entireExpression();
 
   function PathListener() {
     Listener.call(this); // inherit default listener
