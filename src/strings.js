@@ -1,23 +1,19 @@
 const util = require("./utilities");
+const misc = require("./misc");
 
-var engine = {};
-
-function ensureStringSingleton(x){
-  let d;
-  if(x.length == 1 && typeof (d=util.valData(x[0])) === "string") {
-    return d;
-  }
-  throw new Error('Expected string, but got ' + JSON.stringify(d || x));
-}
+const engine = {};
 
 engine.indexOf = function(coll, substr){
-  var str = ensureStringSingleton(coll);
-  return str.indexOf(substr);
+  if (util.isEmpty(substr)) {
+    return [];
+  }
+  const str = misc.singleton(coll, 'String');
+  return (typeof (str) === 'string') ? str.indexOf(substr) : [];
 };
 
 engine.substring = function(coll, start, length){
-  var str = ensureStringSingleton(coll);
-  if (util.isEmpty(start) || start < 0 || start >= str.length) {
+  const str = misc.singleton(coll, 'String');
+  if (typeof (str) !== 'string' || util.isEmpty(start) || start < 0 || start >= str.length) {
     return  [];
   }
   if (length === undefined || util.isEmpty(length)) {
@@ -27,42 +23,75 @@ engine.substring = function(coll, start, length){
 };
 
 engine.startsWith = function(coll, prefix){
-  var str = ensureStringSingleton(coll);
-  return str.startsWith(prefix);
+  const str = misc.singleton(coll, 'String');
+  return (typeof (str) === 'string') ? str.startsWith(prefix) : [];
 };
 
-engine.endsWith = function(coll, postfix){
-  var str = ensureStringSingleton(coll);
-  return str.endsWith(postfix);
+engine.endsWith = function(coll, postfix) {
+  const str = misc.singleton(coll, 'String');
+  return (typeof (str) === 'string') ? str.endsWith(postfix) : [];
 };
 
 engine.containsFn = function(coll, substr){
-  var str = ensureStringSingleton(coll);
-  return str.includes(substr);
+  const str = misc.singleton(coll, 'String');
+  return (typeof (str) === 'string') ? str.includes(substr) : [];
+};
+
+engine.upper = function(coll){
+  const str = misc.singleton(coll, 'String');
+  return (typeof (str) === 'string') ? str.toUpperCase() : [];
+};
+
+
+engine.lower = function(coll){
+  const str = misc.singleton(coll, 'String');
+  return (typeof (str) === 'string') ? str.toLowerCase() : [];
 };
 
 
 engine.matches = function(coll, regex){
-  var str = ensureStringSingleton(coll);
-  var reg = new RegExp(regex);
+  if (util.isEmpty(regex)) {
+    return [];
+  }
+  const str = misc.singleton(coll, 'String');
+  if (typeof (str) !== 'string') {
+    return [];
+  }
+  const reg = new RegExp(regex);
   return reg.test(str);
-
 };
 
-engine.replace = function(coll, regex, repl){
-  var str = ensureStringSingleton(coll);
-  return str.replace(regex, repl);
+engine.replace = function(coll, pattern, repl){
+  if (util.isEmpty(pattern) || util.isEmpty(repl)) {
+    return [];
+  }
+  const str = misc.singleton(coll, 'String');
+  if (typeof (str) !== 'string') {
+    return [];
+  }
+  return str.replace(pattern, repl);
 };
 
 engine.replaceMatches = function(coll, regex, repl){
-  var str = ensureStringSingleton(coll);
-  var reg = new RegExp(regex);
+  if (util.isEmpty(regex) || util.isEmpty(repl)) {
+    return [];
+  }
+  const str = misc.singleton(coll, 'String');
+  if (typeof (str) !== 'string') {
+    return [];
+  }
+  const reg = new RegExp(regex);
   return str.replace(reg, repl);
 };
 
 engine.length = function(coll){
-  var str = ensureStringSingleton(coll);
-  return str.length;
+  const str = misc.singleton(coll, 'String');
+  return (typeof (str) === 'string') ? str.length : [];
+};
+
+engine.toChars = function(coll){
+  const str = misc.singleton(coll, 'String');
+  return (typeof (str) === 'string') ? str.split('') : [];
 };
 
 module.exports = engine;

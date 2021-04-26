@@ -1541,14 +1541,12 @@ tests:
         expression: '''T''.lower() = ''t'''
         result:
           - true
-    disable: true
   - 'group: testToChars':
       - desc: '** testToChars1'
         inputfile: patient-example.json
         expression: '''t2''.toChars() = ''t'' | ''2'''
         result:
           - true
-    disable: true
   - 'group: testSubstring':
       - desc: '** testSubstring1'
         inputfile: patient-example.json

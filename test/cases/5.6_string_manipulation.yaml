@@ -12,9 +12,17 @@ tests:
     expression: Functions.str.attr.indexOf('qwerty')
     result: [-1]
 
-  - desc: '** index of empty substring'
+  - desc: '** index of substring with zero length'
     expression: Functions.str.attr.indexOf('')
     result: [0]
+
+  - desc: '** indexOf on empty input collection'
+    expression: Functions.str.empty.indexOf('')
+    result: []
+
+  - desc: '** index of empty substring'
+    expression: Functions.str.empty.indexOf(EmptySubstring)
+    result: []
 
   - desc: '5.6.2. substring(start : integer [, length : integer]) : string'
 # If the input collection contains a single item of type string, it returns a collection with the part of the string starting at position start (zero-based). If length is given, will return at most length number of characters from the input string.
@@ -43,6 +51,9 @@ tests:
     expression: Functions.str.attr.substring(5, EmptyLength)
     result: ['string']
 
+  - desc: '** substring on empty input collection'
+    expression: Functions.str.empty.substring(0)
+    result: []
 
   - desc: '5.6.3. startsWith(prefix : string) : boolean'
 # If the input collection contains a single item of type string, the function will return true when the input string starts with the given prefix. Also returns true when prefix is the empty string.
@@ -55,8 +66,18 @@ tests:
     result: [false]
 
 
-  - desc: '** starts with empty prefix'
+  - desc: '** starts with prefix with zero length'
     expression: Functions.str.attr.startsWith('')
+    result: [true]
+
+  - desc: '** startsWith on empty input collection'
+    expression: Functions.str.empty.startsWith('')
+    result: []
+
+  # this behaviour is not described in spec
+  # (http://hl7.org/fhirpath/N1/#startswithprefix-string-boolean):
+  - desc: '** start with empty prefix'
+    expression: Functions.str.attr.startsWith(EmptyString)
     result: [true]
 
   - desc: '5.6.4. endsWith(suffix : string) : boolean'
@@ -69,8 +90,18 @@ tests:
     expression: Functions.str.attr.endsWith('lala')
     result: [false]
 
-  - desc: '** end with empty suffix'
+  - desc: '** end with suffix with zero length'
     expression: Functions.str.attr.endsWith('')
+    result: [true]
+
+  - desc: '** endsWith on empty input collection'
+    expression: Functions.str.empty.endsWith('')
+    result: []
+
+  # this behaviour is not described in spec
+  # (http://hl7.org/fhirpath/N1/#endswithsuffix-string-boolean):
+  - desc: '** end with empty substring'
+    expression: Functions.str.attr.endsWith(EmptyString)
     result: [true]
 
   - desc: '5.6.5. contains(substring : string) : boolean'
@@ -87,7 +118,39 @@ tests:
     expression: Functions.str.attr.contains('')
     result: [true]
 
-  - desc: '5.6.6. replace(pattern : string, substitution : string) : string'
+  - desc: '** contains on empty input collection'
+    expression: Functions.str.empty.contains('')
+    result: []
+
+  - desc: '5.6.6. upper() : string'
+
+  - desc: '** upper 1'
+    expression: "'abcdefg'.upper()"
+    result: ['ABCDEFG']
+
+  - desc: '** upper 2'
+    expression: "'AbCdefg'.upper()"
+    result: ['ABCDEFG']
+
+  - desc: '** upper on empty input collection'
+    expression: Functions.str.empty.upper()
+    result: []
+
+  - desc: '5.6.7. lower() : string'
+
+  - desc: '** lower 1'
+    expression: "'ABCDEFG'.lower()"
+    result: ['abcdefg']
+
+  - desc: '** lower 2'
+    expression: "'aBcDEFG'.lower()"
+    result: ['abcdefg']
+
+  - desc: '** lower on empty input collection'
+    expression: Functions.str.empty.lower()
+    result: []
+
+  - desc: '5.6.8. replace(pattern : string, substitution : string) : string'
 # If the input collection contains a single item of type string, the function will return the input string with all instances of pattern replaced with substitution. If the substitution is the empty string, the instances of the pattern are removed from the input string. If the pattern is the empty string, every character in the input string is surrounded by the substitution, e.g. 'abc'.replace('','x') becomes 'xaxbxcx'.
   - desc: '** replace'
     expression: Functions.str.attr.replace('string', 'lala')
@@ -108,7 +171,19 @@ tests:
     disable: true
     result: ['xtxexsxtx xsxtxrxixnxg']
 
-  - desc: '5.6.7. matches(regex : string) : boolean'
+  - desc: '** replace on empty input collection'
+    expression: Functions.str.empty.replace('', 'x')
+    result: []
+
+  - desc: '** replace with empty collection in pattern'
+    expression: Functions.str.attr.replace(EmptyPattern, '')
+    result: []
+
+  - desc: '** replace with empty collection in substitution'
+    expression: Functions.str.attr.replace('', EmptySubstitution)
+    result: []
+
+  - desc: '5.6.9. matches(regex : string) : boolean'
 # If the input collection contains a single item of type string, the function will return true when the value matches the given regular expression. Regular expressions should function consistently, regardless of any culture- and locale-specific settings in the environment, should be case-sensitive, use 'single line' mode and allow Unicode characters.
   - desc: '** matches'
     expression: Functions.str.attr.matches('t.+')
@@ -118,10 +193,18 @@ tests:
     expression: Functions.str.attr.matches('asd.+')
     result: [false]
 
-  - desc: '5.6.8. replaceMatches(regex : string, substitution: string) : string'
+  - desc: '** matches on empty input collection'
+    expression: Functions.str.empty.matches('.*')
+    result: []
+
+  - desc: '** matches with empty collection in regex'
+    expression: Functions.str.attr.matches(EmptyRegex)
+    result: []
+
+  - desc: '5.6.10. replaceMatches(regex : string, substitution: string) : string'
 # If the input collection contains a single item of type string, the function will match the input using the regular expression in regex and replace each match with the substitution string. The substitution may refer to identified match groups in the regular expression.
-# This example of replace() will convert a string with a date formatted as MM/dd/yy to dd-MM-yy:
-# '11/30/1972'.replace('\\b(?<month>\\d{1,2})/(?<day>\\d{1,2})/(?<year>\\d{2,4})\\b',
+# This example of replaceMatches() will convert a string with a date formatted as MM/dd/yy to dd-MM-yy:
+# '11/30/1972'.replaceMatches('\\b(?<month>\\d{1,2})/(?<day>\\d{1,2})/(?<year>\\d{2,4})\\b',
 # '${day}-${month}-${year}')
 # Note: Platforms will typically use native regular expression implementations. These are typically fairly similar, but there will always be small differences. As such, FHIRPath does not prescribe a particular dialect, but recommends the use of the dialect defined by as part of XML Schema 1.1 as the dialect most likely to be broadly supported and understood.
   - desc: '** replaceMatches'
@@ -129,16 +212,27 @@ tests:
     result: ['match string']
 
   - desc: '** replaceMatches 2'
-    expression: Functions.str.date.replace('\\b(?<month>\\d{1,2})/(?<day>\\d{1,2})/(?<year>\\d{2,4})\\b', '${day}-${month}-${year}')
+    expression: Functions.str.date.replaceMatches('\\b(?<month>\\d{1,2})/(?<day>\\d{1,2})/(?<year>\\d{2,4})\\b', '${day}-${month}-${year}')
     disable: true # cannot support named matches
     result: ['30-11-1972']
 
   - desc: '** replaceMatches 3'
-    expression: Functions.str.date.replace('\\b(\\d{1,2})/(\\d{1,2})/(\\d{2,4})\\b', '$2-$1-$3'}')
-    disable: true # cannot support named matches
+    expression: Functions.str.date.replaceMatches('\\b(\\d{1,2})/(\\d{1,2})/(\\d{2,4})\\b', '$2-$1-$3')
     result: ['30-11-1972']
 
-  - desc: '5.6.9. length() : integer'
+  - desc: '** replaceMatches on empty input collection'
+    expression: Functions.str.empty.replaceMatches('(.*)', '$1')
+    result: []
+
+  - desc: '** replaceMatches with empty collection in regex'
+    expression: Functions.str.attr.replaceMatches(EmptyRegex, 'aaa')
+    result: []
+
+  - desc: '** replaceMatches with empty input collection in substitution'
+    expression: Functions.str.attr.replaceMatches('', EmptySubstitution)
+    result: []
+
+  - desc: '5.6.11. length() : integer'
 # If the input collection contains a single item of type string, the function will return the length of the string. If the input collection is empty ({ }), the result is empty.
   - desc: '** length'
     expression: Functions.str.attr.length()
@@ -146,7 +240,16 @@ tests:
 
   - desc: '** length of empty coll'
     expression: Functions.str.empty.length()
-    disable: true
+    result: []
+
+  - desc: '5.6.12. toChars() : collection'
+
+  - desc: '** list of characters in the input string'
+    expression: "'abc'.toChars()"
+    result: ['a', 'b', 'c']
+
+  - desc: '** toChars on empty input collection'
+    expression: Functions.str.empty.toChars()
     result: []
 
 

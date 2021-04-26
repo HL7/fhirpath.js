@@ -3,6 +3,13 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.8.0] - 2021-04-26
+### Added
+- String manipulation functions: upper(), lower(), toChars().
+### Fixed
+- String manipulation functions did not be properly returning an empty
+  collection when the input collection is empty.
+  
 ## [2.7.4] - 2021-03-12
 ### Fixed
 - Evaluation of singleton collections.

@@ -248,7 +248,7 @@ engine.singleton = function (coll, type) {
     if (value !== undefined) {
       return value;
     }
-    throw new Error(`Expected ${type.toLowerCase()}, got: ${JSON.stringify(coll)}`);
+    throw new Error(`Expected ${type.toLowerCase()}, but got: ${JSON.stringify(coll)}`);
   }
   throw new Error('Not supported type ' + type);
 };
