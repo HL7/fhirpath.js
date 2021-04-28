@@ -8,12 +8,12 @@ engine.indexOf = function(coll, substr){
     return [];
   }
   const str = misc.singleton(coll, 'String');
-  return (typeof (str) === 'string') ? str.indexOf(substr) : [];
+  return util.isEmpty(str) ? [] : str.indexOf(substr);
 };
 
 engine.substring = function(coll, start, length){
   const str = misc.singleton(coll, 'String');
-  if (typeof (str) !== 'string' || util.isEmpty(start) || start < 0 || start >= str.length) {
+  if (util.isEmpty(str) || util.isEmpty(start) || start < 0 || start >= str.length) {
     return  [];
   }
   if (length === undefined || util.isEmpty(length)) {
@@ -24,28 +24,28 @@ engine.substring = function(coll, start, length){
 
 engine.startsWith = function(coll, prefix){
   const str = misc.singleton(coll, 'String');
-  return (typeof (str) === 'string') ? str.startsWith(prefix) : [];
+  return util.isEmpty(str) ? [] : str.startsWith(prefix);
 };
 
 engine.endsWith = function(coll, postfix) {
   const str = misc.singleton(coll, 'String');
-  return (typeof (str) === 'string') ? str.endsWith(postfix) : [];
+  return util.isEmpty(str) ? [] : str.endsWith(postfix);
 };
 
 engine.containsFn = function(coll, substr){
   const str = misc.singleton(coll, 'String');
-  return (typeof (str) === 'string') ? str.includes(substr) : [];
+  return util.isEmpty(str) ? [] : str.includes(substr);
 };
 
 engine.upper = function(coll){
   const str = misc.singleton(coll, 'String');
-  return (typeof (str) === 'string') ? str.toUpperCase() : [];
+  return util.isEmpty(str) ? [] : str.toUpperCase();
 };
 
 
 engine.lower = function(coll){
   const str = misc.singleton(coll, 'String');
-  return (typeof (str) === 'string') ? str.toLowerCase() : [];
+  return util.isEmpty(str) ? [] : str.toLowerCase();
 };
 
 
@@ -54,7 +54,7 @@ engine.matches = function(coll, regex){
     return [];
   }
   const str = misc.singleton(coll, 'String');
-  if (typeof (str) !== 'string') {
+  if (util.isEmpty(str)) {
     return [];
   }
   const reg = new RegExp(regex);
@@ -66,10 +66,11 @@ engine.replace = function(coll, pattern, repl){
     return [];
   }
   const str = misc.singleton(coll, 'String');
-  if (typeof (str) !== 'string') {
+  if (util.isEmpty(str)) {
     return [];
   }
-  return str.replace(pattern, repl);
+  const reg = new RegExp(util.escapeStringForRegExp(pattern), 'g');
+  return str.replace(reg, repl);
 };
 
 engine.replaceMatches = function(coll, regex, repl){
@@ -77,21 +78,21 @@ engine.replaceMatches = function(coll, regex, repl){
     return [];
   }
   const str = misc.singleton(coll, 'String');
-  if (typeof (str) !== 'string') {
+  if (util.isEmpty(str)) {
     return [];
   }
-  const reg = new RegExp(regex);
+  const reg = new RegExp(regex, 'g');
   return str.replace(reg, repl);
 };
 
 engine.length = function(coll){
   const str = misc.singleton(coll, 'String');
-  return (typeof (str) === 'string') ? str.length : [];
+  return util.isEmpty(str) ? [] : str.length;
 };
 
 engine.toChars = function(coll){
   const str = misc.singleton(coll, 'String');
-  return (typeof (str) === 'string') ? str.split('') : [];
+  return util.isEmpty(str) ? [] : str.split('');
 };
 
 module.exports = engine;

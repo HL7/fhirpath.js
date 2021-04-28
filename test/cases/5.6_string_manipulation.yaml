@@ -158,18 +158,19 @@ tests:
 
   - desc: '** replace multiple'
     expression: Functions.str.attr.replace('t', 'FHIR')
-    disable: true
     result: ['FHIResFHIR sFHIRring']
 
   - desc: '** replace for empty string'
     expression: Functions.str.attr.replace('t', '')
-    disable: true
     result: ['es sring']
+
+  - desc: '** replace is not the same as replaceMatches'
+    expression: Functions.str.attr2.replace('\\s', 'a')
+    result: ['aaa']
 
   - desc: '** surround'
     expression: Functions.str.attr.replace('', 'x')
-    disable: true
-    result: ['xtxexsxtx xsxtxrxixnxg']
+    result: ['xtxexsxtx xsxtxrxixnxgx']
 
   - desc: '** replace on empty input collection'
     expression: Functions.str.empty.replace('', 'x')
@@ -220,6 +221,10 @@ tests:
     expression: Functions.str.date.replaceMatches('\\b(\\d{1,2})/(\\d{1,2})/(\\d{2,4})\\b', '$2-$1-$3')
     result: ['30-11-1972']
 
+  - desc: '** replaceMatches replaces each match'
+    expression: Functions.str.dateRange.replaceMatches('\\b(\\d{1,2})/(\\d{1,2})/(\\d{2,4})\\b', '$2-$1-$3')
+    result: ['01-11-1972 - 30-11-1972']
+
   - desc: '** replaceMatches on empty input collection'
     expression: Functions.str.empty.replaceMatches('(.*)', '$1')
     result: []
@@ -257,5 +262,7 @@ subject:
   resourceType: Functions
   str:
     - attr: 'test string'
+      attr2: '\s\s\s'
       date: '11/30/1972'
+      dateRange: '11/01/1972 - 11/30/1972'
       empty: []

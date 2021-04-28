@@ -230,10 +230,13 @@ const singletonEvalByType = {
 
 /**
  * Converts a collection to a singleton of the specified type.
+ * The result can be an empty array if input collection is empty.
  * See http://hl7.org/fhirpath/#singleton-evaluation-of-collections for details.
  * @param {Array} coll - collection
  * @param {string} type - 'Integer', 'Boolean', 'Number' or 'String'
- * @return {*}
+ * @throws {Error}  if there is more than one item in input collection,
+ *   or an item that is not a specified type
+ * @return {*|[]} the value of specified type or empty array
  */
 engine.singleton = function (coll, type) {
   if(coll.length > 1){

@@ -92,4 +92,13 @@ util.valData = function(val) {
   return (val instanceof ResourceNode) ? val.data : val;
 };
 
+/**
+ * Prepares a string for insertion into a regular expression
+ * @param {string} str
+ * @return {string}
+ */
+util.escapeStringForRegExp = function (str) {
+  return str.replace(/[-[\]{}()*+?.,\\/^$|#\s]/g, '\\$&');
+};
+
 module.exports = util;
