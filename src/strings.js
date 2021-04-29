@@ -4,11 +4,8 @@ const misc = require("./misc");
 const engine = {};
 
 engine.indexOf = function(coll, substr){
-  if (util.isEmpty(substr)) {
-    return [];
-  }
   const str = misc.singleton(coll, 'String');
-  return util.isEmpty(str) ? [] : str.indexOf(substr);
+  return util.isEmpty(substr) || util.isEmpty(str) ? [] : str.indexOf(substr);
 };
 
 engine.substring = function(coll, start, length){
@@ -24,17 +21,17 @@ engine.substring = function(coll, start, length){
 
 engine.startsWith = function(coll, prefix){
   const str = misc.singleton(coll, 'String');
-  return util.isEmpty(str) ? [] : str.startsWith(prefix);
+  return util.isEmpty(prefix) || util.isEmpty(str) ? [] : str.startsWith(prefix);
 };
 
 engine.endsWith = function(coll, postfix) {
   const str = misc.singleton(coll, 'String');
-  return util.isEmpty(str) ? [] : str.endsWith(postfix);
+  return util.isEmpty(postfix) || util.isEmpty(str) ? [] : str.endsWith(postfix);
 };
 
 engine.containsFn = function(coll, substr){
   const str = misc.singleton(coll, 'String');
-  return util.isEmpty(str) ? [] : str.includes(substr);
+  return util.isEmpty(substr) || util.isEmpty(str) ? [] : str.includes(substr);
 };
 
 engine.upper = function(coll){
@@ -50,11 +47,8 @@ engine.lower = function(coll){
 
 
 engine.matches = function(coll, regex){
-  if (util.isEmpty(regex)) {
-    return [];
-  }
   const str = misc.singleton(coll, 'String');
-  if (util.isEmpty(str)) {
+  if (util.isEmpty(regex) || util.isEmpty(str)) {
     return [];
   }
   const reg = new RegExp(regex);
@@ -62,11 +56,8 @@ engine.matches = function(coll, regex){
 };
 
 engine.replace = function(coll, pattern, repl){
-  if (util.isEmpty(pattern) || util.isEmpty(repl)) {
-    return [];
-  }
   const str = misc.singleton(coll, 'String');
-  if (util.isEmpty(str)) {
+  if (util.isEmpty(pattern) || util.isEmpty(repl) || util.isEmpty(str)) {
     return [];
   }
   const reg = new RegExp(util.escapeStringForRegExp(pattern), 'g');
@@ -74,11 +65,8 @@ engine.replace = function(coll, pattern, repl){
 };
 
 engine.replaceMatches = function(coll, regex, repl){
-  if (util.isEmpty(regex) || util.isEmpty(repl)) {
-    return [];
-  }
   const str = misc.singleton(coll, 'String');
-  if (util.isEmpty(str)) {
+  if (util.isEmpty(regex) || util.isEmpty(repl) || util.isEmpty(str)) {
     return [];
   }
   const reg = new RegExp(regex, 'g');

@@ -74,11 +74,10 @@ tests:
     expression: Functions.str.empty.startsWith('')
     result: []
 
-  # this behaviour is not described in spec
-  # (http://hl7.org/fhirpath/N1/#startswithprefix-string-boolean):
+  # see http://hl7.org/fhirpath/N1/#propagation-of-empty-results-in-expressions
   - desc: '** start with empty prefix'
     expression: Functions.str.attr.startsWith(EmptyString)
-    result: [true]
+    result: []
 
   - desc: '5.6.4. endsWith(suffix : string) : boolean'
 # If the input collection contains a single item of type string, the function will return true when the input string ends with the given suffix. Also returns true when suffix is the empty string.
@@ -98,11 +97,10 @@ tests:
     expression: Functions.str.empty.endsWith('')
     result: []
 
-  # this behaviour is not described in spec
-  # (http://hl7.org/fhirpath/N1/#endswithsuffix-string-boolean):
+  # see http://hl7.org/fhirpath/N1/#propagation-of-empty-results-in-expressions
   - desc: '** end with empty substring'
     expression: Functions.str.attr.endsWith(EmptyString)
-    result: [true]
+    result: []
 
   - desc: '5.6.5. contains(substring : string) : boolean'
 # If the input collection contains a single item of type string, the function will return true when the given substring is a substring of the input string. Also returns true when substring is the empty string.
