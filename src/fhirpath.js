@@ -110,10 +110,13 @@ engine.invocationTable = {
   startsWith:     {fn: strings.startsWith,       arity: {1: ["String"]}},
   endsWith:       {fn: strings.endsWith,         arity: {1: ["String"]}},
   contains:       {fn: strings.containsFn,       arity: {1: ["String"]}},
+  upper:          {fn: strings.upper},
+  lower:          {fn: strings.lower},
   replace:        {fn: strings.replace,          arity: {2: ["String", "String"]}},
   matches:        {fn: strings.matches,          arity: {1: ["String"]}},
   replaceMatches: {fn: strings.replaceMatches,   arity: {2: ["String", "String"]}},
   length:         {fn: strings.length },
+  toChars:        {fn: strings.toChars },
 
   abs:            {fn: math.abs},
   ceiling:        {fn: math.ceiling},
