@@ -75,6 +75,7 @@ engine.invocationTable = {
   distinct:     {fn: existence.distinctFn},
   count:        {fn: existence.countFn},
   where:        {fn: filtering.whereMacro, arity: {1: ["Expr"]}},
+  extension:    {fn: filtering.extension, arity: {1: ["String"]}},
   select:       {fn: filtering.selectMacro, arity: {1: ["Expr"]}},
   aggregate:    {fn: aggregate.aggregateMacro, arity: {1: ["Expr"], 2: ["Expr", "Integer"]}},
   single:       {fn: filtering.singleFn},
@@ -321,28 +322,40 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
           if (defPath)
             childPath = defPath;
         }
-        let toAdd;
+        let toAdd, _toAdd;
         let actualTypes = model && model.choiceTypePaths[childPath];
         if (actualTypes) {
           // Use actualTypes to find the field's value
           for (let t of actualTypes) {
             let field = key + t;
             toAdd = res.data[field];
-            if (toAdd) {
+            if (toAdd !== undefined) {
               childPath = t;
+              _toAdd = res.data['_' + key];
               break;
+            } else {
+              toAdd = res._data[key];
             }
           }
         }
-        else
+        else {
           toAdd = res.data[key];
+          if (toAdd !== undefined) {
+            _toAdd = res.data['_' + key];
+          } else {
+            toAdd = res._data[key];
+          }
+          if (key === 'extension') {
+            childPath = 'Extension';
+          }
+        }
 
         if (util.isSome(toAdd)) {
           if(Array.isArray(toAdd)) {
-            acc = acc.concat(toAdd.map((x)=>
-              makeResNode(x, childPath)));
+            acc = acc.concat(toAdd.map((x, i)=>
+              makeResNode(x, childPath, _toAdd && _toAdd[i])));
           } else {
-            acc.push(makeResNode(toAdd, childPath));
+            acc.push(makeResNode(toAdd, childPath, _toAdd));
           }
           return acc;
         } else {

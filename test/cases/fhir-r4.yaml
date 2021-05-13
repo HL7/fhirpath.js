@@ -3437,13 +3437,13 @@ tests:
         expression: Patient.birthDate.extension(%`ext-patient-birthTime`).exists()
         result:
           - true
+        disable: true
       - desc: '** testExtension3'
         inputfile: patient-example.json
         expression: >-
           Patient.birthDate.extension('http://hl7.org/fhir/StructureDefinition/patient-birthTime1').empty()
         result:
           - true
-    disable: true
   - 'group: testType':
       - desc: '** testType1'
         inputfile: patient-example.json
