@@ -57,7 +57,7 @@ fhirpath.evaluate({"resourceType": "Observation", "valueString": "green"},
                   'Observation.value', null, fhirpath_r4_model);
 
 // Precompiling fhirpath - result can be reused against multiple resources
-const path = fhirpath.compile('Patient.name.given');
+const path = fhirpath.compile('Patient.name.given', fhirpath_r4_model);
 var res2 = path({"resourceType": "Patient", ...}, {a: 5, ...});
 ```
 
