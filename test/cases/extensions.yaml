@@ -52,7 +52,7 @@ tests:
       result:
         - true
 
-    - desc: '** expression with extension() for primitive type'
+    - desc: '** expression with extension() for primitive type (without using FHIR model data)'
       inputfile: patient-example.json
       expression: >-
         Patient.birthDate.extension('http://hl7.org/fhir/StructureDefinition/patient-birthTime')
@@ -60,12 +60,23 @@ tests:
       result:
         - true
 
-    - desc: '** expression with extension() for primitive type'
+    - desc: '** expression with extension() for primitive type (using FHIR model data)'
       inputfile: patient-example.json
       model: r4
       expression: >-
-        Patient.birthDate
-        .extension('http://hl7.org/fhir/StructureDefinition/patient-birthTime').value = @1974-12-25T14:35:45-05:00
+        Patient.birthDate.extension('http://hl7.org/fhir/StructureDefinition/patient-birthTime')
+        .value = @1974-12-25T14:35:45-05:00
+      result:
+        - true
+
+    - desc: '** extension for constant'
+      expression: "'string'.extension('url1').empty()"
+      result:
+        - true
+
+    - desc: '** extension of extension (using FHIR model data)'
+      model: r4
+      expression: Functions.attrtrue.extension('url1').extension('url2').value = 'someuri'
       result:
         - true
 
@@ -74,3 +85,8 @@ subject:
   attrtrue: true
   _attrtrue:
     id: someid
+    extension:
+      - url: url1
+        extension:
+          - url: url2
+            valueUri: someuri

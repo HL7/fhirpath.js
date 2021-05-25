@@ -979,8 +979,6 @@ class ResourceNode {
    *  see https://www.hl7.org/fhir/element.html#json for details.
    */
   constructor(data, path, _data) {
-    // console.log('>>>', path);
-    // console.log(JSON.stringify(data, null, 4));
     // If data is a resource (maybe a contained resource) reset the path
     // information to the resource type.
     if (data.resourceType)
