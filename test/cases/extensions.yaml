@@ -69,14 +69,14 @@ tests:
       result:
         - true
 
-    - desc: '** extension for constant'
-      expression: "'string'.extension('url1').empty()"
+    - desc: '** value of extension of extension (using FHIR model data)'
+      model: r4
+      expression: Functions.attrtrue.extension('url1').extension('url2').value = 'someuri'
       result:
         - true
 
-    - desc: '** extension of extension (using FHIR model data)'
-      model: r4
-      expression: Functions.attrtrue.extension('url1').extension('url2').value = 'someuri'
+    - desc: '** id of extension of extension'
+      expression: Functions.attrtrue.extension('url1').extension('url2').id = 'someid2'
       result:
         - true
 
@@ -89,4 +89,5 @@ subject:
       - url: url1
         extension:
           - url: url2
+            id: someid2
             valueUri: someuri
