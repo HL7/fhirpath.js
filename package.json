@@ -1,6 +1,6 @@
 {
   "name": "fhirpath",
-  "version": "2.9.0",
+  "version": "2.9.1",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "dependencies": {
@@ -31,7 +31,7 @@
     "rimraf": "^3.0.0",
     "tmp": "0.0.33",
     "webpack": "^5.11.1",
-    "webpack-bundle-analyzer": "^3.3.2",
+    "webpack-bundle-analyzer": "^4.4.2",
     "webpack-cli": "^3.1.0",
     "xml2js": "^0.4.19",
     "yargs": "^15.1.0"

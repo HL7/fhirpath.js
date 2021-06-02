@@ -200,6 +200,10 @@ tests:
     expression: Functions.str.attr.matches(EmptyRegex)
     result: []
 
+  - desc: '** matches with dotAll'
+    expression: "'first line\nsecond line'.matches('line.second')"
+    result: [true]
+
   - desc: '5.6.10. replaceMatches(regex : string, substitution: string) : string'
 # If the input collection contains a single item of type string, the function will match the input using the regular expression in regex and replace each match with the substitution string. The substitution may refer to identified match groups in the regular expression.
 # This example of replaceMatches() will convert a string with a date formatted as MM/dd/yy to dd-MM-yy:

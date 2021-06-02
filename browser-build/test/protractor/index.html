@@ -77,6 +77,15 @@ Manual check of polyfill.js, each of the expressions below should be true:
     'Object.assign({}, {a:1}).a === 1',
     'Object.assign("123", {a:1}).a === 1',
     'Object.assign("123", {a:1})[1] === "2"',
+    "fhirpath.evaluate({}, \"'first.\\nsecond'.matches('\\..s')\")[0] === true",
+    "fhirpath.evaluate({}, \"'first.   second'.matches('\\..*s')\")[0] === true",
+    "fhirpath.evaluate({}, \"'first[\\n]'.matches('t\\\\\\\\[.\\\\\\\\]')\")[0] === true",
+    "fhirpath.evaluate({}, \"'first.  '.matches('t[.]')\")[0] === true",
+    "fhirpath.evaluate({}, \"'first\\n'.matches('t[.]')\")[0] === false",
+    "fhirpath.evaluate({}, \"'first\\\\.second  '.matches('t\\\\\\\\.s')\")[0] === true",
+    "fhirpath.evaluate({}, \"'first\\\\\\nsecond'.matches('t\\\\\\\\.s')\")[0] === false",
+    "fhirpath.evaluate({}, \"'first\\nsecond'.matches('t.s')\")[0] === true",
+    "fhirpath.evaluate({}, \"'first\\nsecond'.matches('t[.]s')\")[0] === false"
   ].map(function (expr) {
     var result;
     try {

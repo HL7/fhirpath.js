@@ -3,6 +3,44 @@ const misc = require("./misc");
 
 const engine = {};
 
+// Cache for rewritten RegExp patterns
+const cachedRegExp = {};
+
+/**
+ * Rewrites RegExp pattern to support single-line mode (dotAll) in IE11:
+ * To do that we replace "." with "[^]" in source RegExp pattern,
+ * except where "." is escaped or is inside unescaped [].
+ * Another way to do the same is using package regexpu-core
+ * or packages regjsparser/regjsgen.
+ * @param {string} pattern - source RegExp pattern
+ * @return {string}
+ */
+function rewritePatternForDotAll(pattern) {
+  if (!cachedRegExp[pattern]) {
+    cachedRegExp[pattern] = pattern.replace(/\./g, (_, offset, entirePattern) => {
+      // The preceding part of the string
+      const precedingPart = entirePattern.substr(0, offset);
+      // The preceding part of the string without escaped characters
+      const cleanPrecedingPart = precedingPart
+        .replace(/\\\\/g, '')
+        .replace(/\\[\][]/g, '');
+      // Check if '.' is escaped
+      const escaped = cleanPrecedingPart[cleanPrecedingPart.length - 1] === '\\';
+      // The last index of unescaped '['
+      const lastIndexOfOpenBracket = cleanPrecedingPart.lastIndexOf('[');
+      // The last index of unescaped ']'
+      const lastIndexOfCloseBracket = cleanPrecedingPart.lastIndexOf(']');
+      return escaped ||
+      (lastIndexOfOpenBracket !== -1 &&
+        lastIndexOfOpenBracket > lastIndexOfCloseBracket)
+        ? '.'
+        : '[^]';
+    });
+  }
+
+  return cachedRegExp[pattern];
+}
+
 engine.indexOf = function(coll, substr){
   const str = misc.singleton(coll, 'String');
   return util.isEmpty(substr) || util.isEmpty(str) ? [] : str.indexOf(substr);
@@ -46,14 +84,27 @@ engine.lower = function(coll){
 };
 
 
-engine.matches = function(coll, regex){
-  const str = misc.singleton(coll, 'String');
-  if (util.isEmpty(regex) || util.isEmpty(str)) {
-    return [];
-  }
-  const reg = new RegExp(regex);
-  return reg.test(str);
-};
+const dotAllIsSupported = (new RegExp('')).dotAll === false;
+
+if (dotAllIsSupported) {
+  engine.matches = function(coll, regex) {
+    const str = misc.singleton(coll, 'String');
+    if (util.isEmpty(regex) || util.isEmpty(str)) {
+      return [];
+    }
+    const reg = new RegExp(regex, 's');
+    return reg.test(str);
+  };
+} else {
+  engine.matches = function(coll, regex) {
+    const str = misc.singleton(coll, 'String');
+    if (util.isEmpty(regex) || util.isEmpty(str)) {
+      return [];
+    }
+    const reg = new RegExp(rewritePatternForDotAll(regex));
+    return reg.test(str);
+  };
+}
 
 engine.replace = function(coll, pattern, repl){
   const str = misc.singleton(coll, 'String');
