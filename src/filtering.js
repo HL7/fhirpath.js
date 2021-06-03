@@ -5,7 +5,7 @@
  *  Adds the filtering and projection functions to the given FHIRPath engine.
  */
 const util = require('./utilities');
-const {TypeInfo} = require('./types');
+const {TypeInfo, ResourceNode} = require('./types');
 
 var engine = {};
 engine.whereMacro = function(parentData, expr) {
@@ -14,6 +14,21 @@ engine.whereMacro = function(parentData, expr) {
   return util.flatten(parentData.filter((x, i) => {
     this.$index = i;
     return expr(x)[0];
+  }));
+};
+
+engine.extension = function(parentData, url) {
+  if(parentData !== false && ! parentData || !url) { return []; }
+
+  return util.flatten(parentData.map((x, i) => {
+    this.$index = i;
+    const extensions = (x && (x.data && x.data.extension || x._data && x._data.extension));
+    if (extensions) {
+      return extensions
+        .filter(extension => extension.url === url)
+        .map(x => ResourceNode.makeResNode(x, 'Extension'));
+    }
+    return [];
   }));
 };
 

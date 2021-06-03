@@ -4,7 +4,7 @@
   "main": "app.js",
   "dependencies": {
     "antlr4": "^4.7.1",
-    "codemirror": "^5.39.2",
+    "codemirror": "^5.61.1",
     "json-loader": "^0.5.7",
     "yaml-loader": "^0.5.0"
   },

@@ -975,16 +975,17 @@ class ResourceNode {
    * @param path the node's path in the resource (e.g. Patient.name).  If the
    *  data's type can be determined from data, that will take precedence over
    *  this parameter.
+   * @param _data additional data stored in a property named with "_" prepended,
+   *  see https://www.hl7.org/fhir/element.html#json for details.
    */
-  constructor(data, path) {
-    // console.log('>>>', path);
-    // console.log(JSON.stringify(data, null, 4));
+  constructor(data, path, _data) {
     // If data is a resource (maybe a contained resource) reset the path
     // information to the resource type.
     if (data.resourceType)
       path = data.resourceType;
     this.path = path;
     this.data = getResourceNodeData(data, path);
+    this._data = _data || {};
   }
 
   /**
@@ -1031,8 +1032,8 @@ function getResourceNodeData(data, path) {
  *  given node is already a ResourceNode.  Takes the same arguments as the
  *  constructor for ResourceNode.
  */
-ResourceNode.makeResNode = function(data, path) {
-  return (data instanceof ResourceNode) ? data : new ResourceNode(data, path);
+ResourceNode.makeResNode = function(data, path, _data) {
+  return (data instanceof ResourceNode) ? data : new ResourceNode(data, path, _data);
 };
 
 /**

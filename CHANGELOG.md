@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.9.0] - 2021-05-13
+### Added
+- Additional function: extension()
+- Support for "id" and "extension" properties for primitive types.
+
 ## [2.8.0] - 2021-04-26
 ### Added
 - String manipulation functions: upper(), lower(), toChars().
