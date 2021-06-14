@@ -20,7 +20,7 @@ function rewritePatternForDotAll(pattern) {
     cachedRegExp[pattern] = pattern.replace(/\./g, (_, offset, entirePattern) => {
       // The preceding part of the string
       const precedingPart = entirePattern.substr(0, offset);
-      // The preceding part of the string without escaped characters
+      // The preceding part of the string without escaped characters: '\', '[' or ']'
       const cleanPrecedingPart = precedingPart
         .replace(/\\\\/g, '')
         .replace(/\\[\][]/g, '');
@@ -31,8 +31,7 @@ function rewritePatternForDotAll(pattern) {
       // The last index of unescaped ']'
       const lastIndexOfCloseBracket = cleanPrecedingPart.lastIndexOf(']');
       return escaped ||
-      (lastIndexOfOpenBracket !== -1 &&
-        lastIndexOfOpenBracket > lastIndexOfCloseBracket)
+      (lastIndexOfOpenBracket > lastIndexOfCloseBracket)
         ? '.'
         : '[^]';
     });
@@ -83,7 +82,8 @@ engine.lower = function(coll){
   return util.isEmpty(str) ? [] : str.toLowerCase();
 };
 
-
+// Check if dotAll is supported.
+// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/dotAll for details.
 const dotAllIsSupported = (new RegExp('')).dotAll === false;
 
 if (dotAllIsSupported) {
