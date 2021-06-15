@@ -63,6 +63,11 @@ Manual check of polyfill.js, each of the expressions below should be true:
   <li class="fail">attempting to run tests...</li>
 </ul>
 <script>
+  /**
+   * Regular unit tests run in an environment that doesn't need polyfills.
+   * These tests below are needed only for IE. Open this file in IE 11
+   * after "npm run test", and confirm that the tests on this page pass.
+   */
   document.querySelector('#tests').innerHTML = [
     'Number.isInteger(1)',
     '!Number.isInteger(1.1)',
