@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.9.1] - 2021-06-02
+### Fixed
+- Function matches() didn't use "single line" mode ("." should match newlines)
+
 ## [2.9.0] - 2021-05-13
 ### Added
 - Additional function: extension()
