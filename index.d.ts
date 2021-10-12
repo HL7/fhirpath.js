@@ -1,4 +1,6 @@
 declare module "fhirpath" {
+  export function parse(path: string);
+  export function compile(path: string, model: Model);
   export function evaluate(
     fhirData: any,
     path: string | Path,
@@ -7,9 +9,17 @@ declare module "fhirpath" {
   );
 }
 
-declare module "fhirpath/fhir-context/dstu2";
-declare module "fhirpath/fhir-context/r4";
-declare module "fhirpath/fhir-context/stu3";
+declare module "fhirpath/fhir-context/dstu2" {
+  export const { choiceTypePaths, pathsDefinedElsewhere }: Model;
+}
+
+declare module "fhirpath/fhir-context/r4" {
+  export const { choiceTypePaths, pathsDefinedElsewhere }: Model;
+}
+
+declare module "fhirpath/fhir-context/stu3" {
+  export const { choiceTypePaths, pathsDefinedElsewhere }: Model;
+}
 
 interface Path {
   base: string;
