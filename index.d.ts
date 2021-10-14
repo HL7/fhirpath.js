@@ -1,12 +1,11 @@
 declare module "fhirpath" {
-  export function parse(path: string);
-  export function compile(path: string, model: Model);
+  export function compile(path: string, model: Model): Compile;
   export function evaluate(
     fhirData: any,
     path: string | Path,
-    context: void | Record<string, any>,
+    context: Context,
     model?: Model
-  );
+  ): any[];
 }
 
 declare module "fhirpath/fhir-context/dstu2" {
@@ -30,3 +29,7 @@ interface Model {
   choiceTypePaths: JSON;
   pathsDefinedElsewhere: JSON;
 }
+
+type Compile = (resource: any, context: Context) => any[];
+
+type Context = void | Record<string, any>;
