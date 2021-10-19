@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.10.0] - 2021-10-19
+### Added
+- Some type definitions for TypeScript users.
+
 ## [2.9.1] - 2021-06-02
 ### Fixed
 - Function matches() didn't use "single line" mode ("." should match newlines)
