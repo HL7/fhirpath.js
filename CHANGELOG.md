@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.9.2] - 2021-10-25
+### Fixed
+- toDecimal() function should return an empty collection for non-convertible string
+- convertsToDecimal() function should return false for non-convertible string
+
 ## [2.9.1] - 2021-06-02
 ### Fixed
 - Function matches() didn't use "single line" mode ("." should match newlines)

@@ -24,7 +24,7 @@ engine.traceFn = function(x, label) {
 
 var intRegex = /^[+-]?\d+$/;
 engine.toInteger = function(coll){
-  if(coll.length != 1) { return []; }
+  if(coll.length !== 1) { return []; }
   var v = util.valData(coll[0]);
   if(v === false) {return 0;}
   if(v === true) {return 1;}
@@ -35,10 +35,8 @@ engine.toInteger = function(coll){
       return [];
     }
   }
-  if(typeof v === "string") {
-    if(intRegex.test(v)){
-      return parseInt(v);
-    }
+  if(typeof v === "string" && intRegex.test(v)) {
+    return parseInt(v);
   }
   return [];
 };
@@ -86,25 +84,21 @@ engine.toQuantity = function (coll, toUnit) {
 
 var numRegex = /^[+-]?\d+(\.\d+)?$/;
 engine.toDecimal = function(coll){
-  if(coll.length != 1) { return []; }
+  if(coll.length !== 1) { return []; }
   var v = util.valData(coll[0]);
   if(v === false) {return 0;}
   if(v === true) {return 1.0;}
   if(typeof v === "number") {
     return v;
   }
-  if(typeof v === "string") {
-    if(numRegex.test(v)){
-      return parseFloat(v);
-    } else {
-      throw new Error("Could not convert to decimal: " + v);
-    }
+  if(typeof v === "string" && numRegex.test(v)) {
+    return parseFloat(v);
   }
   return [];
 };
 
 engine.toString = function(coll){
-  if(coll.length != 1) { return []; }
+  if(coll.length !== 1) { return []; }
   var v = util.valData(coll[0]);
   return v.toString();
 };
