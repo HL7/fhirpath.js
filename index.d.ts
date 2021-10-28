@@ -26,8 +26,12 @@ interface Path {
 }
 
 interface Model {
-  choiceTypePaths: JSON;
-  pathsDefinedElsewhere: JSON;
+  choiceTypePaths: {
+    [path: string]: string[];
+  };
+  pathsDefinedElsewhere: {
+    [path: string]: string;
+  };
 }
 
 type Compile = (resource: any, context: Context) => any[];
