@@ -751,7 +751,6 @@ tests:
         expression: '''1.a''.convertsToDecimal().not()'
         result:
           - true
-        disable: true
       - desc: '** testStringDecimalLiteralConvertsToDecimal'
         inputfile: patient-example.json
         expression: '''1.0''.convertsToDecimal()'
@@ -1492,7 +1491,6 @@ tests:
         expression: '''st''.toDecimal().empty()'
         result:
           - true
-        disable: true
   - 'group: testToString':
       - desc: '** testToString1'
         inputfile: patient-example.json
