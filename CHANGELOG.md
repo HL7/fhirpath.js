@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.10.2] - 2021-02-12
+### Fixed
+- Date/Time arithmetic.
+
 ## [2.10.1] - 2021-10-25
 ### Fixed
 - toDecimal() function should return an empty collection for non-convertible string

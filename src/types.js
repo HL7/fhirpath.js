@@ -248,33 +248,32 @@ FP_Quantity._yearMonthConversionFactor = {
 };
 
 /**
- *  Defines a map from FHIRPath time units to UCUM.
+ *  Defines a map from supported for arithmetic time units (including some UCUM
+ *  time based units) to FHIRPath time units.
  */
-FP_Quantity.timeUnitsToUCUM = {
-  'years': "'a'",
-  'months': "'mo'",
-  'weeks': "'wk'",
-  'days': "'d'",
-  'hours': "'h'",
-  'minutes': "'min'",
-  'seconds': "'s'",
-  'milliseconds': "'ms'",
-  'year': "'a'",
-  'month': "'mo'",
-  'week': "'wk'",
-  'day': "'d'",
-  'hour': "'h'",
-  'minute': "'min'",
-  'second': "'s'",
-  'millisecond': "'ms'",
-  "'a'": "'a'",
-  "'mo'": "'mo'",
-  "'wk'": "'wk'",
-  "'d'": "'d'",
-  "'h'": "'h'",
-  "'min'": "'min'",
-  "'s'": "'s'",
-  "'ms'": "'ms'"
+FP_Quantity.arithmeticDurationUnits = {
+  'years': "year",
+  'months': "month",
+  'weeks': "week",
+  'days': "day",
+  'hours': "hour",
+  'minutes': "minute",
+  'seconds': "second",
+  'milliseconds': "millisecond",
+  'year': "year",
+  'month': "month",
+  'week': "week",
+  'day': "day",
+  'hour': "hour",
+  'minute': "minute",
+  'second': "second",
+  'millisecond': "millisecond",
+  "'wk'": "week",
+  "'d'": "day",
+  "'h'": "hour",
+  "'min'": "minute",
+  "'s'": "second",
+  "'ms'": "millisecond"
 };
 
 /**
@@ -301,20 +300,6 @@ FP_Quantity.mapTimeUnitsToUCUMCode = Object.keys(FP_Quantity.mapUCUMCodeToTimeUn
     return res;
   }, {});
 
-/**
- *  A map of the UCUM units that must be paired with integer values when doing
- *  arithmetic.
- */
-FP_Quantity.integerUnits = {
-  "'a'": true,
-  "'mo'": true,
-  "'wk'": true,
-  "'d'": true,
-  "'h'": true,
-  "'min'": true
-};
-
-
 class FP_TimeBase extends FP_Type {
   constructor(timeStr) {
     super();
@@ -327,45 +312,38 @@ class FP_TimeBase extends FP_Type {
    *  FHIRPath specification for supported units.
    */
   plus(timeQuantity) {
-    var unit = timeQuantity.unit;
-    var ucumUnit = FP_Quantity.timeUnitsToUCUM[unit];
-    if (!ucumUnit) {
-      throw new Error('For date/time arithmetic, the unit of the quantity '+
-        'must be a recognized time-based unit');
+    const unit = timeQuantity.unit;
+    let timeUnit = FP_Quantity.arithmeticDurationUnits[unit];
+    if (!timeUnit) {
+      throw new Error('For date/time arithmetic, the unit of the quantity ' +
+        'must be a recognized time-based unit.');
     }
-    var cls = this.constructor;
-    var unitPrecision = cls._ucumToDatePrecision[ucumUnit];
+    const cls = this.constructor;
+    const unitPrecision = cls._timeUnitToDatePrecision[timeUnit];
     if (unitPrecision === undefined) {
-      throw new Error('Unsupported unit for +.  The unit should be one of '+
-        Object.keys(cls._ucumToDatePrecision).join(', ') + '.');
+      throw new Error('Unsupported unit for +.  The unit should be one of ' +
+        Object.keys(cls._timeUnitToDatePrecision).join(', ') + '.');
     }
-    var isIntUnit = FP_Quantity.integerUnits[ucumUnit];
-    var qVal = timeQuantity.value;
-    if (isIntUnit && !Number.isInteger(qVal)) {
-      throw new Error('When adding a quantity of unit '+unit+' to a date/time,'+
-        ' the value must be an integer.');
-    }
+    let qVal = timeQuantity.value;
 
     // If the precision of the time quantity is higher than the precision of the
     // date, we need to convert the time quantity to the precision of the date.
     if (this._getPrecision() < unitPrecision) {
-      var unquotedUnit = ucumUnit.slice(1, ucumUnit.length-1);
-      var neededUnit = cls._datePrecisionToUnquotedUcum[
+      const neededUnit = cls._datePrecisionToTimeUnit[
         this._getPrecision()];
-      var convResult = ucumUtils.convertUnitTo(unquotedUnit, qVal, neededUnit);
-      if (convResult.status != 'succeeded') {
-        throw new Error(convResult.msg.join("\n"));
+      if (neededUnit !== 'second') {
+        const newQuantity = FP_Quantity.convUnitTo(timeUnit, qVal, neededUnit);
+        timeUnit = newQuantity.unit;
+        qVal = Math.floor(newQuantity.value);
       }
-      ucumUnit = "'"+neededUnit+"'";
-      qVal = Math.floor(convResult.toVal);
     }
-    var newDate = FP_TimeBase.timeUnitToAddFn[ucumUnit](this._getDateObj(), qVal);
+    const newDate = FP_TimeBase.timeUnitToAddFn[timeUnit](this._getDateObj(), qVal);
     // newDate is a Date.  We need to make a string with the correct precision.
-    var isTime = (cls === FP_Time);
-    var precision = this._getPrecision();
+    const isTime = (cls === FP_Time);
+    let precision = this._getPrecision();
     if (isTime)
       precision += 3; // based on dateTimeRE, not timeRE
-    var newDateStr = FP_DateTime.isoDateTime(newDate, precision);
+    let newDateStr = FP_DateTime.isoDateTime(newDate, precision);
     if (isTime) {
       // FP_Time just needs the time part of the string
       newDateStr = newDateStr.slice(newDateStr.indexOf('T') + 1);
@@ -604,18 +582,18 @@ class FP_TimeBase extends FP_Type {
 }
 
 /**
- *  A map from a UCUM time based unit to a function used to add that quantity to
- *  a date/time.
+ *  A map from a FHIRPath time units to a function used to add that
+ *  quantity to a date/time.
  */
 FP_TimeBase.timeUnitToAddFn = {
-  "'a'": require('date-fns/add_years'),
-  "'mo'": require('date-fns/add_months'),
-  "'wk'": require('date-fns/add_weeks'),
-  "'d'": require('date-fns/add_days'),
-  "'h'": require('date-fns/add_hours'),
-  "'min'": require('date-fns/add_minutes'),
-  "'s'": require('date-fns/add_seconds'),
-  "'ms'": require('date-fns/add_milliseconds')
+  "year": require('date-fns/add_years'),
+  "month": require('date-fns/add_months'),
+  "week": require('date-fns/add_weeks'),
+  "day": require('date-fns/add_days'),
+  "hour": require('date-fns/add_hours'),
+  "minute": require('date-fns/add_minutes'),
+  "second": require('date-fns/add_seconds'),
+  "millisecond": require('date-fns/add_milliseconds')
 };
 
 
@@ -733,25 +711,25 @@ FP_DateTime.checkString = function(str) {
 };
 
 /**
- *  A map from UCUM units (in quotation marks, which is the FHIRPath syntax for
- *  UCUM) to the internal DateTime "precision" number.
+ *  A map from FHIRPath time units to the internal DateTime "precision" number.
  */
-FP_DateTime._ucumToDatePrecision = {
-  "'a'": 0,
-  "'mo'": 1,
-  "'wk'": 2, // wk is just 7*d
-  "'d'": 2,
-  "'h'": 3,
-  "'min'": 4,
-  "'s'": 5,
-  "'ms'": 6
+FP_DateTime._timeUnitToDatePrecision = {
+  "year": 0,
+  "month": 1,
+  "week": 2, // wk is just 7*d
+  "day": 2,
+  "hour": 3,
+  "minute": 4,
+  "second": 5,
+  "millisecond": 6
 };
 
 /**
- *  The inverse of _ucumToDatePrecision, except with unquoted UCUM units.
+ *  The inverse of _timeUnitToDatePrecision.
  */
-FP_DateTime._datePrecisionToUnquotedUcum = ["a", "mo", "d", "h", "min", "s",
-  "ms"];
+FP_DateTime._datePrecisionToTimeUnit = [
+  "year", "month", "day", "hour", "minute", "second", "millisecond"
+];
 
 
 
@@ -857,20 +835,19 @@ FP_Time.checkString = function(str) {
 };
 
 /**
- *  A map from UCUM units (in quotation marks, which is the FHIRPath syntax for
- *  UCUM) to the internal DateTime "precision" number.
+ *  A map from FHIRPath time units to the internal DateTime "precision" number.
  */
-FP_Time._ucumToDatePrecision = {
-  "'h'": 0,
-  "'min'": 1,
-  "'s'": 2,
-  "'ms'": 3
+FP_Time._timeUnitToDatePrecision = {
+  "hour": 0,
+  "minute": 1,
+  "second": 2,
+  "millisecond": 3
 };
 
 /**
- *  The inverse of _ucumToDatePrecision, except with unquoted UCUM units.
+ *  The inverse of _timeUnitToDatePrecision.
  */
-FP_Time._datePrecisionToUnquotedUcum = ["h", "min", "s", "ms"];
+FP_Time._datePrecisionToTimeUnit = ["hour", "minute", "second", "ms"];
 
 
 /**
@@ -920,8 +897,8 @@ FP_DateTime.isoDateTime = function(date, precision) {
         if (precision > 3) {
           rtn += ':' + formatNum(date.getMinutes());
           if (precision > 4) {
-            rtn += ':' + formatNum(date.getSeconds());
-            if (precision > 5)
+            rtn += ':' + formatNum(date.getSeconds() );
+            if (date.getMilliseconds())
               rtn += '.' + formatNum(date.getMilliseconds(), 3);
           }
         }
