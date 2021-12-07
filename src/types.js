@@ -248,8 +248,8 @@ FP_Quantity._yearMonthConversionFactor = {
 };
 
 /**
- *  Defines a map from supported for arithmetic time units (including some UCUM
- *  time based units) to FHIRPath time units.
+ *  Defines a map from time units that are supported for arithmetic (including
+ *  some UCUM time based units) to FHIRPath time units.
  */
 FP_Quantity.arithmeticDurationUnits = {
   'years': "year",
@@ -316,7 +316,8 @@ class FP_TimeBase extends FP_Type {
     let timeUnit = FP_Quantity.arithmeticDurationUnits[unit];
     if (!timeUnit) {
       throw new Error('For date/time arithmetic, the unit of the quantity ' +
-        'must be a recognized time-based unit.');
+        'must be one of the following time-based units: ' +
+        Object.keys(FP_Quantity.arithmeticDurationUnits));
     }
     const cls = this.constructor;
     const unitPrecision = cls._timeUnitToDatePrecision[timeUnit];
@@ -325,6 +326,14 @@ class FP_TimeBase extends FP_Type {
         Object.keys(cls._timeUnitToDatePrecision).join(', ') + '.');
     }
     let qVal = timeQuantity.value;
+    const isTime = (cls === FP_Time);
+
+    // For precisions above seconds, the decimal portion of the time-valued
+    // quantity is ignored, since date/time arithmetic above seconds is
+    // performed with calendar duration semantics.
+    if (isTime ? unitPrecision < 2 : unitPrecision < 5) {
+      qVal = Math.floor(qVal);
+    }
 
     // If the precision of the time quantity is higher than the precision of the
     // date, we need to convert the time quantity to the precision of the date.
@@ -339,7 +348,6 @@ class FP_TimeBase extends FP_Type {
     }
     const newDate = FP_TimeBase.timeUnitToAddFn[timeUnit](this._getDateObj(), qVal);
     // newDate is a Date.  We need to make a string with the correct precision.
-    const isTime = (cls === FP_Time);
     let precision = this._getPrecision();
     if (isTime)
       precision += 3; // based on dateTimeRE, not timeRE
@@ -847,7 +855,7 @@ FP_Time._timeUnitToDatePrecision = {
 /**
  *  The inverse of _timeUnitToDatePrecision.
  */
-FP_Time._datePrecisionToTimeUnit = ["hour", "minute", "second", "ms"];
+FP_Time._datePrecisionToTimeUnit = ["hour", "minute", "second", "millisecond"];
 
 
 /**

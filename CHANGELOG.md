@@ -5,7 +5,7 @@ This log documents significant changes for each release.  This project follows
 
 ## [2.10.2] - 2021-12-02
 ### Fixed
-- Date/Time arithmetic.
+- Date/Time arithmetic: "@2016 + 365 days" should equal "@2017".
 
 ## [2.10.1] - 2021-10-25
 ### Fixed

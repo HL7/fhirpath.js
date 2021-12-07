@@ -211,11 +211,28 @@ tests:
       error: true
     - expression: "@T23:59:23-05:00 + 5 milliseconds = @T23:59:23.005-05:00"
       result: [true]
+    - expression: "@T23:59:23-05:00 + 1.5 seconds = @T23:59:24.500-05:00"
+      result: [true]
+    - expression: "@T23:59:23-05:00 + 1.5 's' = @T23:59:24.500-05:00"
+      result: [true]
     - expression: "@T23:59:23-05:00 + 1000 milliseconds = @T23:59:24-05:00"
       result: [true]
     - expression: "@T23:59:23.005-05:00 + 995 milliseconds = @T23:59:24-05:00"
       result: [true]
     - expression: "@T23:59:23.005-05:00 + 1990 milliseconds = @T23:59:24.995-05:00"
+      result: [true]
+# For precisions above seconds, the decimal portion of the time-valued
+# quantity is ignored, since date/time arithmetic above seconds is
+# performed with calendar duration semantics:
+    - expression: "@2016-02-29 + 1.5 year"
+      result: ['2017-02-28']
+    - expression: "@2016-02-28 + 1.5 weeks"
+      result: ['2016-03-06']
+    - expression: "@2016-02-28 + 1.5 'wk'"
+      result: ['2016-03-06']
+    - expression: "@2016-02-28 + 1.5 day"
+      result: ['2016-02-29']
+    - expression: "@T23:59:23-05:00 + 1.5 hours = @T00:59:23-05:00"
       result: [true]
 
 subject:
