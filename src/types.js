@@ -328,11 +328,11 @@ class FP_TimeBase extends FP_Type {
     let qVal = timeQuantity.value;
     const isTime = (cls === FP_Time);
 
-    // For precisions above seconds, the decimal portion of the time-valued
-    // quantity is ignored, since date/time arithmetic above seconds is
-    // performed with calendar duration semantics.
+    // From the FHIRPath specification: "For precisions above seconds, the
+    // decimal portion of the time-valued quantity is ignored, since date/time
+    // arithmetic above seconds is performed with calendar duration semantics."
     if (isTime ? unitPrecision < 2 : unitPrecision < 5) {
-      qVal = Math.floor(qVal);
+      qVal = Math.trunc(qVal);
     }
 
     // If the precision of the time quantity is higher than the precision of the
@@ -343,7 +343,7 @@ class FP_TimeBase extends FP_Type {
       if (neededUnit !== 'second') {
         const newQuantity = FP_Quantity.convUnitTo(timeUnit, qVal, neededUnit);
         timeUnit = newQuantity.unit;
-        qVal = Math.floor(newQuantity.value);
+        qVal = Math.trunc(newQuantity.value);
       }
     }
     const newDate = FP_TimeBase.timeUnitToAddFn[timeUnit](this._getDateObj(), qVal);
