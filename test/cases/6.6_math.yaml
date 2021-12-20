@@ -130,17 +130,39 @@ tests:
     result: [""]
   - 'group:  6.7 Date/Time Arithmetic':
     - expression: "@2018 + 1 'a' = @2019"
-      result: [true]
+      error: true
     - expression: "@2018 + 1 year"
       result: ['2019']
+    - expression: "@2016 + 364 days"
+      result: ['2016']
+    - expression: "@2016 - 364 days"
+      result: ['2016']
+    - expression: "@2016 + 365 days"
+      result: ['2017']
+    - expression: "@2016 - 365 days"
+      result: ['2015']
+    - expression: "@2016 + 11 months"
+      result: ['2016']
+    - expression: "@2016 + 12 months"
+      result: ['2017']
     - expression: "@2018 + 2 years"
       result: ['2020']
     - expression: "@2018-02 + 1 'mo'"
-      result: ['2018-03']
+      error: true
     - expression: "@2018-02 + 1 month"
       result: ['2018-03']
     - expression: "@2018-02 + 2 months"
       result: ['2018-04']
+    - expression: "@2016-01 + 29 days"
+      result: ['2016-01']
+    - expression: "@2016-01 + 29 'd'"
+      result: ['2016-01']
+    - expression: "@2016-01 + 30 days"
+      result: ['2016-02']
+    - expression: "@2016-01 + 30 'd'"
+      result: ['2016-02']
+    - expression: "@2016-01 + 1 hour"
+      result: ['2016-01']
     - expression: "@2018-01-03 + 2 years"
       result: ['2020-01-03']
     - expression: "@2018-02-18T12:23:45-05:00 + 2 years"
@@ -153,6 +175,10 @@ tests:
       result: ['2016-02-29']
     - expression: "@2016-01-31 + 1 month + 1 day"
       result: ['2016-03-01']
+    - expression: "@2016-02-28 + 1 week"
+      result: ['2016-03-06']
+    - expression: "@2016-02-28 + 1 'wk'"
+      result: ['2016-03-06']
     - expression: "@2016-02-28 + 1 day"
       result: ['2016-02-29']
     - expression: "@2016-02-28 + 2 days"
@@ -161,13 +187,60 @@ tests:
       result: ['2016-02-26']
     - expression: "@2016-01-01 + 1 month"
       result: ['2016-02-01']
+    - expression: "@2016-01-01 + 24 hours"
+      result: ['2016-01-02']
+    - expression: "@2016-01-01 + 47 hours"
+      result: ['2016-01-02']
+    - expression: "@2018-02-18T12 + 59 minutes = @2018-02-18T12"
+      result: [true]
+    - expression: "@2018-02-18T12 + 60 minutes = @2018-02-18T13"
+      result: [true]
+    - expression: "@2018-02-18T12:00 + 59 seconds = @2018-02-18T12:00"
+      result: [true]
+    - expression: "@2018-02-18T12:00 + 60 seconds = @2018-02-18T12:01"
+      result: [true]
     - expression: "@T09:45:23 + 2 years"
       error: true
+    - expression: "@T09:45Z + 120 seconds = @T04:47-05:00"
+      result: [true]
+    - expression: "@T09:45Z + 59 seconds = @T09:45Z"
+      result: [true]
     - expression: "@T09:45:23Z + 2 minutes = @T04:47:23.000-05:00"
       result: [true]
     - expression: "@T23:59:23Z + 2 minutes = @T00:01:23Z"
       result: [true]
     - expression: "@T23:59:23-05:00 + 2 minutes = @T00:01:23-05:00"
+      result: [true]
+    - expression: "@T23:59:23-05:00 + 2 days"
+      error: true
+    - expression: "@T23:59:23-05:00 + 5 milliseconds = @T23:59:23.005-05:00"
+      result: [true]
+    - expression: "@T23:59:23-05:00 + 1.5 seconds = @T23:59:24.500-05:00"
+      result: [true]
+    - expression: "@T23:59:23-05:00 + 1.5 's' = @T23:59:24.500-05:00"
+      result: [true]
+    - expression: "@T23:59:23-05:00 - 1.5 's' = @T23:59:21.500-05:00"
+      result: [true]
+    - expression: "@T23:59:23-05:00 + 1000 milliseconds = @T23:59:24-05:00"
+      result: [true]
+    - expression: "@T23:59:23.005-05:00 + 995 milliseconds = @T23:59:24-05:00"
+      result: [true]
+    - expression: "@T23:59:23.005-05:00 + 1990 milliseconds = @T23:59:24.995-05:00"
+      result: [true]
+# From the FHIRPath specification: "For precisions above seconds, the decimal
+# portion of the time-valued quantity is ignored, since date/time arithmetic
+# above seconds is performed with calendar duration semantics."
+    - expression: "@2016-02-29 + 1.5 year"
+      result: ['2017-02-28']
+    - expression: "@2016-02-28 + 1.5 weeks"
+      result: ['2016-03-06']
+    - expression: "@2016-02-28 - 1.5 weeks"
+      result: ['2016-02-21']
+    - expression: "@2016-02-28 + 1.5 'wk'"
+      result: ['2016-03-06']
+    - expression: "@2016-02-28 + 1.5 day"
+      result: ['2016-02-29']
+    - expression: "@T23:59:23-05:00 + 1.5 hours = @T00:59:23-05:00"
       result: [true]
 
 subject:
