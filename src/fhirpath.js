@@ -314,8 +314,9 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
       return parentData
         .filter((x) => x instanceof ResourceNode && x.path === key);
     } else {
+      const path = parentData.path || parentData.__path__;
       return parentData.reduce(function(acc, res) {
-        res = makeResNode(res);
+        res = makeResNode(res, path);
         var childPath = res.path + '.' + key;
         if (model) {
           let defPath = model.pathsDefinedElsewhere[childPath];
@@ -634,6 +635,14 @@ function applyParsedPath(resource, parsedPath, context, model) {
   let vars = {context: resource, ucum: 'http://unitsofmeasure.org'};
   let ctx = {dataRoot, vars: Object.assign(vars, context), model};
   let rtn = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
+  // Path for the data extracted from the resource.
+  let path;
+  if (Array.isArray(rtn)) {
+    path = rtn[0] instanceof ResourceNode ? rtn[0].path : null;
+  } else {
+    path = rtn instanceof ResourceNode ? rtn.path : null;
+  }
+
   // Resolve any internal "ResourceNode" instances.  Continue to let FP_Type
   // subclasses through.
   rtn = (function visit(n) {
@@ -648,6 +657,11 @@ function applyParsedPath(resource, parsedPath, context, model) {
     }
     return n;
   })(rtn);
+  // Add a hidden (non-enumerable) property with the path to the data extracted
+  // from the resource.
+  if (path && typeof rtn === 'object') {
+    Object.defineProperty(rtn, '__path__', {value: path});
+  }
   return rtn;
 }
 
@@ -657,19 +671,16 @@ function applyParsedPath(resource, parsedPath, context, model) {
  * @param {(object|object[])} fhirData -  FHIR resource, part of a resource (in this case
  *  path.base should be provided), bundle as js object or array of resources.
  *  This object/array will be modified by this function to add type information.
- * @param {string|object} path - string with fhirpath expression, sample 'Patient.name.given',
+ * @param {string|object} path - string with FHIRPath expression, sample 'Patient.name.given',
  *  or object, if fhirData represents the part of the FHIR resource:
  * @param {string} path.base - base path in resource from which fhirData was extracted
- * @param {string} path.expression - fhirpath expression relative to path.base
+ * @param {string} path.expression - FHIRPath expression relative to path.base
  * @param {object} context - a hash of variable name/value pairs.
  * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  */
-var evaluate = function(fhirData, path, context, model) {
-  const pathIsObject = typeof path === 'object';
-  const resource = pathIsObject ? makeResNode(fhirData, path.base) : fhirData;
-  const node = parser.parse(pathIsObject ? path.expression : path);
-  return applyParsedPath(resource, node, context, model);
+const evaluate = function(fhirData, path, context, model) {
+  return compile(path, model)(fhirData, context);
 };
 
 /**
@@ -678,15 +689,28 @@ var evaluate = function(fhirData, path, context, model) {
  *  expression on that resource.  The advantage of this function over "evaluate"
  *  is that if you have multiple resources, the given FHIRPath expression will
  *  only be parsed once.
- * @param path the FHIRPath expression to be parsed.
+ * @param {string|object} path - string with FHIRPath expression to be parsed or object:
+ * @param {string} path.base - base path in resource from which fhirData was extracted
+ * @param {string} path.expression - FHIRPath expression relative to path.base
  * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  */
-var compile = function(path, model) {
-  const node = parse(path);
-  return function(resource, context) {
-    return applyParsedPath(resource, node, context, model);
-  };
+const compile = function(path, model) {
+  if (typeof path === 'object') {
+    const node = parse(path.expression);
+    return function (fhirData, context) {
+      const inObjPath = fhirData && fhirData.__path__;
+      const resource = makeResNode(fhirData, path.base || inObjPath);
+      return applyParsedPath(resource, node, context, model);
+    };
+  } else {
+    const node = parse(path);
+    return function (fhirData, context) {
+      const inObjPath = fhirData && fhirData.__path__;
+      const resource = inObjPath ? makeResNode(fhirData, inObjPath) : fhirData;
+      return applyParsedPath(resource, node, context, model);
+    };
+  }
 };
 
 module.exports = {

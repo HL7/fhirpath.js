@@ -3,6 +3,14 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.11.0] - 2021-12-29
+### Added
+- Storing the path for the data extracted from the resource in a hidden
+  (non-enumerable) property `__path__`. This allows the FHIR model to be
+  applied to data extracted from the resource and used as a context variable.
+  For example, you can use `%thisItem.answerOption.value.where(code='LA19952-3')`
+  instead of `%thisItem.answerOption.valueCoding.where(code='LA19952-3')`
+
 ## [2.10.2] - 2021-12-02
 ### Fixed
 - Date/Time arithmetic: "@2016 + 365 days" should equal "@2017".
