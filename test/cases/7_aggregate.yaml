@@ -1,19 +1,49 @@
 tests:
-  - desc: '7 Aggregates'
-  - desc: '7.1 aggregate(aggregator : expression [, init : value]) : value'
-  - desc: 'aggregate() function within the aggregate() iterator'
-    expression: (1|2|3).aggregate($total + (1|2|3|4).aggregate($total + $this, 0), 0)
-    result:
-      - 30
-  - desc: 'Calculate sum of undefined input collection, start with 3'
-    expression: UndefinedInput.aggregate($total + $this, 3)
-    result:
-      - 3
-  - desc: 'Using $index in an expression for the aggregate function'
-    expression: (1|2|3|0).aggregate($total + $index, 0)
-    result:
-      - 6
-  - desc: 'Using the result of the aggregate function'
-    expression: 10 + (1|2|3).aggregate($total + $this*$index, 4)
-    result:
-      - 22
+  - 'group: 7 Aggregates':
+    - 'group: 7.1 aggregate(aggregator : expression [, init : value]) : value':
+      - desc: 'aggregate() function within the aggregate() iterator'
+        expression: (1|2|3).aggregate($total + (1|2|3|4).aggregate($total + $this, 0), 0) = 30
+        result:
+          - true
+      - desc: 'Calculate sum of undefined input collection, start with 3'
+        expression: UndefinedInput.aggregate($total + $this, 3) = 3
+        result:
+          - true
+      - desc: 'Using $index in an expression for the aggregate function'
+        expression: (1|2|3|0).aggregate($total + $index, 0) = 6
+        result:
+          - true
+      - desc: 'Using the result of the aggregate function'
+        expression: 10 + (1|2|3).aggregate($total + $this*$index, 4) = 22
+        result:
+          - true
+    - 'group: Extension functions':
+      - desc: 'sum() function calculates the sum of input collection'
+        expression: (1|2|3|4|5|6|7|8|9).sum() = 45
+        result:
+          - true
+      - desc: 'sum() function calculates the sum of undefined input collection'
+        expression: UndefinedInput.sum() = 0
+        result:
+          - true
+      - desc: 'min() function returns the minimum value from the input collection'
+        expression: (7|8|9|1|2|3|4|5|6).min() = 1
+        result:
+          - true
+      - desc: 'min() function returns empty value for the undefined input collection'
+        expression: UndefinedInput.min()
+        result: []
+      - desc: 'max() function returns the maximum value from the input collection'
+        expression: (7|8|9|1|2|3|4|5|6).max() = 9
+        result:
+          - true
+      - desc: 'max() function returns empty value for the undefined input collection'
+        expression: UndefinedInput.max()
+        result: []
+      - desc: 'avg() function calculates the average value for the input collection'
+        expression: (7|8|9|1|2|3|4|5|6).avg() = 5
+        result:
+          - true
+      - desc: 'avg() function returns an empty value for the undefined input collection'
+        expression: UndefinedInput.avg()
+        result: []

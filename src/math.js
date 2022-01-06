@@ -75,14 +75,17 @@ engine.mul = function(x, y){
 };
 
 engine.div = function(x, y){
+  if (y === 0) return [];
   return x / y;
 };
 
 engine.intdiv = function(x, y){
+  if (y === 0) return [];
   return Math.floor(x / y);
 };
 
 engine.mod = function(x, y){
+  if (y === 0) return [];
   return x % y;
 };
 

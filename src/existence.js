@@ -160,13 +160,4 @@ engine.distinctFn = function(x) {
   return unique;
 };
 
-engine.countFn = function(x) {
-  if (x && x.length) {
-    return x.length;
-  } else {
-    return 0;
-  }
-};
-
-
 module.exports = engine;
