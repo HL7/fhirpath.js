@@ -610,9 +610,9 @@ engine.doEval = function(ctx, parentData, node) {
   }
 };
 
-var parse = function(path) {
+function parse(path) {
   return parser.parse(path);
-};
+}
 
 
 /**
@@ -635,13 +635,9 @@ function applyParsedPath(resource, parsedPath, context, model) {
   let vars = {context: resource, ucum: 'http://unitsofmeasure.org'};
   let ctx = {dataRoot, vars: Object.assign(vars, context), model};
   let rtn = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
+  let firstRtn = Array.isArray(rtn) ? rtn[0] : rtn;
   // Path for the data extracted from the resource.
-  let path;
-  if (Array.isArray(rtn)) {
-    path = rtn[0] instanceof ResourceNode ? rtn[0].path : null;
-  } else {
-    path = rtn instanceof ResourceNode ? rtn.path : null;
-  }
+  let path = firstRtn instanceof ResourceNode ? firstRtn.path : null;
 
   // Resolve any internal "ResourceNode" instances.  Continue to let FP_Type
   // subclasses through.
@@ -679,23 +675,24 @@ function applyParsedPath(resource, parsedPath, context, model) {
  * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  */
-const evaluate = function(fhirData, path, context, model) {
+function evaluate(fhirData, path, context, model) {
   return compile(path, model)(fhirData, context);
-};
+}
 
 /**
- *  Returns a function that takes a resource and an optional context hash (see
- *  "evaluate"), and returns the result of evaluating the given FHIRPath
- *  expression on that resource.  The advantage of this function over "evaluate"
- *  is that if you have multiple resources, the given FHIRPath expression will
- *  only be parsed once.
+ *  Returns a function that takes a resource or part of the resource and an
+ *  optional context hash (see "evaluate"), and returns the result of evaluating
+ *  the given FHIRPath expression on that resource.  The advantage of this
+ *  function over "evaluate" is that if you have multiple resources, the given
+ *  FHIRPath expression will only be parsed once.
  * @param {string|object} path - string with FHIRPath expression to be parsed or object:
- * @param {string} path.base - base path in resource from which fhirData was extracted
+ * @param {string} path.base - base path in resource from which a part of
+ *   the resource was extracted
  * @param {string} path.expression - FHIRPath expression relative to path.base
  * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  */
-const compile = function(path, model) {
+function compile(path, model) {
   if (typeof path === 'object') {
     const node = parse(path.expression);
     return function (fhirData, context) {
@@ -711,12 +708,12 @@ const compile = function(path, model) {
       return applyParsedPath(resource, node, context, model);
     };
   }
-};
+}
 
 module.exports = {
-  parse: parse,
-  compile: compile,
-  evaluate: evaluate,
+  parse,
+  compile,
+  evaluate,
   // Might as well export the UCUM library, since we are using it.
   ucumUtils: require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance()
 };
