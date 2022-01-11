@@ -1,5 +1,5 @@
 declare module "fhirpath" {
-  export function compile(path: string, model: Model): Compile;
+  export function compile(path: string | Path, model?: Model): Compile;
   export function evaluate(
     fhirData: any,
     path: string | Path,

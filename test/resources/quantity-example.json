@@ -1,6 +1,7 @@
 {
   "resourceType": "QuestionnaireResponse",
   "item": [{
+    "linkId": "1",
     "answer": {
       "valueQuantity": {
         "value": 2,
@@ -10,6 +11,7 @@
       }
     }
   },{
+    "linkId": "2",
     "answer": {
       "valueQuantity": {
         "value": 3,
@@ -19,9 +21,10 @@
       }
     }
   },{
+    "linkId": "3",
     "answer": {
       "valueQuantity": {
-        "value": 3,
+        "value": 4,
         "unit": "year(real UCUM code in field 'code')",
         "system": "http://othersystemofmeasure.org",
         "code": "min"
