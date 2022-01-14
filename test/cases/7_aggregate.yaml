@@ -10,7 +10,7 @@ tests:
         result:
           - true
       - desc: 'Using $index in an expression for the aggregate function'
-        expression: (1|2|3|0).aggregate($total + $index, 0) = 6
+        expression: (10|20|30|0).aggregate($total + $index, 0) = 6
         result:
           - true
       - desc: 'Using the result of the aggregate function'
