@@ -1,7 +1,7 @@
 # The following is the standard bashrc file for the
 # development team for this repository.
 
-NODE=node-v14.16.1-linux-x64
+NODE=node-v12.18.3-linux-x64
 #
 # Set path
 PATH=~/${NODE}/bin:/bin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/etc
