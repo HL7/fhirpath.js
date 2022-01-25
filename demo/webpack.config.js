@@ -5,7 +5,7 @@ module.exports = {
     filename: 'app.js'
   },
   devServer: {
-    contentBase: './build'
+    static: './build'
   },
   target: "es5",
   devtool: 'source-map',

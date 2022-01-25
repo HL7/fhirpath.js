@@ -3,6 +3,12 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.12.0] - 2022-01-06
+### Added
+- FHIRPath extension functions: sum(), min(), max(), and avg().
+### Fixed
+- Division by 0 for `/`, `div`, and `mod` operators.
+
 ## [2.11.0] - 2021-12-29
 ### Added
 - Storing the path for the data extracted from the resource in a hidden

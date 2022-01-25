@@ -3189,7 +3189,6 @@ tests:
         inputfile: patient-example.json
         expression: 1 / 0
         result: []
-        disable: true
   - 'group: testDiv':
       - desc: '** testDiv1'
         inputfile: patient-example.json
@@ -3215,7 +3214,6 @@ tests:
         inputfile: patient-example.json
         expression: 5 div 0
         result: []
-        disable: true
   - 'group: testMod':
       - desc: '** testMod1'
         inputfile: patient-example.json
@@ -3241,7 +3239,6 @@ tests:
         inputfile: patient-example.json
         expression: 5 mod 0
         result: []
-        disable: true
   - 'group: testRound':
       - desc: '** testRound1'
         inputfile: patient-example.json
