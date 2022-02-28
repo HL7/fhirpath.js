@@ -136,6 +136,7 @@ engine.invocationTable = {
 
   now:            {fn: datetime.now },
   today:          {fn: datetime.today },
+  timeOfDay:      {fn: datetime.timeOfDay },
 
   repeat:          {fn: filtering.repeatMacro, arity: {1: ["Expr"]}},
   children:        {fn: navigation.children },

@@ -35,4 +35,18 @@ engine.today = function(){
   return constants.today;
 };
 
+/**
+ *  Implements FHIRPath timeOfDay().  See comments in now(). This does not
+ *  include a timezone offset.
+ */
+engine.timeOfDay = function() {
+  if (!constants.timeOfDay) {
+    // Construct the string ourselves to preserve timezone
+    const now = constants.nowDate; // a JS Date
+    const isoStr = FP_DateTime.isoTime(now);
+    constants.timeOfDay = new FP_DateTime(isoStr);
+  }
+  return constants.timeOfDay;
+};
+
 module.exports = engine;

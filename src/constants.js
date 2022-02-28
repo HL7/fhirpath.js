@@ -22,5 +22,10 @@ module.exports = {
   /**
    *  The cached value of now().
    */
-  now: null
+  now: null,
+
+  /**
+   *  The cached value of timeOfDay().
+   */
+  timeOfDay: null
 };

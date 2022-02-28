@@ -1,7 +1,7 @@
 tests:
   - desc: '5. Functions'
-  - desc: '5.8. Utility functions'
-  - desc: '5.8.1. trace(name : string) : collection'
+  - desc: '5.9. Utility functions'
+  - desc: '5.9.1. trace(name : string) : collection'
 # Add a string representation of the input collection to the diagnostic log, using the parameter name as the name in the log. This log should be made available to the user in some appropriate fashion. Does not change the input, so returns the input collection as output.
 
   - desc: '** trace'
@@ -9,21 +9,31 @@ tests:
     disableConsoleLog: true
     result: [1, 2, 3, 4, 5, 6]
 
-  - desc: '5.8.2. today() : dateTime'
-# Returns a dateTime containing the current date.
-
+  - desc: '5.9.2. Current date and time functions'
+  # Returns a dateTime containing the current date.
   - desc: '** TBD: today()'
     # expression: Functions.today()
     # result: '1234'
 
-
-  - desc: '5.8.3. now() : dateTime'
-# Returns a dateTime containing the current date and time, including timezone.
-
+  # Returns a dateTime containing the current date and time, including timezone.
   - desc: '** TBD: now()'
     # expression: now()
     # result: '10:10'
 
+  - desc: '** now() should return the same date as today()'
+    expression: now().toString().substring(0,10) = today().toString()
+    result:
+      - true
+
+  - desc: '** now() should return the same time as timeOfDay()'
+    expression: now().toString().substring(11,12) = timeOfDay().toString()
+    result:
+      - true
+
+  - desc: '** timeOfDay() should return the full time'
+    expression: timeOfDay().toString().length() = 12
+    result:
+      - true
 
 subject:
   coll:
