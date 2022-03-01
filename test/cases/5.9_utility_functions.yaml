@@ -35,6 +35,11 @@ tests:
     result:
       - true
 
+  - desc: '** timeOfDay() should return System.Time'
+    expression: timeOfDay().is(System.Time)
+    result:
+      - true
+
 subject:
   coll:
     - attr: [1,2,3]
