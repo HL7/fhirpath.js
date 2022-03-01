@@ -8,9 +8,10 @@ module.exports = {
    *  processing.
    */
   reset: function() {
-    this.nowDate = new Date(); // a Date object representint "now"
+    this.nowDate = new Date(); // a Date object representing "now"
     this.today = null;
     this.now = null;
+    this.timeOfDay = null;
     this.localTimezoneOffset = null;
   },
 
