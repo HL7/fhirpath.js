@@ -2833,7 +2833,6 @@ tests:
         expression: 1.combine(1).intersect(1).count() = 1
         result:
           - true
-    disable: true
   - 'group: testExclude':
       - desc: '** testExclude1'
         inputfile: patient-example.json

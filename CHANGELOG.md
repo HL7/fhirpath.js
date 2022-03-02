@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.14.0] - 2022-03-02
+### Added
+- Function to get the intersection of two collections: intersect().
+
 ## [2.13.0] - 2022-02-28
 ### Added
 - Current time function: timeOfDay().

@@ -93,6 +93,7 @@ engine.invocationTable = {
   skip:         {fn: filtering.skipFn, arity: {1: ["Integer"]}},
   combine:      {fn: combining.combineFn, arity: {1: ["AnyAtRoot"]}},
   union:        {fn: combining.union,   arity: {1: ["AnyAtRoot"]}},
+  intersect:    {fn: combining.intersect,   arity: {1: ["AnyAtRoot"]}},
   iif:          {fn: misc.iifMacro,    arity: {2: ["Expr", "Expr"], 3: ["Expr", "Expr", "Expr"]}},
   trace:        {fn: misc.traceFn,     arity: {0: [], 1: ["String"]}},
   toInteger:    {fn: misc.toInteger},
