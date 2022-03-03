@@ -171,6 +171,13 @@ tests:
     expression: Functions.coll1.coll2.attr.take(5)
     result: [1, 2, 3, 4, 5]
 
+  - desc: '5.3.8. intersect(other: collection) : collection'
+  - desc: '** should not depend on the order of properties in an object'
+    expression: Functions.objects.group1.intersect(Functions.objects.group2)
+    result:
+      - prop1: 1
+        prop2: 2
+
 subject:
   resourceType: Functions
   attrempty: []
@@ -216,3 +223,14 @@ subject:
         - attr: '@2015-02-04T14:34:28Z'
         - attr: '@T14:34:28+09:00'
         - attr: 4 days
+  objects:
+    group1:
+      - prop1: 1
+        prop2: 2
+      - prop1: 3
+        prop2: 4
+    group2:
+      - prop2: 2
+        prop1: 1
+      - prop1: 5
+        prop2: 6

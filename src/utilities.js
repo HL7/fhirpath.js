@@ -1,7 +1,7 @@
 // This file holds utility functions used in implementing the public functions.
 
-var util =  {};
-var types = require('./types');
+const util =  {};
+const types = require('./types');
 let {ResourceNode} = types;
 
 /**
@@ -100,5 +100,38 @@ util.valData = function(val) {
 util.escapeStringForRegExp = function (str) {
   return str.replace(/[-[\]{}()*+?.,\\/^$|#\s]/g, '\\$&');
 };
+
+/**
+ *  Returns a JSON version of the given object, but with keys of the object in
+ *  sorted order (or at least a stable order).
+ *  From: https://stackoverflow.com/a/35810961/360782
+ */
+util.orderedJsonStringify = function(obj) {
+  return JSON.stringify(sortObjByKey(obj));
+};
+
+/**
+ *  If given value is an object, returns a new object with the properties added
+ *  in sorted order, and handles nested objects.  Otherwise, returns the given
+ *  value.
+ *  From: https://stackoverflow.com/a/35810961/360782
+ */
+function sortObjByKey(value) {
+  // A special case for ResourceNode, which has its own toJSON method
+  if (value instanceof ResourceNode) {
+    return sortObjByKey(value.data);
+  }
+  return (typeof value === 'object') ?
+    (Array.isArray(value) ?
+      value.map(sortObjByKey) :
+      Object.keys(value).sort().reduce(
+        (o, key) => {
+          const v = value[key];
+          o[key] = sortObjByKey(v);
+          return o;
+        }, {})
+    ) :
+    value;
+}
 
 module.exports = util;

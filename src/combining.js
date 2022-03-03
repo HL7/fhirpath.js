@@ -1,7 +1,8 @@
 // This file holds code to hande the FHIRPath Combining functions.
 
-var combineFns = {};
-var existence = require('./existence');
+const combineFns = {};
+const existence = require('./existence');
+const { orderedJsonStringify } = require("./utilities");
 
 combineFns.union = function(coll1, coll2){
   return existence.distinctFn(coll1.concat(coll2));
@@ -16,12 +17,12 @@ combineFns.intersect = function(coll1, coll2) {
   if (coll1.length && coll2.length) {
     let coll2json = {};
     coll2.forEach(item => {
-      coll2json[JSON.stringify(item)] = true;
+      coll2json[orderedJsonStringify(item)] = true;
     });
 
     for (let i=0, len=coll1.length; i<len; ++i) {
       let item = coll1[i];
-      let json = JSON.stringify(item);
+      let json = orderedJsonStringify(item);
       if (coll2json[json]) {
         result.push(item);
         coll2json[json] = false;
