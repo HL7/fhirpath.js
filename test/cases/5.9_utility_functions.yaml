@@ -12,11 +12,6 @@ tests:
       - 'group: 5.9.2. Current date and time functions':
         - 'group: now(): DateTime':
 
-          # Returns a dateTime containing the current date.
-          #- desc: '** TBD: today()'
-          #  expression: Functions.today()
-          #  result: '1234'
-
           - desc: '** should return the same date as today()'
             expression: now().toString().substring(0,10) = today().toString()
             result:
@@ -29,17 +24,12 @@ tests:
 
         - 'group: timeOfDay(): Time':
 
-          # Returns a dateTime containing the current date and time, including timezone.
-          #- desc: '** TBD: now()'
-          #  expression: now()
-          #  result: '10:10'
-
           - desc: '** should return the full time'
             expression: timeOfDay().toString().length() = 12
             result:
               - true
 
-          - desc: '** should return System.Time'
+          - desc: '** should return type System.Time'
             expression: timeOfDay().is(System.Time)
             result:
               - true
