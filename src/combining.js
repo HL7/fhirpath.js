@@ -2,7 +2,7 @@
 
 const combineFns = {};
 const existence = require('./existence');
-const { orderedJsonStringify } = require("./utilities");
+const deepEqual = require('./deep-equal');
 
 combineFns.union = function(coll1, coll2){
   return existence.distinctFn(coll1.concat(coll2));
@@ -15,19 +15,9 @@ combineFns.combineFn = function(coll1, coll2){
 combineFns.intersect = function(coll1, coll2) {
   let result = [];
   if (coll1.length && coll2.length) {
-    let coll2json = {};
-    coll2.forEach(item => {
-      coll2json[orderedJsonStringify(item)] = true;
-    });
-
-    for (let i=0, len=coll1.length; i<len; ++i) {
-      let item = coll1[i];
-      let json = orderedJsonStringify(item);
-      if (coll2json[json]) {
-        result.push(item);
-        coll2json[json] = false;
-      }
-    }
+    result = existence.distinctFn(coll1).filter(
+      obj1 => coll2.some(obj2 => deepEqual(obj1, obj2))
+    )
   }
 
   return result;

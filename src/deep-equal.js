@@ -54,12 +54,8 @@ var deepEqual = function (actual, expected, opts) {
 
   if (actual instanceof Date && expected instanceof Date) {
     return actual.getTime() === expected.getTime();
-
-    // 7.3. Other pairs that do not both pass typeof value == 'object',
-    // equivalence is determined by ==.
   } else if (!actual || !expected || typeof actual != 'object' && typeof expected != 'object') {
-    return opts.strict ? actual === expected : actual == expected;
-
+    return actual === expected;
   }
   else {
     var actualIsFPT = actual instanceof FP_Type;

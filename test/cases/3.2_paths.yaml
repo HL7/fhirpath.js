@@ -50,7 +50,7 @@ tests:
       result: ['medium', 'low', 'zero']
 
     - desc: "QR with where()"
-      expression: "contained.where(resourceType = 'QuestionnaireResponse').item.where(linkId = 1).answer.value"
+      expression: "contained.where(resourceType = 'QuestionnaireResponse').item.where(linkId = '1').answer.value"
       model: 'r4'
       result: ['Red']
 
