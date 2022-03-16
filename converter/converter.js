@@ -75,7 +75,7 @@ const transform = (node, model = null) => {
       case 'test':
         return [...acc, ...node[key].map(item => {
           let test = transform(item, model);
-          if (!test.hasOwnProperty('result') && !test.error) {
+          if (!Object.prototype.hasOwnProperty.call(test,'result') && !test.error) {
             test.result = [];
           }
           if (!validateTest(test)) {

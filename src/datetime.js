@@ -2,6 +2,7 @@ var engine = {};
 const types = require('./types');
 const constants = require('./constants');
 const FP_DateTime = types.FP_DateTime;
+const FP_Time = types.FP_Time;
 
 /**
  *  Implements FHIRPath now().
@@ -33,6 +34,20 @@ engine.today = function(){
     constants.today = new FP_DateTime(isoStr);
   }
   return constants.today;
+};
+
+/**
+ *  Implements FHIRPath timeOfDay().  See comments in now(). This does not
+ *  include a timezone offset.
+ */
+engine.timeOfDay = function() {
+  if (!constants.timeOfDay) {
+    // Construct the string ourselves to preserve timezone
+    const now = constants.nowDate; // a JS Date
+    const isoStr = FP_DateTime.isoTime(now);
+    constants.timeOfDay = new FP_Time(isoStr);
+  }
+  return constants.timeOfDay;
 };
 
 module.exports = engine;

@@ -628,7 +628,7 @@ class FP_DateTime extends FP_TimeBase {
 
 
   /**
-   *  Returns the match data from matching timeRE against the time string.
+   *  Returns the match data from matching dateTimeRE against the datetime string.
    *  Also sets this.precision.
    */
   _getMatchData() {
@@ -889,7 +889,7 @@ function formatNum(num, len) {
  */
 FP_DateTime.isoDateTime = function(date, precision) {
   if (precision === undefined)
-    precision = 6; // maximum
+    precision = 5; // maximum
   // YYYY-MM-DDTHH:mm:ss.sss[+-]HH:mm
   // Note:  Date.toISOString sets the timezone at 'Z', which I did not want.
   // Actually, I wanted to keep the original timezone given in the constructor,
@@ -901,15 +901,7 @@ FP_DateTime.isoDateTime = function(date, precision) {
     if (precision > 1) {
       rtn += '-' + formatNum(date.getDate());
       if (precision > 2) {
-        rtn += 'T' + formatNum(date.getHours());
-        if (precision > 3) {
-          rtn += ':' + formatNum(date.getMinutes());
-          if (precision > 4) {
-            rtn += ':' + formatNum(date.getSeconds() );
-            if (date.getMilliseconds())
-              rtn += '.' + formatNum(date.getMilliseconds(), 3);
-          }
-        }
+        rtn += 'T' + FP_DateTime.isoTime(date, precision - 3);
       }
     }
   }
@@ -935,7 +927,7 @@ FP_DateTime.isoDateTime = function(date, precision) {
 /**
  *  Returns a date string in ISO format at the given precision level.
  * @date the date to format
- * @precision the precision at which to terminate string string.  (This is
+ * @precision the precision at which to terminate string.  (This is
  *  optional). If present, it will be an integer into the matching components of
  *  dateTimeRE.
  * @return a string in ISO8601 format.
@@ -945,6 +937,32 @@ FP_DateTime.isoDate = function(date, precision) {
     precision = 2;
   return FP_DateTime.isoDateTime(date, precision);
 };
+
+
+/**
+ *  Returns a time string in ISO format at the given precision level.
+ * @date the date to format
+ * @precision the precision at which to terminate string.  (This is
+ *  optional). If present, it will be an integer into the matching components of
+ *  timeRE.
+ * @return a string in ISO 8601 format.
+ */
+FP_DateTime.isoTime = function(date, precision) {
+  if (precision === undefined)
+    precision = 2; // maximum
+
+  let rtn = '' + formatNum(date.getHours());
+  if (precision > 0) {
+    rtn += ':' + formatNum(date.getMinutes());
+    if (precision > 1) {
+      rtn += ':' + formatNum(date.getSeconds() );
+      if (date.getMilliseconds())
+        rtn += '.' + formatNum(date.getMilliseconds(), 3);
+    }
+  }
+  return rtn;
+};
+
 
 /**
  *  A class that represents a node in a FHIR resource, with path and possibly type
