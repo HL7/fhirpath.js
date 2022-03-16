@@ -17,7 +17,7 @@ combineFns.intersect = function(coll1, coll2) {
   if (coll1.length && coll2.length) {
     result = existence.distinctFn(coll1).filter(
       obj1 => coll2.some(obj2 => deepEqual(obj1, obj2))
-    )
+    );
   }
 
   return result;

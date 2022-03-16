@@ -102,8 +102,8 @@ engine.distinctFn = function(x) {
     do {
       let xObj = x.shift();
       unique.push(xObj);
-      x = x.filter(o => !deepEqual(xObj, o, {strict: true}));
-    } while (x.length)
+      x = x.filter(o => !deepEqual(xObj, o));
+    } while (x.length);
   }
   return unique;
 };
