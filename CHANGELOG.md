@@ -6,6 +6,11 @@ This log documents significant changes for each release.  This project follows
 ## [2.14.0] - 2022-03-02
 ### Added
 - Function to get the intersection of two collections: intersect().
+### Fixed
+- The distinct, union, subsetOf, and intersect functions now use
+  the "6.1.1. = (Equals)" function to compare collection items instead of using
+  a map with JSON keys, which can affect their performance because the
+  complexity of the algorithm has changed from O(n) to O(n**2).
 
 ## [2.13.0] - 2022-02-28
 ### Added
