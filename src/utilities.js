@@ -1,7 +1,7 @@
 // This file holds utility functions used in implementing the public functions.
 
-var util =  {};
-var types = require('./types');
+const util =  {};
+const types = require('./types');
 let {ResourceNode} = types;
 
 /**

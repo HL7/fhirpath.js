@@ -4,6 +4,7 @@
 const util = require("./utilities");
 const filtering = require("./filtering");
 const misc = require("./misc");
+const deepEqual = require('./deep-equal');
 
 const engine = {};
 engine.emptyFn = util.isEmpty;
@@ -69,61 +70,14 @@ engine.anyFalseFn  = function(x) {
 
 
 /**
- *  Returns a JSON version of the given object, but with keys of the object in
- *  sorted order (or at least a stable order).
- *  From: https://stackoverflow.com/a/35810961/360782
- */
-function orderedJsonStringify(obj) {
-  return JSON.stringify(sortObjByKey(obj));
-}
-
-/**
- *  If given value is an object, returns a new object with the properties added
- *  in sorted order, and handles nested objects.  Otherwise, returns the given
- *  value.
- *  From: https://stackoverflow.com/a/35810961/360782
- */
-function sortObjByKey(value) {
-  return (typeof value === 'object') ?
-    (Array.isArray(value) ?
-      value.map(sortObjByKey) :
-      Object.keys(value).sort().reduce(
-        (o, key) => {
-          const v = value[key];
-          o[key] = sortObjByKey(v);
-          return o;
-        }, {})
-    ) :
-    value;
-}
-
-
-/**
  *  Returns true if coll1 is a subset of coll2.
  */
 function subsetOf(coll1, coll2) {
   let rtn = coll1.length <= coll2.length;
   if (rtn) {
-    // This requires a deep-equals comparision of every object in coll1,
-    // against each object in coll2.
-    // Optimize by building a hashmap of JSON versions of the objects.
-    var c2Hash = {};
     for (let p=0, pLen=coll1.length; p<pLen && rtn; ++p) {
       let obj1 = util.valData(coll1[p]);
-      let obj1Str = orderedJsonStringify(obj1);
-      let found = false;
-      if (p===0) { // c2Hash is not yet built
-        for (let i=0, len=coll2.length; i<len; ++i) {
-          // No early return from this loop, because we're building c2Hash.
-          let obj2 = util.valData(coll2[i]);
-          let obj2Str = orderedJsonStringify(obj2);
-          c2Hash[obj2Str] = obj2;
-          found = found || (obj1Str === obj2Str);
-        }
-      }
-      else
-        found = !!c2Hash[obj1Str];
-      rtn = found;
+      rtn = coll2.some(obj2 => deepEqual(obj1, util.valData(obj2)));
     }
   }
   return rtn;
@@ -143,19 +97,13 @@ engine.isDistinctFn = function(x) {
 
 engine.distinctFn = function(x) {
   let unique = [];
-  // Since this requires a deep equals, use a hash table (on JSON strings) for
-  // efficiency.
   if (x.length > 0) {
-    let uniqueHash = {};
-    for (let i=0, len=x.length; i<len; ++i) {
-      let xObj = x[i];
-      let xStr = JSON.stringify(xObj);
-      let uObj = uniqueHash[xStr];
-      if (uObj === undefined) {
-        unique.push(xObj);
-        uniqueHash[xStr] = xObj;
-      }
-    }
+    x = x.concat();
+    do {
+      let xObj = x.shift();
+      unique.push(xObj);
+      x = x.filter(o => !deepEqual(xObj, o));
+    } while (x.length);
   }
   return unique;
 };
