@@ -50,9 +50,8 @@ engine.repeatMacro = function(parentData, expr) {
     let newItems = parentData[i];
     do {
       newItems = engine.distinctFn(expr(newItems))
-        .filter(item => !res.find(r => deepEqual(r, item)));
-      res = res.concat(newItems);
-    } while (!util.isEmpty(newItems));
+        .filter(item => !res.some(r => deepEqual(r, item)));
+    } while (-res.length + res.push.apply(res, newItems));
   }
   return res;
 };

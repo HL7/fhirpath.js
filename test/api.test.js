@@ -1,5 +1,6 @@
 const fhirpath = require('../src/fhirpath');
 const r4_model = require('../fhir-context/r4');
+const _ = require('lodash');
 
 describe('compile', () => {
   it('should accept a model object', () => {
@@ -52,4 +53,20 @@ describe('evaluate', () => {
     );
     expect(result).toStrictEqual([true]);
   });
+
+  it('should not change the context variable during expression evaluation', () => {
+    const someVar = fhirpath.evaluate(
+      require('../test/resources/quantity-example.json'),
+      'QuestionnaireResponse'
+    );
+    const someVarOrig = _.cloneDeep(someVar);
+    let result = fhirpath.evaluate(
+      {},
+      "%someVar.repeat(item).linkId",
+      {someVar},
+      r4_model
+    );
+    expect(result).toEqual(['1', '2', '3']);
+    expect(someVar).toStrictEqual(someVarOrig);
+  })
 });
