@@ -3,6 +3,13 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.14.1] - 2022-03-31
+### Fixed
+- Previously, the `repeat` function changed the contents of the `%someVar` value
+  when used in a `%someVar.repeat(...)` expression.
+- Previously, `a.repeat('b')` went into an infinite loop.
+- The `repeat` function should no longer return duplicates.
+
 ## [2.14.0] - 2022-03-02
 ### Added
 - Function to get the intersection of two collections: intersect().

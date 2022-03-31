@@ -67,9 +67,9 @@ tests:
 # which would find any descendants called group or question, not just the ones nested inside other group or question elements.
   - desc: '* traverse tree'
   - desc: '** find all true values in nested coll'
-  - desc: 'TODO FIX INF LOOP'
-    # expression: Functions.coll1.colltrue.repeat(true)
-    # result: [true, true, true]
+  - desc: 'FIX INF LOOP'
+    expression: Functions.coll1.colltrue.repeat(true)
+    result: [true]
   - desc: '** find all attrs'
     expression: Functions.repeat(repeatingAttr).count()
     result: [2]
@@ -80,7 +80,7 @@ tests:
 
   - desc: '** find all true values in nested coll'
     expression: Functions.coll1.colltrue.repeat(attr)
-    result: [true, true, true]
+    result: [true]
 
   - desc: '** find non-exists value'
     expression: Functions.coll1.repeat(nothing)

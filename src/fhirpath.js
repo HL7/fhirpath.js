@@ -72,7 +72,7 @@ engine.invocationTable = {
   subsetOf:     {fn: existence.subsetOfFn, arity: {1: ["AnyAtRoot"]}},
   supersetOf:   {fn: existence.supersetOfFn, arity: {1: ["AnyAtRoot"]}},
   isDistinct:   {fn: existence.isDistinctFn},
-  distinct:     {fn: existence.distinctFn},
+  distinct:     {fn: filtering.distinctFn},
   count:        {fn: aggregate.countFn},
   where:        {fn: filtering.whereMacro, arity: {1: ["Expr"]}},
   extension:    {fn: filtering.extension, arity: {1: ["String"]}},
