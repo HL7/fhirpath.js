@@ -4,6 +4,8 @@ This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
 ## [2.14.1] - 2022-03-31
+### Added
+- Added a "version" field with the release version to the object exported by fhirpath.js.
 ### Fixed
 - Previously, the `repeat` function changed the contents of the `%someVar` value
   when used in a `%someVar.repeat(...)` expression.

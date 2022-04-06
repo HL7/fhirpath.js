@@ -28,6 +28,7 @@
 // for strings and numbers
 // we can make dispatching params type dependent - let see
 
+const {version} = require('../package.json');
 const parser = require("./parser");
 const util = require("./utilities");
 require("./polyfill");
@@ -717,6 +718,7 @@ function compile(path, model) {
 }
 
 module.exports = {
+  version,
   parse,
   compile,
   evaluate,
