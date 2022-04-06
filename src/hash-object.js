@@ -7,8 +7,8 @@ const {FP_Type, FP_Quantity} = require('./types');
  *  Returns a JSON version of the given object, but with the object's keys
  *  in sorted order (or at least stable order,
  *  see https://stackoverflow.com/a/35810961/360782) and the values in
- *  unified forms, e.g. "1 year" is converted to "12 months", "3 'min'"
- *  is converted to "120 'sec'".
+ *  unified forms, e.g. "1 year" is converted to the same value as "12 months",
+ *  "3 'min'" is converted to the same value as "120 'sec'".
  */
 function hashObject(obj) {
   return JSON.stringify(prepareObject(obj));
