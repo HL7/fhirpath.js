@@ -42,9 +42,9 @@ const PRECISION_STEP = 1e-8;
 /**
  *  Rounds a number to the nearest multiple of PRECISION_STEP.
  */
-function roundToMaxPrecision(x) {
+const roundToMaxPrecision = numberFns.roundToMaxPrecision = function (x) {
   return Math.round(x/PRECISION_STEP)*PRECISION_STEP;
-}
+};
 
 /**
  * Determines numbers equivalence

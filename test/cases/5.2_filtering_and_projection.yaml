@@ -66,13 +66,20 @@ tests:
 # Questionnaire.descendants().select(group | question)
 # which would find any descendants called group or question, not just the ones nested inside other group or question elements.
   - desc: '* traverse tree'
-  - desc: '** find all true values in nested coll'
-  - desc: 'FIX INF LOOP 1'
+  - desc: '** should not result in an infinite loop 1'
     expression: Functions.coll1.colltrue.repeat(true)
     result: [true]
-  - desc: 'FIX INF LOOP 2'
+  - desc: '** should not result in an infinite loop 2'
     expression: (1 | 2).repeat('item')
     result: ['item']
+  - desc: '** should use year-to-month conversion factor (https://hl7.org/fhirpath/#equals)'
+    expression: (1 year).combine(12 months).repeat($this)
+    result:
+      - 1 year
+  - desc: '** should compare quantities for equality (https://hl7.org/fhirpath/#equals)'
+    expression: (3 'min').combine(180 seconds).repeat($this)
+    result:
+      - 3 'min'
   - desc: '** find all attrs'
     expression: Functions.repeat(repeatingAttr).count()
     result: [2]

@@ -336,6 +336,15 @@ tests:
       - prop1: 5
         prop2: 6
 
+  - desc: '** should use year-to-month conversion factor (https://hl7.org/fhirpath/#equals)'
+    expression: (1 year).combine(12 months).distinct()
+    result:
+      - 1 year
+
+  - desc: '** should compare quantities for equality (https://hl7.org/fhirpath/#equals)'
+    expression: (3 'min').combine(180 seconds).distinct()
+    result:
+      - 3 'min'
 
   - desc: '5.1.13. count() : integer'
 # Returns a collection with a single value which is

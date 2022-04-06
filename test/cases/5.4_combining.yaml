@@ -20,6 +20,16 @@ tests:
     expression: Functions.attrdouble | Functions.coll1.coll2.attr
     result: [1, 2, 3, 4, 5]
 
+  - desc: '** should use year-to-month conversion factor (https://hl7.org/fhirpath/#equals)'
+    expression: (1 year | 12 months)
+    result:
+      - 1 year
+
+  - desc: '** should compare quantities for equality (https://hl7.org/fhirpath/#equals)'
+    expression: (3 'min' | 180 seconds)
+    result:
+      - 3 'min'
+
   - desc: '** should not depend on the order of properties in an object'
     expression: Functions.objects.group1 | Functions.objects.group2
     result:
