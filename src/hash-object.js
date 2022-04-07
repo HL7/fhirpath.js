@@ -9,6 +9,8 @@ const {FP_Type, FP_Quantity} = require('./types');
  *  see https://stackoverflow.com/a/35810961/360782) and the values in
  *  unified forms, e.g. "1 year" is converted to the same value as "12 months",
  *  "3 'min'" is converted to the same value as "120 'sec'".
+ *  This function is used instead of deepEqual for optimization when you need
+ *  to compare many objects.
  */
 function hashObject(obj) {
   return JSON.stringify(prepareObject(obj));
@@ -17,6 +19,8 @@ function hashObject(obj) {
 /**
  * Brings an object to the unified form so that it can be serialized to JSON to
  * compare with other objects according to https://hl7.org/fhirpath/#equals
+ * This function is following the logic from deepEqual (if changes are needed
+ * here they are likely also needed there).
  */
 function prepareObject(value) {
   value = valData(value);

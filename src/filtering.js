@@ -112,9 +112,9 @@ engine.distinctFn = function(x) {
     for (let i=0, len=x.length; i<len; ++i) {
       let xObj = x[i];
       let xStr = hashObject(xObj);
-      if (uniqueHash[xStr] === undefined) {
+      if (!uniqueHash[xStr]) {
         unique.push(xObj);
-        uniqueHash[xStr] = xObj;
+        uniqueHash[xStr] = true;
       }
     }
   }

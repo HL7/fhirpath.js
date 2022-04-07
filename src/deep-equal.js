@@ -24,8 +24,20 @@ function normalizeStr(x) {
   return x.toUpperCase().replace(/\s+/, ' ');
 }
 
-
-var deepEqual = function (actual, expected, opts) {
+/**
+ * Performs a deep comparison between two values to determine if they are equal.
+ * When you need to compare many objects, you can use hashObject instead for
+ * optimization (if changes are needed here, they are likely also needed there).
+ * @param {any} actual - one of the comparing objects
+ * @param {any} expected - one of the comparing objects
+ * @param {Object} [opts] - comparison options
+ * @param {boolean} [opts.fuzzy] - false (by default), if comparing objects for
+ *   equality (see https://hl7.org/fhirpath/#equals).
+ *   true, if comparing objects for equivalence
+ *   (see https://hl7.org/fhirpath/#equivalent).
+ * @return {boolean}
+ */
+function deepEqual(actual, expected, opts) {
   actual = util.valData(actual);
   expected = util.valData(expected);
   if (!opts) opts = {};
@@ -96,7 +108,7 @@ var deepEqual = function (actual, expected, opts) {
     // accounts for both named and indexed properties on Arrays.
     return objEquiv(actual, expected, opts);
   }
-};
+}
 
 function isUndefinedOrNull(value) {
   return value === null || value === undefined;
