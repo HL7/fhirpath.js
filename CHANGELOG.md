@@ -3,11 +3,22 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.14.1] - 2022-03-31
+### Added
+- Added a "version" field with the release version to the object exported by fhirpath.js.
+### Fixed
+- Previously, the `repeat` function changed the contents of the `%someVar` value
+  when used in a `%someVar.repeat(...)` expression.
+- Previously, `a.repeat('b')` went into an infinite loop.
+- The `repeat` function should no longer return duplicates.
+- Optimized functions: `distinct`, `union`, `subsetOf`, `intersect`, and `repeat`
+  by changing complexity of the algorithm from O(n**2) to O(n).
+
 ## [2.14.0] - 2022-03-02
 ### Added
 - Function to get the intersection of two collections: intersect().
 ### Fixed
-- The distinct, union, subsetOf, and intersect functions now use
+- The `distinct`, `union`, `subsetOf`, and `intersect` functions now use
   the "6.1.1. = (Equals)" function to compare collection items instead of using
   a map with JSON keys, which can affect their performance because the
   complexity of the algorithm has changed from O(n) to O(n**2).

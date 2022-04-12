@@ -1,6 +1,8 @@
 tests:
   - expression: Questionnaire.repeat(item).linkId
     result: ["1", "2", "1.1", "2.1", "1.1.1", "2.1.2", "1.1.1.1", "1.1.1.2", "1.1.1.1.1", "1.1.1.1.2"]
+  - expression: Questionnaire.combine(Questionnaire).repeat(item).linkId
+    result: ["1", "2", "1.1", "2.1", "1.1.1", "2.1.2", "1.1.1.1", "1.1.1.2", "1.1.1.1.1", "1.1.1.1.2"]
 subject:
   resourceType: Questionnaire
   id: '3141'

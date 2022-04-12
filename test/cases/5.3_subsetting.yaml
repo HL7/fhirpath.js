@@ -178,6 +178,16 @@ tests:
       - prop1: 1
         prop2: 2
 
+  - desc: '** should use year-to-month conversion factor (https://hl7.org/fhirpath/#equals)'
+    expression: (1 year).combine(12 months).intersect(12 months)
+    result:
+      - 1 year
+
+  - desc: '** should compare quantities for equality (https://hl7.org/fhirpath/#equals)'
+    expression: (3 'min').combine(180 seconds).intersect(180 seconds)
+    result:
+      - 3 'min'
+
 subject:
   resourceType: Functions
   attrempty: []
@@ -227,9 +237,13 @@ subject:
     group1:
       - prop1: 1
         prop2: 2
+      - prop1: 1
+        prop2: 2
       - prop1: 3
         prop2: 4
     group2:
+      - prop2: 2
+        prop1: 1
       - prop2: 2
         prop1: 1
       - prop1: 5

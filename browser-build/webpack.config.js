@@ -1,4 +1,5 @@
 const CopyPlugin = require('copy-webpack-plugin');
+const path = require('path');
 
 /**
  *  Returns a base webpack configuration object with settings used by more than
@@ -30,6 +31,14 @@ function makeBaseConfig() {
               ]]
             }
           }
+        },
+        {
+          test: /package.json$/,
+          use: [
+            {
+              loader: path.resolve('package-json-loader.js')
+            }
+          ]
         }
       ]
     }

@@ -2,9 +2,9 @@
 // specification).
 
 const util = require("./utilities");
-const filtering = require("./filtering");
+const {whereMacro, distinctFn} = require("./filtering");
 const misc = require("./misc");
-const deepEqual = require('./deep-equal');
+const hashObject = require('./hash-object');
 
 const engine = {};
 engine.emptyFn = util.isEmpty;
@@ -17,7 +17,7 @@ engine.notFn = function(coll) {
 engine.existsMacro  = function(coll, expr) {
   var vec = coll;
   if (expr) {
-    return engine.existsMacro(filtering.whereMacro(coll, expr));
+    return engine.existsMacro(whereMacro(coll, expr));
   }
   return !util.isEmpty(vec);
 };
@@ -73,12 +73,14 @@ engine.anyFalseFn  = function(x) {
  *  Returns true if coll1 is a subset of coll2.
  */
 function subsetOf(coll1, coll2) {
-  let rtn = coll1.length <= coll2.length;
-  if (rtn) {
-    for (let p=0, pLen=coll1.length; p<pLen && rtn; ++p) {
-      let obj1 = util.valData(coll1[p]);
-      rtn = coll2.some(obj2 => deepEqual(obj1, util.valData(obj2)));
-    }
+  const coll1Length = coll1.length;
+  let rtn = coll1Length <= coll2.length;
+  if (rtn && coll1Length) {
+    const c2Hash = coll2.reduce((hash, item) => {
+      hash[hashObject(item)] = true;
+      return hash;
+    }, {});
+    rtn = !coll1.some(item => !c2Hash[hashObject(item)]);
   }
   return rtn;
 }
@@ -92,20 +94,7 @@ engine.supersetOfFn = function(coll1, coll2) {
 };
 
 engine.isDistinctFn = function(x) {
-  return [x.length === engine.distinctFn(x).length];
-};
-
-engine.distinctFn = function(x) {
-  let unique = [];
-  if (x.length > 0) {
-    x = x.concat();
-    do {
-      let xObj = x.shift();
-      unique.push(xObj);
-      x = x.filter(o => !deepEqual(xObj, o));
-    } while (x.length);
-  }
-  return unique;
+  return [x.length === distinctFn(x).length];
 };
 
 module.exports = engine;

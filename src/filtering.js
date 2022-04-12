@@ -6,6 +6,7 @@
  */
 const util = require('./utilities');
 const {TypeInfo, ResourceNode} = require('./types');
+const hashObject = require('./hash-object');
 
 var engine = {};
 engine.whereMacro = function(parentData, expr) {
@@ -43,18 +44,22 @@ engine.selectMacro = function(data, expr) {
 engine.repeatMacro = function(parentData, expr) {
   if(parentData !== false && ! parentData) { return []; }
 
-  var res = [];
-  var items = parentData;
-
-  var next = null;
-  var lres = null;
-  while (items.length != 0) {
-    next = items.shift();
-    lres = expr(next);
-    if(lres){
-      res = res.concat(lres);
-      items = items.concat(lres);
-    }
+  let res = [];
+  const unique = {};
+  const length = parentData.length;
+  for(let i = 0; i < length; ++i) {
+    let newItems = parentData[i];
+    do {
+      newItems = expr(newItems)
+        .filter(item => {
+          const key = hashObject(item);
+          const isUnique = !unique[key];
+          if (isUnique) {
+            unique[key] = true;
+          }
+          return isUnique;
+        });
+    } while (res.length < res.push.apply(res, newItems));
   }
   return res;
 };
@@ -98,5 +103,22 @@ engine.ofTypeFn = function(coll, typeInfo) {
   });
 };
 
+engine.distinctFn = function(x) {
+  let unique = [];
+  // Since this requires a deep equals, use a hash table (on JSON strings) for
+  // efficiency.
+  if (x.length > 0) {
+    let uniqueHash = {};
+    for (let i=0, len=x.length; i<len; ++i) {
+      let xObj = x[i];
+      let xStr = hashObject(xObj);
+      if (!uniqueHash[xStr]) {
+        unique.push(xObj);
+        uniqueHash[xStr] = true;
+      }
+    }
+  }
+  return unique;
+};
 
 module.exports = engine;
