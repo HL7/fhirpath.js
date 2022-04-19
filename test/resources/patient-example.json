@@ -159,6 +159,18 @@
       }
     }
   ],
+  "communication": [
+    {
+      "_preferred": {
+        "extension": [
+          {
+            "url": "test",
+            "valueString": "testing"
+          }
+        ]
+      }
+    }
+  ],
   "managingOrganization": {
     "reference": "Organization/1"
   }
