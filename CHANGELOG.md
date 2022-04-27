@@ -3,6 +3,13 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.14.2] - 2022-04-12
+### Fixed
+- Corrected scope of function parameter of `collection` type for `union`,
+  `subsetOf`, `supersetOf`, `combine`, and `intersect`.
+  For example,`Patient.name.select(use.union(given))` should be the same as
+  `Patient.name.select(use|given)`.
+
 ## [2.14.1] - 2022-03-31
 ### Added
 - Added a "version" field with the release version to the object exported by fhirpath.js.

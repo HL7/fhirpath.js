@@ -192,7 +192,7 @@ engine.TermExpression = function(ctx, parentData, node) {
 engine.PolarityExpression = function(ctx, parentData, node) {
   var sign = node.terminalNodeText[0]; // either - or + per grammar
   var rtn = engine.doEval(ctx,parentData, node.children[0]);
-  if (rtn.length != 1) {  // not yet in spec, but per Bryn Rhodes
+  if (rtn.length !== 1) {  // not yet in spec, but per Bryn Rhodes
     throw new Error('Unary ' + sign +
      ' can only be applied to an individual number.');
   }
@@ -413,16 +413,16 @@ engine.realizeParams = function(ctx, parentData, args) {
 function makeParam(ctx, parentData, type, param) {
   if(type === "Expr"){
     return function(data) {
-      ctx.$this = data;
-      return engine.doEval(ctx, util.arraify(data), param);
+      ctx.$this = util.arraify(data);
+      return engine.doEval(ctx, ctx.$this, param);
     };
   }
   if(type === "AnyAtRoot"){
-    ctx.$this = ctx.dataRoot;
-    return engine.doEval(ctx, ctx.dataRoot, param);
+    ctx.$this = ctx.$this || ctx.dataRoot;
+    return engine.doEval(ctx, ctx.$this, param);
   }
   if(type === "Identifier"){
-    if(param.type == "TermExpression"){
+    if(param.type === "TermExpression") {
       return param.text;
     } else {
       throw new Error("Expected identifier node, got " + JSON.stringify(param));
@@ -434,12 +434,12 @@ function makeParam(ctx, parentData, type, param) {
   }
 
   ctx.$this = parentData;
-  var res = engine.doEval(ctx, parentData, param);
+  const res = engine.doEval(ctx, parentData, param);
   if(type === "Any") {
     return res;
   }
-  if(Array.isArray(type)){
-    if(res.length == 0){
+  if(Array.isArray(type)) {
+    if(res.length === 0) {
       return [];
     } else {
       type = type[0];
@@ -487,15 +487,14 @@ function doInvoke(ctx, fnName, data, rawParams){
   }
 }
 function isNullable(x) {
-  var res = x=== null || x=== undefined || util.isEmpty(x);
-  return res;
+  return x === null || x === undefined || util.isEmpty(x);
 }
 
 function infixInvoke(ctx, fnName, data, rawParams){
   var invoc = engine.invocationTable[fnName];
   if(invoc && invoc.fn) {
     var paramsNumber = rawParams ? rawParams.length : 0;
-    if(paramsNumber != 2) { throw new Error("Infix invoke should have arity 2"); }
+    if(paramsNumber !== 2) { throw new Error("Infix invoke should have arity 2"); }
     var argTypes = invoc.arity[paramsNumber];
     if(argTypes){
       var params = [];
@@ -540,7 +539,7 @@ engine.UnionExpression = function(ctx, parentData, node) {
 };
 
 engine.ThisInvocation = function(ctx) {
-  return util.arraify(ctx.$this);
+  return ctx.$this;
 };
 
 engine.TotalInvocation = function(ctx) {

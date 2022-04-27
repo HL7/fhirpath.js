@@ -58,8 +58,9 @@ fhirpath.evaluate({"resourceType": "Observation", "valueString": "green"},
 
 // If the first parameter is a part of a resource, the second parameter should
 // be an object with properties "base" and "expression":
-// base - base path in resource from which this part was extracted
-// expression - fhirpath expression relative to base
+// base - the path in the resource that represents the partial resource being
+//        used as the context,
+// expression - fhirpath expression relative to base.
 fhirpath.evaluate({ "answer": { "valueQuantity": ...}},
                   { "base": "QuestionnaireResponse.item",
                     "expression": "answer.value = 2 year"},
@@ -67,7 +68,17 @@ fhirpath.evaluate({ "answer": { "valueQuantity": ...}},
 
 // Precompiling fhirpath - result can be reused against multiple resources
 const path = fhirpath.compile('Patient.name.given', fhirpath_r4_model);
-var res2 = path({"resourceType": "Patient", ...}, {a: 5, ...});
+var res = path({"resourceType": "Patient", ...}, {a: 5, ...});
+
+// If you are going to use the above "precompile" option with a part of a resource,
+// the first parameter should be an object with properties "base" and "expression":
+// base - the path in the resource that represents the partial resource being
+//        used as the context,
+// expression - fhirpath expression relative to base.
+const path = fhirpath.compile({ "base": "QuestionnaireResponse.item",
+                                "expression": "answer.value = 2 year"},
+                              fhirpath_r4_model);
+var res = path({ "answer": { "valueQuantity": ...}, {a: 5, ...});
 ```
 
 

@@ -89,6 +89,21 @@ tests:
   - expression: Patient.name.select(given | family)
     result: ["Peter", "James", "Chalmers", "Jim", "Peter", "James", "Windsor"]
 
+  - expression: Patient.name.select(given.union(family))
+    result: ["Peter", "James", "Chalmers", "Jim", "Peter", "James", "Windsor"]
+
+  - expression: Patient.name.select(given.combine(family))
+    result: ["Peter", "James", "Chalmers", "Jim", "Peter", "James", "Windsor"]
+
+  - expression: Patient.name.select(('James').subsetOf(given))
+    result: [true, false, true]
+
+  - expression: Patient.name.select(('Peter' | 'James').supersetOf(given))
+    result: [true, false, true]
+
+  - expression: Patient.name.select(('Peter' | 'James' | 'something').intersect(given | family))
+    result: ["Peter", "James", "Peter", "James"]
+
   - expression: Patient.name.trace('tracing').given[0]
     result: ["Peter"]
     disableConsoleLog: true
