@@ -1,384 +1,379 @@
-// Generated from FHIRPath.g4 by ANTLR 4.7.1
+// Generated from FHIRPath.g4 by ANTLR 4.9.3
 // jshint ignore: start
-var antlr4 = require('../antlr4-index');
+const antlr4 = require('../antlr4-index');
 
 // This class defines a complete listener for a parse tree produced by FHIRPathParser.
-function FHIRPathListener() {
-	antlr4.tree.ParseTreeListener.call(this);
-	return this;
+class FHIRPathListener extends antlr4.tree.ParseTreeListener {
+
+	// Enter a parse tree produced by FHIRPathParser#entireExpression.
+	enterEntireExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#entireExpression.
+	exitEntireExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#indexerExpression.
+	enterIndexerExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#indexerExpression.
+	exitIndexerExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#polarityExpression.
+	enterPolarityExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#polarityExpression.
+	exitPolarityExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#additiveExpression.
+	enterAdditiveExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#additiveExpression.
+	exitAdditiveExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#multiplicativeExpression.
+	enterMultiplicativeExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#multiplicativeExpression.
+	exitMultiplicativeExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#unionExpression.
+	enterUnionExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#unionExpression.
+	exitUnionExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#orExpression.
+	enterOrExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#orExpression.
+	exitOrExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#andExpression.
+	enterAndExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#andExpression.
+	exitAndExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#membershipExpression.
+	enterMembershipExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#membershipExpression.
+	exitMembershipExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#inequalityExpression.
+	enterInequalityExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#inequalityExpression.
+	exitInequalityExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#invocationExpression.
+	enterInvocationExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#invocationExpression.
+	exitInvocationExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#equalityExpression.
+	enterEqualityExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#equalityExpression.
+	exitEqualityExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#impliesExpression.
+	enterImpliesExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#impliesExpression.
+	exitImpliesExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#termExpression.
+	enterTermExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#termExpression.
+	exitTermExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#typeExpression.
+	enterTypeExpression(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#typeExpression.
+	exitTypeExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#invocationTerm.
+	enterInvocationTerm(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#invocationTerm.
+	exitInvocationTerm(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#literalTerm.
+	enterLiteralTerm(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#literalTerm.
+	exitLiteralTerm(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#externalConstantTerm.
+	enterExternalConstantTerm(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#externalConstantTerm.
+	exitExternalConstantTerm(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#parenthesizedTerm.
+	enterParenthesizedTerm(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#parenthesizedTerm.
+	exitParenthesizedTerm(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#nullLiteral.
+	enterNullLiteral(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#nullLiteral.
+	exitNullLiteral(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#booleanLiteral.
+	enterBooleanLiteral(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#booleanLiteral.
+	exitBooleanLiteral(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#stringLiteral.
+	enterStringLiteral(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#stringLiteral.
+	exitStringLiteral(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#numberLiteral.
+	enterNumberLiteral(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#numberLiteral.
+	exitNumberLiteral(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#dateTimeLiteral.
+	enterDateTimeLiteral(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#dateTimeLiteral.
+	exitDateTimeLiteral(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#timeLiteral.
+	enterTimeLiteral(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#timeLiteral.
+	exitTimeLiteral(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#quantityLiteral.
+	enterQuantityLiteral(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#quantityLiteral.
+	exitQuantityLiteral(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#externalConstant.
+	enterExternalConstant(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#externalConstant.
+	exitExternalConstant(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#memberInvocation.
+	enterMemberInvocation(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#memberInvocation.
+	exitMemberInvocation(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#functionInvocation.
+	enterFunctionInvocation(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#functionInvocation.
+	exitFunctionInvocation(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#thisInvocation.
+	enterThisInvocation(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#thisInvocation.
+	exitThisInvocation(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#indexInvocation.
+	enterIndexInvocation(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#indexInvocation.
+	exitIndexInvocation(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#totalInvocation.
+	enterTotalInvocation(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#totalInvocation.
+	exitTotalInvocation(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#functn.
+	enterFunctn(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#functn.
+	exitFunctn(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#paramList.
+	enterParamList(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#paramList.
+	exitParamList(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#quantity.
+	enterQuantity(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#quantity.
+	exitQuantity(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#unit.
+	enterUnit(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#unit.
+	exitUnit(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#dateTimePrecision.
+	enterDateTimePrecision(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#dateTimePrecision.
+	exitDateTimePrecision(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#pluralDateTimePrecision.
+	enterPluralDateTimePrecision(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#pluralDateTimePrecision.
+	exitPluralDateTimePrecision(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#typeSpecifier.
+	enterTypeSpecifier(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#typeSpecifier.
+	exitTypeSpecifier(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#qualifiedIdentifier.
+	enterQualifiedIdentifier(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#qualifiedIdentifier.
+	exitQualifiedIdentifier(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#identifier.
+	enterIdentifier(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#identifier.
+	exitIdentifier(ctx) {
+	}
+
+
+
 }
-
-FHIRPathListener.prototype = Object.create(antlr4.tree.ParseTreeListener.prototype);
-FHIRPathListener.prototype.constructor = FHIRPathListener;
-
-// Enter a parse tree produced by FHIRPathParser#entireExpression.
-FHIRPathListener.prototype.enterEntireExpression = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#entireExpression.
-FHIRPathListener.prototype.exitEntireExpression = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#indexerExpression.
-FHIRPathListener.prototype.enterIndexerExpression = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#indexerExpression.
-FHIRPathListener.prototype.exitIndexerExpression = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#polarityExpression.
-FHIRPathListener.prototype.enterPolarityExpression = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#polarityExpression.
-FHIRPathListener.prototype.exitPolarityExpression = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#additiveExpression.
-FHIRPathListener.prototype.enterAdditiveExpression = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#additiveExpression.
-FHIRPathListener.prototype.exitAdditiveExpression = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#multiplicativeExpression.
-FHIRPathListener.prototype.enterMultiplicativeExpression = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#multiplicativeExpression.
-FHIRPathListener.prototype.exitMultiplicativeExpression = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#unionExpression.
-FHIRPathListener.prototype.enterUnionExpression = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#unionExpression.
-FHIRPathListener.prototype.exitUnionExpression = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#orExpression.
-FHIRPathListener.prototype.enterOrExpression = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#orExpression.
-FHIRPathListener.prototype.exitOrExpression = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#andExpression.
-FHIRPathListener.prototype.enterAndExpression = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#andExpression.
-FHIRPathListener.prototype.exitAndExpression = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#membershipExpression.
-FHIRPathListener.prototype.enterMembershipExpression = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#membershipExpression.
-FHIRPathListener.prototype.exitMembershipExpression = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#inequalityExpression.
-FHIRPathListener.prototype.enterInequalityExpression = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#inequalityExpression.
-FHIRPathListener.prototype.exitInequalityExpression = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#invocationExpression.
-FHIRPathListener.prototype.enterInvocationExpression = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#invocationExpression.
-FHIRPathListener.prototype.exitInvocationExpression = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#equalityExpression.
-FHIRPathListener.prototype.enterEqualityExpression = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#equalityExpression.
-FHIRPathListener.prototype.exitEqualityExpression = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#impliesExpression.
-FHIRPathListener.prototype.enterImpliesExpression = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#impliesExpression.
-FHIRPathListener.prototype.exitImpliesExpression = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#termExpression.
-FHIRPathListener.prototype.enterTermExpression = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#termExpression.
-FHIRPathListener.prototype.exitTermExpression = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#typeExpression.
-FHIRPathListener.prototype.enterTypeExpression = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#typeExpression.
-FHIRPathListener.prototype.exitTypeExpression = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#invocationTerm.
-FHIRPathListener.prototype.enterInvocationTerm = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#invocationTerm.
-FHIRPathListener.prototype.exitInvocationTerm = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#literalTerm.
-FHIRPathListener.prototype.enterLiteralTerm = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#literalTerm.
-FHIRPathListener.prototype.exitLiteralTerm = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#externalConstantTerm.
-FHIRPathListener.prototype.enterExternalConstantTerm = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#externalConstantTerm.
-FHIRPathListener.prototype.exitExternalConstantTerm = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#parenthesizedTerm.
-FHIRPathListener.prototype.enterParenthesizedTerm = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#parenthesizedTerm.
-FHIRPathListener.prototype.exitParenthesizedTerm = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#nullLiteral.
-FHIRPathListener.prototype.enterNullLiteral = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#nullLiteral.
-FHIRPathListener.prototype.exitNullLiteral = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#booleanLiteral.
-FHIRPathListener.prototype.enterBooleanLiteral = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#booleanLiteral.
-FHIRPathListener.prototype.exitBooleanLiteral = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#stringLiteral.
-FHIRPathListener.prototype.enterStringLiteral = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#stringLiteral.
-FHIRPathListener.prototype.exitStringLiteral = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#numberLiteral.
-FHIRPathListener.prototype.enterNumberLiteral = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#numberLiteral.
-FHIRPathListener.prototype.exitNumberLiteral = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#dateTimeLiteral.
-FHIRPathListener.prototype.enterDateTimeLiteral = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#dateTimeLiteral.
-FHIRPathListener.prototype.exitDateTimeLiteral = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#timeLiteral.
-FHIRPathListener.prototype.enterTimeLiteral = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#timeLiteral.
-FHIRPathListener.prototype.exitTimeLiteral = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#quantityLiteral.
-FHIRPathListener.prototype.enterQuantityLiteral = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#quantityLiteral.
-FHIRPathListener.prototype.exitQuantityLiteral = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#externalConstant.
-FHIRPathListener.prototype.enterExternalConstant = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#externalConstant.
-FHIRPathListener.prototype.exitExternalConstant = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#memberInvocation.
-FHIRPathListener.prototype.enterMemberInvocation = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#memberInvocation.
-FHIRPathListener.prototype.exitMemberInvocation = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#functionInvocation.
-FHIRPathListener.prototype.enterFunctionInvocation = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#functionInvocation.
-FHIRPathListener.prototype.exitFunctionInvocation = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#thisInvocation.
-FHIRPathListener.prototype.enterThisInvocation = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#thisInvocation.
-FHIRPathListener.prototype.exitThisInvocation = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#indexInvocation.
-FHIRPathListener.prototype.enterIndexInvocation = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#indexInvocation.
-FHIRPathListener.prototype.exitIndexInvocation = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#totalInvocation.
-FHIRPathListener.prototype.enterTotalInvocation = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#totalInvocation.
-FHIRPathListener.prototype.exitTotalInvocation = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#functn.
-FHIRPathListener.prototype.enterFunctn = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#functn.
-FHIRPathListener.prototype.exitFunctn = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#paramList.
-FHIRPathListener.prototype.enterParamList = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#paramList.
-FHIRPathListener.prototype.exitParamList = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#quantity.
-FHIRPathListener.prototype.enterQuantity = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#quantity.
-FHIRPathListener.prototype.exitQuantity = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#unit.
-FHIRPathListener.prototype.enterUnit = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#unit.
-FHIRPathListener.prototype.exitUnit = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#dateTimePrecision.
-FHIRPathListener.prototype.enterDateTimePrecision = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#dateTimePrecision.
-FHIRPathListener.prototype.exitDateTimePrecision = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#pluralDateTimePrecision.
-FHIRPathListener.prototype.enterPluralDateTimePrecision = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#pluralDateTimePrecision.
-FHIRPathListener.prototype.exitPluralDateTimePrecision = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#typeSpecifier.
-FHIRPathListener.prototype.enterTypeSpecifier = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#typeSpecifier.
-FHIRPathListener.prototype.exitTypeSpecifier = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#qualifiedIdentifier.
-FHIRPathListener.prototype.enterQualifiedIdentifier = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#qualifiedIdentifier.
-FHIRPathListener.prototype.exitQualifiedIdentifier = function(ctx) {
-};
-
-
-// Enter a parse tree produced by FHIRPathParser#identifier.
-FHIRPathListener.prototype.enterIdentifier = function(ctx) {
-};
-
-// Exit a parse tree produced by FHIRPathParser#identifier.
-FHIRPathListener.prototype.exitIdentifier = function(ctx) {
-};
-
-
-
-exports.FHIRPathListener = FHIRPathListener;
+module.exports = FHIRPathListener;

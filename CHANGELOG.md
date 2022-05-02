@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.14.3] - 2022-05-02
+### Changed
+- Updated to NodeJS 16.
+- Updated the antlr4 dependency to 4.9.3.
+
 ## [2.14.2] - 2022-04-12
 ### Fixed
 - Corrected scope of function parameter of `collection` type for `union`,
