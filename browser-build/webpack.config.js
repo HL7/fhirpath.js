@@ -18,7 +18,7 @@ function makeBaseConfig() {
       rules: [
         {
           test: /\.m?js$/,
-          exclude: /(node_modules\/(?!@lhncbc)|bower_components)/,
+          exclude: /(node_modules\/(?!@lhncbc|antlr4)|bower_components)/,
           use: {
             loader: 'babel-loader',
             options: {

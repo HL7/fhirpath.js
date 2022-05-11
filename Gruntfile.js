@@ -12,8 +12,14 @@ module.exports = function (grunt) {
         src: ['src/parser/generated/*.js'],
         overwrite: true,
         replacements: [{
-          from: /'antlr4\/index'/g,
-          to: "'../antlr4-index'"
+          from: "import antlr4 from 'antlr4';",
+          to: "const antlr4 = require('../antlr4-index');"
+        }, {
+          from: "import FHIRPathListener from './FHIRPathListener.js';",
+          to: "const FHIRPathListener = require('./FHIRPathListener');"
+        }, {
+          from: /export default class (.*) extends ([\s\S]*)/gm,
+          to: "class $1 extends $2\nmodule.exports = $1;"
         }]
       }
     }

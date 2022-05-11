@@ -1,11 +1,11 @@
 {
   "name": "fhirpath",
-  "version": "2.14.2",
+  "version": "2.14.3",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "dependencies": {
     "@lhncbc/ucum-lhc": "^4.1.3",
-    "antlr4": "~4.8.0",
+    "antlr4": "~4.9.3",
     "commander": "^2.18.0",
     "date-fns": "^1.30.1",
     "js-yaml": "^3.13.1"
@@ -40,7 +40,7 @@
     "node": ">=8.9.0"
   },
   "scripts": {
-    "generateParser": "cd src/parser; rimraf ./generated/*; java -Xmx500M -cp \"../../antlr-4.7.1-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o generated -Dlanguage=JavaScript FHIRPath.g4; grunt updateParserRequirements",
+    "generateParser": "cd src/parser; rimraf ./generated/*; java -Xmx500M -cp \"../../antlr-4.9.3-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o generated -Dlanguage=JavaScript FHIRPath.g4; grunt updateParserRequirements",
     "build": "cd browser-build && webpack && rimraf fhirpath.zip && bestzip fhirpath.zip LICENSE.md fhirpath.min.js fhirpath.r4.min.js fhirpath.stu3.min.js fhirpath.dstu2.min.js && rimraf  LICENSE.md",
     "test:unit": "jest && TZ=America/New_York jest && TZ=Europe/Paris jest",
     "test:demo": "npm run build && cd demo && npm run build && grunt test:e2e",
