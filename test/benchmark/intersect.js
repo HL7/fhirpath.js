@@ -25,25 +25,25 @@ const expression = '%items.intersect(%itemsCopy)';
 const cases = [
   {
     name: `${numberOfBigItems} big items using evaluate()`,
-    function: (fhirpath, model) => {
+    testFunction: (fhirpath, model) => {
       fhirpath.evaluate({}, expression, { items: bigItems, itemsCopy: bigItemsCopy }, model);
     }
   },
   {
     name: `${numberOfBigItems} big items using compile()`,
-    function: (fhirpath, model, compiledFn) => {
+    testFunction: (fhirpath, model, compiledFn) => {
       compiledFn({}, { items: bigItems, itemsCopy: bigItemsCopy });
     }
   },
   {
     name: `${numberOfSmallItems} small items using evaluate()`,
-    function: (fhirpath, model) => {
+    testFunction: (fhirpath, model) => {
       fhirpath.evaluate({}, expression, { items: smallItems, itemsCopy: smallItemsCopy }, model);
     }
   },
   {
     name: `${numberOfSmallItems} small items using compile()`,
-    function: (fhirpath, model, compiledFn) => {
+    testFunction: (fhirpath, model, compiledFn) => {
       compiledFn({}, { items: smallItems, itemsCopy: smallItemsCopy });
     }
   }
@@ -51,7 +51,7 @@ const cases = [
   arr.push(
     b.add(
       `${item.name} [${previousVersion}]`,
-      item.function.bind(
+      item.testFunction.bind(
         this,
         previous_fhirpath,
         previous_r4_model,
@@ -62,7 +62,7 @@ const cases = [
   arr.push(
     b.add(
       `${item.name} [${currentVersion}]`,
-      item.function.bind(
+      item.testFunction.bind(
         this,
         current_fhirpath,
         current_r4_model,
