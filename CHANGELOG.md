@@ -6,6 +6,8 @@ This log documents significant changes for each release.  This project follows
 ## [2.14.5] - 2022-06-07
 ### Added
 - Version number to fhirpath.js demo page.
+### Fixed
+- "extension()" for primitive types did not work properly without a value.
 
 ## [2.14.4] - 2022-05-23
 ### Added

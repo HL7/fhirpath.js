@@ -984,7 +984,7 @@ class ResourceNode {
   constructor(data, path, _data) {
     // If data is a resource (maybe a contained resource) reset the path
     // information to the resource type.
-    if (data.resourceType)
+    if (data?.resourceType)
       path = data.resourceType;
     this.path = path;
     this.data = getResourceNodeData(data, path);
@@ -1021,7 +1021,7 @@ class ResourceNode {
  * @return {FP_Quantity|Object|...}
  */
 function getResourceNodeData(data, path) {
-  if (path === 'Quantity' && data.system === ucumSystemUrl) {
+  if (path === 'Quantity' && data?.system === ucumSystemUrl) {
     if (typeof data.value === 'number' && typeof data.code === 'string') {
       data = new FP_Quantity(data.value, FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\'');
     }

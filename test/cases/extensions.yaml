@@ -61,11 +61,19 @@ tests:
         - true
 
     - desc: '** expression with extension() for primitive type (without using FHIR model data) when only extension is present'
-      inputfile: patient-example.json
+      inputfile: patient-example-2.json
       expression: >-
         Patient.communication.preferred.extension('test').exists()
       result:
         - true
+
+    - desc: '** expression with extension() for primitive type (using FHIR model data) when only extension is present'
+      inputfile: patient-example-2.json
+      model: r4
+      expression: >-
+        Patient.communication.preferred.extension('test').value.id
+      result:
+        - testing
 
     - desc: '** expression with extension() for primitive type (using FHIR model data)'
       inputfile: patient-example.json
