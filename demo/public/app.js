@@ -13,6 +13,8 @@ require("codemirror/lib/codemirror.css");
 
 const example = require("json-loader!yaml-loader!./patient-example.yaml");
 
+document.getElementById('version').innerText = '[version' + fhirpath.version + ']';
+
 const debounce = (func, delay) => {
   let inDebounce;
   return () => {
