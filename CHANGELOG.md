@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.14.4] - 2022-05-23
+### Added
+- Suite of performance tests.
+
 ## [2.14.3] - 2022-05-02
 ### Changed
 - Updated to NodeJS 16.
