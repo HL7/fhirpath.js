@@ -31,7 +31,7 @@ function rewritePatternForDotAll(pattern) {
       // The last index of unescaped ']'
       const lastIndexOfCloseBracket = cleanPrecedingPart.lastIndexOf(']');
       return escaped ||
-      (lastIndexOfOpenBracket > lastIndexOfCloseBracket)
+        (lastIndexOfOpenBracket > lastIndexOfCloseBracket)
         ? '.'
         : '[^]';
     });
@@ -40,15 +40,15 @@ function rewritePatternForDotAll(pattern) {
   return cachedRegExp[pattern];
 }
 
-engine.indexOf = function(coll, substr){
+engine.indexOf = function (coll, substr) {
   const str = misc.singleton(coll, 'String');
   return util.isEmpty(substr) || util.isEmpty(str) ? [] : str.indexOf(substr);
 };
 
-engine.substring = function(coll, start, length){
+engine.substring = function (coll, start, length) {
   const str = misc.singleton(coll, 'String');
   if (util.isEmpty(str) || util.isEmpty(start) || start < 0 || start >= str.length) {
-    return  [];
+    return [];
   }
   if (length === undefined || util.isEmpty(length)) {
     return str.substring(start);
@@ -56,30 +56,91 @@ engine.substring = function(coll, start, length){
   return str.substring(start, start + length);
 };
 
-engine.startsWith = function(coll, prefix){
+engine.startsWith = function (coll, prefix) {
   const str = misc.singleton(coll, 'String');
   return util.isEmpty(prefix) || util.isEmpty(str) ? [] : str.startsWith(prefix);
 };
 
-engine.endsWith = function(coll, postfix) {
+engine.endsWith = function (coll, postfix) {
   const str = misc.singleton(coll, 'String');
   return util.isEmpty(postfix) || util.isEmpty(str) ? [] : str.endsWith(postfix);
 };
 
-engine.containsFn = function(coll, substr){
+engine.containsFn = function (coll, substr) {
   const str = misc.singleton(coll, 'String');
   return util.isEmpty(substr) || util.isEmpty(str) ? [] : str.includes(substr);
 };
 
-engine.upper = function(coll){
+engine.upper = function (coll) {
   const str = misc.singleton(coll, 'String');
   return util.isEmpty(str) ? [] : str.toUpperCase();
 };
 
-
-engine.lower = function(coll){
+engine.lower = function (coll) {
   const str = misc.singleton(coll, 'String');
   return util.isEmpty(str) ? [] : str.toLowerCase();
+};
+
+engine.joinFn = function (coll, separator) {
+  const stringValues = coll.map((n) => {
+    const d = util.valData(n);
+    if (typeof d === "string") {
+      return d;
+    }
+    return null;
+  });
+  return stringValues.join(separator);
+};
+
+engine.splitFn = function (coll, separator) {
+  const strToSplit = misc.singleton(coll, 'String');
+  return util.isEmpty(strToSplit) ? [] : strToSplit.split(separator);
+};
+
+engine.trimFn = function (coll) {
+  const stringValues = coll.map((n) => {
+    const d = util.valData(n);
+    if (typeof d === "string") {
+      return d.trim();
+    }
+    return null;
+  });
+  return stringValues;
+};
+
+// encoding/decoding
+engine.encodeFn = function (coll, format) {
+  const strToEncode = misc.singleton(coll, 'String');
+  if (util.isEmpty(strToEncode)){
+    return [];
+  }
+  if (format === 'urlbase64'){
+    return encodeURIComponent(strToEncode);
+  }
+  if (format === 'base64'){
+    return btoa(strToEncode);
+  }
+  if (format === 'hex'){
+    return escape(strToEncode);
+  }
+  return [];
+};
+
+engine.decodeFn = function (coll, format) {
+  const strDecode = misc.singleton(coll, 'String');
+  if (util.isEmpty(strDecode)){
+    return [];
+  }
+  if (format === 'urlbase64'){
+    return decodeURIComponent(strDecode);
+  }
+  if (format === 'base64'){
+    return atob(strDecode);
+  }
+  if (format === 'hex'){
+    return unescape(strDecode);
+  }
+  return [];
 };
 
 // Check if dotAll is supported.
@@ -87,7 +148,7 @@ engine.lower = function(coll){
 const dotAllIsSupported = (new RegExp('')).dotAll === false;
 
 if (dotAllIsSupported) {
-  engine.matches = function(coll, regex) {
+  engine.matches = function (coll, regex) {
     const str = misc.singleton(coll, 'String');
     if (util.isEmpty(regex) || util.isEmpty(str)) {
       return [];
@@ -96,7 +157,7 @@ if (dotAllIsSupported) {
     return reg.test(str);
   };
 } else {
-  engine.matches = function(coll, regex) {
+  engine.matches = function (coll, regex) {
     const str = misc.singleton(coll, 'String');
     if (util.isEmpty(regex) || util.isEmpty(str)) {
       return [];
@@ -106,7 +167,7 @@ if (dotAllIsSupported) {
   };
 }
 
-engine.replace = function(coll, pattern, repl){
+engine.replace = function (coll, pattern, repl) {
   const str = misc.singleton(coll, 'String');
   if (util.isEmpty(pattern) || util.isEmpty(repl) || util.isEmpty(str)) {
     return [];
@@ -115,7 +176,7 @@ engine.replace = function(coll, pattern, repl){
   return str.replace(reg, repl);
 };
 
-engine.replaceMatches = function(coll, regex, repl){
+engine.replaceMatches = function (coll, regex, repl) {
   const str = misc.singleton(coll, 'String');
   if (util.isEmpty(regex) || util.isEmpty(repl) || util.isEmpty(str)) {
     return [];
@@ -124,12 +185,12 @@ engine.replaceMatches = function(coll, regex, repl){
   return str.replace(reg, repl);
 };
 
-engine.length = function(coll){
+engine.length = function (coll) {
   const str = misc.singleton(coll, 'String');
   return util.isEmpty(str) ? [] : str.length;
 };
 
-engine.toChars = function(coll){
+engine.toChars = function (coll) {
   const str = misc.singleton(coll, 'String');
   return util.isEmpty(str) ? [] : str.split('');
 };
