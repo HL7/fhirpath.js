@@ -4,7 +4,8 @@ declare module "fhirpath" {
     fhirData: any,
     path: string | Path,
     context: Context,
-    model?: Model
+    model?: Model,
+    trace?: (value: any, label: string) => void
   ): any[];
 }
 

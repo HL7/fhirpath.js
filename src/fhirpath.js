@@ -636,8 +636,9 @@ function parse(path) {
  * @param {object} context - a hash of variable name/value pairs.
  * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
+ * @param {function} [traceFn] - An optional trace function to call when tracing
  */
-function applyParsedPath(resource, parsedPath, context, model) {
+function applyParsedPath(resource, parsedPath, context, model, traceFn) {
   constants.reset();
   let dataRoot = util.arraify(resource);
   // doEval takes a "ctx" object, and we store things in that as we parse, so we
@@ -646,6 +647,7 @@ function applyParsedPath(resource, parsedPath, context, model) {
   // However, we'll keep our own copy of dataRoot for internal processing.
   let vars = {context: resource, ucum: 'http://unitsofmeasure.org'};
   let ctx = {dataRoot, vars: Object.assign(vars, context), model};
+  if (traceFn){ ctx.customTraceFn = traceFn}
   let rtn = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
   let firstRtn = Array.isArray(rtn) ? rtn[0] : rtn;
   // Path for the data extracted from the resource.
@@ -684,11 +686,12 @@ function applyParsedPath(resource, parsedPath, context, model) {
  * @param {string} path.base - base path in resource from which fhirData was extracted
  * @param {string} path.expression - FHIRPath expression relative to path.base
  * @param {object} context - a hash of variable name/value pairs.
- * @param {object} model - The "model" data object specific to a domain, e.g. R4.
+ * @param {object} [model] - The "model" data object specific to a domain, e.g. R4.
+ * @param {function} [trace] - The "trace" function to call when the trace function is in an expression
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  */
-function evaluate(fhirData, path, context, model) {
-  return compile(path, model)(fhirData, context);
+function evaluate(fhirData, path, context, model, trace) {
+  return compile(path, model)(fhirData, context, trace);
 }
 
 /**
@@ -703,21 +706,22 @@ function evaluate(fhirData, path, context, model) {
  * @param {string} path.expression - FHIRPath expression relative to path.base
  * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
+ * @param {function} [traceFn] - An optional trace function to call when tracing
  */
 function compile(path, model) {
   if (typeof path === 'object') {
     const node = parse(path.expression);
-    return function (fhirData, context) {
+    return function (fhirData, context, traceFn) {
       const inObjPath = fhirData && fhirData.__path__;
       const resource = makeResNode(fhirData, path.base || inObjPath);
-      return applyParsedPath(resource, node, context, model);
+      return applyParsedPath(resource, node, context, model, traceFn);
     };
   } else {
     const node = parse(path);
-    return function (fhirData, context) {
+    return function (fhirData, context, traceFn) {
       const inObjPath = fhirData && fhirData.__path__;
       const resource = inObjPath ? makeResNode(fhirData, inObjPath) : fhirData;
-      return applyParsedPath(resource, node, context, model);
+      return applyParsedPath(resource, node, context, model, traceFn);
     };
   }
 }
