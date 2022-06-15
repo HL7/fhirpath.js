@@ -1,0 +1,26 @@
+{
+  "resourceType": "Patient",
+  "communication": [
+    {
+      "language": {
+        "coding": [
+          {
+            "system": "urn:ietf:bcp:47",
+            "code": "nl",
+            "display": "Dutch"
+          }
+        ]
+      },
+      "_preferred": {
+        "extension": [
+          {
+            "url": "test",
+            "_valueString": {
+              "id": "testing"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

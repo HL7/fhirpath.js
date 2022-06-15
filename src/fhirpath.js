@@ -336,21 +336,18 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
           // Use actualTypes to find the field's value
           for (let t of actualTypes) {
             let field = key + t;
-            toAdd = res.data[field];
-            if (toAdd !== undefined) {
+            toAdd = res.data?.[field];
+            _toAdd = res.data?.['_' + field];
+            if (toAdd !== undefined || _toAdd !== undefined) {
               childPath = t;
-              _toAdd = res.data['_' + key];
               break;
-            } else {
-              toAdd = res._data[key];
             }
           }
         }
         else {
-          toAdd = res.data[key];
-          if (toAdd !== undefined) {
-            _toAdd = res.data['_' + key];
-          } else {
+          toAdd = res.data?.[key];
+          _toAdd = res.data?.['_' + key];
+          if (toAdd === undefined && _toAdd === undefined) {
             toAdd = res._data[key];
           }
           if (key === 'extension') {
@@ -358,7 +355,7 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
           }
         }
 
-        if (util.isSome(toAdd)) {
+        if (util.isSome(toAdd) || util.isSome(_toAdd)) {
           if(Array.isArray(toAdd)) {
             acc = acc.concat(toAdd.map((x, i)=>
               makeResNode(x, childPath, _toAdd && _toAdd[i])));
