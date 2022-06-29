@@ -50,5 +50,7 @@ else {
     let res = fp.evaluate(resource, base ? {base, expression} : expression, context, model);
     console.log('fhirpath(' + expression + ') =>');
     console.log(JSON.stringify(res, null, " "));
+    console.log(res.__path__);
+    console.log(res);
   }
 }

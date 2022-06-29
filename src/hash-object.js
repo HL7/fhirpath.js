@@ -1,6 +1,6 @@
 const ucumUtils = require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance();
 const {roundToMaxPrecision} = require('./numbers');
-const {valData} = require('./utilities');
+const {valDataConverted} = require('./utilities');
 const {FP_Type, FP_Quantity} = require('./types');
 
 /**
@@ -23,7 +23,7 @@ function hashObject(obj) {
  * here they are likely also needed there).
  */
 function prepareObject(value) {
-  value = valData(value);
+  value = valDataConverted(value);
 
   if (typeof value === 'number') {
     return roundToMaxPrecision(value);

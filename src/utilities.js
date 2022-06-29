@@ -93,6 +93,20 @@ util.valData = function(val) {
 };
 
 /**
+ *  Returns the data value of the given parameter, which might be a ResourceNode.
+ *  Otherwise, it returns the value that was passed in.  In the case of a
+ *  ResourceNode that is a Quantity, the returned value will have been converted
+ *  to an FP_Quantity.
+ */
+util.valDataConverted = function(val) {
+  if (val instanceof ResourceNode) {
+    val.convertData();
+    val = val.data;
+  }
+  return val;
+};
+
+/**
  * Prepares a string for insertion into a regular expression
  * @param {string} str
  * @return {string}
