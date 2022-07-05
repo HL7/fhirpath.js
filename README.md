@@ -30,7 +30,7 @@ page](https://github.com/HL7/fhirpath.js/releases).  It contains a JavaScript
 file, fhirpath.min.js, which defines a global "fhirpath" variable, which you can
 then use as shown below.  Note that this file is UTF-8 encoded, and the script
 needs to be loaded as such.  For an example, see the
-browser-build/test/protractor/index.html file, which sets the page to be UTF-8.
+browser-build/test/index.html file, which sets the page to be UTF-8.
 
 For FHIR-specific features (e.g. handling of choice type fields), you will also
 want to include a second file with the desired FHIR version model data, e.g.

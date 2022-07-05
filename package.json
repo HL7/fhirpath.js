@@ -1,6 +1,6 @@
 {
   "name": "fhirpath",
-  "version": "2.14.5",
+  "version": "2.14.6",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "dependencies": {
@@ -18,12 +18,11 @@
     "benny": "^3.7.1",
     "bestzip": "^2.2.0",
     "copy-webpack-plugin": "^6.0.3",
+    "cypress": "^10.3.0",
     "eslint": "^8.10.0",
     "fhir": "^4.10.3",
     "grunt": "^1.5.2",
     "grunt-cli": "^1.4.3",
-    "grunt-contrib-connect": "^3.0.0",
-    "grunt-protractor-runner": "^5.0.0",
     "grunt-text-replace": "^0.4.0",
     "jasmine-spec-reporter": "^4.2.1",
     "jest": "^27.3.1",
@@ -45,11 +44,10 @@
     "generateParser": "cd src/parser; rimraf ./generated/*; java -Xmx500M -cp \"../../antlr-4.9.3-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o generated -Dlanguage=JavaScript FHIRPath.g4; grunt updateParserRequirements",
     "build": "cd browser-build && webpack && rimraf fhirpath.zip && bestzip fhirpath.zip LICENSE.md fhirpath.min.js fhirpath.r4.min.js fhirpath.stu3.min.js fhirpath.dstu2.min.js && rimraf  LICENSE.md",
     "test:unit": "jest && TZ=America/New_York jest && TZ=Europe/Paris jest",
-    "test:demo": "npm run build && cd demo && npm run build && grunt test:e2e",
-    "test:build": "cd browser-build && grunt test:e2e",
-    "test": "npm run lint && npm run test:unit && npm run update-webdriver && npm run test:demo && npm run test:build && echo \"For tests specific to IE 11, open browser-build/test/protractor/index.html in IE 11, and confirm that the tests on that page pass.\"",
+    "test:demo": "npm run build && (cd demo && npm run build) && cypress run --spec test/cypress/e2e/demo.cy.js",
+    "test:build": "cypress run --spec test/cypress/e2e/browser.cy.js",
+    "test": "npm run lint && npm run test:unit && npm run test:demo && npm run test:build && echo \"For tests specific to IE 11, open browser-build/test/index.html in IE 11, and confirm that the tests on that page pass.\"",
     "lint": "eslint src/parser/index.js src/*.js converter/",
-    "update-webdriver": "node node_modules/protractor/bin/webdriver-manager update",
     "compare-performance": "node ./test/benchmark.js"
   },
   "bin": {

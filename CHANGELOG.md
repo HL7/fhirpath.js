@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.14.6] - 2022-07-05
+### Changed
+- Migrated e2e tests to Cypress.
+
 ## [2.14.5] - 2022-06-07
 ### Added
 - Version number to fhirpath.js demo page.
