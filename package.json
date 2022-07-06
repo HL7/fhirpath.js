@@ -44,9 +44,9 @@
     "generateParser": "cd src/parser; rimraf ./generated/*; java -Xmx500M -cp \"../../antlr-4.9.3-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o generated -Dlanguage=JavaScript FHIRPath.g4; grunt updateParserRequirements",
     "build": "cd browser-build && webpack && rimraf fhirpath.zip && bestzip fhirpath.zip LICENSE.md fhirpath.min.js fhirpath.r4.min.js fhirpath.stu3.min.js fhirpath.dstu2.min.js && rimraf  LICENSE.md",
     "test:unit": "jest && TZ=America/New_York jest && TZ=Europe/Paris jest",
-    "test:demo": "npm run build && (cd demo && npm run build) && cypress run --spec test/cypress/e2e/demo.cy.js",
-    "test:build": "cypress run --spec test/cypress/e2e/browser.cy.js",
-    "test": "npm run lint && npm run test:unit && npm run test:demo && npm run test:build && echo \"For tests specific to IE 11, open browser-build/test/index.html in IE 11, and confirm that the tests on that page pass.\"",
+    "build:demo": "npm run build && cd demo && npm run build",
+    "test:e2e": "npm run build:demo && cypress run",
+    "test": "npm run lint && npm run test:unit && npm run test:e2e && echo \"For tests specific to IE 11, open browser-build/test/index.html in IE 11, and confirm that the tests on that page pass.\"",
     "lint": "eslint src/parser/index.js src/*.js converter/",
     "compare-performance": "node ./test/benchmark.js"
   },
