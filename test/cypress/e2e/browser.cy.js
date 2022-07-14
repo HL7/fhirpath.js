@@ -14,10 +14,13 @@ describe('Browser build of FHIRPath', function() {
   it('should have working model files', function() {
     cy.get('#resource').type('{"resourceType": "Observation", "valueString": "green"}', { parseSpecialCharSequences: false });
     cy.get('#expression').type('Observation.value');
+    // Observation.value does not exist if no model is selected:
     cy.get('#result').should('have.value', '[]');
 
     for (let fhirVers of ['dstu2', 'stu3', 'r4']) {
-      cy.get('#'+fhirVers).click(); // changes the model used
+      // Change the model used:
+      cy.get('#'+fhirVers).click();
+      // Observation.value exists if a model is selected:
       cy.get('#result').should('have.value', '["green"]');
     }
   });
