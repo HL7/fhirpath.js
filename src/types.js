@@ -1018,6 +1018,7 @@ class ResourceNode {
    * the data is a Quantity that has a comparator.
    * The Mapping from FHIR Quantity to FHIRPath System.Quantity is explained here:
    * https://www.hl7.org/fhir/fhirpath.html#quantity
+   * this.data is not changed, but converted value is returned.
    * @param {Object|...} data
    * @param {string} path
    * @return {FP_Quantity|Object|...}
@@ -1028,7 +1029,7 @@ class ResourceNode {
       if (typeof data.value === 'number' && typeof data.code === 'string') {
         if (data.comparator !== undefined)
           throw new Error('Cannot convert a FHIR.Quantity that has a comparator');
-        data = this.data =
+        data =
           new FP_Quantity(data.value, FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\'');
       }
     }

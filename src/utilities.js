@@ -100,8 +100,7 @@ util.valData = function(val) {
  */
 util.valDataConverted = function(val) {
   if (val instanceof ResourceNode) {
-    val.convertData();
-    val = val.data;
+    val = val.convertData();
   }
   return val;
 };
