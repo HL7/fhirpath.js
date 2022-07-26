@@ -17,8 +17,9 @@ engine.iifMacro = function(data, cond, ok, fail) {
   }
 };
 
-engine.traceFn = function(x, label) {
-  console.log("TRACE:[" + (label || "") + "]", JSON.stringify(x, null, " "));
+engine.traceFn = function(x, label, expr) {
+  const logData = expr ? expr(x) : x;
+  console.log("TRACE:[" + (label || "") + "]", JSON.stringify(logData, null, " "));
   return x;
 };
 
