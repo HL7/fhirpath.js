@@ -271,6 +271,22 @@ tests:
     expression: "'   this is a string   '.trim()"
     result: ['this is a string']
 
+  - desc: '** encode urlbase64'
+    expression: "'http://example.org/fhir'.encode('urlbase64')"
+    result: ['http%3A%2F%2Fexample.org%2Ffhir']
+
+  - desc: '** decode urlbase64'
+    expression: "'http%3A%2F%2Fexample.org%2Ffhir'.decode('urlbase64')"
+    result: ['http://example.org/fhir']
+
+  - desc: '** encode urlbase64'
+    expression: "'http://example.org/fhir'.encode('base64')"
+    result: ['aHR0cDovL2V4YW1wbGUub3JnL2ZoaXI=']
+
+  - desc: '** decode'
+    expression: "'aHR0cDovL2V4YW1wbGUub3JnL2ZoaXI='.decode('base64')"
+    result: ['http://example.org/fhir']
+
 subject:
   resourceType: Functions
   str:
