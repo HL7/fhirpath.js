@@ -8,3 +8,4 @@ build
 Makefile
 test/benchmark/prev-fhirpath
 test/benchmark/results
+.vs/
