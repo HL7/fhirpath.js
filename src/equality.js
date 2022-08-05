@@ -1,4 +1,4 @@
-// This file holds code to hande the FHIRPath Math functions.
+// This file holds code to handle the FHIRPath Math functions.
 
 var util = require("./utilities");
 var deepEqual = require('./deep-equal');
@@ -52,8 +52,8 @@ function typecheck(a, b){
   let rtn = null;
   util.assertAtMostOne(a, "Singleton was expected");
   util.assertAtMostOne(b, "Singleton was expected");
-  a = util.valData(a[0]);
-  b = util.valData(b[0]);
+  a = util.valDataConverted(a[0]);
+  b = util.valDataConverted(b[0]);
   let lClass = a.constructor;
   let rClass = b.constructor;
   if (lClass != rClass) {

@@ -66,7 +66,7 @@ describe('evaluate', () => {
       {someVar},
       r4_model
     );
-    expect(result).toEqual(['1', '2', '3']);
+    expect(result).toEqual(['1', '2', '3', '4']);
     expect(someVar).toStrictEqual(someVarOrig);
   })
 });

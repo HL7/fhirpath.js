@@ -1,10 +1,10 @@
 {
-  "answer": {
+  "answer": [{
     "valueQuantity": {
       "value": 2,
       "unit": "year(real UCUM code in field 'code')",
       "system": "http://unitsofmeasure.org",
       "code": "a"
     }
-  }
+  }]
 }
