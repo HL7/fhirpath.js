@@ -3,7 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [2.14.6] - 2022-07-05
+## [2.14.6] - 2022-06-29
+### Fixed
+- FHIR Quantities are now only converted to System Quantities when necessary, so
+  that FHIR Quantities can be returned from an expression, and so that the
+  fields from a FHIR Quantity can be accessed.
 ### Changed
 - Migrated e2e tests to Cypress.
 
@@ -95,7 +99,7 @@ This log documents significant changes for each release.  This project follows
 ### Fixed
 - String manipulation functions did not properly return an empty
   collection when the input collection is empty.
-  
+
 ## [2.7.4] - 2021-03-12
 ### Fixed
 - Evaluation of singleton collections.

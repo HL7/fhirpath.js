@@ -30,32 +30,33 @@ const generateTest = (test, testResource) => {
     if (test.disableConsoleLog) {
       console.log = function() {};
     }
-    if (!test.error && test.expression) {
-      const result = calcExpression(expression, test, testResource);
-      // Run the result through JSON so the FP_Type quantities get converted to
-      // strings.  Also , if the result is an FP_DateTime, convert to a Date
-      // object so that timezone differences are handled.
-      if (result.length == 1 && result[0] instanceof FP_DateTime)
-        expect(new Date(result[0])).toEqual(new Date(test.result[0]))
-      else
-        expect(JSON.parse(JSON.stringify(result))).toEqual(test.result);
-    }
-    else if (test.error) {
+    if (test.expression) { // Headings do not have expressions
       let exception = null;
       let result = null;
       try {
-        result = fhirpath.evaluate(testResource, expression, null,
-          getFHIRModel(test.model));
+        result = calcExpression(expression, test, testResource);
       }
       catch (error) {
         exception = error;
       }
-      if (result != null)
-        console.log(result);
-      expect(exception).not.toBe(null);
+      if (!test.error) {
+        // Run the result through JSON so the FP_Type quantities get converted to
+        // strings.  Also , if the result is an FP_DateTime, convert to a Date
+        // object so that timezone differences are handled.
+        if (result.length == 1 && result[0] instanceof FP_DateTime)
+          expect(new Date(result[0])).toEqual(new Date(test.result[0]))
+        else
+          expect(JSON.parse(JSON.stringify(result))).toEqual(test.result);
+        expect(exception).toBe(null);
+      }
+      else if (test.error) {
+        if (result != null)
+          console.log(result);
+        expect(exception).not.toBe(null);
+      }
+      if (test.disableConsoleLog)
+        console.log = console_log;
     }
-    if (test.disableConsoleLog)
-      console.log = console_log;
   };
 
   expressions.forEach(expression => {

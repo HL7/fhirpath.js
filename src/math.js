@@ -38,8 +38,8 @@ engine.amp = function(x, y){
 //  Actually, "minus" is now also polymorphic
 engine.plus = function(xs, ys){
   if(xs.length == 1 && ys.length == 1) {
-    var x = util.valData(xs[0]);
-    var y = util.valData(ys[0]);
+    var x = util.valDataConverted(xs[0]);
+    var y = util.valDataConverted(ys[0]);
     // In the future, this and other functions might need to return ResourceNode
     // to preserve the type information (integer vs decimal, and maybe decimal
     // vs string if decimals are represented as strings), in order to support
@@ -59,8 +59,8 @@ engine.plus = function(xs, ys){
 
 engine.minus = function(xs, ys){
   if(xs.length == 1 && ys.length == 1) {
-    var x = util.valData(xs[0]);
-    var y = util.valData(ys[0]);
+    var x = util.valDataConverted(xs[0]);
+    var y = util.valDataConverted(ys[0]);
     if(typeof x == "number" && typeof y == "number")
       return x - y;
     if(x instanceof FP_TimeBase && y instanceof FP_Quantity)

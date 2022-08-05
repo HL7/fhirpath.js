@@ -38,8 +38,8 @@ function normalizeStr(x) {
  * @return {boolean}
  */
 function deepEqual(actual, expected, opts) {
-  actual = util.valData(actual);
-  expected = util.valData(expected);
+  actual = util.valDataConverted(actual);
+  expected = util.valDataConverted(expected);
   if (!opts) opts = {};
 
   // 7.1. All identical values are equivalent, as determined by ===.

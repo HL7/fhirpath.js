@@ -66,3 +66,15 @@ tests:
         model: 'r4'
         expression: QuestionnaireResponse.item[2].answer.value.toQuantity()
         result: []
+      - desc: Error when a comparator is present and there is a need to convert
+        inputfile: quantity-example.json
+        model: 'r4'
+        expression: QuestionnaireResponse.item[3].answer.value.toQuantity()
+        error: true
+      - desc: Can access the comparator field when there isn't a need to convert
+        inputfile: quantity-example.json
+        model: 'r4'
+        expression: QuestionnaireResponse.item[3].answer.value.comparator
+        result:
+          - '>'
+
