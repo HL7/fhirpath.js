@@ -4,5 +4,5 @@
 module.exports = {
 //testRegex: './test/fhirpath.test.js',
   testEnvironment: "node",
-  testPathIgnorePatterns: ["/protractor/", "/node_modules/"]
+  testPathIgnorePatterns: ["/cypress/", "/node_modules/"]
 };
