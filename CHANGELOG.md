@@ -8,8 +8,6 @@ This log documents significant changes for each release.  This project follows
 - FHIR Quantities are now only converted to System Quantities when necessary, so
   that FHIR Quantities can be returned from an expression, and so that the
   fields from a FHIR Quantity can be accessed.
-### Changed
-- Migrated e2e tests to Cypress.
 
 ## [2.14.5] - 2022-06-07
 ### Added
