@@ -636,6 +636,24 @@ function applyParsedPath(resource, parsedPath, context, model) {
   // Set up default standard variables, and allow override from the variables.
   // However, we'll keep our own copy of dataRoot for internal processing.
   let vars = {context: resource, ucum: 'http://unitsofmeasure.org'};
+  // Restore the ResourceNodes for the top-level objects of the context
+  // variables. The nested objects will be converted to ResourceNodes
+  // in the MemberInvocation method.
+  if (context) {
+    context = Object.keys(context).reduce((restoredContext, key) => {
+      const path = context[key]?.__path__;
+      if (path) {
+        if (Array.isArray(context[key])) {
+          restoredContext[key] = context[key].map(i => makeResNode(i, path));
+        } else {
+          restoredContext[key] = makeResNode(context[key], path);
+        }
+      } else {
+        restoredContext[key] = context[key];
+      }
+      return restoredContext;
+    }, {});
+  }
   let ctx = {dataRoot, vars: Object.assign(vars, context), model};
   let rtn = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
   let firstRtn = Array.isArray(rtn) ? rtn[0] : rtn;

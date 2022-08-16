@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.14.7] - 2022-08-15
+### Fixed
+- FHIR Quantities passed as context variables are now converted to System
+  Quantities when necessary.
+
 ## [2.14.6] - 2022-06-29
 ### Fixed
 - FHIR Quantities are now only converted to System Quantities when necessary, so
