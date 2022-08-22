@@ -5,8 +5,8 @@ This log documents significant changes for each release.  This project follows
 
 ## [2.14.7] - 2022-08-15
 ### Fixed
-- FHIR Quantities passed as context variables are now converted to System
-  Quantities when necessary.
+- Fixed directly (without member invocation) accessing the value of a variable in the context if this value was fetched
+  from a resource using fhirpath.js.
 
 ## [2.14.6] - 2022-06-29
 ### Fixed
