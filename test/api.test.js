@@ -22,7 +22,7 @@ describe('compile', () => {
     expect(f({}, {a: 1})).toStrictEqual([3]);
   });
 
-  it('should apply the FHIR model for a part of the resource placed in the environment variable', () => {
+  it('should apply the FHIR model for a part of the resource placed in the context variable', () => {
     const getPartOfResource = fhirpath.compile(
       "QuestionnaireResponse.item.where(linkId = \'2\')",
       r4_model
@@ -40,7 +40,7 @@ describe('compile', () => {
 });
 
 describe('evaluate', () => {
-  it('should apply the FHIR model for a part of the resource placed in the environment variable', () => {
+  it('should apply the FHIR model for a part of the resource placed in the context variable (with MemberInvocation)', () => {
     const partOfResource = fhirpath.evaluate(
       require('../test/resources/quantity-example.json'),
       'QuestionnaireResponse.item.where(linkId = \'2\')'
@@ -52,6 +52,22 @@ describe('evaluate', () => {
       r4_model
     );
     expect(result).toStrictEqual([true]);
+  });
+
+  it('should apply the FHIR model for a part of the resource placed in the context variable (without MemberInvocation)', () => {
+    const partOfResource = fhirpath.evaluate(
+      require('../test/resources/quantity-example.json'),
+      "QuestionnaireResponse.item.where(linkId = '2').answer.value",
+      null,
+      r4_model
+    );
+    let result = fhirpath.evaluate(
+      {},
+      "%partOfResource.toQuantity('s').value",
+      {partOfResource},
+      r4_model
+    );
+    expect(result).toStrictEqual([180]);
   });
 
   it('should not change the context variable during expression evaluation', () => {

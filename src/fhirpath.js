@@ -623,7 +623,7 @@ function parse(path) {
  *  returning the result of doEval.
  * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
  *  This resource will be modified by this function to add type information.
- * @param {string} parsedPath - fhirpath expression, sample 'Patient.name.given'
+ * @param {object} parsedPath - a special object created by the parser that describes the structure of a fhirpath expression.
  * @param {object} context - a hash of variable name/value pairs.
  * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
@@ -636,6 +636,24 @@ function applyParsedPath(resource, parsedPath, context, model) {
   // Set up default standard variables, and allow override from the variables.
   // However, we'll keep our own copy of dataRoot for internal processing.
   let vars = {context: resource, ucum: 'http://unitsofmeasure.org'};
+  // Restore the ResourceNodes for the top-level objects of the context
+  // variables. The nested objects will be converted to ResourceNodes
+  // in the MemberInvocation method.
+  if (context) {
+    context = Object.keys(context).reduce((restoredContext, key) => {
+      const path = context[key]?.__path__;
+      if (path) {
+        if (Array.isArray(context[key])) {
+          restoredContext[key] = context[key].map(i => makeResNode(i, path));
+        } else {
+          restoredContext[key] = makeResNode(context[key], path);
+        }
+      } else {
+        restoredContext[key] = context[key];
+      }
+      return restoredContext;
+    }, {});
+  }
   let ctx = {dataRoot, vars: Object.assign(vars, context), model};
   let rtn = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
   let firstRtn = Array.isArray(rtn) ? rtn[0] : rtn;

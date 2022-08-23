@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [2.14.7] - 2022-08-15
+### Fixed
+- Fixed directly (without member invocation) accessing the value of a variable in the context if this value was fetched
+  from a resource using fhirpath.js.
+
 ## [2.14.6] - 2022-06-29
 ### Fixed
 - FHIR Quantities are now only converted to System Quantities when necessary, so
