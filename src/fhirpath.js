@@ -623,7 +623,7 @@ function parse(path) {
  *  returning the result of doEval.
  * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
  *  This resource will be modified by this function to add type information.
- * @param {object} parsedPath - a special object created by the parser that describe the structure of a fhirpath expression.
+ * @param {object} parsedPath - a special object created by the parser that describes the structure of a fhirpath expression.
  * @param {object} context - a hash of variable name/value pairs.
  * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
