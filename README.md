@@ -79,6 +79,23 @@ const path = fhirpath.compile({ "base": "QuestionnaireResponse.item",
                                 "expression": "answer.value = 2 year"},
                               fhirpath_r4_model);
 var res = path({ "answer": { "valueQuantity": ...}, {a: 5, ...});
+
+// During expression evaluation, some values or parts of values may have internal
+// data types (e.g. FP_DateTime, FP_Time, FP_Quantity). All these values will be
+// converted to strings in a result value of evaluation, but if you need to use
+// the result as a context variable for another FHIRpath expression, it would be
+// good to preserve data types of these values. To do this you can use the option
+// "resolveInternalTypes" = false:
+const contextVariable = fhirpath.evaluate(
+  resource, expression, context, model, {resolveInternalTypes: false}
+);
+// This option may also be passed to compile function:
+const path = fhirpath.compile(
+  expression, model, {resolveInternalTypes: false}
+);
+// If at some point you decide to convert all values which have internal types
+// to strings you can use the special function "resolveInternalTypes":
+const res = fhirpath.resolveInternalTypes(value);
 ```
 
 

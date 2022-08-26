@@ -1,8 +1,7 @@
-const fhirpath = require('../src/fhirpath');
 const yaml = require('js-yaml');
 const fs   = require('fs');
 const _    = require('lodash');
-const { getFHIRModel, calcExpression } = require("./test_utils");
+const { calcExpression } = require("./test_utils");
 const FP_DateTime = require('../src/types').FP_DateTime;
 
 // Get document, or throw exception on error
@@ -43,7 +42,7 @@ const generateTest = (test, testResource) => {
         // Run the result through JSON so the FP_Type quantities get converted to
         // strings.  Also , if the result is an FP_DateTime, convert to a Date
         // object so that timezone differences are handled.
-        if (result.length == 1 && result[0] instanceof FP_DateTime)
+        if (result.length === 1 && result[0] instanceof FP_DateTime)
           expect(new Date(result[0])).toEqual(new Date(test.result[0]))
         else
           expect(JSON.parse(JSON.stringify(result))).toEqual(test.result);
