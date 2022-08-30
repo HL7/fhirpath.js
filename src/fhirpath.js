@@ -674,9 +674,8 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
     }
     else if (n instanceof FP_Type) {
       if (options.resolveInternalTypes) {
-        return n.toString();
+        n = n.toString();
       }
-      return n;
     }
     else if (typeof n === 'object') {
       for (let k of Object.keys(n))
@@ -694,7 +693,7 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
 
 /**
  * Resolves any internal "FP_Type" instances in a result of FHIRPath expression
- * evaluation to strings.
+ * evaluation to standard JavaScript types.
  * @param {any} val - a result of FHIRPath expression evaluation
  * @returns {any} a new object with resolved values.
  */
@@ -704,7 +703,7 @@ function resolveInternalTypes(val) {
       val[i] = resolveInternalTypes(val[i]);
   }
   else if (val instanceof FP_Type) {
-    return val.toString();
+    val = val.toString();
   }
   else if (typeof val === 'object') {
     for (let k of Object.keys(val))
@@ -728,7 +727,9 @@ function resolveInternalTypes(val) {
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} [options] - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
- *  types should be converted to strings, true by default.
+ *  types should be converted to standard JavaScript types (true by default).
+ *  If false is passed, this conversion can be done later by calling
+ *  resolveInternalTypes().
  */
 function evaluate(fhirData, path, context, model, options) {
   return compile(path, model, options)(fhirData, context);

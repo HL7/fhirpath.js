@@ -7,10 +7,10 @@ This log documents significant changes for each release.  This project follows
 ### Added
 - Option `resolveInternalTypes` to control whether any instances of internal data
   types (e.g. FP_DateTime, FP_Time, FP_Quantity) in a result of FHIRPath
-  expression should be converted to strings.
+  expression should be converted to standard JavaScript types.
 - Method `resolveInternalTypes` which converts any instances of internal data
   types (e.g. FP_DateTime, FP_Time, FP_Quantity) in a result of FHIRPath
-  expression evaluation to strings.
+  expression evaluation to standard JavaScript types.
 ### Changed
 - By default, any instances of internal data types (e.g. FP_DateTime, FP_Time,
   FP_Quantity) in a result of FHIRPath expression are converted to strings.

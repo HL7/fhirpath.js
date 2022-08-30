@@ -41,51 +41,71 @@ These will define additional global variables like "fhirpath_dstu2_model",
 "fhirpath_stu3_model" or "fhirpath_r4_model".
 
 ## Usage
+
+Evaluating FHIRPath
+API: evaluate(resourceObject, fhirPathExpression, environment, model, options)
+Note:  The resource will be modified by this function to add type information.
+
 ```
-// Evaluating FHIRPath
-// API: evaluate(resourceObject, fhirPathExpression, environment)
-// Note:  The resource will be modified by this function to add type information.
 fhirpath.evaluate({"resourceType": "Patient", ...}, 'Patient.name.given');
+```
 
-// Environment variables can be passed in as third argument as a hash of
-// name/value pairs:
+Environment variables can be passed in as third argument as a hash of name/value
+pairs:
+
+```
 fhirpath.evaluate({}, '%a - 1', {a: 5});
+```
 
-// To include FHIR model data (for support of choice types), pass in the model
-// data object as the fourth argument:
+To include FHIR model data (for support of choice types), pass in the model data
+object as the fourth argument:
+
+```
 fhirpath.evaluate({"resourceType": "Observation", "valueString": "green"},
                   'Observation.value', null, fhirpath_r4_model);
+```
 
-// If the first parameter is a part of a resource, the second parameter should
-// be an object with properties "base" and "expression":
-// base - the path in the resource that represents the partial resource being
-//        used as the context,
-// expression - fhirpath expression relative to base.
+If the first parameter is a part of a resource, the second parameter should be
+an object with properties "base" and "expression":
+base - the path in the resource that represents the partial resource being used
+       as the context,
+expression - fhirpath expression relative to base.
+
+```
 fhirpath.evaluate({ "answer": { "valueQuantity": ...}},
                   { "base": "QuestionnaireResponse.item",
                     "expression": "answer.value = 2 year"},
                   null, fhirpath_r4_model);                  
+```
 
-// Precompiling fhirpath - result can be reused against multiple resources
+Precompiling fhirpath - result can be reused against multiple resources:
+
+```
 const path = fhirpath.compile('Patient.name.given', fhirpath_r4_model);
 var res = path({"resourceType": "Patient", ...}, {a: 5, ...});
+```
 
-// If you are going to use the above "precompile" option with a part of a resource,
-// the first parameter should be an object with properties "base" and "expression":
-// base - the path in the resource that represents the partial resource being
-//        used as the context,
-// expression - fhirpath expression relative to base.
+If you are going to use the above "precompile" option with a part of a resource,
+the first parameter should be an object with properties "base" and "expression":
+base - the path in the resource that represents the partial resource being used
+       as the context,
+expression - fhirpath expression relative to base.
+
+```
 const path = fhirpath.compile({ "base": "QuestionnaireResponse.item",
                                 "expression": "answer.value = 2 year"},
                               fhirpath_r4_model);
 var res = path({ "answer": { "valueQuantity": ...}, {a: 5, ...});
+```
 
-// During expression evaluation, some values or parts of values may have internal
-// data types (e.g. FP_DateTime, FP_Time, FP_Quantity). All these values will be
-// converted to strings in a result value of evaluation, but if you need to use
-// the result as a context variable for another FHIRpath expression, it would be
-// good to preserve data types of these values. To do this you can use the option
-// "resolveInternalTypes" = false:
+During expression evaluation, some values or parts of values may have internal
+data types (e.g. FP_DateTime, FP_Time, FP_Quantity). By default, all of these
+values are converted to standard JavaScript types, but if you need to use the
+result of evaluation as a context variable for another FHIRpath expression,
+it would be best to preserve the internal data types. To do this you can use
+the option "resolveInternalTypes" = false:
+
+```
 const contextVariable = fhirpath.evaluate(
   resource, expression, context, model, {resolveInternalTypes: false}
 );
@@ -93,8 +113,12 @@ const contextVariable = fhirpath.evaluate(
 const path = fhirpath.compile(
   expression, model, {resolveInternalTypes: false}
 );
-// If at some point you decide to convert all values which have internal types
-// to strings you can use the special function "resolveInternalTypes":
+```
+
+If at some point you decide to convert all values which have internal types to
+standard JavaScript types you can use the special function "resolveInternalTypes":
+
+```
 const res = fhirpath.resolveInternalTypes(value);
 ```
 
