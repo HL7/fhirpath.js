@@ -109,7 +109,11 @@ the option "resolveInternalTypes" = false:
 const contextVariable = fhirpath.evaluate(
   resource, expression, context, model, {resolveInternalTypes: false}
 );
-// This option may also be passed to compile function:
+```
+
+This option may also be passed to compile function:
+
+```
 const path = fhirpath.compile(
   expression, model, {resolveInternalTypes: false}
 );
