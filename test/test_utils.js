@@ -45,7 +45,10 @@ const calcExpression = (expression, test, testResource) => {
     variables.context = fhirpath.evaluate(testResource, test.context)[0];
   if (test.variables)
     Object.assign(variables, test.variables);
-  return fhirpath.evaluate(testResource, expression, variables, getFHIRModel(test.model));
+  return fhirpath.evaluate(
+    testResource, expression, variables,
+    getFHIRModel(test.model), {resolveInternalTypes: false}
+  );
 };
 
 module.exports = {

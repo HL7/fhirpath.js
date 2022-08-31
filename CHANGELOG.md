@@ -3,6 +3,18 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.0.0] - 2022-08-25
+### Added
+- Option `resolveInternalTypes` to control whether any instances of internal data
+  types (e.g. FP_DateTime, FP_Time, FP_Quantity) in a result of FHIRPath
+  expression should be converted to standard JavaScript types.
+- Method `resolveInternalTypes` which converts any instances of internal data
+  types (e.g. FP_DateTime, FP_Time, FP_Quantity) in a result of FHIRPath
+  expression evaluation to standard JavaScript types.
+### Changed
+- By default, any instances of internal data types (e.g. FP_DateTime, FP_Time,
+  FP_Quantity) in a result of FHIRPath expression are converted to strings.
+
 ## [2.14.7] - 2022-08-15
 ### Fixed
 - Fixed directly (without member invocation) accessing the value of a variable in the context if this value was fetched
