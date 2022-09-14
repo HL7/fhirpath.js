@@ -26,6 +26,7 @@ tests:
     result:
       - true
 
+  - desc: '6.3.2. is(type : type specifier)'
   - desc: '** is(Quantity)'
     inputfile: patient-example.json
     expression: 1 day.is(Quantity)
@@ -38,16 +39,78 @@ tests:
     result:
       - true
 
-  - desc: '6.3.2. as'
-#If the left operand is a collection with a single item and the second operand is an identifier, this function returns the value of the left operand if it is of the type specified in the second operand, or a subclass thereof. If the identifier cannot be resolved to a valid type identifier, the evaluator will throw an error. If there is more than one item in the input collection, the evaluator will throw an error. Otherwise, this operator returns the empty collection.
+  - desc: '6.3.3. as type specifier'
 
-  - desc: '** as'
-    expression: coll.a as value
-    disable: true
-    result: [true]
+  - desc: '** more than one item in the input collection for "as"'
+    expression: heteroattr as integer
+    error: true
+
+  - desc: '** as integer'
+    expression: heteroattr.select($this as integer)
+    result: [1]
+
+  - desc: '** as Quantity'
+    expression: 1 year as Quantity
+    result:
+      - 1 year
+
+  - desc: '** as System.Quantity'
+    expression: 1 year as System.Quantity
+    result:
+      - 1 year
+
+  - desc: '** as FHIR.Quantity'
+    inputfile: quantity-example.json
+    model: 'r4'
+    expression: QuestionnaireResponse.item.select(answer.value as FHIR.Quantity).count()
+    result:
+      - 4
+
+  - desc: '** "as FHIR.Quantity" returns the empty collection for the System.Quantity'
+    inputfile: patient-example.json
+    expression: 1 year as FHIR.Quantity
+    result: []
+
+  - desc: '6.3.4. as(type : type specifier)'
+  - desc: '** more than one item in the input collection for "as()"'
+    expression: heteroattr.as(integer)
+    error: true
+
+  - desc: '** as(integer)'
+    expression: heteroattr.select($this.as(integer))
+    result: [1]
+
+  - desc: '** as(Quantity)'
+    expression: 1 year.as(Quantity)
+    result:
+      - 1 year
+
+  - desc: '** as(System.Quantity)'
+    expression: 1 year.as(System.Quantity)
+    result:
+      - 1 year
+
+  - desc: '** as FHIR.Quantity'
+    inputfile: quantity-example.json
+    model: 'r4'
+    expression: QuestionnaireResponse.item.select(answer.value.as(FHIR.Quantity)).count()
+    result:
+      - 4
+
+  - desc: '** "as(FHIR.Quantity)" returns the empty collection for the System.Quantity'
+    inputfile: patient-example.json
+    expression: 1 year.as(FHIR.Quantity)
+    result: []
 
 subject:
   coll:
     - a: 1
       b: 2
       c: 3
+  heteroattr:
+    - 'string'
+    - 1
+    - 1.01
+    - a: 1
+    - true
+    - false

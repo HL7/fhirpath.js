@@ -243,10 +243,10 @@ DateTime or Time.
 Currently, the type of the resource property value is used to determine the type,
 without using the FHIR specification. This shortcut causes the following issues:
 - Type hierarchy is not supported;
-- FHIR.uri, FHIR.code, FHIR.oid, FHIR.id, FHIR.uuid, FHIR.sid, FHIR.markdown, FHIR.base64Binary are treated as FHIR.string;
-- FHIR.unsignedInt, FHIR.positiveInt are treated as FHIR.integer;
-- Also, a property could be specified as FHIR.decimal, but treated as FHIR.integer;
-- For date-time related types, only FHIR.dateTime, FHIR.time, System.DateTime and System.Time are supported.
+- `FHIR.uri`, `FHIR.code`, `FHIR.oid`, `FHIR.id`, `FHIR.uuid`, `FHIR.sid`, `FHIR.markdown`, `FHIR.base64Binary` are treated as `FHIR.string`;
+- `FHIR.unsignedInt`, `FHIR.positiveInt` are treated as `FHIR.integer`;
+- Also, a property could be specified as `FHIR.decimal`, but treated as `FHIR.integer`;
+- For date-time related types, only `FHIR.dateTime`, `FHIR.time`, `System.DateTime` and `System.Time` are supported.
 
 ## Development Notes
 

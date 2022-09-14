@@ -76,7 +76,7 @@ tests:
         expression: Observation.value.unit
         result:
           - lbs
-        disable: true
+        model: r4
       - desc: '** testPolymorphismB'
         inputfile: observation-example.json
         expression: Observation.valueQuantity.unit
@@ -105,22 +105,22 @@ tests:
         expression: Observation.value.as(Quantity).unit
         result:
           - lbs
-        disable: true
+        model: r4
       - desc: '** testPolymorphismAsAFunction'
         inputfile: observation-example.json
         expression: (Observation.value as Quantity).unit
         result:
           - lbs
-        disable: true
+        model: r4
       - desc: '** testPolymorphismAsB'
         inputfile: observation-example.json
         expression: (Observation.value as Period).unit
         error: true
+        disable: true
       - desc: '** testPolymorphismAsBFunction'
         inputfile: observation-example.json
         expression: Observation.value.as(Period).start
         result: []
-        disable: true
   - 'group: testDollar':
       - desc: '** testDollarThis1'
         inputfile: patient-example.json
