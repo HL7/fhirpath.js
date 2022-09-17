@@ -30,7 +30,7 @@ page](https://github.com/HL7/fhirpath.js/releases).  It contains a JavaScript
 file, fhirpath.min.js, which defines a global "fhirpath" variable, which you can
 then use as shown below.  Note that this file is UTF-8 encoded, and the script
 needs to be loaded as such.  For an example, see the
-browser-build/test/protractor/index.html file, which sets the page to be UTF-8.
+browser-build/test/index.html file, which sets the page to be UTF-8.
 
 For FHIR-specific features (e.g. handling of choice type fields), you will also
 want to include a second file with the desired FHIR version model data, e.g.
@@ -40,45 +40,96 @@ handling is added, so they are kept seperate from the main FHIRPath file.)
 These will define additional global variables like "fhirpath_dstu2_model",
 "fhirpath_stu3_model" or "fhirpath_r4_model".
 
-## Usage
+## API Usage
+
+Evaluating FHIRPath:
+
+```js
+evaluate(resourceObject, fhirPathExpression, environment, model, options);
 ```
-// Evaluating FHIRPath
-// API: evaluate(resourceObject, fhirPathExpression, environment)
-// Note:  The resource will be modified by this function to add type information.
+
+Note:  The resource will be modified by this function to add type information.
+
+Basic example:
+
+```js
 fhirpath.evaluate({"resourceType": "Patient", ...}, 'Patient.name.given');
+```
 
-// Environment variables can be passed in as third argument as a hash of
-// name/value pairs:
+Environment variables can be passed in as third argument as a hash of name/value
+pairs:
+
+```js
 fhirpath.evaluate({}, '%a - 1', {a: 5});
+```
 
-// To include FHIR model data (for support of choice types), pass in the model
-// data object as the fourth argument:
+To include FHIR model data (for support of choice types), pass in the model data
+object as the fourth argument:
+
+```js
 fhirpath.evaluate({"resourceType": "Observation", "valueString": "green"},
                   'Observation.value', null, fhirpath_r4_model);
+```
 
-// If the first parameter is a part of a resource, the second parameter should
-// be an object with properties "base" and "expression":
-// base - the path in the resource that represents the partial resource being
-//        used as the context,
-// expression - fhirpath expression relative to base.
+If the first parameter is a part of a resource, the second parameter should be
+an object with properties "base" and "expression":
+base - the path in the resource that represents the partial resource being used
+       as the context,
+expression - fhirpath expression relative to base.
+
+```js
 fhirpath.evaluate({ "answer": { "valueQuantity": ...}},
                   { "base": "QuestionnaireResponse.item",
                     "expression": "answer.value = 2 year"},
                   null, fhirpath_r4_model);                  
+```
 
-// Precompiling fhirpath - result can be reused against multiple resources
+Precompiling fhirpath - result can be reused against multiple resources:
+
+```js
 const path = fhirpath.compile('Patient.name.given', fhirpath_r4_model);
 var res = path({"resourceType": "Patient", ...}, {a: 5, ...});
+```
 
-// If you are going to use the above "precompile" option with a part of a resource,
-// the first parameter should be an object with properties "base" and "expression":
-// base - the path in the resource that represents the partial resource being
-//        used as the context,
-// expression - fhirpath expression relative to base.
+If you are going to use the above "precompile" option with a part of a resource,
+the first parameter should be an object with properties "base" and "expression":
+base - the path in the resource that represents the partial resource being used
+       as the context,
+expression - fhirpath expression relative to base.
+
+```js
 const path = fhirpath.compile({ "base": "QuestionnaireResponse.item",
                                 "expression": "answer.value = 2 year"},
                               fhirpath_r4_model);
 var res = path({ "answer": { "valueQuantity": ...}, {a: 5, ...});
+```
+
+During expression evaluation, some values or parts of values may have internal
+data types (e.g. FP_DateTime, FP_Time, FP_Quantity). By default, all of these
+values are converted to standard JavaScript types, but if you need to use the
+result of evaluation as a context variable for another FHIRpath expression,
+it would be best to preserve the internal data types. To do this you can use
+the option "resolveInternalTypes" = false:
+
+```js
+const contextVariable = fhirpath.evaluate(
+  resource, expression, context, model, {resolveInternalTypes: false}
+);
+```
+
+This option may also be passed to compile function:
+
+```js
+const path = fhirpath.compile(
+  expression, model, {resolveInternalTypes: false}
+);
+```
+
+If at some point you decide to convert all values which have internal types to
+standard JavaScript types you can use the special function "resolveInternalTypes":
+
+```js
+const res = fhirpath.resolveInternalTypes(value);
 ```
 
 
@@ -210,7 +261,7 @@ the root of the project directory, and then run "npm run generateParser".
 
 ### Building the demo page
 
-```
+```sh
 npm install && npm run build
 cd demo
 npm install && npm run build && npm run start
