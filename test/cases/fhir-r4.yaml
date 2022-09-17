@@ -1716,7 +1716,6 @@ tests:
         expression: 'name.trace(''test'', given).count() = 3'
         result:
           - true
-        disable: true
   - 'group: testToday':
       - desc: '** testToday1'
         inputfile: patient-example.json
