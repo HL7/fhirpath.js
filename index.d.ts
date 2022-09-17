@@ -1,11 +1,21 @@
 declare module "fhirpath" {
-  export function compile(path: string | Path, model?: Model): Compile;
+  export function compile(
+      path: string | Path,
+      model?: Model,
+      options?: {
+        resolveInternalTypes?: boolean
+      }
+    ): Compile;
   export function evaluate(
     fhirData: any,
     path: string | Path,
     context: Context,
-    model?: Model
+    model?: Model,
+    options?: {
+      resolveInternalTypes?: boolean
+    }
   ): any[];
+  export function resolveInternalTypes(value: any): any;
 }
 
 declare module "fhirpath/fhir-context/dstu2" {

@@ -177,6 +177,7 @@ FP_Quantity.toUcumQuantity = function (value, unit) {
   };
 };
 
+
 /**
  * Converts FHIRPath value/unit to other FHIRPath value/unit.
  * @param {string} fromUnit
@@ -218,6 +219,7 @@ FP_Quantity.convUnitTo = function (fromUnit, value, toUnit) {
 
   return null;
 };
+
 
 // Defines conversion factors for calendar durations
 FP_Quantity._calendarDuration2Seconds = {
@@ -987,7 +989,7 @@ class ResourceNode {
     if (data?.resourceType)
       path = data.resourceType;
     this.path = path;
-    this.data = getResourceNodeData(data, path);
+    this.data = data;
     this._data = _data || {};
   }
 
@@ -1009,26 +1011,34 @@ class ResourceNode {
   toJSON() {
     return JSON.stringify(this.data);
   }
-}
 
-/**
- * Prepare data for ResourceNode:
- * Converts value from FHIR Quantity to FHIRPath System.Quantity.
- * The Mapping from FHIR Quantity to FHIRPath System.Quantity is explained here:
- * https://www.hl7.org/fhir/fhirpath.html#quantity
- * @param {Object|...} data
- * @param {string} path
- * @return {FP_Quantity|Object|...}
- */
-function getResourceNodeData(data, path) {
-  if (path === 'Quantity' && data?.system === ucumSystemUrl) {
-    if (typeof data.value === 'number' && typeof data.code === 'string') {
-      data = new FP_Quantity(data.value, FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\'');
+  /**
+   * Converts the data value from FHIR a Quantity to FHIRPath System.Quantity,
+   * when possible, or if not returns the data as is.  Throws an exception if
+   * the data is a Quantity that has a comparator.
+   * The Mapping from FHIR Quantity to FHIRPath System.Quantity is explained here:
+   * https://www.hl7.org/fhir/fhirpath.html#quantity
+   * this.data is not changed, but converted value is returned.
+   * @param {Object|...} data
+   * @param {string} path
+   * @return {FP_Quantity|Object|...}
+   */
+  convertData() {
+    var data = this.data;
+    if (this.path === 'Quantity' && data?.system === ucumSystemUrl) {
+      if (typeof data.value === 'number' && typeof data.code === 'string') {
+        if (data.comparator !== undefined)
+          throw new Error('Cannot convert a FHIR.Quantity that has a comparator');
+        data =
+          new FP_Quantity(data.value, FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\'');
+      }
     }
+
+    return data;
   }
 
-  return data;
 }
+
 
 /**
  *  Returns a ResourceNode for the given data node, checking first to see if the

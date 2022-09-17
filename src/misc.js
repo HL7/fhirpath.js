@@ -54,8 +54,7 @@ engine.toQuantity = function (coll, toUnit) {
   if (coll.length > 1) {
     throw new Error("Could not convert to quantity: input collection contains multiple items");
   } else if (coll.length === 1) {
-    const item = coll[0],
-      v = util.valData(item);
+    var v = util.valDataConverted(coll[0]);
     let quantityRegexRes;
 
     if (typeof v === "number") {
@@ -100,7 +99,7 @@ engine.toDecimal = function(coll){
 
 engine.toString = function(coll){
   if(coll.length !== 1) { return []; }
-  var v = util.valData(coll[0]);
+  var v = util.valDataConverted(coll[0]);
   return v.toString();
 };
 

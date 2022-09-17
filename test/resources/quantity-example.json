@@ -30,5 +30,16 @@
         "code": "min"
       }
     }
+  },{
+    "linkId": "4",
+    "answer": {
+      "valueQuantity": {
+        "value": 1,
+        "comparator": ">",
+        "unit": "year(real UCUM code in field 'code')",
+        "system": "http://unitsofmeasure.org",
+        "code": "min"
+      }
+    }
   }]
 }

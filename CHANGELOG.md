@@ -3,6 +3,29 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.0.0] - 2022-08-25
+### Added
+- Option `resolveInternalTypes` to control whether any instances of internal data
+  types (e.g. FP_DateTime, FP_Time, FP_Quantity) in a result of FHIRPath
+  expression should be converted to standard JavaScript types.
+- Method `resolveInternalTypes` which converts any instances of internal data
+  types (e.g. FP_DateTime, FP_Time, FP_Quantity) in a result of FHIRPath
+  expression evaluation to standard JavaScript types.
+### Changed
+- By default, any instances of internal data types (e.g. FP_DateTime, FP_Time,
+  FP_Quantity) in a result of FHIRPath expression are converted to strings.
+
+## [2.14.7] - 2022-08-15
+### Fixed
+- Fixed directly (without member invocation) accessing the value of a variable in the context if this value was fetched
+  from a resource using fhirpath.js.
+
+## [2.14.6] - 2022-06-29
+### Fixed
+- FHIR Quantities are now only converted to System Quantities when necessary, so
+  that FHIR Quantities can be returned from an expression, and so that the
+  fields from a FHIR Quantity can be accessed.
+
 ## [2.14.5] - 2022-06-07
 ### Added
 - Version number to fhirpath.js demo page.
@@ -91,7 +114,7 @@ This log documents significant changes for each release.  This project follows
 ### Fixed
 - String manipulation functions did not properly return an empty
   collection when the input collection is empty.
-  
+
 ## [2.7.4] - 2021-03-12
 ### Fixed
 - Evaluation of singleton collections.

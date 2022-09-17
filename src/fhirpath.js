@@ -629,12 +629,15 @@ function parse(path) {
  *  returning the result of doEval.
  * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
  *  This resource will be modified by this function to add type information.
- * @param {string} parsedPath - fhirpath expression, sample 'Patient.name.given'
+ * @param {object} parsedPath - a special object created by the parser that describes the structure of a fhirpath expression.
  * @param {object} context - a hash of variable name/value pairs.
  * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
+ * @param {object} [options] - additional options:
+ * @param {boolean} [options.resolveInternalTypes] - whether values of internal
+ *  types should be converted to strings, true by default.
  */
-function applyParsedPath(resource, parsedPath, context, model) {
+function applyParsedPath(resource, parsedPath, context, model, options) {
   constants.reset();
   let dataRoot = util.arraify(resource);
   // doEval takes a "ctx" object, and we store things in that as we parse, so we
@@ -642,21 +645,45 @@ function applyParsedPath(resource, parsedPath, context, model) {
   // Set up default standard variables, and allow override from the variables.
   // However, we'll keep our own copy of dataRoot for internal processing.
   let vars = {context: resource, ucum: 'http://unitsofmeasure.org'};
+  // Restore the ResourceNodes for the top-level objects of the context
+  // variables. The nested objects will be converted to ResourceNodes
+  // in the MemberInvocation method.
+  if (context) {
+    context = Object.keys(context).reduce((restoredContext, key) => {
+      const path = context[key]?.__path__;
+      if (path) {
+        if (Array.isArray(context[key])) {
+          restoredContext[key] = context[key].map(i => makeResNode(i, path));
+        } else {
+          restoredContext[key] = makeResNode(context[key], path);
+        }
+      } else {
+        restoredContext[key] = context[key];
+      }
+      return restoredContext;
+    }, {});
+  }
   let ctx = {dataRoot, vars: Object.assign(vars, context), model};
   let rtn = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
   let firstRtn = Array.isArray(rtn) ? rtn[0] : rtn;
   // Path for the data extracted from the resource.
   let path = firstRtn instanceof ResourceNode ? firstRtn.path : null;
 
-  // Resolve any internal "ResourceNode" instances.  Continue to let FP_Type
-  // subclasses through.
+  // Resolve any internal "ResourceNode" instances to plain objects and if
+  // options.resolveInternalTypes is true, resolve any internal "FP_Type"
+  // instances to strings.
   rtn = (function visit(n) {
     n = util.valData(n);
     if (Array.isArray(n)) {
       for (let i=0, len=n.length; i<len; ++i)
         n[i] = visit(n[i]);
     }
-    else if (typeof n === 'object' && !(n instanceof FP_Type)) {
+    else if (n instanceof FP_Type) {
+      if (options.resolveInternalTypes) {
+        n = n.toString();
+      }
+    }
+    else if (typeof n === 'object') {
       for (let k of Object.keys(n))
         n[k] = visit(n[k]);
     }
@@ -668,6 +695,27 @@ function applyParsedPath(resource, parsedPath, context, model) {
     Object.defineProperty(rtn, '__path__', {value: path});
   }
   return rtn;
+}
+
+/**
+ * Resolves any internal "FP_Type" instances in a result of FHIRPath expression
+ * evaluation to standard JavaScript types.
+ * @param {any} val - a result of FHIRPath expression evaluation
+ * @returns {any} a new object with resolved values.
+ */
+function resolveInternalTypes(val) {
+  if (Array.isArray(val)) {
+    for (let i=0, len=val.length; i<len; ++i)
+      val[i] = resolveInternalTypes(val[i]);
+  }
+  else if (val instanceof FP_Type) {
+    val = val.toString();
+  }
+  else if (typeof val === 'object') {
+    for (let k of Object.keys(val))
+      val[k] = resolveInternalTypes(val[k]);
+  }
+  return val;
 }
 
 /**
@@ -683,9 +731,14 @@ function applyParsedPath(resource, parsedPath, context, model) {
  * @param {object} context - a hash of variable name/value pairs.
  * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
+ * @param {object} [options] - additional options:
+ * @param {boolean} [options.resolveInternalTypes] - whether values of internal
+ *  types should be converted to standard JavaScript types (true by default).
+ *  If false is passed, this conversion can be done later by calling
+ *  resolveInternalTypes().
  */
-function evaluate(fhirData, path, context, model) {
-  return compile(path, model)(fhirData, context);
+function evaluate(fhirData, path, context, model, options) {
+  return compile(path, model, options)(fhirData, context);
 }
 
 /**
@@ -700,21 +753,28 @@ function evaluate(fhirData, path, context, model) {
  * @param {string} path.expression - FHIRPath expression relative to path.base
  * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
+ * @param {object} [options] - additional options:
+ * @param {boolean} [options.resolveInternalTypes] - whether values of internal
+ *  types should be converted to strings, true by default.
  */
-function compile(path, model) {
+function compile(path, model, options) {
+  options = {
+    resolveInternalTypes: true,
+    ... options
+  };
   if (typeof path === 'object') {
     const node = parse(path.expression);
     return function (fhirData, context) {
       const inObjPath = fhirData && fhirData.__path__;
       const resource = makeResNode(fhirData, path.base || inObjPath);
-      return applyParsedPath(resource, node, context, model);
+      return applyParsedPath(resource, node, context, model, options);
     };
   } else {
     const node = parse(path);
     return function (fhirData, context) {
       const inObjPath = fhirData && fhirData.__path__;
       const resource = inObjPath ? makeResNode(fhirData, inObjPath) : fhirData;
-      return applyParsedPath(resource, node, context, model);
+      return applyParsedPath(resource, node, context, model, options);
     };
   }
 }
@@ -724,6 +784,7 @@ module.exports = {
   parse,
   compile,
   evaluate,
+  resolveInternalTypes,
   // Might as well export the UCUM library, since we are using it.
   ucumUtils: require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance()
 };
