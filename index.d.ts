@@ -13,7 +13,7 @@ declare module "fhirpath" {
     model?: Model,
     options?: {
       resolveInternalTypes?: boolean,
-      trace?: (value: any, label: string) => void
+      traceFn?: (value: any, label: string) => void
     }
   ): any[];
   export function resolveInternalTypes(value: any): any;
