@@ -1172,7 +1172,7 @@ function isFn(coll, typeInfo) {
  * (see http://hl7.org/fhirpath/#as-type-specifier)
  * @param {Array<*>} coll - input collection
  * @param {TypeInfo} typeInfo
- * @return {boolean|[]}
+ * @return {Array<*>}
  */
 function asFn(coll, typeInfo) {
   if(coll.length === 0) {
