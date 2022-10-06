@@ -15,26 +15,154 @@ tests:
     result: [false]
 
   - desc: '** is Quantity'
-    inputfile: patient-example.json
     expression: 1 year is Quantity
     result:
       - true
 
   - desc: '** is System.Quantity'
-    inputfile: patient-example.json
     expression: 1 year is System.Quantity
     result:
       - true
 
+  - desc: '** Observation is DomainResource'
+    inputfile: observation-example.json
+    expression: Observation is DomainResource
+    result:
+      - true
+    model: r4
+
+  - desc: '** Observation is Resource'
+    inputfile: observation-example.json
+    expression: Observation is Resource
+    result:
+      - true
+    model: r4
+
+  - desc: '** valueQuantity is FHIR.Quantity'
+    inputfile: observation-example.json
+    expression: Observation.value is FHIR.Quantity
+    result:
+      - true
+    model: r4
+
+  - desc: '** valueQuantity is Element'
+    inputfile: observation-example.json
+    expression: Observation.value is Element
+    result:
+      - true
+    model: r4
+
+  - desc: '** valueQuantity.value is decimal'
+    inputfile: observation-example.json
+    expression: Observation.value.value is decimal
+    result:
+      - true
+    model: r4
+
+  - desc: '** valueQuantity.value is Element'
+    inputfile: observation-example.json
+    expression: Observation.value.value is Element
+    result:
+      - true
+    model: r4
+
+  - desc: '** valueQuantity.system is uri'
+    inputfile: observation-example.json
+    expression: Observation.value.system is uri
+    result:
+      - true
+    model: r4
+
+  - desc: '** valueQuantity.unit is string'
+    inputfile: observation-example.json
+    expression: Observation.value.unit is string
+    result:
+      - true
+    model: r4
+
+  - desc: '** valueQuantity.unit is not decimal'
+    inputfile: observation-example.json
+    expression: Observation.value.unit is decimal
+    result:
+      - false
+    model: r4
+
+  - desc: '** Patient.contact is BackboneElement'
+    inputfile: patient-example.json
+    expression: Patient.contact is BackboneElement
+    result:
+      - true
+    model: r4
+
+  - desc: '** Patient.contact is Element'
+    inputfile: patient-example.json
+    expression: Patient.contact is Element
+    result:
+      - true
+    model: r4
+
+  - desc: '** Patient.contact.name is HumanName'
+    inputfile: patient-example.json
+    expression: Patient.contact.name is HumanName
+    result:
+      - true
+    model: r4
+
+  - desc: '** Patient.contact.name.given is string'
+    inputfile: patient-example.json
+    expression: Patient.contact.name.given is string
+    result:
+      - true
+    model: r4
+
+  - desc: '** Extension.valueString is string'
+    inputfile: patient-example.json
+    expression: Patient.contact.name.family.extension('http://hl7.org/fhir/StructureDefinition/humanname-own-prefix').value is string
+    result:
+      - true
+    model: r4
+
+  - desc: '** Patient.id is System.String'
+    inputfile: patient-example.json
+    expression: Patient.id is System.String
+    result:
+      - true
+    model: r4
+
+  - desc: '** Patient.id is id (DSTU2)'
+    inputfile: patient-example.json
+    expression: Patient.id is id
+    result:
+      - true
+    model: dstu2
+
+  - desc: '** Patient.id is id (STU3)'
+    inputfile: patient-example.json
+    expression: Patient.id is id
+    result:
+      - true
+    model: stu3
+
+  - desc: '** Patient.deceased is boolean'
+    inputfile: patient-example.json
+    expression: Patient.deceased is boolean
+    result:
+      - true
+    model: r4
+
+  - desc: '** The type of a valid but missing property is empty'
+    inputfile: patient-example.json
+    expression: Patient.photo is Attachment
+    result: []
+    model: r4
+
   - desc: '6.3.2. is(type : type specifier)'
   - desc: '** is(Quantity)'
-    inputfile: patient-example.json
     expression: 1 day.is(Quantity)
     result:
       - true
 
   - desc: '** is(System.Quantity)'
-    inputfile: patient-example.json
     expression: 1 day.is(System.Quantity)
     result:
       - true
@@ -101,6 +229,27 @@ tests:
     inputfile: patient-example.json
     expression: 1 year.as(FHIR.Quantity)
     result: []
+
+  - desc: '** as Coding'
+    inputfile: questionnaire-example.json
+    expression: Questionnaire.children().select(code as Coding).count() = 2
+    model: 'r4'
+    result:
+      - true
+
+  - desc: '** as Element'
+    inputfile: questionnaire-example.json
+    expression: Questionnaire.children().select(code as Element).count() = 2
+    model: 'r4'
+    result:
+      - true
+
+  - desc: '** "as Quantity" found nothing'
+    inputfile: questionnaire-example.json
+    expression: Questionnaire.children().select(code as Quantity).count() = 0
+    model: 'r4'
+    result:
+      - true
 
 subject:
   coll:

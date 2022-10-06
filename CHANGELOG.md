@@ -5,9 +5,11 @@ This log documents significant changes for each release.  This project follows
 
 ## [3.1.0] - 2022-09-14
 ### Added
-- Limited support for function as(type) and operator "as".
-  Currently, full type matching is checked and does not take into account that
-  one type can be a subclass of another.
+- function "as(type)".
+- operator "as".
+- Support for data type hierarchy from FHIR specification for:
+  - functions "is(type)", "as(type)", and "ofType(type)",
+  - operators "is" and "as".
 
 ## [3.0.0] - 2022-08-25
 ### Added

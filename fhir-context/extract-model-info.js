@@ -24,6 +24,19 @@ const choiceTypeFiles = ['profiles-types.json', 'profiles-resources.json',
 
 let choiceTypePaths = {};
 let pathsDefinedElsewhere = {};
+let type2Parent = {};
+let path2Type = {};
+
+function addPath2Type(path, code) {
+  if (code !== 'Element' && code !== 'BackboneElement') {
+    if (/http:\/\/hl7\.org\/fhirpath\/(.*)/.test(code)) {
+      path2Type[path] = RegExp.$1;
+    } else {
+      path2Type[path] = code;
+    }
+  }
+}
+
 for (let f of choiceTypeFiles) {
   // for DSTU2 we use "nameReference" instead of "contentReference"
   // (https://www.hl7.org/fhir/DSTU2/elementdefinition.html)
@@ -36,6 +49,18 @@ for (let f of choiceTypeFiles) {
   // field, if any.
   let currentResource;
   function visitNode(n) {
+    if ( f !== 'profiles-others.json'
+         && ['resource', 'datatype', 'complex-type', 'primitive-type'].some(i => i === n.kind)
+         && n.name && (n.baseDefinition || n.base) ) {
+      const type = n.name;
+      const baseUrl = n.baseDefinition || n.base;
+      if (type2Parent[type]) {
+        console.log('Conflict:', type + '->' + type2Parent[type]);
+        console.log('\twith:', type + '->' + baseUrl.lastIndexOf('/') + 1);
+      } else {
+        type2Parent[type] = baseUrl.substring(baseUrl.lastIndexOf('/') + 1);
+      }
+    }
     if (n.kind === "resource") {
       currentResource = n;
       // Only process definitions that are not constraints on resources defined
@@ -67,12 +92,21 @@ for (let f of choiceTypeFiles) {
         pathsDefinedElsewhere[n.path] = name2Path[n.nameReference];
       }
 
-      if (n.path && n.type && n.path.match(/\[x\]$/)) {
-        // Uppercase the first letter of the type codes so they can be appended to
-        // the choice field name.
-        let types = n.type.map(t=>t.code[0].toUpperCase() + t.code.slice(1));
-        // Remove the [x] from end of the path and store only unique "types"
-        choiceTypePaths[n.path.slice(0, -3)] =[...new Set(types)];
+      if (n.path && n.type) {
+        if (n.path.match(/\[x\]$/)) {
+          const prefix = n.path.slice(0, -3);
+          // Uppercase the first letter of the type codes so they can be appended to
+          // the choice field name.
+          let types = n.type.map(t => {
+            const suffix = t.code[0].toUpperCase() + t.code.slice(1);
+            addPath2Type(prefix + suffix, t.code);
+            return suffix;
+          });
+          // Remove the [x] from end of the path and store only unique "types"
+          choiceTypePaths[prefix] = [...new Set(types)];
+        } else {
+          addPath2Type(n.path, n.type[0].code);
+        }
       }
       else {
         // Check sub-nodes that are objects or arrays
@@ -80,7 +114,7 @@ for (let f of choiceTypeFiles) {
           for (let e of n)
            visitNode(e);
         }
-        else if (typeof n === "object") {
+        else if (typeof n === "object" && n.kind !== 'primitive-type') {
           for (let k of Object.keys(n))
             visitNode(n[k]);
         }
@@ -97,4 +131,7 @@ fs.writeFileSync(path.join(outputDir, 'choiceTypePaths.json'),
   JSON.stringify(choiceTypePaths, Object.keys(choiceTypePaths).sort(), 2));
 fs.writeFileSync(path.join(outputDir, 'pathsDefinedElsewhere.json'),
   JSON.stringify(pathsDefinedElsewhere, Object.keys(pathsDefinedElsewhere).sort(), 2));
-
+fs.writeFileSync(path.join(outputDir, 'type2Parent.json'),
+  JSON.stringify(type2Parent, Object.keys(type2Parent).sort(), 2));
+fs.writeFileSync(path.join(outputDir, 'path2Type.json'),
+  JSON.stringify(path2Type, Object.keys(path2Type).sort(), 2));

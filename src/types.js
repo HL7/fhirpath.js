@@ -1000,12 +1000,17 @@ class ResourceNode {
   getTypeInfo() {
     const namespace = TypeInfo.FHIR;
 
-    // TODO: Here we should use property index which we will extract from the specification
-
-    if (this.path.indexOf('.') === -1) {
+    if (/^System\.(.*)$/.test(this.path)) {
+      return new TypeInfo({namespace: TypeInfo.System, name: RegExp.$1});
+    } else if (this.path.indexOf('.') === -1) {
       return new TypeInfo({namespace, name: this.path});
     }
-    return TypeInfo.createByValueInNamespace({namespace, value: this.data});
+
+    if (!TypeInfo.model) {
+      return TypeInfo.createByValueInNamespace({namespace, value: this.data});
+    }
+
+    return new TypeInfo({namespace, name: 'BackboneElement'});
   }
 
   toJSON() {
@@ -1060,6 +1065,9 @@ class TypeInfo {
     this.namespace = namespace;
   }
 
+  // The "model" data object specific to a domain, e.g. R4.
+  static model = null;
+
   /**
    * Checks for equality with another TypeInfo object, or that another TypeInfo
    * object specifies a superclass for the type specified by this object.
@@ -1067,9 +1075,20 @@ class TypeInfo {
    * @return {boolean}
    */
   is(other) {
-    // TODO: Here we should use type hierarchy index which we will extract from the specification
-    return other instanceof TypeInfo && this.name === other.name
-      && (!this.namespace || !other.namespace || this.namespace === other.namespace);
+    if (other instanceof TypeInfo
+      && (!this.namespace || !other.namespace || this.namespace === other.namespace)) {
+      if (TypeInfo.model && (!this.namespace || this.namespace === TypeInfo.FHIR)) {
+        let name = this.name;
+        do {
+          if (name === other.name) {
+            return true;
+          }
+        } while ((name = TypeInfo.model.type2Parent[name]));
+      } else {
+        return this.name === other.name;
+      }
+    }
+    return false;
   }
 }
 

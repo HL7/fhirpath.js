@@ -341,7 +341,7 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
             toAdd = res.data?.[field];
             _toAdd = res.data?.['_' + field];
             if (toAdd !== undefined || _toAdd !== undefined) {
-              childPath = t;
+              childPath += t;
               break;
             }
           }
@@ -356,6 +356,7 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
             childPath = 'Extension';
           }
         }
+        childPath = model && model.path2Type[childPath] || childPath;
 
         if (util.isSome(toAdd) || util.isSome(_toAdd)) {
           if(Array.isArray(toAdd)) {
@@ -763,6 +764,8 @@ function compile(path, model, options) {
     return function (fhirData, context) {
       const inObjPath = fhirData && fhirData.__path__;
       const resource = makeResNode(fhirData, path.base || inObjPath);
+      // Globally set model before applying parsed FHIRPath expression
+      TypeInfo.model = model;
       return applyParsedPath(resource, node, context, model, options);
     };
   } else {
@@ -770,6 +773,8 @@ function compile(path, model, options) {
     return function (fhirData, context) {
       const inObjPath = fhirData && fhirData.__path__;
       const resource = inObjPath ? makeResNode(fhirData, inObjPath) : fhirData;
+      // Globally set model before applying parsed FHIRPath expression
+      TypeInfo.model = model;
       return applyParsedPath(resource, node, context, model, options);
     };
   }

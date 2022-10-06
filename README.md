@@ -209,7 +209,7 @@ The core parser was generated from the FHIRPath ANTLR grammar.
 Completed sections:
 - 3 (Path selection)
 - 5.1 (Existence)
-- 5.2 (Filtering and Projection) "ofType" - limited support for types (see below)
+- 5.2 (Filtering and Projection) "ofType"
 - 5.3 (Subsetting)
 - 5.4 (Combining)
 - 5.6 (String Manipulation)
@@ -217,6 +217,7 @@ Completed sections:
 - 5.8 (Utility Functions)
 - 6.1 (Equality)
 - 6.2 (Comparison)
+- 6.3 (Types)
 - 6.4 (Collections)
 - 6.5 (Boolean logic)
 - 6.6 (Math)
@@ -228,25 +229,10 @@ Completed sections:
 Almost completed sections:
 - 5.5 (Conversion) - unimplemented methods: toDate, convertsToDate.
 
-We are deferring handling information about FHIR resources, as much as
-possible, with the exception of support for choice types.  This affects
-implementation of the following sections:
-- 6.3 (Types) - "is" - limited support for types(see below),
-                "as" is not supported yet
-
 Also, because in JSON DateTime and Time types are represented as strings, if a
 string in a resource looks like a DateTime or Time (matches the regular
 expression defined for those types in FHIR), the string will be interpreted as a
 DateTime or Time.
-
-### Limited support for types:
-Currently, the type of the resource property value is used to determine the type,
-without using the FHIR specification. This shortcut causes the following issues:
-- Type hierarchy is not supported;
-- `FHIR.uri`, `FHIR.code`, `FHIR.oid`, `FHIR.id`, `FHIR.uuid`, `FHIR.sid`, `FHIR.markdown`, `FHIR.base64Binary` are treated as `FHIR.string`;
-- `FHIR.unsignedInt`, `FHIR.positiveInt` are treated as `FHIR.integer`;
-- Also, a property could be specified as `FHIR.decimal`, but treated as `FHIR.integer`;
-- For date-time related types, only `FHIR.dateTime`, `FHIR.time`, `System.DateTime` and `System.Time` are supported.
 
 ## Development Notes
 
