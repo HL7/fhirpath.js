@@ -27,8 +27,14 @@ let pathsDefinedElsewhere = {};
 let type2Parent = {};
 let path2Type = {};
 
+/**
+ * Adds mapping from property path to data type.
+ * @param {string} path - property path.
+ * @param {string} code - data type code.
+ */
 function addPath2Type(path, code) {
-  if (code !== 'Element' && code !== 'BackboneElement') {
+  if (code !== 'Element' && code !== 'BackboneElement'
+      && path.indexOf('.') !== -1) {
     if (/http:\/\/hl7\.org\/fhirpath\/(.*)/.test(code)) {
       path2Type[path] = RegExp.$1;
     } else {
@@ -50,13 +56,14 @@ for (let f of choiceTypeFiles) {
   let currentResource;
   function visitNode(n) {
     if ( f !== 'profiles-others.json'
-         && ['resource', 'datatype', 'complex-type', 'primitive-type'].some(i => i === n.kind)
+         && ['resource', 'datatype', 'complex-type', 'primitive-type']
+            .some(i => i === n.kind)
          && n.name && (n.baseDefinition || n.base) ) {
       const type = n.name;
       const baseUrl = n.baseDefinition || n.base;
       if (type2Parent[type]) {
-        console.log('Conflict:', type + '->' + type2Parent[type]);
-        console.log('\twith:', type + '->' + baseUrl.lastIndexOf('/') + 1);
+        throw new Error('Conflict: ' + type + '->' + type2Parent[type]
+          + ' with: ' + type + '->' + baseUrl.lastIndexOf('/') + 1);
       } else {
         type2Parent[type] = baseUrl.substring(baseUrl.lastIndexOf('/') + 1);
       }
