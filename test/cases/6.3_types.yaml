@@ -170,11 +170,11 @@ tests:
   - desc: '6.3.3. as type specifier'
 
   - desc: '** more than one item in the input collection for "as"'
-    expression: heteroattr as integer
+    expression: mixedTypeVals as integer
     error: true
 
   - desc: '** as integer'
-    expression: heteroattr.select($this as integer)
+    expression: mixedTypeVals.select($this as integer)
     result: [1]
 
   - desc: '** as Quantity'
@@ -201,11 +201,11 @@ tests:
 
   - desc: '6.3.4. as(type : type specifier)'
   - desc: '** more than one item in the input collection for "as()"'
-    expression: heteroattr.as(integer)
+    expression: mixedTypeVals.as(integer)
     error: true
 
   - desc: '** as(integer)'
-    expression: heteroattr.select($this.as(integer))
+    expression: mixedTypeVals.select($this.as(integer))
     result: [1]
 
   - desc: '** as(Quantity)'
@@ -256,7 +256,7 @@ subject:
     - a: 1
       b: 2
       c: 3
-  heteroattr:
+  mixedTypeVals:
     - 'string'
     - 1
     - 1.01
