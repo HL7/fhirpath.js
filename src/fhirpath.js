@@ -89,6 +89,7 @@ engine.invocationTable = {
   type:         {fn: types.typeFn, arity: {0: []}},
   ofType:       {fn: filtering.ofTypeFn, arity: {1: ["TypeSpecifier"]}},
   is:           {fn: types.isFn, arity: {1: ["TypeSpecifier"]}},
+  as:           {fn: types.asFn, arity: {1: ["TypeSpecifier"]}},
   tail:         {fn: filtering.tailFn},
   take:         {fn: filtering.takeFn, arity: {1: ["Integer"]}},
   skip:         {fn: filtering.skipFn, arity: {1: ["Integer"]}},
@@ -156,6 +157,7 @@ engine.invocationTable = {
   "containsOp": {fn: collections.contains,   arity: {2: ["Any", "Any"]}},
   "inOp":       {fn: collections.in,  arity: {2: ["Any", "Any"]}},
   "isOp":       {fn: types.isFn,  arity: {2: ["Any", "TypeSpecifier"]}},
+  "asOp":       {fn: types.asFn,  arity: {2: ["Any", "TypeSpecifier"]}},
   "&":          {fn: math.amp,     arity:  {2: ["String", "String"]}},
   "+":          {fn: math.plus,    arity:  {2: ["Any", "Any"]}, nullable: true},
   "-":          {fn: math.minus,   arity:  {2: ["Any", "Any"]}, nullable: true},
@@ -339,7 +341,7 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
             toAdd = res.data?.[field];
             _toAdd = res.data?.['_' + field];
             if (toAdd !== undefined || _toAdd !== undefined) {
-              childPath = t;
+              childPath += t;
               break;
             }
           }
@@ -354,6 +356,7 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
             childPath = 'Extension';
           }
         }
+        childPath = model && model.path2Type[childPath] || childPath;
 
         if (util.isSome(toAdd) || util.isSome(_toAdd)) {
           if(Array.isArray(toAdd)) {
@@ -581,7 +584,7 @@ engine.evalTable = { // not every evaluator is listed if they are defined on eng
   InvocationExpression: engine.InvocationExpression,
   AdditiveExpression: engine.OpExpression,
   MultiplicativeExpression: engine.OpExpression,
-  TypeExpression: engine.AliasOpExpression({"is": "isOp"}),
+  TypeExpression: engine.AliasOpExpression({"is": "isOp", "as": "asOp"}),
   MembershipExpression: engine.AliasOpExpression({"contains": "containsOp", "in": "inOp"}),
   NullLiteral: engine.NullLiteral,
   EntireExpression: engine.InvocationTerm,
@@ -761,6 +764,8 @@ function compile(path, model, options) {
     return function (fhirData, context) {
       const inObjPath = fhirData && fhirData.__path__;
       const resource = makeResNode(fhirData, path.base || inObjPath);
+      // Globally set model before applying parsed FHIRPath expression
+      TypeInfo.model = model;
       return applyParsedPath(resource, node, context, model, options);
     };
   } else {
@@ -768,6 +773,8 @@ function compile(path, model, options) {
     return function (fhirData, context) {
       const inObjPath = fhirData && fhirData.__path__;
       const resource = inObjPath ? makeResNode(fhirData, inObjPath) : fhirData;
+      // Globally set model before applying parsed FHIRPath expression
+      TypeInfo.model = model;
       return applyParsedPath(resource, node, context, model, options);
     };
   }
