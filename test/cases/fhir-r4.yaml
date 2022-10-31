@@ -469,6 +469,7 @@ tests:
         expression: Patient.birthDate < today()
         result:
           - true
+        model: r4
       - desc: '** testDateTimeGreaterThanDate'
         inputfile: patient-example.json
         expression: now() > Patient.birthDate
@@ -563,19 +564,16 @@ tests:
         expression: '''2015''.convertsToDate()'
         result:
           - true
-        disable: true
       - desc: '** testStringMonthConvertsToDate'
         inputfile: patient-example.json
         expression: '''2015-02''.convertsToDate()'
         result:
           - true
-        disable: true
       - desc: '** testStringDayConvertsToDate'
         inputfile: patient-example.json
         expression: '''2015-02-04''.convertsToDate()'
         result:
           - true
-        disable: true
       - desc: '** testStringYearConvertsToDateTime'
         inputfile: patient-example.json
         expression: '''2015''.convertsToDateTime()'
@@ -1723,6 +1721,7 @@ tests:
         expression: Patient.birthDate < today()
         result:
           - true
+        model: r4
       - desc: '** testToday2'
         inputfile: patient-example.json
         expression: today().toString().length() = 10

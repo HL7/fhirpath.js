@@ -3,6 +3,13 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.2.0] - 2022-10-28
+### Added
+- Functions: toDate(), convertsToDate().
+### Fixed
+- Date/Time arithmetic to make this expression work:
+  `Patient.birthDate + 1 day`
+
 ## [3.1.0] - 2022-09-14
 ### Added
 - function "as(type)".

@@ -39,6 +39,7 @@ const generateTest = (test, testResource) => {
         exception = error;
       }
       if (!test.error) {
+        expect(exception).toBe(null);
         // Run the result through JSON so the FP_Type quantities get converted to
         // strings.  Also , if the result is an FP_DateTime, convert to a Date
         // object so that timezone differences are handled.
@@ -46,7 +47,6 @@ const generateTest = (test, testResource) => {
           expect(new Date(result[0])).toEqual(new Date(test.result[0]))
         else
           expect(JSON.parse(JSON.stringify(result))).toEqual(test.result);
-        expect(exception).toBe(null);
       }
       else if (test.error) {
         if (result != null)
