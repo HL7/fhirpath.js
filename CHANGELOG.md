@@ -9,6 +9,7 @@ This log documents significant changes for each release.  This project follows
 ### Fixed
 - Date/Time arithmetic to make this expression work:
   `Patient.birthDate + 1 day`
+- Removed implicit string to date/time conversion during comparison.
 
 ## [3.1.0] - 2022-09-14
 ### Added
