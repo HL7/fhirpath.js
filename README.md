@@ -229,11 +229,6 @@ Completed sections:
 Almost completed sections:
 - 5.5 (Conversion) - unimplemented methods: toDate, convertsToDate.
 
-Also, because in JSON DateTime and Time types are represented as strings, if a
-string in a resource looks like a DateTime or Time (matches the regular
-expression defined for those types in FHIR), the string will be interpreted as a
-DateTime or Time.
-
 ## Development Notes
 
 This section is for people doing development on this package (as opposed to
