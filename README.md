@@ -212,6 +212,7 @@ Completed sections:
 - 5.2 (Filtering and Projection) "ofType"
 - 5.3 (Subsetting)
 - 5.4 (Combining)
+- 5.5 (Conversion)
 - 5.6 (String Manipulation)
 - 5.7 (Tree Navigation)
 - 5.8 (Utility Functions)
@@ -225,9 +226,6 @@ Completed sections:
 - 7   (Aggregates)
 - 8   (Lexical Elements) - handled by ANTLR parser
 - 9   (Environment Variables)
-
-Almost completed sections:
-- 5.5 (Conversion) - unimplemented methods: toDate, convertsToDate.
 
 ## Development Notes
 
