@@ -242,6 +242,20 @@ tests:
       result: ['2016-02-29']
     - expression: "@T23:59:23-05:00 + 1.5 hours = @T00:59:23-05:00"
       result: [true]
+    - expression: "Patient.birthDate - 1 day = @1974-12-24"
+      model: r4
+      inputfile: patient-example.json
+      result:
+        - true
+    - expression: "Patient.birthDate + 1 day = @1974-12-26"
+      model: r4
+      inputfile: patient-example.json
+      result:
+        - true
+    - desc: '** Do not convert a resource node value to Date without model'
+      expression: "Patient.birthDate + 1 day = @1974-12-26"
+      inputfile: patient-example.json
+      error: true
 
 subject:
   resourceType: MathTestData

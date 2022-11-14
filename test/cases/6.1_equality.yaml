@@ -249,19 +249,19 @@ tests:
         result: [false]
 
       - desc: 'DateTime literal compared with same DateTime in resource (1)'
-        expression: '@2018-02 = date1'
+        expression: '@2018-02 = date1.toDate()'
         result: [true]
 
       - desc: 'DateTime literal compared with same DateTime in resource (2)'
-        expression: 'date1 = @2018-02'
+        expression: 'date1.toDate() = @2018-02'
         result: [true]
 
       - desc: 'DateTime literal compared with different DateTime in resource'
-        expression: '@2018-01 = date1'
+        expression: '@2018-01 = date1.toDate()'
         result: [false]
 
       - desc: 'DateTime literal compared with different precision DateTime in resource'
-        expression: '@2018-02-02 = date1'
+        expression: '@2018-02-02 = date1.toDate()'
         result: []
 
       - desc: 'DateTime literal compared with a number'
@@ -300,15 +300,15 @@ tests:
         result: [false]
 
       - desc: 'Time literal compared with same time in resource'
-        expression: '@T12:34:45 = time1'
+        expression: '@T12:34:45 = time1.toTime()'
         result: [true]
 
       - desc: 'Time literal compared with different time in resource'
-        expression: '@T12:34:46 = time1'
+        expression: '@T12:34:46 = time1.toTime()'
         result: [false]
 
       - desc: 'Time literal compared with different precision time in resource'
-        expression: '@T12 = time1'
+        expression: '@T12 = time1.toTime()'
         result: []
 
 
@@ -390,15 +390,15 @@ tests:
         result: [false]
 
       - desc: 'DateTime literal compared with same DateTime in resource'
-        expression: '@2018-02 ~ date1'
+        expression: '@2018-02 ~ date1.toDate()'
         result: [true]
 
       - desc: 'DateTime literal compared with different DateTime in resource'
-        expression: '@2018-01 ~ date1'
+        expression: '@2018-01 ~ date1.toDate()'
         result: [false]
 
       - desc: 'DateTime literal compared with different precision DateTime in resource'
-        expression: '@2018-02-02 ~ date1'
+        expression: '@2018-02-02 ~ date1.toDate()'
         result: [false]
 
       - desc: 'Time literal compared with same time in different timezone'
@@ -418,15 +418,15 @@ tests:
         result: [false]
 
       - desc: 'Time literal compared with same time in resource'
-        expression: '@T12:34:45 ~ time1'
+        expression: '@T12:34:45 ~ time1.toTime()'
         result: [true]
 
       - desc: 'Time literal compared with different time in resource'
-        expression: '@T12:35:46 ~ time1'
+        expression: '@T12:35:46 ~ time1.toTime()'
         result: [false]
 
       - desc: 'Time literal compared with different precision time in resource'
-        expression: '@T12:34:46.123 ~ time1'
+        expression: '@T12:34:46.123 ~ time1.toTime()'
         result: [false]
 
   # If both operands are collections with multiple items:
@@ -542,15 +542,15 @@ tests:
         result: [true]
 
       - desc: 'DateTime literal compared with same DateTime in resource'
-        expression: '@2018-02 != date1'
+        expression: '@2018-02 != date1.toDate()'
         result: [false]
 
       - desc: 'DateTime literal compared with different DateTime in resource'
-        expression: '@2018-01 != date1'
+        expression: '@2018-01 != date1.toDate()'
         result: [true]
 
       - desc: 'DateTime literal compared with different precision DateTime in resource'
-        expression: '@2018-02-02 != date1'
+        expression: '@2018-02-02 != date1.toDate()'
         result: []
 
       - desc: 'Time literal compared with same time in different timezone'
@@ -570,18 +570,18 @@ tests:
         result: [true]
 
       - desc: 'Time literal compared with same time in resource'
-        expression: '@T12:34:45 != time1'
+        expression: '@T12:34:45 != time1.toTime()'
         result: [false]
 
       - desc: 'Time literal compared with different time in resource'
-        expression: '@T12:35:46 != time1'
+        expression: '@T12:35:46 != time1.toTime()'
         result: [true]
 
       - desc: 'Time literal compared with different precision time in resource (1)'
-        expression: '@T12:34 != time1'
+        expression: '@T12:34 != time1.toTime()'
         result: []
       - desc: 'Time literal compared with different precision time in resource (2)'
-        expression: '@T12:35 != time1'
+        expression: '@T12:35 != time1.toTime()'
         result: [true]
 
   - 'group: 6.1.4. !~ (Not Equivalent)':
@@ -604,15 +604,15 @@ tests:
         result: [true]
 
       - desc: 'DateTime literal compared with same DateTime in resource'
-        expression: '@2018-02 !~ date1'
+        expression: '@2018-02 !~ date1.toDate()'
         result: [false]
 
       - desc: 'DateTime literal compared with different DateTime in resource'
-        expression: '@2018-01 !~ date1'
+        expression: '@2018-01 !~ date1.toDate()'
         result: [true]
 
       - desc: 'DateTime literal compared with different precision DateTime in resource'
-        expression: '@2018-02-02 !~ date1'
+        expression: '@2018-02-02 !~ date1.toDate()'
         result: [true]
 
       - desc: 'Time literal compared with same time in different timezone'
@@ -632,18 +632,18 @@ tests:
         result: [true]
 
       - desc: 'Time literal compared with same time in resource'
-        expression: '@T12:34:45 !~ time1'
+        expression: '@T12:34:45 !~ time1.toTime()'
         result: [false]
 
       - desc: 'Time literal compared with different time in resource'
-        expression: '@T12:35:46 !~ time1'
+        expression: '@T12:35:46 !~ time1.toTime()'
         result: [true]
 
       - desc: 'Time literal compared with different precision time in resource (1)'
-        expression: '@T12:34 !~ time1'
+        expression: '@T12:34 !~ time1.toTime()'
         result: [true]
       - desc: 'Time literal compared with different precision time in resource (2)'
-        expression: '@T12:35 !~ time1'
+        expression: '@T12:35 !~ time1.toTime()'
         result: [true]
 
 

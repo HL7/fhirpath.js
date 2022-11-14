@@ -73,32 +73,11 @@ function deepEqual(actual, expected, opts) {
     var actualIsFPT = actual instanceof FP_Type;
     var expectedIsFPT = expected instanceof FP_Type;
     if (actualIsFPT && expectedIsFPT) { // if both are FP_Type
-      let rtn = opts.fuzzy ? actual.equivalentTo(expected) :
+      return opts.fuzzy ? actual.equivalentTo(expected) :
         actual.equals(expected); // May return undefined
-      return rtn;
     }
     else if (actualIsFPT || expectedIsFPT) { // if only one is an FP_Type
-      // See if the other is convertible.
-      let fpt, nonFPT;
-      if (actualIsFPT) {
-        fpt = actual;
-        nonFPT = expected;
-      }
-      else {
-        fpt = expected;
-        nonFPT = actual;
-      }
-      let rtn = typeof nonFPT === 'string';
-      if (rtn) {
-        let d = fpt.constructor.checkString(nonFPT);
-        if (d) {
-          rtn = opts.fuzzy ? actual.equivalentTo(d) :
-            fpt.equals(d); // May return undefined
-        }
-        else
-          rtn = false; // not a date string
-      }
-      return rtn;
+      return false;
     }
     // 7.4. For all other Object pairs, including Array objects, equivalence is
     // determined by having the same number of owned properties (as verified

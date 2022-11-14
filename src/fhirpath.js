@@ -49,7 +49,7 @@ let datetime  = require("./datetime");
 let logic  = require("./logic");
 const types = require("./types");
 const {
-  FP_DateTime, FP_Time, FP_Quantity,
+  FP_Date, FP_DateTime, FP_Time, FP_Quantity,
   FP_Type, ResourceNode, TypeInfo
 } = types;
 let makeResNode = ResourceNode.makeResNode;
@@ -101,6 +101,7 @@ engine.invocationTable = {
   toInteger:    {fn: misc.toInteger},
   toDecimal:    {fn: misc.toDecimal},
   toString:     {fn: misc.toString},
+  toDate:       {fn: misc.toDate},
   toDateTime:   {fn: misc.toDateTime},
   toTime:       {fn: misc.toTime},
   toBoolean:    {fn: misc.toBoolean},
@@ -109,6 +110,7 @@ engine.invocationTable = {
   convertsToInteger:    {fn: misc.createConvertsToFn(misc.toInteger, 'number')},
   convertsToDecimal:    {fn: misc.createConvertsToFn(misc.toDecimal, 'number')},
   convertsToString:     {fn: misc.createConvertsToFn(misc.toString, 'string')},
+  convertsToDate:       {fn: misc.createConvertsToFn(misc.toDate, FP_Date)},
   convertsToDateTime:   {fn: misc.createConvertsToFn(misc.toDateTime, FP_DateTime)},
   convertsToTime:       {fn: misc.createConvertsToFn(misc.toTime, FP_Time)},
   convertsToQuantity:   {fn: misc.createConvertsToFn(misc.toQuantity, FP_Quantity)},

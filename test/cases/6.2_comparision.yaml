@@ -111,7 +111,7 @@ tests:
         expression: '@2018 > @2017-01'
         result: [true]
       - desc: Comparison with later Date from resource
-        expression: '@2018-12-21 > date'
+        expression: '@2018-12-21 > date.toDate()'
         result: [false]
     - 'group:  Date >=':
       - desc: Comparison with earlier Date
@@ -124,13 +124,13 @@ tests:
         expression: '@2018 >= @2019'
         result: [false]
       - desc: Comparison with earlier Date from resource
-        expression: '@2020 >= date'
+        expression: '@2020 >= date.toDate()'
         result: [true]
       - desc: Comparison with equal Date from resource
-        expression: '@2019-02-25 >= date'
+        expression: '@2019-02-25 >= date.toDate()'
         result: [true]
       - desc: Comparison with later Date from resource
-        expression: '@2018 >= date'
+        expression: '@2018 >= date.toDate()'
         result: [false]
     - 'group:  Date <=':
       - desc: Comparison with earlier Date
@@ -181,13 +181,13 @@ tests:
         expression: '@2018-12-21T12:02+02:00 > @2018-12-21T12:01+03:00'
         result: [true]
       - desc: Comparison with later Date from resource
-        expression: '@2018-12-21 < date'
+        expression: '@2018-12-21 < date.toDate()'
         result: [true]
       - desc: Comparison with later DateTime from resource
-        expression: '@2018-12-21T12:02+02:00 < dateTime'
+        expression: '@2018-12-21T12:02+02:00 < dateTime.toDateTime()'
         result: [true]
       - desc: Comparison with later DateTime from resource (2)
-        expression: '@2018-12-21T12:02+02:00 > dateTime'
+        expression: '@2018-12-21T12:02+02:00 > dateTime.toDateTime()'
         result: [false]
       - expression: '@2020-08-04T12:34 < @2020'
         result: []
@@ -214,16 +214,16 @@ tests:
         expression: '@T12:02:34.324+05:00 > @T12+05:00'
         result: []
       - desc: Comparison with later time in resource (1)
-        expression: '@T17:00-05:00 < timeWithT'
+        expression: '@T17:00-05:00 < timeWithT.toTime()'
         result: [true]
       - desc: Comparison with later time in resource (2)
-        expression: '@T17:00-05:00 > timeWithT'
+        expression: '@T17:00-05:00 > timeWithT.toTime()'
         result: [false]
       - desc: Comparison with later time in resource (3)
-        expression: '@T17:00-05:00 < timeWithOutT'
+        expression: '@T17:00-05:00 < timeWithOutT.toTime()'
         result: [true]
       - desc: Comparison with later time in resource (4)
-        expression: '@T17:00-05:00 > timeWithOutT'
+        expression: '@T17:00-05:00 > timeWithOutT.toTime()'
         result: [false]
 
 subject:

@@ -432,10 +432,12 @@ tests:
         expression: Patient.birthDate = @1974-12-25
         result:
           - true
+        model: r4
       - desc: '** testDateNotEqual'
         inputfile: patient-example.json
         expression: 'Patient.birthDate != @1974-12-25T12:34:00'
         result: []
+        model: r4
       - desc: '** testDateNotEqualTimezoneOffsetBefore'
         inputfile: patient-example.json
         expression: 'Patient.birthDate != @1974-12-25T12:34:00-10:00'
@@ -469,11 +471,13 @@ tests:
         expression: Patient.birthDate < today()
         result:
           - true
+        model: r4
       - desc: '** testDateTimeGreaterThanDate'
         inputfile: patient-example.json
         expression: now() > Patient.birthDate
         result:
           - true
+        model: r4
       - desc: '** testLiteralDateTimeTZGreater'
         inputfile: patient-example.json
         expression: '@2017-11-05T01:30:00.0-04:00 > @2017-11-05T01:15:00.0-05:00'
@@ -563,19 +567,16 @@ tests:
         expression: '''2015''.convertsToDate()'
         result:
           - true
-        disable: true
       - desc: '** testStringMonthConvertsToDate'
         inputfile: patient-example.json
         expression: '''2015-02''.convertsToDate()'
         result:
           - true
-        disable: true
       - desc: '** testStringDayConvertsToDate'
         inputfile: patient-example.json
         expression: '''2015-02-04''.convertsToDate()'
         result:
           - true
-        disable: true
       - desc: '** testStringYearConvertsToDateTime'
         inputfile: patient-example.json
         expression: '''2015''.convertsToDateTime()'
@@ -1723,6 +1724,7 @@ tests:
         expression: Patient.birthDate < today()
         result:
           - true
+        model: r4
       - desc: '** testToday2'
         inputfile: patient-example.json
         expression: today().toString().length() = 10
@@ -1734,6 +1736,7 @@ tests:
         expression: Patient.birthDate < now()
         result:
           - true
+        model: r4
       - desc: '** testNow2'
         inputfile: patient-example.json
         expression: now().toString().length() > 10
