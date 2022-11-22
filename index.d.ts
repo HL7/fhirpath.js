@@ -16,6 +16,7 @@ declare module "fhirpath" {
     }
   ): any[];
   export function resolveInternalTypes(value: any): any;
+  export function types(value: any): string[];
 }
 
 declare module "fhirpath/fhir-context/dstu2" {

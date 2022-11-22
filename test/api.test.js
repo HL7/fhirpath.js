@@ -156,3 +156,30 @@ describe('resolveInternalTypes', () => {
     ]);
   });
 });
+
+describe('types', () => {
+  it('should return the type of each element in FHIRPath result', () => {
+    let value = fhirpath.evaluate(
+      require('../test/resources/quantity-example.json'),
+      'QuestionnaireResponse.item.answer.value.combine(today())',
+      {}, r4_model, {resolveInternalTypes: false}
+    );
+    expect(
+      fhirpath.types(value)
+    ).toStrictEqual([
+      'FHIR.Quantity', 'FHIR.Quantity', 'FHIR.Quantity', 'FHIR.Quantity', 'System.Date'
+    ]);
+  });
+  it('should return the type of sub-items of FHIRPath result', () => {
+    let value = fhirpath.evaluate(
+      require('../test/resources/quantity-example.json'),
+      'QuestionnaireResponse.item.answer.combine(today())',
+      {}, r4_model, {resolveInternalTypes: false}
+    );
+    expect(
+      fhirpath.types(value.map(v => v.valueQuantity || v))
+    ).toStrictEqual([
+      'FHIR.Quantity', 'FHIR.Quantity', 'FHIR.Quantity', 'FHIR.Quantity', 'System.Date'
+    ]);
+  });
+});

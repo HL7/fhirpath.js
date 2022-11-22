@@ -649,29 +649,23 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   // in the MemberInvocation method.
   if (context) {
     context = Object.keys(context).reduce((restoredContext, key) => {
-      const path = context[key]?.__path__;
-      if (path) {
-        if (Array.isArray(context[key])) {
-          restoredContext[key] = context[key].map(i => makeResNode(i, path));
-        } else {
-          restoredContext[key] = makeResNode(context[key], path);
-        }
+      if (Array.isArray(context[key])) {
+        restoredContext[key] = context[key].map(i => (i?.__path__ ? makeResNode(i, i?.__path__) : i));
       } else {
-        restoredContext[key] = context[key];
+        restoredContext[key] = context[key]?.__path__ ? makeResNode(context[key], context[key]?.__path__) : context[key];
       }
       return restoredContext;
     }, {});
   }
   let ctx = {dataRoot, vars: Object.assign(vars, context), model};
   let rtn = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
-  let firstRtn = Array.isArray(rtn) ? rtn[0] : rtn;
-  // Path for the data extracted from the resource.
-  let path = firstRtn instanceof ResourceNode ? firstRtn.path : null;
 
   // Resolve any internal "ResourceNode" instances to plain objects and if
   // options.resolveInternalTypes is true, resolve any internal "FP_Type"
   // instances to strings.
   rtn = (function visit(n) {
+    // Path for the data extracted from the resource.
+    let path = n instanceof ResourceNode ? n.path : null;
     n = util.valData(n);
     if (Array.isArray(n)) {
       for (let i=0, len=n.length; i<len; ++i)
@@ -686,13 +680,14 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
       for (let k of Object.keys(n))
         n[k] = visit(n[k]);
     }
+    // Add a hidden (non-enumerable) property with the path to the data extracted
+    // from the resource.
+    if (path && typeof n === 'object') {
+      Object.defineProperty(n, '__path__', {value: path});
+    }
     return n;
   })(rtn);
-  // Add a hidden (non-enumerable) property with the path to the data extracted
-  // from the resource.
-  if (path && typeof rtn === 'object') {
-    Object.defineProperty(rtn, '__path__', {value: path});
-  }
+
   return rtn;
 }
 
@@ -782,12 +777,30 @@ function compile(path, model, options) {
   }
 }
 
+/**
+ * Returns the type of each element in fhirpathResult array which was obtained
+ * from evaluate().
+ * This works on sub-items too, so that if `fhirpathResult = [obj1, obj2]` and
+ * `obj1.name = [name1, name2]`, then `types(fhirpathResults[0].name)` should
+ * return the types of `name1` and `name2`.
+ * @param {any} fhirpathResult - a result of FHIRPath expression evaluation or
+ *   its sub-items.
+ * @returns {string[]} a new object with resolved values.
+ */
+function typesFn(fhirpathResult) {
+  return util.arraify(fhirpathResult).map(value => {
+    const ti = TypeInfo.fromValue(value?.__path__ ? new ResourceNode(value, value.__path__) : value);
+    return `${ti.namespace}.${ti.name}`;
+  });
+}
+
 module.exports = {
   version,
   parse,
   compile,
   evaluate,
   resolveInternalTypes,
+  types: typesFn,
   // Might as well export the UCUM library, since we are using it.
   ucumUtils: require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance()
 };

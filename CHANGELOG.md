@@ -3,6 +3,16 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.3.0] - 2022-11-21
+### Added
+- An API method `types` which returns the type of each element in FHIRPath result
+  array which was obtained from evaluate() with option resolveInternalTypes=false.
+### Fixed
+- The hidden (non-enumerable) property `__path__` has been moved from the entire
+  array of result values to each element of the array. Because the result array
+  may contain items of different types.
+- The type of "today()" was defined as "System.DateTime".
+
 ## [3.2.0] - 2022-10-28
 ### Added
 - Functions: toDate(), convertsToDate().
