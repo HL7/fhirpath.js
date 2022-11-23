@@ -779,7 +779,7 @@ function compile(path, model, options) {
 
 /**
  * Returns the type of each element in fhirpathResult array which was obtained
- * from evaluate().
+ * from evaluate() with option resolveInternalTypes=false.
  * This works on sub-items too, so that if `fhirpathResult = [obj1, obj2]` and
  * `obj1.name = [name1, name2]`, then `types(fhirpathResults[0].name)` should
  * return the types of `name1` and `name2`.
