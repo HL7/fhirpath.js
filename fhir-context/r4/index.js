@@ -13,5 +13,13 @@ module.exports = {
    *  A hash from paths to the path for which their content is defined, e.g.
    *  Questionnaire.item.item -> Questionnaire.item.
    */
-  pathsDefinedElsewhere: require('./pathsDefinedElsewhere.json')
+  pathsDefinedElsewhere: require('./pathsDefinedElsewhere.json'),
+  /**
+   * Mapping data types to parent data types.
+   */
+  type2Parent: require('./type2Parent.json'),
+  /**
+   * Mapping paths to data types.
+   */
+  path2Type: require('./path2Type.json')
 }

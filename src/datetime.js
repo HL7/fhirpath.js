@@ -1,6 +1,7 @@
 var engine = {};
 const types = require('./types');
 const constants = require('./constants');
+const FP_Date = types.FP_Date;
 const FP_DateTime = types.FP_DateTime;
 const FP_Time = types.FP_Time;
 
@@ -30,8 +31,8 @@ engine.today = function(){
   if (!constants.today) {
     // Construct the string ourselves to preserve timezone
     var now = constants.nowDate; // a JS Date
-    var isoStr = FP_DateTime.isoDate(now);
-    constants.today = new FP_DateTime(isoStr);
+    var isoStr = FP_Date.isoDate(now);
+    constants.today = new FP_Date(isoStr);
   }
   return constants.today;
 };

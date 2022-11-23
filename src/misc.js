@@ -136,6 +136,7 @@ function defineTimeConverter(timeType) {
     return rtn;
   };
 }
+defineTimeConverter('FP_Date');
 defineTimeConverter('FP_DateTime');
 defineTimeConverter('FP_Time');
 

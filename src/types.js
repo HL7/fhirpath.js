@@ -8,6 +8,8 @@ let timeFormat =
 let timeRE = new RegExp('^T?'+timeFormat+'$');
 let dateTimeRE = new RegExp(
   '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T'+timeFormat+')?)?)?Z?$');
+let dateRE = new RegExp(
+  '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9])?)?$');
 // FHIR date/time regular expressions are slightly different.  For now, we will
 // stick with the FHIRPath regular expressions.
 //let fhirTimeRE = /([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?/;
@@ -388,7 +390,7 @@ class FP_TimeBase extends FP_Type {
     //   2012-01 = 2011 //  false
     //   2012-01 ~ 2012 //  false
     var rtn;
-    if (!(otherDateTime instanceof this.constructor))
+    if (!(otherDateTime instanceof this.constructor) && !(this instanceof otherDateTime.constructor))
       rtn = false;
     else {
       var thisPrec  = this._getPrecision();
@@ -927,21 +929,6 @@ FP_DateTime.isoDateTime = function(date, precision) {
 
 
 /**
- *  Returns a date string in ISO format at the given precision level.
- * @date the date to format
- * @precision the precision at which to terminate string.  (This is
- *  optional). If present, it will be an integer into the matching components of
- *  dateTimeRE.
- * @return a string in ISO8601 format.
- */
-FP_DateTime.isoDate = function(date, precision) {
-  if (precision === undefined || precision > 2)
-    precision = 2;
-  return FP_DateTime.isoDateTime(date, precision);
-};
-
-
-/**
  *  Returns a time string in ISO format at the given precision level.
  * @date the date to format
  * @precision the precision at which to terminate string.  (This is
@@ -963,6 +950,54 @@ FP_DateTime.isoTime = function(date, precision) {
     }
   }
   return rtn;
+};
+
+
+class FP_Date extends FP_DateTime {
+  /**
+   * Constructs an FP_Date, assuming dateStr is valid.  If you don't know
+   * whether a string is a valid Date, use FP_Date.checkString instead.
+   */
+  constructor(dateStr) {
+    super(dateStr);
+  }
+
+
+  /**
+   * Returns the match data from matching dateRE against the date string.
+   * Also sets this.precision.
+   */
+  _getMatchData() {
+    return FP_TimeBase.prototype._getMatchData.apply(this, [dateRE, 2]);
+  }
+}
+
+
+/**
+ * Tests str to see if it is convertible to a Date.
+ * @return If str is convertible to a Date, returns an FP_Date;
+ *  otherwise returns null.
+ */
+FP_Date.checkString = function(str) {
+  let d = new FP_Date(str);
+  if (!d._getMatchData())
+    d = null;
+  return d;
+};
+
+
+/**
+ * Returns a date string in ISO format at the given precision level.
+ * @date the date to format
+ * @precision the precision at which to terminate string.  (This is
+ *  optional). If present, it will be an integer into the matching components of
+ *  dateTimeRE.
+ * @return a string in ISO8601 format.
+ */
+FP_Date.isoDate = function(date, precision) {
+  if (precision === undefined || precision > 2)
+    precision = 2;
+  return FP_DateTime.isoDateTime(date, precision);
 };
 
 
@@ -1000,12 +1035,17 @@ class ResourceNode {
   getTypeInfo() {
     const namespace = TypeInfo.FHIR;
 
-    // TODO: Here we should use property index which we will extract from the specification
-
-    if (this.path.indexOf('.') === -1) {
+    if (/^System\.(.*)$/.test(this.path)) {
+      return new TypeInfo({namespace: TypeInfo.System, name: RegExp.$1});
+    } else if (this.path.indexOf('.') === -1) {
       return new TypeInfo({namespace, name: this.path});
     }
-    return TypeInfo.createByValueInNamespace({namespace, value: this.data});
+
+    if (!TypeInfo.model) {
+      return TypeInfo.createByValueInNamespace({namespace, value: this.data});
+    }
+
+    return new TypeInfo({namespace, name: 'BackboneElement'});
   }
 
   toJSON() {
@@ -1013,25 +1053,37 @@ class ResourceNode {
   }
 
   /**
-   * Converts the data value from FHIR a Quantity to FHIRPath System.Quantity,
-   * when possible, or if not returns the data as is.  Throws an exception if
-   * the data is a Quantity that has a comparator.
+   * Converts a resource node value to an instance of the FHIRPath system type
+   * (FP_Quantity, FP_Date, FP_DateTime, or FP_Time) for use in evaluating
+   * a FHIRPath expression if the node path matches the specified type in the
+   * model and when conversion is possible, otherwise returns the data as is.
+   * Throws an exception if the data is a Quantity that has a comparator.
    * The Mapping from FHIR Quantity to FHIRPath System.Quantity is explained here:
    * https://www.hl7.org/fhir/fhirpath.html#quantity
    * this.data is not changed, but converted value is returned.
-   * @param {Object|...} data
-   * @param {string} path
-   * @return {FP_Quantity|Object|...}
+   * @return {FP_Type|any}
    */
   convertData() {
     var data = this.data;
-    if (this.path === 'Quantity' && data?.system === ucumSystemUrl) {
-      if (typeof data.value === 'number' && typeof data.code === 'string') {
-        if (data.comparator !== undefined)
-          throw new Error('Cannot convert a FHIR.Quantity that has a comparator');
-        data =
-          new FP_Quantity(data.value, FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\'');
-      }
+    switch (this.path) {
+      case 'Quantity':
+        if (data?.system === ucumSystemUrl) {
+          if (typeof data.value === 'number' && typeof data.code === 'string') {
+            if (data.comparator !== undefined)
+              throw new Error('Cannot convert a FHIR.Quantity that has a comparator');
+            data =
+              new FP_Quantity(data.value, FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\'');
+          }
+        }
+        break;
+      case 'date':
+        data = FP_Date.checkString(data) || data;
+        break;
+      case 'dateTime':
+        data = FP_DateTime.checkString(data) || data;
+        break;
+      case 'time':
+        data = FP_Time.checkString(data) || data;
     }
 
     return data;
@@ -1060,6 +1112,9 @@ class TypeInfo {
     this.namespace = namespace;
   }
 
+  // The "model" data object specific to a domain, e.g. R4.
+  static model = null;
+
   /**
    * Checks for equality with another TypeInfo object, or that another TypeInfo
    * object specifies a superclass for the type specified by this object.
@@ -1067,9 +1122,20 @@ class TypeInfo {
    * @return {boolean}
    */
   is(other) {
-    // TODO: Here we should use type hierarchy index which we will extract from the specification
-    return other instanceof TypeInfo && this.name === other.name
-      && (!this.namespace || !other.namespace || this.namespace === other.namespace);
+    if (other instanceof TypeInfo
+      && (!this.namespace || !other.namespace || this.namespace === other.namespace)) {
+      if (TypeInfo.model && (!this.namespace || this.namespace === TypeInfo.FHIR)) {
+        let name = this.name;
+        do {
+          if (name === other.name) {
+            return true;
+          }
+        } while ((name = TypeInfo.model.type2Parent[name]));
+      } else {
+        return this.name === other.name;
+      }
+    }
+    return false;
   }
 }
 
@@ -1142,15 +1208,35 @@ function isFn(coll, typeInfo) {
   }
 
   if(coll.length > 1) {
-    throw new Error("Expected singleton on left side of is, got " + JSON.stringify(coll));
+    throw new Error("Expected singleton on left side of 'is', got " + JSON.stringify(coll));
   }
 
   return TypeInfo.fromValue(coll[0]).is(typeInfo);
 }
 
+/**
+ * Implementation of function "as(type : type specifier)" and operator "as"
+ * (see http://hl7.org/fhirpath/#as-type-specifier)
+ * @param {Array<*>} coll - input collection
+ * @param {TypeInfo} typeInfo
+ * @return {Array<*>}
+ */
+function asFn(coll, typeInfo) {
+  if(coll.length === 0) {
+    return [];
+  }
+
+  if(coll.length > 1) {
+    throw new Error("Expected singleton on left side of 'as', got " + JSON.stringify(coll));
+  }
+
+  return TypeInfo.fromValue(coll[0]).is(typeInfo) ? coll : [];
+}
+
 module.exports = {
   FP_Type: FP_Type,
   FP_TimeBase: FP_TimeBase,
+  FP_Date: FP_Date,
   FP_DateTime: FP_DateTime,
   FP_Time: FP_Time,
   FP_Quantity: FP_Quantity,
@@ -1159,5 +1245,6 @@ module.exports = {
   ResourceNode: ResourceNode,
   TypeInfo: TypeInfo,
   typeFn,
-  isFn
+  isFn,
+  asFn
 };

@@ -4,8 +4,8 @@ var util = require("./utilities");
 var deepEqual = require('./deep-equal');
 var types = require('./types');
 const FP_Type = types.FP_Type;
+const FP_Date = types.FP_Date;
 const FP_DateTime = types.FP_DateTime;
-const FP_Time = types.FP_Time;
 
 var engine = {};
 
@@ -49,33 +49,17 @@ engine.unequival = function(a, b){
  *  and the other was convertible, the coverted value will be retureed.
  */
 function typecheck(a, b){
-  let rtn = null;
   util.assertAtMostOne(a, "Singleton was expected");
   util.assertAtMostOne(b, "Singleton was expected");
   a = util.valDataConverted(a[0]);
   b = util.valDataConverted(b[0]);
-  let lClass = a.constructor;
-  let rClass = b.constructor;
-  if (lClass != rClass) {
-    // See if one is an FPDateTime or FTTime while the other is a string.
-    var d;
-    if (lClass === String && (rClass === FP_DateTime || rClass === FP_Time)) {
-      d = rClass.checkString(a);
-      if (d)
-        rtn = [d, b];
-    }
-    else if (rClass === String && (lClass===FP_DateTime || lClass===FP_Time)) {
-      d = lClass.checkString(b);
-      if (d)
-        rtn = [a, d];
-    }
-
-    if (!rtn) {
-      util.raiseError('Type of "'+a+'" ('+lClass.name+') did not match type of "'+
+  let lClass = a.constructor === FP_Date ? FP_DateTime : a.constructor;
+  let rClass = b.constructor === FP_Date ? FP_DateTime : b.constructor;
+  if (lClass !== rClass) {
+    util.raiseError('Type of "'+a+'" ('+lClass.name+') did not match type of "'+
         b+'" ('+rClass.name+')', 'InequalityExpression');
-    }
   }
-  return rtn ? rtn : [a, b];
+  return [a, b];
 }
 
 engine.lt = function(a, b){

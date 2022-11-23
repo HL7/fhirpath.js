@@ -3,6 +3,22 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.2.0] - 2022-10-28
+### Added
+- Functions: toDate(), convertsToDate().
+### Fixed
+- Date/Time arithmetic to make this expression work:
+  `Patient.birthDate + 1 day`
+- Removed implicit string to date/time conversion during comparison.
+
+## [3.1.0] - 2022-09-14
+### Added
+- function "as(type)".
+- operator "as".
+- Support for data type hierarchy from FHIR specification for:
+  - functions "is(type)", "as(type)", and "ofType(type)",
+  - operators "is" and "as".
+
 ## [3.0.0] - 2022-08-25
 ### Added
 - Option `resolveInternalTypes` to control whether any instances of internal data
