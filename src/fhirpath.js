@@ -785,7 +785,7 @@ function compile(path, model, options) {
  * return the types of `name1` and `name2`.
  * @param {any} fhirpathResult - a result of FHIRPath expression evaluation or
  *   its sub-items.
- * @returns {string[]} a new object with resolved values.
+ * @returns {string[]} an array of types, e.g. ['FHIR.Quantity', 'FHIR.date', 'System.String'].
  */
 function typesFn(fhirpathResult) {
   return util.arraify(fhirpathResult).map(value => {
