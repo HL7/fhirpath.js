@@ -183,3 +183,41 @@ describe('types', () => {
     ]);
   });
 });
+
+describe('evaluate type() on a FHIRPath evaluation result', () => {
+  it('should return the type of each element in FHIRPath result', () => {
+    let value = fhirpath.evaluate(
+      require('../test/resources/quantity-example.json'),
+      'QuestionnaireResponse.item.answer.value.combine(today())',
+      {}, r4_model, {resolveInternalTypes: false}
+    );
+    expect(
+      fhirpath.evaluate(value, '%context.type().namespace', {}, r4_model)
+    ).toStrictEqual([
+      'FHIR', 'FHIR', 'FHIR', 'FHIR', 'System'
+    ]);
+    expect(
+      fhirpath.evaluate(value, '%context.type().name', {}, r4_model)
+    ).toStrictEqual([
+      'Quantity', 'Quantity', 'Quantity', 'Quantity', 'Date'
+    ]);
+  });
+  it('should return the type of sub-items of FHIRPath result', () => {
+    let value = fhirpath.evaluate(
+      require('../test/resources/quantity-example.json'),
+      'QuestionnaireResponse.item.answer.combine(today())',
+      {}, r4_model, {resolveInternalTypes: false}
+    );
+    expect(
+      fhirpath.evaluate(value, "%context.select(iif(value.exists(), value.type().namespace, $this.type().namespace))", {}, r4_model)
+    ).toStrictEqual([
+      'FHIR', 'FHIR', 'FHIR', 'FHIR', 'System'
+    ]);
+    expect(
+      fhirpath.evaluate(value, "%context.select(iif(value.exists(), value.type().name, $this.type().name))", {}, r4_model)
+    ).toStrictEqual([
+      'Quantity', 'Quantity', 'Quantity', 'Quantity', 'Date'
+    ]);
+  });
+});
+

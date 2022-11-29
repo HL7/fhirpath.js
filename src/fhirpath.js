@@ -638,12 +638,12 @@ function parse(path) {
  */
 function applyParsedPath(resource, parsedPath, context, model, options) {
   constants.reset();
-  let dataRoot = util.arraify(resource);
+  let dataRoot = util.arraify(resource).map(i => (i?.__path__ ? makeResNode(i, i?.__path__) : i));
   // doEval takes a "ctx" object, and we store things in that as we parse, so we
   // need to put user-provided variable data in a sub-object, ctx.vars.
   // Set up default standard variables, and allow override from the variables.
   // However, we'll keep our own copy of dataRoot for internal processing.
-  let vars = {context: resource, ucum: 'http://unitsofmeasure.org'};
+  let vars = {context: dataRoot, ucum: 'http://unitsofmeasure.org'};
   // Restore the ResourceNodes for the top-level objects of the context
   // variables. The nested objects will be converted to ResourceNodes
   // in the MemberInvocation method.
@@ -759,8 +759,7 @@ function compile(path, model, options) {
   if (typeof path === 'object') {
     const node = parse(path.expression);
     return function (fhirData, context) {
-      const inObjPath = fhirData && fhirData.__path__;
-      const resource = makeResNode(fhirData, path.base || inObjPath);
+      const resource = path.base ? makeResNode(fhirData, path.base) : fhirData;
       // Globally set model before applying parsed FHIRPath expression
       TypeInfo.model = model;
       return applyParsedPath(resource, node, context, model, options);
@@ -768,11 +767,9 @@ function compile(path, model, options) {
   } else {
     const node = parse(path);
     return function (fhirData, context) {
-      const inObjPath = fhirData && fhirData.__path__;
-      const resource = inObjPath ? makeResNode(fhirData, inObjPath) : fhirData;
       // Globally set model before applying parsed FHIRPath expression
       TypeInfo.model = model;
-      return applyParsedPath(resource, node, context, model, options);
+      return applyParsedPath(fhirData, node, context, model, options);
     };
   }
 }
