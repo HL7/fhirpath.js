@@ -170,6 +170,7 @@ describe('types', () => {
       'FHIR.Quantity', 'FHIR.Quantity', 'FHIR.Quantity', 'FHIR.Quantity', 'System.Date'
     ]);
   });
+
   it('should return the type of sub-items of FHIRPath result', () => {
     let value = fhirpath.evaluate(
       require('../test/resources/quantity-example.json'),
@@ -202,6 +203,7 @@ describe('evaluate type() on a FHIRPath evaluation result', () => {
       'Quantity', 'Quantity', 'Quantity', 'Quantity', 'Date'
     ]);
   });
+
   it('should return the type of sub-items of FHIRPath result', () => {
     let value = fhirpath.evaluate(
       require('../test/resources/quantity-example.json'),
