@@ -658,37 +658,28 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
     }, {});
   }
   let ctx = {dataRoot, vars: Object.assign(vars, context), model};
-  let rtn = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
-
-  // Resolve any internal "ResourceNode" instances to plain objects and if
-  // options.resolveInternalTypes is true, resolve any internal "FP_Type"
-  // instances to strings.
-  rtn = (function visit(n) {
-    // Path for the data extracted from the resource.
-    let path = n instanceof ResourceNode ? n.path : null;
-    n = util.valData(n);
-    if (Array.isArray(n)) {
-      for (let i=0, len=n.length; i<len; ++i)
-        n[i] = visit(n[i]);
-    }
-    else if (n instanceof FP_Type) {
-      if (options.resolveInternalTypes) {
-        n = n.toString();
+  return  engine.doEval(ctx, dataRoot, parsedPath.children[0])
+    // engine.doEval returns array of "ResourceNode" and/or "FP_Type" instances.
+    // "ResourceNode" or "FP_Type" instances are not created for sub-items.
+    // Resolve any internal "ResourceNode" instances to plain objects and if
+    // options.resolveInternalTypes is true, resolve any internal "FP_Type"
+    // instances to strings.
+    .map(n => {
+      // Path for the data extracted from the resource.
+      let path = n instanceof ResourceNode ? n.path : null;
+      n = util.valData(n);
+      if (n instanceof FP_Type) {
+        if (options.resolveInternalTypes) {
+          n = n.toString();
+        }
       }
-    }
-    else if (typeof n === 'object') {
-      for (let k of Object.keys(n))
-        n[k] = visit(n[k]);
-    }
-    // Add a hidden (non-enumerable) property with the path to the data extracted
-    // from the resource.
-    if (path && typeof n === 'object') {
-      Object.defineProperty(n, '__path__', {value: path});
-    }
-    return n;
-  })(rtn);
-
-  return rtn;
+      // Add a hidden (non-enumerable) property with the path to the data extracted
+      // from the resource.
+      if (path && typeof n === 'object') {
+        Object.defineProperty(n, '__path__', {value: path});
+      }
+      return n;
+    });
 }
 
 /**
@@ -777,11 +768,7 @@ function compile(path, model, options) {
 /**
  * Returns the type of each element in fhirpathResult array which was obtained
  * from evaluate() with option resolveInternalTypes=false.
- * This works on sub-items too, so that if `fhirpathResult = [obj1, obj2]` and
- * `obj1.name = [name1, name2]`, then `types(fhirpathResults[0].name)` should
- * return the types of `name1` and `name2`.
- * @param {any} fhirpathResult - a result of FHIRPath expression evaluation or
- *   its sub-items.
+ * @param {any} fhirpathResult - a result of FHIRPath expression evaluation.
  * @returns {string[]} an array of types, e.g. ['FHIR.Quantity', 'FHIR.date', 'System.String'].
  */
 function typesFn(fhirpathResult) {

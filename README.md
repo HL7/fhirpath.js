@@ -134,8 +134,7 @@ const res = fhirpath.resolveInternalTypes(value);
 
 Also, there is a special API function to get the type of each element in FHIRPath
 result array which was obtained from evaluate() (unless you resolve the internal
-types). This function will work on sub-items too and always returns an array of
-strings.
+types). This function returns an array of strings.
 In the next example, `res` will have a value like this:
   ['FHIR.dateTime', 'FHIR.string', ...].
 
