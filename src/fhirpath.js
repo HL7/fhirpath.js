@@ -650,9 +650,9 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   if (context) {
     context = Object.keys(context).reduce((restoredContext, key) => {
       if (Array.isArray(context[key])) {
-        restoredContext[key] = context[key].map(i => (i?.__path__ ? makeResNode(i, i?.__path__) : i));
+        restoredContext[key] = context[key].map(i => (i?.__path__ ? makeResNode(i, i.__path__) : i));
       } else {
-        restoredContext[key] = context[key]?.__path__ ? makeResNode(context[key], context[key]?.__path__) : context[key];
+        restoredContext[key] = context[key]?.__path__ ? makeResNode(context[key], context[key].__path__) : context[key];
       }
       return restoredContext;
     }, {});

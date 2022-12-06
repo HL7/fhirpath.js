@@ -9,7 +9,7 @@ This log documents significant changes for each release.  This project follows
   array which was obtained from `evaluate()` with option `resolveInternalTypes=false`.
 ### Fixed
 - The hidden (non-enumerable) property `__path__` has been moved from the entire
-  array of result values to each element of the array. Because the result array
+  array of result values to each element of the array, because the result array
   may contain items of different types.
 - The type of `today()` was defined as `System.DateTime`. Now it is defined as
   `System.Date`.
