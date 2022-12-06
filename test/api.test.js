@@ -2,6 +2,21 @@ const fhirpath = require('../src/fhirpath');
 const r4_model = require('../fhir-context/r4');
 const _ = require('lodash');
 const {FP_DateTime, FP_Quantity} = require('../src/types');
+const input = {
+  get questionnairePartExample() {
+    // Clone input file contents to avoid one test affecting another
+    return _.cloneDeep(
+      require('../test/resources/questionnaire-part-example.json')
+    );
+  },
+
+  get quantityExample() {
+    // Clone input file contents to avoid one test affecting another
+    return _.cloneDeep(
+      require('../test/resources/quantity-example.json')
+    );
+  }
+}
 
 describe('compile', () => {
   it('should accept a model object', () => {
@@ -14,7 +29,7 @@ describe('compile', () => {
       base: 'QuestionnaireResponse.item',
       expression: 'answer.value.toString()'
     }, r4_model);
-    expect(f(require('../test/resources/questionnaire-part-example.json')))
+    expect(f(input.questionnairePartExample))
       .toStrictEqual(['2 year']);
   });
 
@@ -28,9 +43,7 @@ describe('compile', () => {
       "QuestionnaireResponse.item.where(linkId = \'2\')",
       r4_model
     );
-    const partOfResource = getPartOfResource(
-      require('../test/resources/quantity-example.json')
-    );
+    const partOfResource = getPartOfResource(input.quantityExample);
     let execExpression = fhirpath.compile(
       "%partOfResource.answer.value = 3 'min'",
       r4_model
@@ -67,7 +80,7 @@ describe('compile', () => {
 describe('evaluate', () => {
   it('should apply the FHIR model for a part of the resource placed in the context variable (with MemberInvocation)', () => {
     const partOfResource = fhirpath.evaluate(
-      require('../test/resources/quantity-example.json'),
+      input.quantityExample,
       'QuestionnaireResponse.item.where(linkId = \'2\')'
     );
     let result = fhirpath.evaluate(
@@ -81,7 +94,7 @@ describe('evaluate', () => {
 
   it('should apply the FHIR model for a part of the resource placed in the context variable (without MemberInvocation)', () => {
     const partOfResource = fhirpath.evaluate(
-      require('../test/resources/quantity-example.json'),
+      input.quantityExample,
       "QuestionnaireResponse.item.where(linkId = '2').answer.value",
       null,
       r4_model
@@ -97,7 +110,7 @@ describe('evaluate', () => {
 
   it('should not change the context variable during expression evaluation', () => {
     const someVar = fhirpath.evaluate(
-      require('../test/resources/quantity-example.json'),
+      input.quantityExample,
       'QuestionnaireResponse'
     );
     const someVarOrig = _.cloneDeep(someVar);
@@ -156,3 +169,57 @@ describe('resolveInternalTypes', () => {
     ]);
   });
 });
+
+describe('types', () => {
+  it('should return the type of each element in FHIRPath result', () => {
+    let value = fhirpath.evaluate(
+      input.quantityExample,
+      'QuestionnaireResponse.item.answer.value.combine(today())',
+      {}, r4_model, {resolveInternalTypes: false}
+    );
+    expect(
+      fhirpath.types(value)
+    ).toStrictEqual([
+      'FHIR.Quantity', 'FHIR.Quantity', 'FHIR.Quantity', 'FHIR.Quantity', 'System.Date'
+    ]);
+  });
+});
+
+describe('evaluate type() on a FHIRPath evaluation result', () => {
+  it('should return the type of each element in FHIRPath result', () => {
+    let value = fhirpath.evaluate(
+      input.quantityExample,
+      'QuestionnaireResponse.item.answer.value.combine(today())',
+      {}, r4_model, {resolveInternalTypes: false}
+    );
+    expect(
+      fhirpath.evaluate(value, '%context.type().namespace', {}, r4_model)
+    ).toStrictEqual([
+      'FHIR', 'FHIR', 'FHIR', 'FHIR', 'System'
+    ]);
+    expect(
+      fhirpath.evaluate(value, '%context.type().name', {}, r4_model)
+    ).toStrictEqual([
+      'Quantity', 'Quantity', 'Quantity', 'Quantity', 'Date'
+    ]);
+  });
+
+  it('should return the type of sub-items of FHIRPath result', () => {
+    let value = fhirpath.evaluate(
+      input.quantityExample,
+      'QuestionnaireResponse.item.answer.combine(today())',
+      {}, r4_model, {resolveInternalTypes: false}
+    );
+    expect(
+      fhirpath.evaluate(value, "%context.select(iif(value.exists(), value.type().namespace, $this.type().namespace))", {}, r4_model)
+    ).toStrictEqual([
+      'FHIR', 'FHIR', 'FHIR', 'FHIR', 'System'
+    ]);
+    expect(
+      fhirpath.evaluate(value, "%context.select(iif(value.exists(), value.type().name, $this.type().name))", {}, r4_model)
+    ).toStrictEqual([
+      'Quantity', 'Quantity', 'Quantity', 'Quantity', 'Date'
+    ]);
+  });
+});
+
