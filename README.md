@@ -132,6 +132,18 @@ standard JavaScript types you can use the special function "resolveInternalTypes
 const res = fhirpath.resolveInternalTypes(value);
 ```
 
+Also, there is a special API function to get the type of each element in FHIRPath
+result array which was obtained from evaluate() (unless you resolve the internal
+types). This function returns an array of strings.
+In the next example, `res` will have a value like this:
+  ['FHIR.dateTime', 'FHIR.string', ...].
+
+```js
+const res = fhirpath.types(
+  fhirpath.evaluate(resource, expression, context, model, {resolveInternalTypes: false})
+);
+```
+
 
 ## fhirpath CLI
 

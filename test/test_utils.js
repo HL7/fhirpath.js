@@ -38,7 +38,8 @@ const calcExpression = (expression, test, testResource) => {
     if(!_.has(resources, test.inputfile)) {
       loadResource(test.inputfile, __dirname + '/resources/' + test.inputfile)
     }
-    testResource = resources[test.inputfile];
+    // Clone input file contents to avoid one test affecting another
+    testResource = _.cloneDeep(resources[test.inputfile]);
   }
   let variables = {resource: testResource};
   if (test.context)

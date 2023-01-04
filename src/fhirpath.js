@@ -645,63 +645,49 @@ function parse(path) {
  */
 function applyParsedPath(resource, parsedPath, context, model, options) {
   constants.reset();
-  let dataRoot = util.arraify(resource);
+  let dataRoot = util.arraify(resource).map(i => (i?.__path__ ? makeResNode(i, i?.__path__) : i));
   // doEval takes a "ctx" object, and we store things in that as we parse, so we
   // need to put user-provided variable data in a sub-object, ctx.vars.
   // Set up default standard variables, and allow override from the variables.
   // However, we'll keep our own copy of dataRoot for internal processing.
-  let vars = {context: resource, ucum: 'http://unitsofmeasure.org'};
+  let vars = {context: dataRoot, ucum: 'http://unitsofmeasure.org'};
   // Restore the ResourceNodes for the top-level objects of the context
   // variables. The nested objects will be converted to ResourceNodes
   // in the MemberInvocation method.
   if (context) {
     context = Object.keys(context).reduce((restoredContext, key) => {
-      const path = context[key]?.__path__;
-      if (path) {
-        if (Array.isArray(context[key])) {
-          restoredContext[key] = context[key].map(i => makeResNode(i, path));
-        } else {
-          restoredContext[key] = makeResNode(context[key], path);
-        }
+      if (Array.isArray(context[key])) {
+        restoredContext[key] = context[key].map(i => (i?.__path__ ? makeResNode(i, i.__path__) : i));
       } else {
-        restoredContext[key] = context[key];
+        restoredContext[key] = context[key]?.__path__ ? makeResNode(context[key], context[key].__path__) : context[key];
       }
       return restoredContext;
     }, {});
   }
   let ctx = {dataRoot, vars: Object.assign(vars, context), model};
-  if (options && options.traceFn) { ctx.customTraceFn = options.traceFn}
-  let rtn = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
-  let firstRtn = Array.isArray(rtn) ? rtn[0] : rtn;
-  // Path for the data extracted from the resource.
-  let path = firstRtn instanceof ResourceNode ? firstRtn.path : null;
-
-  // Resolve any internal "ResourceNode" instances to plain objects and if
-  // options.resolveInternalTypes is true, resolve any internal "FP_Type"
-  // instances to strings.
-  rtn = (function visit(n) {
-    n = util.valData(n);
-    if (Array.isArray(n)) {
-      for (let i=0, len=n.length; i<len; ++i)
-        n[i] = visit(n[i]);
-    }
-    else if (n instanceof FP_Type) {
-      if (options.resolveInternalTypes) {
-        n = n.toString();
+  if (options && options.traceFn) { ctx.customTraceFn = options.traceFn }
+  return  engine.doEval(ctx, dataRoot, parsedPath.children[0])
+    // engine.doEval returns array of "ResourceNode" and/or "FP_Type" instances.
+    // "ResourceNode" or "FP_Type" instances are not created for sub-items.
+    // Resolve any internal "ResourceNode" instances to plain objects and if
+    // options.resolveInternalTypes is true, resolve any internal "FP_Type"
+    // instances to strings.
+    .map(n => {
+      // Path for the data extracted from the resource.
+      let path = n instanceof ResourceNode ? n.path : null;
+      n = util.valData(n);
+      if (n instanceof FP_Type) {
+        if (options.resolveInternalTypes) {
+          n = n.toString();
+        }
       }
-    }
-    else if (typeof n === 'object') {
-      for (let k of Object.keys(n))
-        n[k] = visit(n[k]);
-    }
-    return n;
-  })(rtn);
-  // Add a hidden (non-enumerable) property with the path to the data extracted
-  // from the resource.
-  if (path && typeof rtn === 'object') {
-    Object.defineProperty(rtn, '__path__', {value: path});
-  }
-  return rtn;
+      // Add a hidden (non-enumerable) property with the path to the data extracted
+      // from the resource.
+      if (path && typeof n === 'object') {
+        Object.defineProperty(n, '__path__', {value: path});
+      }
+      return n;
+    });
 }
 
 /**
@@ -775,8 +761,7 @@ function compile(path, model, options) {
   if (typeof path === 'object') {
     const node = parse(path.expression);
     return function (fhirData, context) {
-      const inObjPath = fhirData && fhirData.__path__;
-      const resource = makeResNode(fhirData, path.base || inObjPath);
+      const resource = path.base ? makeResNode(fhirData, path.base) : fhirData;
       // Globally set model before applying parsed FHIRPath expression
       TypeInfo.model = model;
       return applyParsedPath(resource, node, context, model, options);
@@ -784,13 +769,24 @@ function compile(path, model, options) {
   } else {
     const node = parse(path);
     return function (fhirData, context) {
-      const inObjPath = fhirData && fhirData.__path__;
-      const resource = inObjPath ? makeResNode(fhirData, inObjPath) : fhirData;
       // Globally set model before applying parsed FHIRPath expression
       TypeInfo.model = model;
-      return applyParsedPath(resource, node, context, model, options);
+      return applyParsedPath(fhirData, node, context, model, options);
     };
   }
+}
+
+/**
+ * Returns the type of each element in fhirpathResult array which was obtained
+ * from evaluate() with option resolveInternalTypes=false.
+ * @param {any} fhirpathResult - a result of FHIRPath expression evaluation.
+ * @returns {string[]} an array of types, e.g. ['FHIR.Quantity', 'FHIR.date', 'System.String'].
+ */
+function typesFn(fhirpathResult) {
+  return util.arraify(fhirpathResult).map(value => {
+    const ti = TypeInfo.fromValue(value?.__path__ ? new ResourceNode(value, value.__path__) : value);
+    return `${ti.namespace}.${ti.name}`;
+  });
 }
 
 module.exports = {
@@ -799,6 +795,7 @@ module.exports = {
   compile,
   evaluate,
   resolveInternalTypes,
+  types: typesFn,
   // Might as well export the UCUM library, since we are using it.
   ucumUtils: require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance()
 };
