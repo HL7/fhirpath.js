@@ -78,7 +78,7 @@ engine.invocationTable = {
   where:        {fn: filtering.whereMacro, arity: {1: ["Expr"]}},
   extension:    {fn: filtering.extension, arity: {1: ["String"]}},
   select:       {fn: filtering.selectMacro, arity: {1: ["Expr"]}},
-  aggregate:    {fn: aggregate.aggregateMacro, arity: {1: ["Expr"], 2: ["Expr", "Integer"]}},
+  aggregate:    {fn: aggregate.aggregateMacro, arity: {1: ["Expr"], 2: ["Expr", "Any"]}},
   sum:          {fn: aggregate.sumFn},
   min:          {fn: aggregate.minFn},
   max:          {fn: aggregate.maxFn},

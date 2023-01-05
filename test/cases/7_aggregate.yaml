@@ -17,6 +17,10 @@ tests:
         expression: 10 + (1|2|3).aggregate($total + $this*$index, 4) = 22
         result:
           - true
+      - desc: 'aggregate() function with string initial value'
+        expression: ('a'|'b'|'c').aggregate($total & '-' & $this, 'concat')
+        result:
+          - 'concat-a-b-c'
     - 'group: Extension functions':
       - desc: 'sum() function calculates the sum of input collection'
         expression: (1|2|3|4|5|6|7|8|9).sum() = 45

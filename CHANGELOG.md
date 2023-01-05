@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.3.1] - 2022-11-22
+### Fixed
+- Aggregate init parameter can be any type, not just an integer.
+
 ## [3.3.0] - 2022-11-21
 ### Added
 - An API method `types` which returns the type of each element in FHIRPath result
