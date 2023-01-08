@@ -263,6 +263,10 @@ tests:
     expression: "'a,b,c'.split(',')"
     result: ['a', 'b', 'c']
 
+  - desc: '** split string on delimiter'
+    expression: "'a,,c'.split(',')"
+    result: ['a', 'c']
+
   - desc: '** join string with separator'
     expression: "('a'|'b'|'c').join(',')"
     result: ['a,b,c']
@@ -270,6 +274,10 @@ tests:
   - desc: '** trim down a string'
     expression: "'   this is a string   '.trim()"
     result: ['this is a string']
+
+  - desc: '** trim down a string null'
+    expression: "'a ,, c'.split(',').trim()"
+    result: ['a', 'c']
 
   - desc: '** encode urlbase64'
     expression: "'http://example.org/fhir'.encode('urlbase64')"
