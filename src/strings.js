@@ -121,7 +121,10 @@ engine.encodeFn = function (coll, format) {
     return btoa(strToEncode);
   }
   if (format === 'hex'){
-    return escape(strToEncode);
+    return  Array.from(strToEncode).map(c => 
+      c.charCodeAt(0) < 128 ? c.charCodeAt(0).toString(16) : 
+      encodeURIComponent(c).replace(/\%/g,'').toLowerCase()
+    ).join('');
   }
   return [];
 };
@@ -138,7 +141,7 @@ engine.decodeFn = function (coll, format) {
     return atob(strDecode);
   }
   if (format === 'hex'){
-    return unescape(strDecode);
+    return decodeURIComponent('%' + strDecode.match(/.{1,2}/g).join('%'));
   }
   return [];
 };
