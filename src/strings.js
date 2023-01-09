@@ -108,8 +108,8 @@ engine.encodeFn = function (coll, format) {
   if (util.isEmpty(strToEncode)){
     return [];
   }
-  if (format === 'urlbase64'){
-    return encodeURIComponent(strToEncode);
+  if (format === 'urlbase64' || format === 'base64url'){
+    return btoa(strToEncode).replace(/\+/g, '-').replace(/\//g, '_');
   }
   if (format === 'base64'){
     return btoa(strToEncode);
@@ -128,8 +128,8 @@ engine.decodeFn = function (coll, format) {
   if (util.isEmpty(strDecode)){
     return [];
   }
-  if (format === 'urlbase64'){
-    return decodeURIComponent(strDecode);
+  if (format === 'urlbase64' || format === 'base64url'){
+    return atob(strDecode.replace(/-/g, '+').replace(/_/g, '/'));
   }
   if (format === 'base64'){
     return atob(strDecode);
