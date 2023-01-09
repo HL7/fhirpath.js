@@ -275,17 +275,10 @@ tests:
     expression: "'   this is a string   '.trim()"
     result: ['this is a string']
 
+# this should run on each item in the collection with a select()
   - desc: '** trim down a string null'
-    expression: "'a ,, c'.split(',').trim()"
+    expression: "'a ,, c'.split(',').select(trim())"
     result: ['a', 'c']
-
-  - desc: '** encode urlbase64'
-    expression: "'http://example.org/fhir'.encode('urlbase64')"
-    result: ['http%3A%2F%2Fexample.org%2Ffhir']
-
-  - desc: '** decode urlbase64'
-    expression: "'http%3A%2F%2Fexample.org%2Ffhir'.decode('urlbase64')"
-    result: ['http://example.org/fhir']
 
   - desc: '** encode urlbase64'
     expression: "'http://example.org/fhir'.encode('base64')"
@@ -294,6 +287,89 @@ tests:
   - desc: '** decode'
     expression: "'aHR0cDovL2V4YW1wbGUub3JnL2ZoaXI='.decode('base64')"
     result: ['http://example.org/fhir']
+
+# testEncodeDecode Tests from the FHIR spec
+  - desc: '** testEncodeDecode 1e'
+    expression: "'test'.encode('base64')"
+    result: ['dGVzdA==']
+
+  - desc: '** testEncodeDecode 2e'
+    expression: "'test'.encode('hex')"
+    result: ['74657374']
+
+  - desc: '** testEncodeDecode 3e'
+    expression: "'subjects?_d'.encode('base64')"
+    result: ['c3ViamVjdHM/X2Q=']
+
+  - desc: '** testEncodeDecode 4e'
+    expression: "'subjects?_d'.encode('urlbase64')"
+    result: ['c3ViamVjdHM_X2Q=']
+
+
+  - desc: '** testEncodeDecode 1u'
+    expression: "'dGVzdA=='.decode('base64')"
+    result: ['test']
+
+  - desc: '** testEncodeDecode 2u'
+    expression: "'74657374'.decode('hex')"
+    result: ['test']
+
+  - desc: '** testEncodeDecode 3u'
+    expression: "'c3ViamVjdHM/X2Q='.decode('base64')"
+    result: ['subjects?_d']
+
+  - desc: '** testEncodeDecode 4u'
+    expression: "'c3ViamVjdHM_X2Q='.decode('urlbase64')"
+    result: ['subjects?_d']
+
+# testExcapeUnescape Tests from the FHIR spec
+  - desc: '** testExcapeUnescape 1e'
+    expression: "'\"1&lt;2\"'.escape('html')"
+    disable: true # not implemented yet
+    result: ['&amp;quot;1&amp;lt;2&amp;quot;']
+
+  - desc: '** testExcapeUnescape 2e'
+    expression: "'\"1&lt;2\"'.escape('json')"
+    disable: true # not implemented yet
+    result: ['\"1&lt;2\"']
+
+  - desc: '** testExcapeUnescape 3u'
+    expression: "'&amp;quot;1&amp;lt;2&amp;quot;'.unescape('html')"
+    disable: true # not implemented yet
+    result: ['1&lt;2"']
+
+  - desc: '** testExcapeUnescape 4u'
+    expression: "'\"1&lt;2\"'.unescape('json')"
+    disable: true # not implemented yet
+    result: ['1&lt;2']
+
+# testTrim from the FHIR spec
+  - desc: '** "123456".trim().length() = 6'
+    expression: "'123456'.trim().length() = 6"
+    result: [true]
+
+  - desc: '** "123 456".trim().length() = 7'
+    expression: "'123 456'.trim().length() = 7"
+    result: [true]
+
+  - desc: '** " 123456 ".trim().length() = 6'
+    expression: "' 123456 '.trim().length() = 6"
+    result: [true]
+
+  - desc: '** "   ".trim().length() = 0'
+    expression: "'   '.trim().length() = 0"
+    result: [true]
+
+# testSplit from the FHIR spec
+  - desc: "** 'Peter,James,Jim,Peter,James'.split(',').count() = 5"
+    expression: "'Peter,James,Jim,Peter,James'.split(',').count() = 5"
+    result: [true]
+
+# testJoin from the FHIR spec
+  - desc: "** name.given.join(',')"
+    inputfile: patient-example.json
+    expression: "name.given.join(',')"
+    result: ['Peter,James,Jim,Peter,James']
 
 subject:
   resourceType: Functions
