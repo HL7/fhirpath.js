@@ -98,14 +98,8 @@ engine.splitFn = function (coll, separator) {
 };
 
 engine.trimFn = function (coll) {
-  const stringValues = coll.map((n) => {
-    const d = util.valData(n);
-    if (typeof d === "string") {
-      return d.trim();
-    }
-    return null;
-  }).filter((v) => { return v != null; });
-  return stringValues;
+  const strToTrim = misc.singleton(coll, 'String');
+  return util.isEmpty(strToTrim) ? [] : strToTrim.trim();
 };
 
 // encoding/decoding
