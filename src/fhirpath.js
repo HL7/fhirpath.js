@@ -163,8 +163,8 @@ engine.invocationTable = {
   "&":          {fn: math.amp,     arity:  {2: ["String", "String"]}},
   "+":          {fn: math.plus,    arity:  {2: ["Any", "Any"]}, nullable: true},
   "-":          {fn: math.minus,   arity:  {2: ["Any", "Any"]}, nullable: true},
-  "*":          {fn: math.mul,     arity:  {2: ["Number", "Number"]}, nullable: true},
-  "/":          {fn: math.div,     arity:  {2: ["Number", "Number"]}, nullable: true},
+  "*":          {fn: math.mul,     arity:  {2: ["Any", "Any"]}, nullable: true},
+  "/":          {fn: math.div,     arity:  {2: ["Any", "Any"]}, nullable: true},
   "mod":        {fn: math.mod,     arity:  {2: ["Number", "Number"]}, nullable: true},
   "div":        {fn: math.intdiv,  arity:  {2: ["Number", "Number"]}, nullable: true},
 

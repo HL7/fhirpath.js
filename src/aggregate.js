@@ -21,11 +21,11 @@ engine.countFn = function(x) {
   }
 };
 
-// Shortcut for "value.aggregate($this+$total, 0)"
+// Shortcut for "value.tail().aggregate($this+$total, value.first())" `
 engine.sumFn = function(data) {
-  return engine.aggregateMacro.apply(this, [data, ($this) => {
+  return engine.aggregateMacro.apply(this, [data.slice(1, data.length), ($this) => {
     return math.plus(util.arraify($this), util.arraify(this.$total));
-  }, 0]);
+  }, data[0]]);
 };
 
 // Shortcut for "value.aggregate(iif($total.empty(), $this, iif($this < $total, $this, $total)))"
@@ -52,7 +52,10 @@ engine.maxFn = function (data) {
 
 // Shortcut for "value.sum()/value.count()"
 engine.avgFn = function (data) {
-  return math.div(engine.sumFn(data), engine.countFn(data));
+  return math.div(
+    util.arraify(engine.sumFn(data)),
+    util.arraify(engine.countFn(data))
+  );
 };
 
 module.exports = engine;

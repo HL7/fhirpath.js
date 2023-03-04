@@ -33,8 +33,7 @@ function validateTest(test) {
   else if (test.error) {
     let exception = null;
     try {
-      fhirpath.evaluate({}, test.expression, null,
-        getFHIRModel(test.model));
+      calcExpression(test.expression, test);
     }
     catch (error) {
       exception = error;

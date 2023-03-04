@@ -3,6 +3,12 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.4.0] - 2023-03-02
+### Added
+- Support for comparison and math operations with Quantity values.
+  It also became possible to use Quantity values with `aggregate()`, `min()`,
+  `max()`, `sum()`, and `avg()`.
+
 ## [3.3.1] - 2022-11-22
 ### Fixed
 - Aggregate init parameter can be any type, not just an integer.

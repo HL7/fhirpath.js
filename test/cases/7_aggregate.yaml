@@ -21,13 +21,23 @@ tests:
         expression: ('a'|'b'|'c').aggregate($total & '-' & $this, 'concat')
         result:
           - 'concat-a-b-c'
+      - desc: 'aggregate() function with quantity values'
+        expression: (1 'cm'|3 'cm'|1 'm').aggregate($total + $this, 0 'cm') = 104 'cm'
+        result:
+          - true
+      - desc: 'aggregate() function with incompatible quantity values'
+        expression: (1 'cm'|3 'cm'|1 'kg'|1 'm').aggregate($total + $this, 0 'cm')
+        result: []
     - 'group: Extension functions':
       - desc: 'sum() function calculates the sum of input collection'
         expression: (1|2|3|4|5|6|7|8|9).sum() = 45
         result:
           - true
       - desc: 'sum() function calculates the sum of undefined input collection'
-        expression: UndefinedInput.sum() = 0
+        expression: UndefinedInput.sum()
+        result: []
+      - desc: 'sum() function calculates the sum of quantity values'
+        expression: (1 'cm'|3 'cm'|1 'm').sum() = 104 'cm'
         result:
           - true
       - desc: 'min() function returns the minimum value from the input collection'
@@ -37,6 +47,10 @@ tests:
       - desc: 'min() function returns empty value for the undefined input collection'
         expression: UndefinedInput.min()
         result: []
+      - desc: 'min() function returns the minimum quantity from the input collection'
+        expression: (1 'cm'|3 'cm'|1 'm').min() = 1 'cm'
+        result:
+          - true
       - desc: 'max() function returns the maximum value from the input collection'
         expression: (7|8|9|1|2|3|4|5|6).max() = 9
         result:
@@ -44,10 +58,18 @@ tests:
       - desc: 'max() function returns empty value for the undefined input collection'
         expression: UndefinedInput.max()
         result: []
+      - desc: 'max() function returns the maximum quantity from the input collection'
+        expression: (1 'cm'|3 'cm'|1 'm').max() = 1 'm'
+        result:
+          - true
       - desc: 'avg() function calculates the average value for the input collection'
         expression: (7|8|9|1|2|3|4|5|6).avg() = 5
         result:
           - true
+      - desc: 'avg() function calculates the average quantity for the input collection'
+        expression: (7 'm' |8 'm'|9 'm'|1 'm'|2 'm'|3 'm'|4 'm'|5 'm'|6 'm').avg() = 5 'm'
+        result:
+          - true
       - desc: 'avg() function returns an empty value for the undefined input collection'
         expression: UndefinedInput.avg()
-        result: []
+        error: true

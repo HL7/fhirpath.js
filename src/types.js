@@ -54,7 +54,28 @@ class FP_Type {
    *  than otherObj.
    */
   compare(/* otherObj */) {
-    throw 'Not implemented';
+    throw 'Comparison not implemented for ' + this.constructor;
+  }
+
+  /**
+   *  Adds other value to this value.
+   */
+  plus(/* otherObj */) {
+    throw 'Addition not implemented for ' + this.constructor;
+  }
+
+  /**
+   * Multiplies this value by another value.
+   */
+  mul(/* otherObj */) {
+    throw 'Multiplication not implemented for ' + this.constructor;
+  }
+
+  /**
+   * Divides this value by another value.
+   */
+  div(/* otherObj */) {
+    throw 'Division not implemented for ' + this.constructor;
   }
 }
 
@@ -115,6 +136,78 @@ class FP_Quantity extends FP_Type {
     }
 
     return numbers.isEquivalent(this.value, convResult.toVal);
+  }
+
+  /**
+   *  Returns a number less than 0, equal to 0 or greater than 0
+   *  if this quantity is less than, equal to, or greater than otherQuantity.
+   *  If the quantities could not be compared, returns null, which will be
+   *  converted to an empty collection in the "doInvoke" function
+   *  See https://hl7.org/fhirpath/#comparison
+   *  @param {FP_Quantity} otherQuantity
+   *  @return {number|null}
+   */
+  compare(otherQuantity) {
+    if (this.unit === otherQuantity.unit) {
+      return this.value - otherQuantity.value;
+    }
+    const ucumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(this.unit),
+      otherUcumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit),
+      convResult = ucumUtils.convertUnitTo(otherUcumUnitCode, otherQuantity.value, ucumUnitCode);
+
+    if (convResult.status !== 'succeeded') {
+      return null;
+    }
+
+    return this.value - convResult.toVal;
+  }
+
+  /**
+   *  Adds a quantity to this quantity.
+   * @param {FP_Quantity} otherQuantity a quantity to be added to this quantity.
+   * @return {FP_Quantity|null}
+   */
+  plus(otherQuantity) {
+    if (this.unit === otherQuantity.unit) {
+      return new FP_Quantity(this.value + otherQuantity.value, this.unit);
+    }
+    const ucumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(this.unit),
+      otherUcumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit),
+      convResult = ucumUtils.convertUnitTo(otherUcumUnitCode, otherQuantity.value, ucumUnitCode);
+
+    if (convResult.status !== 'succeeded') {
+      return null;
+    }
+
+    return new FP_Quantity(this.value + convResult.toVal, this.unit);
+  }
+
+  /**
+   * Multiplies this quantity to another quantity.
+   * @param {FP_Quantity} otherQuantity a quantity by which to multiply this quantity.
+   * @return {FP_Quantity}
+   */
+  mul(otherQuantity) {
+    return new FP_Quantity(
+      this.value * otherQuantity.value,
+      `'(${this.unit.replace(/^'(.*)'$/, '$1')}).(${otherQuantity.unit.replace(/^'(.*)'$/, '$1')})'`
+    );
+  }
+
+  /**
+   * Divides this quantity by another quantity.
+   * @param {FP_Quantity} otherQuantity a quantity by which to divide this quantity.
+   * @return {FP_Quantity}
+   */
+  div(otherQuantity) {
+    if (otherQuantity.value === 0) {
+      return null;
+    }
+
+    return new FP_Quantity(
+      this.value / otherQuantity.value,
+      `'(${this.unit.replace(/^'(.*)'$/, '$1')})/(${otherQuantity.unit.replace(/^'(.*)'$/, '$1')})'`
+    );
   }
 
   /**

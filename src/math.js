@@ -1,19 +1,19 @@
 // This file holds code to hande the FHIRPath Math functions.
 
-var types = require('./types');
-let {FP_TimeBase, FP_Quantity} = types;
+const types = require('./types');
+const {FP_Quantity} = types;
 const util = require("./utilities");
+const {FP_Type} = require('./types');
 
 /**
  *  Adds the math functions to the given FHIRPath engine.
  */
-
-var engine = {};
+const engine = {};
 
 function ensureNumberSingleton(x){
   let d = util.valData(x);
   if (typeof d !== 'number') {
-    if (d.length == 1 && typeof (d=util.valData(d[0])) === 'number') {
+    if (d.length === 1 && typeof (d=util.valData(d[0])) === 'number') {
       return d;
     }else{
       throw new Error("Expected number, but got " + JSON.stringify(d || x));
@@ -27,7 +27,7 @@ function isEmpty(x) {
   if(typeof(x) == 'number'){
     return false;
   }
-  return x.length == 0;
+  return x.length === 0;
 }
 
 engine.amp = function(x, y){
@@ -37,9 +37,9 @@ engine.amp = function(x, y){
 //HACK: for only polymorphic function
 //  Actually, "minus" is now also polymorphic
 engine.plus = function(xs, ys){
-  if(xs.length == 1 && ys.length == 1) {
-    var x = util.valDataConverted(xs[0]);
-    var y = util.valDataConverted(ys[0]);
+  if(xs.length === 1 && ys.length === 1) {
+    const x = util.valDataConverted(xs[0]);
+    const y = util.valDataConverted(ys[0]);
     // In the future, this and other functions might need to return ResourceNode
     // to preserve the type information (integer vs decimal, and maybe decimal
     // vs string if decimals are represented as strings), in order to support
@@ -47,36 +47,102 @@ engine.plus = function(xs, ys){
     if(typeof x == "string" && typeof y == "string") {
       return x + y;
     }
-    if(typeof x == "number" && typeof y == "number") {
-      return x + y;
+    if(typeof x == "number") {
+      if (typeof y == "number") {
+        return x + y;
+      }
+      if (y instanceof FP_Quantity) {
+        return (new FP_Quantity(x, '1')).plus(y);
+      }
     }
-    if(x instanceof FP_TimeBase && y instanceof FP_Quantity) {
-      return x.plus(y);
+    if(x instanceof FP_Type) {
+      if (y instanceof FP_Quantity) {
+        return x.plus(y);
+      }
+      if (typeof y == "number") {
+        return x.plus(new FP_Quantity(y, '1'));
+      }
     }
   }
   throw new Error("Cannot " + JSON.stringify(xs) + " + " + JSON.stringify(ys));
 };
 
 engine.minus = function(xs, ys){
-  if(xs.length == 1 && ys.length == 1) {
-    var x = util.valDataConverted(xs[0]);
-    var y = util.valDataConverted(ys[0]);
-    if(typeof x == "number" && typeof y == "number")
-      return x - y;
-    if(x instanceof FP_TimeBase && y instanceof FP_Quantity)
-      return x.plus(new FP_Quantity(-y.value, y.unit));
+  if(xs.length === 1 && ys.length === 1) {
+    const x = util.valDataConverted(xs[0]);
+    const y = util.valDataConverted(ys[0]);
+    if(typeof x == "number") {
+      if (typeof y == "number") {
+        return x - y;
+      }
+      if (y instanceof FP_Quantity) {
+        return (new FP_Quantity(x, '1')).plus(new FP_Quantity(-y.value, y.unit));
+      }
+    }
+
+    if(x instanceof FP_Type) {
+      if (y instanceof FP_Quantity) {
+        return x.plus(new FP_Quantity(-y.value, y.unit));
+      }
+      if (typeof y == "number") {
+        return x.plus(new FP_Quantity(-y, '1'));
+      }
+    }
   }
   throw new Error("Cannot " + JSON.stringify(xs) + " - " + JSON.stringify(ys));
 };
 
 
-engine.mul = function(x, y){
-  return x * y;
+engine.mul = function(xs, ys){
+  if(xs.length === 1 && ys.length === 1) {
+    const x = util.valDataConverted(xs[0]);
+    const y = util.valDataConverted(ys[0]);
+    if(typeof x == "number") {
+      if (typeof y == "number") {
+        return x * y;
+      }
+      if (y instanceof FP_Quantity) {
+        return (new FP_Quantity(x, '1')).mul(y);
+      }
+    }
+
+    if(x instanceof FP_Type) {
+      if (y instanceof FP_Quantity) {
+        return x.mul(y);
+      }
+      if (typeof y == 'number') {
+        return x.mul(new FP_Quantity(y, '1'));
+      }
+    }
+  }
+  throw new Error("Cannot " + JSON.stringify(xs) + " * " + JSON.stringify(ys));
 };
 
-engine.div = function(x, y){
-  if (y === 0) return [];
-  return x / y;
+engine.div = function(xs, ys){
+  if(xs.length === 1 && ys.length === 1) {
+    const x = util.valDataConverted(xs[0]);
+    const y = util.valDataConverted(ys[0]);
+    if(typeof x == "number") {
+      if (typeof y == "number") {
+        if (y === 0) return [];
+        return x / y;
+      }
+      if (y instanceof FP_Quantity) {
+        return (new FP_Quantity(x, '1')).div(y);
+      }
+    }
+
+    if(x instanceof FP_Type) {
+      if (y instanceof FP_Quantity) {
+        return x.div(y);
+      }
+      if (typeof y == "number") {
+        return x.div(new FP_Quantity(y, '1'));
+      }
+    }
+  }
+  throw new Error("Cannot " + JSON.stringify(xs) + " / " + JSON.stringify(ys));
+
 };
 
 engine.intdiv = function(x, y){
@@ -150,7 +216,7 @@ engine.power = function(x, degree){
   }else{
     let num = ensureNumberSingleton(x);
     let num2 = ensureNumberSingleton(degree);
-    if (num < 0 && (Math.floor(num2) != num2)){
+    if (num < 0 && (Math.floor(num2) !== num2)){
       return [];
     }else{
       return Math.pow(num, num2);

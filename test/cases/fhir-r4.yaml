@@ -426,7 +426,7 @@ tests:
         inputfile: observation-example.json
         expression: Observation.value.value < 'test'
         error: true
-        disable: true
+        model: r4
       - desc: '** testDateEqual'
         inputfile: patient-example.json
         expression: Patient.birthDate = @1974-12-25
@@ -1125,31 +1125,26 @@ tests:
         expression: 6 days < 1 week
         result:
           - true
-        disable: true
       - desc: '** testQuantity8'
         inputfile: patient-example.json
         expression: 8 days > 1 week
         result:
           - true
-        disable: true
       - desc: '** testQuantity9'
         inputfile: patient-example.json
         expression: 2.0 'cm' * 2.0 'm' = 0.040 'm2'
         result:
           - true
-        disable: true
       - desc: '** testQuantity10'
         inputfile: patient-example.json
         expression: 4.0 'g' / 2.0 'm' = 2 'g/m'
         result:
           - true
-        disable: true
       - desc: '** testQuantity11'
         inputfile: patient-example.json
         expression: 1.0 'm' / 1.0 'm' = 1 '1'
         result:
           - true
-        disable: true
   - 'group: testCollectionBoolean':
       - desc: '** testCollectionBoolean1'
         inputfile: patient-example.json
@@ -2346,7 +2341,7 @@ tests:
         expression: 'Observation.value < 200 ''[lb_av]'''
         result:
           - true
-        disable: true
+        model: r4
       - desc: '** testLessThan23'
         inputfile: patient-example.json
         expression: '@2018-03 < @2018-03-01'
@@ -2480,7 +2475,7 @@ tests:
         expression: 'Observation.value <= 200 ''[lb_av]'''
         result:
           - true
-        disable: true
+        model: r4
       - desc: '** testLessOrEqual23'
         inputfile: patient-example.json
         expression: '@2018-03 <= @2018-03-01'
@@ -2614,7 +2609,7 @@ tests:
         expression: 'Observation.value >= 100 ''[lb_av]'''
         result:
           - true
-        disable: true
+        model: r4
       - desc: '** testGreatorOrEqual23'
         inputfile: patient-example.json
         expression: '@2018-03 >= @2018-03-01'
@@ -2748,7 +2743,7 @@ tests:
         expression: 'Observation.value > 100 ''[lb_av]'''
         result:
           - true
-        disable: true
+        model: r4
       - desc: '** testGreaterThan23'
         inputfile: patient-example.json
         expression: '@2018-03 > @2018-03-01'

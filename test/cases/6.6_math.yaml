@@ -28,6 +28,15 @@ tests:
   - desc: '** Empty result multiplying empty collection (2)'
     expression: n4 * n1
     result: []
+  - desc: '** Can multiply two quantities'
+    expression: 2 'kg' * 5 'm' = 10 'kg.m'
+    result: [true]
+  - desc: '** Can multiply a quantity by a number'
+    expression: 2 'kg' * 5 = 10 'kg'
+    result: [true]
+  - desc: '** Can multiply a number by a quantity'
+    expression: 2 * 5 'kg' = 10 'kg'
+    result: [true]
 
 
   - desc: '6.6.2 division'
@@ -37,6 +46,15 @@ tests:
   - desc: '** Can divide two number literals'
     expression: 5/2
     result: [2.5]
+  - desc: '** Can divide two quantities'
+    expression: 10 'kg' / 5 'm' = 2 'kg/m'
+    result: [true]
+  - desc: '** Can divide a quantity by a number'
+    expression: 20 'kg' / 5 = 4 'kg'
+    result: [true]
+  - desc: '** Can divide a number by a quantity'
+    expression: 20 / 5 'kg' = 4 '1/kg'
+    result: [true]
 
 
   - desc: '6.6.3 addition'
@@ -46,6 +64,15 @@ tests:
   - desc: '** Can add two number literals'
     expression: 2+3
     result: [5]
+  - desc: '** Can add two quantity literals'
+    expression: 3 'm' + 3 'cm' = 303 'cm'
+    result: [true]
+  - desc: '** Can add a number to a quantity'
+    expression: 3 '1' + 2 = 5 '1'
+    result: [true]
+  - desc: '** Can add a quantity and a number'
+    expression: 3 + 2 '1' = 5 '1'
+    result: [true]
   - desc: '** Error adding array of numbers'
     expression: n1 + a3
     error: true
@@ -80,6 +107,15 @@ tests:
   - desc: '** Can subtract two number literals'
     expression:  5-3
     result: [2]
+  - desc: '** Can subtract two quantity literals'
+    expression: 3 'm' - 3 'cm' = 297 'cm'
+    result: [true]
+  - desc: '** Can subtract a quantity from a number'
+    expression: 3 - 2 '1' = 1 '1'
+    result: [true]
+  - desc: '** Can subtract a number from a quantity'
+    expression: 3 '1' - 2 = 1 '1'
+    result: [true]
 
 
   - desc: '6.6.5 div'
