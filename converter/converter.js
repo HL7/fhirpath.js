@@ -5,8 +5,7 @@ const xml2js = require('xml2js');
 const yaml = require('js-yaml');
 
 const fhir = new (require('fhir').Fhir);
-const fhirpath = require('../src/fhirpath');
-const { getFHIRModel, calcExpression } = require("../test/test_utils");
+const { calcExpression } = require("../test/test_utils");
 const FP_DateTime = require('../src/types').FP_DateTime;
 const equals = _.isEqual;
 
