@@ -23,7 +23,7 @@ engine.countFn = function(x) {
 
 // Shortcut for "value.tail().aggregate($this+$total, value.first())" `
 engine.sumFn = function(data) {
-  return engine.aggregateMacro.apply(this, [data.slice(1, data.length), ($this) => {
+  return engine.aggregateMacro.apply(this, [data.slice(1), ($this) => {
     return math.plus(util.arraify($this), util.arraify(this.$total));
   }, data[0]]);
 };

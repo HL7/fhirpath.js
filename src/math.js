@@ -1,9 +1,7 @@
 // This file holds code to hande the FHIRPath Math functions.
 
-const types = require('./types');
-const {FP_Quantity} = types;
+const {FP_Quantity, FP_Type} = require('./types');
 const util = require("./utilities");
-const {FP_Type} = require('./types');
 
 /**
  *  Adds the math functions to the given FHIRPath engine.
@@ -58,6 +56,9 @@ engine.plus = function(xs, ys){
     if(x instanceof FP_Type) {
       if (y instanceof FP_Quantity) {
         return x.plus(y);
+      }
+      if (y instanceof FP_Type) {
+        return y.plus(x);
       }
       if (typeof y == "number") {
         return x.plus(new FP_Quantity(y, "'1'"));
