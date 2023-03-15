@@ -1,0 +1,7 @@
+version: "3.7"
+services:
+  web:
+    build: ./
+    ports:
+     - ${PORT:-3000}:3000
+    
