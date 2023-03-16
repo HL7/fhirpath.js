@@ -67,7 +67,7 @@ tests:
         result:
           - true
       - desc: 'avg() function calculates the average quantity for the input collection'
-        expression: (7 'm' |8 'm'|9 'm'|1 'm'|2 'm'|3 'm'|4 'm'|5 'm'|6 'm').avg() = 5 'm'
+        expression: (7 'm' |8 'm'|9 'm'|1 'm'|2 'm'|3 'm'|400 'cm'|5 'm'|6 'm').avg() = 5 'm'
         result:
           - true
       - desc: 'avg() function returns an empty value for the undefined input collection'

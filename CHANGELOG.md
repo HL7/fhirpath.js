@@ -7,7 +7,8 @@ This log documents significant changes for each release.  This project follows
 ### Added
 - Support for comparison and math operations with Quantity values.
   It also became possible to use Quantity values with `aggregate()`, `min()`,
-  `max()`, `sum()`, and `avg()`.
+  `max()`, `sum()`, `avg()`, and `abs()`.
+- Unary `-` for a Quantity value.
 
 ## [3.3.1] - 2022-11-22
 ### Fixed

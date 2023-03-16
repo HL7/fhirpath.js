@@ -70,7 +70,7 @@ tests:
   - desc: '** Can add a number to a quantity'
     expression: 3 '1' + 2 = 5 '1'
     result: [true]
-  - desc: '** Can add a quantity and a number'
+  - desc: '** Can add a quantity to a number'
     expression: 3 + 2 '1' = 5 '1'
     result: [true]
   - desc: '** Error adding array of numbers'

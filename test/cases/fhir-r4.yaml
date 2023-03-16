@@ -3271,7 +3271,6 @@ tests:
         expression: (-5.5 'mg').abs() = 5.5 'mg'
         result:
           - true
-        disable: true
   - 'group: testCeiling':
       - desc: '** testCeiling1'
         inputfile: patient-example.json

@@ -198,12 +198,20 @@ engine.PolarityExpression = function(ctx, parentData, node) {
   var rtn = engine.doEval(ctx,parentData, node.children[0]);
   if (rtn.length !== 1) {  // not yet in spec, but per Bryn Rhodes
     throw new Error('Unary ' + sign +
-     ' can only be applied to an individual number.');
+     ' can only be applied to an individual number or Quantity.');
   }
-  if (typeof rtn[0] != 'number' || isNaN(rtn[0]))
-    throw new Error('Unary ' + sign + ' can only be applied to a number.');
-  if (sign === '-')
-    rtn[0] = -rtn[0];
+  if (rtn[0] instanceof FP_Quantity) {
+    if (sign === '-') {
+      rtn[0] = new FP_Quantity(-rtn[0].value, rtn[0].unit);
+    }
+  } else if (typeof rtn[0] === 'number' && !isNaN(rtn[0])) {
+    if (sign === '-') {
+      rtn[0] = -rtn[0];
+    }
+  } else {
+    throw new Error('Unary ' + sign + ' can only be applied to a number or Quantity.');
+  }
+
   return rtn;
 };
 
