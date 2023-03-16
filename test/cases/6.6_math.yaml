@@ -213,6 +213,16 @@ tests:
       error: true
     - expression: "1 year - @2016-02-29"
       error: true
+    - expression: "1 year - 6 months - 1 year + 18 months = 1 year"
+      result: [true]
+    - expression: "1 year * 2 = 2 year"
+      result: [true]
+    - expression: "2 * 5 months = 10 months"
+      result: [true]
+    - expression: "1 year / 6 months = 2 '1'"
+      result: [true]
+    - expression: "1 year / 6 months = 2"
+      result: [true]
     - expression: "@2016-01-31 + 1 month"
       result: ['2016-02-29']
     - expression: "@2016-01-31 + 1 month + 1 day"

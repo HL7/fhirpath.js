@@ -188,9 +188,15 @@ class FP_Quantity extends FP_Type {
    * @return {FP_Quantity}
    */
   mul(otherQuantity) {
+    // Do not use UCUM unit codes for durations in simple cases
+    const resultUnit = this.unit === "'1'"
+      ? otherQuantity.unit
+      : otherQuantity.unit === "'1'"
+        ? this.unit
+        : `'(${FP_Quantity.getEquivalentUcumUnitCode(this.unit)}).(${FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit)})'`;
     return new FP_Quantity(
       this.value * otherQuantity.value,
-      `'(${this.unit.replace(/^'(.*)'$/, '$1')}).(${otherQuantity.unit.replace(/^'(.*)'$/, '$1')})'`
+      resultUnit
     );
   }
 
@@ -206,7 +212,7 @@ class FP_Quantity extends FP_Type {
 
     return new FP_Quantity(
       this.value / otherQuantity.value,
-      `'(${this.unit.replace(/^'(.*)'$/, '$1')})/(${otherQuantity.unit.replace(/^'(.*)'$/, '$1')})'`
+      `'(${FP_Quantity.getEquivalentUcumUnitCode(this.unit)})/(${FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit)})'`
     );
   }
 

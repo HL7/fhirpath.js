@@ -2,8 +2,7 @@
 // (https://github.com/substack/node-deep-equal), with modifications.
 // For the license for node-deep-equal, see the bottom of this file.
 
-var types = require('./types');
-var FP_Type = types.FP_Type;
+const {FP_Type, FP_Quantity} = require('./types');
 var util = require('./utilities');
 var numbers = require('./numbers');
 var pSlice = Array.prototype.slice;
@@ -77,6 +76,19 @@ function deepEqual(actual, expected, opts) {
         actual.equals(expected); // May return undefined
     }
     else if (actualIsFPT || expectedIsFPT) { // if only one is an FP_Type
+      let anotherIsNumber = false;
+      if (typeof actual == 'number') {
+        actual = new FP_Quantity(actual, "'1'");
+        anotherIsNumber = true;
+      }
+      if (typeof expected == 'number') {
+        expected = new FP_Quantity(expected, "'1'");
+        anotherIsNumber = true;
+      }
+      if (anotherIsNumber) {
+        return opts.fuzzy ? actual.equivalentTo(expected) :
+          actual.equals(expected);
+      }
       return false;
     }
     // 7.4. For all other Object pairs, including Array objects, equivalence is
