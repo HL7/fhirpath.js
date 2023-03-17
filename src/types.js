@@ -209,10 +209,13 @@ class FP_Quantity extends FP_Type {
     if (otherQuantity.value === 0) {
       return null;
     }
+    const resultUnit = otherQuantity.unit === "'1'"
+      ? this.unit
+      : `'(${FP_Quantity.getEquivalentUcumUnitCode(this.unit)})/(${FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit)})'`;
 
     return new FP_Quantity(
       this.value / otherQuantity.value,
-      `'(${FP_Quantity.getEquivalentUcumUnitCode(this.unit)})/(${FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit)})'`
+      resultUnit
     );
   }
 

@@ -21,6 +21,13 @@ function ensureNumberSingleton(x){
     return d;
 }
 
+/**
+ * Returns the data value of the given parameter (which might be a ResourceNode)
+ * if its type is number or FP_Quantity. Otherwise, an exception is thrown.
+ * @param {ResourceNode|number|FP_Quantity|any} x - value or a ResourceNode with a value
+ * @throws Error
+ * @return {number|FP_Quantity}
+ */
 function ensureNumberOrQuantitySingleton(x){
   let d = util.valData(x);
   if (typeof d !== 'number' && !(d instanceof FP_Quantity)) {
@@ -48,11 +55,10 @@ engine.amp = function(x, y){
 //HACK: for only polymorphic function
 //  Actually, "minus" is now also polymorphic
 engine.plus = function(xs, ys){
+  let res;
   if(xs.length === 1 && ys.length === 1) {
     const x = util.valDataConverted(xs[0]);
     const y = util.valDataConverted(ys[0]);
-    let res;
-    let error = false;
     // In the future, this and other functions might need to return ResourceNode
     // to preserve the type information (integer vs decimal, and maybe decimal
     // vs string if decimals are represented as strings), in order to support
@@ -64,8 +70,6 @@ engine.plus = function(xs, ys){
         res = x + y;
       } else if (y instanceof FP_Quantity) {
         res = (new FP_Quantity(x, "'1'")).plus(y);
-      } else {
-        error = true;
       }
     } else if(x instanceof FP_Type) {
       if (y instanceof FP_Quantity) {
@@ -74,17 +78,13 @@ engine.plus = function(xs, ys){
         res = y.plus(x);
       } else if (typeof y == "number") {
         res = x.plus(new FP_Quantity(y, "'1'"));
-      } else {
-        error = true;
       }
-    } else {
-      error = true;
-    }
-    if (!error) {
-      return res;
     }
   }
-  throw new Error("Cannot " + JSON.stringify(xs) + " + " + JSON.stringify(ys));
+  if (res === undefined) {
+    throw new Error("Cannot " + JSON.stringify(xs) + " + " + JSON.stringify(ys));
+  }
+  return res;
 };
 
 engine.minus = function(xs, ys){
