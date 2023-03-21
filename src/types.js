@@ -1066,6 +1066,7 @@ class ResourceNode {
   convertData() {
     var data = this.data;
     switch (this.path) {
+      case 'Duration':
       case 'Quantity':
         if (data?.system === ucumSystemUrl) {
           if (typeof data.value === 'number' && typeof data.code === 'string') {
