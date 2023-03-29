@@ -1065,26 +1065,23 @@ class ResourceNode {
    */
   convertData() {
     var data = this.data;
-    switch (this.path) {
-      case 'Duration':
-      case 'Quantity':
-        if (data?.system === ucumSystemUrl) {
-          if (typeof data.value === 'number' && typeof data.code === 'string') {
-            if (data.comparator !== undefined)
-              throw new Error('Cannot convert a FHIR.Quantity that has a comparator');
-            data =
-              new FP_Quantity(data.value, FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\'');
-          }
+    if (TypeInfo.checkSubclass(this.path, 'Quantity')) {
+      if (data?.system === ucumSystemUrl) {
+        if (typeof data.value === 'number' && typeof data.code === 'string') {
+          if (data.comparator !== undefined)
+            throw new Error('Cannot convert a FHIR.Quantity that has a comparator');
+          data = new FP_Quantity(
+            data.value,
+            FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\''
+          );
         }
-        break;
-      case 'date':
-        data = FP_Date.checkString(data) || data;
-        break;
-      case 'dateTime':
-        data = FP_DateTime.checkString(data) || data;
-        break;
-      case 'time':
-        data = FP_Time.checkString(data) || data;
+      }
+    } else if (this.path === 'date') {
+      data = FP_Date.checkString(data) || data;
+    } else if (this.path === 'dateTime') {
+      data = FP_DateTime.checkString(data) || data;
+    } else if (this.path === 'time') {
+      data = FP_Time.checkString(data) || data;
     }
 
     return data;
@@ -1123,22 +1120,33 @@ class TypeInfo {
    * @return {boolean}
    */
   is(other) {
-    if (other instanceof TypeInfo
-      && (!this.namespace || !other.namespace || this.namespace === other.namespace)) {
-      if (TypeInfo.model && (!this.namespace || this.namespace === TypeInfo.FHIR)) {
-        let name = this.name;
-        do {
-          if (name === other.name) {
-            return true;
-          }
-        } while ((name = TypeInfo.model.type2Parent[name]));
-      } else {
-        return this.name === other.name;
-      }
+    if (
+      other instanceof TypeInfo &&
+      (!this.namespace || !other.namespace || this.namespace === other.namespace)
+    ) {
+      return TypeInfo.model && (!this.namespace || this.namespace === TypeInfo.FHIR)
+        ? TypeInfo.checkSubclass(this.name, other.name)
+        : this.name === other.name;
     }
     return false;
   }
 }
+
+/**
+ * Checks if the type name or its parent type name is equal to
+ * the expected type name.
+ * @param typeName - type name to check.
+ * @param expectedTypeName - expected type name.
+ * @return {boolean}
+ */
+TypeInfo.checkSubclass = function(typeName, expectedTypeName) {
+  do {
+    if (typeName === expectedTypeName) {
+      return true;
+    }
+  } while ((typeName = TypeInfo.model?.type2Parent[typeName]));
+  return false;
+};
 
 // Available namespaces:
 TypeInfo.System = 'System';
