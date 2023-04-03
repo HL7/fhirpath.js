@@ -1065,7 +1065,7 @@ class ResourceNode {
    */
   convertData() {
     var data = this.data;
-    if (TypeInfo.checkSubclass(this.path, 'Quantity')) {
+    if (TypeInfo.isType(this.path, 'Quantity')) {
       if (data?.system === ucumSystemUrl) {
         if (typeof data.value === 'number' && typeof data.code === 'string') {
           if (data.comparator !== undefined)
@@ -1125,7 +1125,7 @@ class TypeInfo {
       (!this.namespace || !other.namespace || this.namespace === other.namespace)
     ) {
       return TypeInfo.model && (!this.namespace || this.namespace === TypeInfo.FHIR)
-        ? TypeInfo.checkSubclass(this.name, other.name)
+        ? TypeInfo.isType(this.name, other.name)
         : this.name === other.name;
     }
     return false;
@@ -1135,16 +1135,16 @@ class TypeInfo {
 /**
  * Checks if the type name or its parent type name is equal to
  * the expected type name.
- * @param typeName - type name to check.
- * @param expectedTypeName - expected type name.
+ * @param type - type name to check.
+ * @param superType - expected type name.
  * @return {boolean}
  */
-TypeInfo.checkSubclass = function(typeName, expectedTypeName) {
+TypeInfo.isType = function(type, superType) {
   do {
-    if (typeName === expectedTypeName) {
+    if (type === superType) {
       return true;
     }
-  } while ((typeName = TypeInfo.model?.type2Parent[typeName]));
+  } while ((type = TypeInfo.model?.type2Parent[type]));
   return false;
 };
 
