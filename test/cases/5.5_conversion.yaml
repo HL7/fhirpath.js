@@ -163,6 +163,12 @@ tests:
     expression: '''1 year''.toQuantity() ~ 1 ''a'''
     result:
       - true
+  - desc: '** Duration to Quantity'
+    inputfile: medicationrequest-example.json
+    expression: "MedicationRequest.dispenseRequest.expectedSupplyDuration.toQuantity() = 3 days"
+    model: 'r4'
+    result:
+      - true
   - desc: '** UCUM units'
     inputfile: patient-example.json
     expression: "'1 \\'cm\\''.toQuantity('mm').value = 10"

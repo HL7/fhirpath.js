@@ -1,0 +1,11 @@
+{
+  "resourceType": "MedicationRequest",
+  "dispenseRequest": {
+    "expectedSupplyDuration": {
+      "value": 3,
+      "unit": "days",
+      "system": "http://unitsofmeasure.org",
+      "code": "d"
+    }
+  }
+}
