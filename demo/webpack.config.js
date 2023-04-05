@@ -2,7 +2,8 @@ module.exports = {
   entry: './public/app.js',
   output: {
     path: __dirname + '/build',
-    filename: 'app.js'
+    filename: 'app.js',
+    chunkFormat: 'commonjs'
   },
   devServer: {
     static: './build'
