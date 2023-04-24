@@ -24,6 +24,10 @@ declare module "fhirpath/fhir-context/dstu2" {
   export const { choiceTypePaths, pathsDefinedElsewhere }: Model;
 }
 
+declare module "fhirpath/fhir-context/r5" {
+  export const { choiceTypePaths, pathsDefinedElsewhere }: Model;
+}
+
 declare module "fhirpath/fhir-context/r4" {
   export const { choiceTypePaths, pathsDefinedElsewhere }: Model;
 }
