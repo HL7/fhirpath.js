@@ -260,6 +260,30 @@ npm install && npm run build && npm run start
 
 open browser on localhost:8080
 
+### Updating the FHIR module on a FHIR release
+* Download the FHIR StructureDefinitions (into the `fhir-context` directory - *don't check these in*)
+  ```
+  > wget http://hl7.org/fhir/profiles-types.json -o profiles-types.json
+  > wget http://hl7.org/fhir/profiles-others.json -o profiles-others.json
+  > wget http://hl7.org/fhir/profiles-resources.json -o profiles-resources.json
+  ```
+* Create the new folder for the version you are importing
+  ```
+  > mkdir r5
+  ```
+* Run the script `` with NodeJS
+  ```
+  > node ./extract-model-info.js --outputDir r5 --fhirDefDir .
+  ```
+* Compare the output files in the new folder to those of the last release
+  (looking for issues that might be due to changes in the StructureDefinition format)
+* Update the `/index.d.ts` file to include the new module as an export
+  ``` js
+  declare module "fhirpath/fhir-context/r5" {
+    export const { choiceTypePaths, pathsDefinedElsewhere }: Model;
+  }
+  ```
+
 ## Credits
 This implemention of the FHIRPath specification was developed as a joint project
 between the U.S. National Library of Medicine (NLM) and Health Samurai, and was
