@@ -1,4 +1,4 @@
-// Takes a directory of JSON FHIR definitions (DSTU2, STU3 or R4) and extracts the information
+// Takes a directory of JSON FHIR definitions (DSTU2, STU3, R4 or R5) and extracts the information
 // about "choice types" (polymorphic fields).
 
 const path = require('path');

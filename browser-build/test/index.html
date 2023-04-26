@@ -25,10 +25,12 @@
 <textarea id="result"></textarea>
 <br>
 FHIR model:
+<input id="r5" name="model" type="radio" value="r5" onclick="evaluateFP()"> R5
 <input id="r4" name="model" type="radio" value="r4" onclick="evaluateFP()"> R4
 <input id="stu3" name="model" type="radio" value="stu3" onclick="evaluateFP()"> STU3
 <input id="dstu2" name="model" type="radio" value="dstu2" onclick="evaluateFP()"> DSTU2
 <script src="../fhirpath.min.js"></script>
+<script src="../fhirpath.r5.min.js"></script>
 <script src="../fhirpath.r4.min.js"></script>
 <script src="../fhirpath.stu3.min.js"></script>
 <script src="../fhirpath.dstu2.min.js"></script>
@@ -39,6 +41,7 @@ function evaluateFP() {
   var modelChoices = document.getElementsByName('model');
   var model;
   var models = {
+    r5: fhirpath_r5_model,
     r4: fhirpath_r4_model,
     stu3: fhirpath_stu3_model,
     dstu2: fhirpath_dstu2_model

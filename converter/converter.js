@@ -57,7 +57,7 @@ const castValue = (value, type) => mapper[type](value);
 /**
  * Converts Object representing test cases from XML to Object that can be serialized to YAML
  * @param {Object} node - result of xml2js.parseString
- * @param {string} model - model name, e.g. 'r4','stu3', 'dstu2'
+ * @param {string} model - model name, e.g. 'r5', 'r4','stu3', 'dstu2'
  * @return {Object}
  */
 const transform = (node, model = null) => {
@@ -127,7 +127,7 @@ module.exports = {
   /**
    * Serializes an XML test cases to YAML
    * @param {string} xmlData
-   * @param {string} model - model name, e.g. 'r4','stu3', 'dstu2'
+   * @param {string} model - model name, e.g. 'r5', 'r4','stu3', 'dstu2'
    * @returns {string}
    */
   testsXmlStringToYamlString: async (xmlData, model) => {

@@ -4,6 +4,7 @@ const _    = require('lodash');
 const resources = {};
 
 const models = {
+  'r5': require('../fhir-context/r5'),
   'r4': require('../fhir-context/r4'),
   'stu3': require('../fhir-context/stu3'),
   'dstu2': require('../fhir-context/dstu2')
