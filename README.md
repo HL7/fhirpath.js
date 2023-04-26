@@ -277,6 +277,10 @@ open browser on localhost:8080
   ```
 * Compare the output files in the new folder to those of the last release
   (looking for issues that might be due to changes in the StructureDefinition format)
+* Copy the `index.js` file from the last release into the new folder
+  ```
+  > cp ../r4/index.js r5
+  ```
 * Update the `/index.d.ts` file to include the new module as an export
   ``` js
   declare module "fhirpath/fhir-context/r5" {
