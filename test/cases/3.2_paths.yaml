@@ -1,5 +1,10 @@
 tests:
   - 'group: Paths with choice types':
+    - desc: 'Observation.value with an R5 FHIR model'
+      expression: 'Observation.value'
+      result: ["high"]
+      model: 'r5'
+
     - desc: 'Observation.value with an R4 FHIR model'
       expression: 'Observation.value'
       result: ["high"]
