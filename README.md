@@ -284,7 +284,12 @@ open browser on localhost:8080
 * Update the `/index.d.ts` file to include the new module as an export
   ``` js
   declare module "fhirpath/fhir-context/r5" {
-    export const { choiceTypePaths, pathsDefinedElsewhere }: Model;
+    export const {
+      choiceTypePaths,
+      pathsDefinedElsewhere,
+      type2Parent,
+      path2Type
+    }: Model;
   }
   ```
 
