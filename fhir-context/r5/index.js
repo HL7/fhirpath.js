@@ -1,5 +1,5 @@
 /**
- *  Exports the FHIR model data for R4.  This is an internal structure that
+ *  Exports the FHIR model data for R5.  This is an internal structure that
  *  will likely evolve as more FHIR specific processing is added.
  */
 module.exports = {

@@ -12,7 +12,8 @@ function makeBaseConfig() {
     devtool: 'source-map',
     output: {
       libraryTarget: 'window',
-      path: __dirname
+      path: __dirname,
+      chunkFormat: 'commonjs'
     },
     module: {
       rules: [

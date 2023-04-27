@@ -263,9 +263,9 @@ open browser on localhost:8080
 ### Updating the FHIR module on a FHIR release
 * Download the FHIR StructureDefinitions (into the `fhir-context` directory - *don't check these in*)
   ```
-  > wget http://hl7.org/fhir/profiles-types.json -o profiles-types.json
-  > wget http://hl7.org/fhir/profiles-others.json -o profiles-others.json
-  > wget http://hl7.org/fhir/profiles-resources.json -o profiles-resources.json
+  > wget http://hl7.org/fhir/profiles-types.json -O profiles-types.json
+  > wget http://hl7.org/fhir/profiles-others.json -O profiles-others.json
+  > wget http://hl7.org/fhir/profiles-resources.json -O profiles-resources.json
   ```
 * Create the new folder for the version you are importing
   ```
@@ -277,10 +277,19 @@ open browser on localhost:8080
   ```
 * Compare the output files in the new folder to those of the last release
   (looking for issues that might be due to changes in the StructureDefinition format)
+* Copy the `index.js` file from the last release into the new folder
+  ```
+  > cp ../r4/index.js r5
+  ```
 * Update the `/index.d.ts` file to include the new module as an export
   ``` js
   declare module "fhirpath/fhir-context/r5" {
-    export const { choiceTypePaths, pathsDefinedElsewhere }: Model;
+    export const {
+      choiceTypePaths,
+      pathsDefinedElsewhere,
+      type2Parent,
+      path2Type
+    }: Model;
   }
   ```
 
