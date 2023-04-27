@@ -10,7 +10,7 @@ options.option('-e, --expression <expr>', 'FHIRPath expression.');
 options.option('-f, --resourceFile <path name>', 'A file containing the JSON resource or part of it, if basePath is passed.');
 options.option('-r, --resourceJSON <JSON>', 'JSON resource or part of it, if basePath is passed.');
 options.option('-v, --variables <JSON>', 'JSON hash of variables.');
-options.option('-m, --model <dstu2 | stu3 | r4>', 'Include FHIR model data.');
+options.option('-m, --model <dstu2 | stu3 | r4 | r5>', 'Include FHIR model data.');
 options.parse(process.argv);
 
 // this cli util is part of public interface of fhirpath
@@ -42,7 +42,7 @@ else {
     let resource = JSON.parse(resourceJSON);
     let model;
     if (options.model) {
-      let supportedVersions = ['dstu2', 'stu3', 'r4'];
+      let supportedVersions = ['dstu2', 'stu3', 'r4', 'r5'];
       if (supportedVersions.indexOf(options.model) < 0)
         throw new Error('FHIR model must be one of '+supportedVersions);
       model = require('../fhir-context/'+options.model);

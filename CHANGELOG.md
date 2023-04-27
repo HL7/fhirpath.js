@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.4.0] - 2023-04-26
+### Added
+- support for FHIR R5 publication.
+
 ## [3.3.2] - 2023-03-29
 ### Fixed
 - toQuantity() now works with subclasses of Quantity.

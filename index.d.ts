@@ -20,15 +20,39 @@ declare module "fhirpath" {
 }
 
 declare module "fhirpath/fhir-context/dstu2" {
-  export const { choiceTypePaths, pathsDefinedElsewhere }: Model;
+  export const {
+    choiceTypePaths,
+    pathsDefinedElsewhere,
+    type2Parent,
+    path2Type
+  }: Model;
+}
+
+declare module "fhirpath/fhir-context/r5" {
+  export const {
+    choiceTypePaths,
+    pathsDefinedElsewhere,
+    type2Parent,
+    path2Type
+  }: Model;
 }
 
 declare module "fhirpath/fhir-context/r4" {
-  export const { choiceTypePaths, pathsDefinedElsewhere }: Model;
+  export const {
+    choiceTypePaths,
+    pathsDefinedElsewhere,
+    type2Parent,
+    path2Type
+  }: Model;
 }
 
 declare module "fhirpath/fhir-context/stu3" {
-  export const { choiceTypePaths, pathsDefinedElsewhere }: Model;
+  export const {
+    choiceTypePaths,
+    pathsDefinedElsewhere,
+    type2Parent,
+    path2Type
+  }: Model;
 }
 
 interface Path {
@@ -41,6 +65,12 @@ interface Model {
     [path: string]: string[];
   };
   pathsDefinedElsewhere: {
+    [path: string]: string;
+  };
+  type2Parent: {
+    [path: string]: string;
+  };
+  path2Type: {
     [path: string]: string;
   };
 }
