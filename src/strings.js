@@ -135,7 +135,10 @@ engine.decodeFn = function (coll, format) {
     return atob(strDecode);
   }
   if (format === 'hex'){
-    return decodeURIComponent('%' + strDecode.match(/.{1,2}/g).join('%'));
+    if (strDecode.length % 2 !== 0){
+      throw new Error('Decode \'hex\' requires an even number of characters.');
+    }
+    return decodeURIComponent('%' + strDecode.match(/.{2}/g).join('%'));
   }
   return [];
 };

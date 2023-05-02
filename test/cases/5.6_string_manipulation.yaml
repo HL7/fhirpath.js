@@ -322,6 +322,10 @@ tests:
     expression: "'c3ViamVjdHM_X2Q='.decode('urlbase64')"
     result: ['subjects?_d']
 
+  - desc: '** uneven number of chars, so throws an error'
+    expression: "'6B6C6D6E6'.decode('hex')"
+    error: true
+
 # testExcapeUnescape Tests from the FHIR spec
   - desc: '** testExcapeUnescape 1e'
     expression: "'\"1&lt;2\"'.escape('html')"
