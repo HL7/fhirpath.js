@@ -144,6 +144,14 @@ const res = fhirpath.types(
 );
 ```
 
+If you want to capture evaluations of the `trace` method, you can include that in the options object.
+```js
+let tracefunction = function (x, label) {
+  console.log("Trace output [" + label + "]: ", x);
+};
+
+const res = fhirpath.evaluate(contextNode, path, environment, fhirpath_r4_model, { traceFn: tracefunction });
+```
 
 ## fhirpath CLI
 
