@@ -97,7 +97,7 @@ engine.joinFn = function (coll, separator) {
 
 engine.splitFn = function (coll, separator) {
   const strToSplit = misc.singleton(coll, 'String');
-  return util.isEmpty(strToSplit) ? [] : strToSplit.split(separator).filter((v) => { return v != ""; });
+  return util.isEmpty(strToSplit) ? [] : strToSplit.split(separator);
 };
 
 engine.trimFn = function (coll) {

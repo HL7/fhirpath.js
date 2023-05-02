@@ -265,7 +265,7 @@ tests:
 
   - desc: '** split string on delimiter'
     expression: "'a,,c'.split(',')"
-    result: ['a', 'c']
+    result: ['a', '', 'c']
 
   - desc: '** join string with separator'
     expression: "('a'|'b'|'c').join(',')"
@@ -286,7 +286,7 @@ tests:
 # this should run on each item in the collection with a select()
   - desc: '** trim down a string null'
     expression: "'a ,, c'.split(',').select(trim())"
-    result: ['a', 'c']
+    result: ['a', '', 'c']
 
   - desc: '** encode urlbase64'
     expression: "'http://example.org/fhir'.encode('base64')"
