@@ -87,7 +87,7 @@ engine.joinFn = function (coll, separator) {
     if (typeof d === "string") {
       return d;
     }
-    return null;
+    throw new Error('Join requires a collection of strings.');
   });
   if (separator === undefined) {
     separator = "";

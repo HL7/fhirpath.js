@@ -275,6 +275,10 @@ tests:
     expression: "('a'|'b'|'c').join()"
     result: ['abc']
 
+  - desc: '** join string with date throws error'
+    expression: "('a'|'2023-05-28'.toDate()|'c').join(',')"
+    error: true
+
   - desc: '** trim down a string'
     expression: "'   this is a string   '.trim()"
     result: ['this is a string']
