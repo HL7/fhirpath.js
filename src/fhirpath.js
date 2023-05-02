@@ -722,8 +722,7 @@ function resolveInternalTypes(val) {
  * @param {string} path.base - base path in resource from which fhirData was extracted
  * @param {string} path.expression - FHIRPath expression relative to path.base
  * @param {object} context - a hash of variable name/value pairs.
- * @param {object} [model] - The "model" data object specific to a domain, e.g. R4.
- * @param {function} [trace] - The "trace" function to call when the trace function is in an expression
+ * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} [options] - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
