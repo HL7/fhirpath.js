@@ -271,6 +271,10 @@ tests:
     expression: "('a'|'b'|'c').join(',')"
     result: ['a,b,c']
 
+  - desc: '** join string with separator'
+    expression: "('a'|'b'|'c').join()"
+    result: ['abc']
+
   - desc: '** trim down a string'
     expression: "'   this is a string   '.trim()"
     result: ['this is a string']

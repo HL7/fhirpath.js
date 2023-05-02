@@ -89,6 +89,9 @@ engine.joinFn = function (coll, separator) {
     }
     return null;
   });
+  if (separator === undefined) {
+    separator = "";
+  }
   return stringValues.join(separator);
 };
 

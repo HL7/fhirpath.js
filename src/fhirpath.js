@@ -127,7 +127,7 @@ engine.invocationTable = {
   replaceMatches: {fn: strings.replaceMatches,   arity: {2: ["String", "String"]}},
   length:         {fn: strings.length },
   toChars:        {fn: strings.toChars },
-  join:           {fn: strings.joinFn,           arity: {1: ["String"]}},
+  join:           {fn: strings.joinFn,           arity: {0: [], 1: ["String"]}},
   split:          {fn: strings.splitFn,          arity: {1: ["String"]}},
   trim:           {fn: strings.trimFn},
 
