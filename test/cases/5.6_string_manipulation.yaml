@@ -330,6 +330,10 @@ tests:
     expression: "'c3ViamVjdHM_X2Q='.decode('urlbase64')"
     result: ['subjects?_d']
 
+  - desc: extra test that results with a `+` in the encoded string
+    expression: "'subjects>_d'.encode('base64')"
+    result: ['c3ViamVjdHM+X2Q=']
+
   - desc: '** uneven number of chars, so throws an error'
     expression: "'6B6C6D6E6'.decode('hex')"
     error: true
