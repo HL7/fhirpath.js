@@ -666,7 +666,7 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   }
   let ctx = {dataRoot, vars: Object.assign(vars, context), model};
   if (options && options.traceFn) {
-     ctx.customTraceFn = options.traceFn;
+    ctx.customTraceFn = options.traceFn;
   }
   return  engine.doEval(ctx, dataRoot, parsedPath.children[0])
     // engine.doEval returns array of "ResourceNode" and/or "FP_Type" instances.

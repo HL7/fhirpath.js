@@ -3,6 +3,15 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.5.0] - 2023-05-04
+### Added
+- Add `split` and `join` functions
+- Add `encode` and `decode` functions
+- Added a callback (traceFn) to the options object for the `trace` function
+### Fixed
+- Update the typescript definition to mark context and model as optional
+- Corect the `trace` function's name parameter is required
+
 ## [3.4.0] - 2023-04-26
 ### Added
 - support for FHIR R5 publication.
