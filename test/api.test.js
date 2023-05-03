@@ -155,7 +155,7 @@ describe('evaluate', () => {
     ).toStrictEqual([new FP_Quantity(2, "'cm'")]);
   });
 
-  it('trace function write to a custom function', () => {
+  it('should support providing a custom function to "trace"', () => {
     var traceobj = null;
     var tracelabel = null;
     const result = fhirpath.evaluate(
