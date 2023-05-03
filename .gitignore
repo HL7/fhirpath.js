@@ -11,3 +11,4 @@ test/benchmark/results
 test/cypress/screenshots
 test/cypress/videos
 test/cypress/downloads
+.vs/

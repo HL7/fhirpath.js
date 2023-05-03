@@ -97,7 +97,7 @@ engine.invocationTable = {
   union:        {fn: combining.union,   arity: {1: ["AnyAtRoot"]}},
   intersect:    {fn: combining.intersect,   arity: {1: ["AnyAtRoot"]}},
   iif:          {fn: misc.iifMacro,    arity: {2: ["Expr", "Expr"], 3: ["Expr", "Expr", "Expr"]}},
-  trace:        {fn: misc.traceFn,     arity: {0: [], 1: ["String"]}},
+  trace:        {fn: misc.traceFn,     arity: {1: ["String"], 2: ["String", "Expr"]}},
   toInteger:    {fn: misc.toInteger},
   toDecimal:    {fn: misc.toDecimal},
   toString:     {fn: misc.toString},
@@ -127,6 +127,12 @@ engine.invocationTable = {
   replaceMatches: {fn: strings.replaceMatches,   arity: {2: ["String", "String"]}},
   length:         {fn: strings.length },
   toChars:        {fn: strings.toChars },
+  join:           {fn: strings.joinFn,           arity: {0: [], 1: ["String"]}},
+  split:          {fn: strings.splitFn,          arity: {1: ["String"]}},
+  trim:           {fn: strings.trimFn},
+
+  encode:         {fn: strings.encodeFn,         arity: {1: ["String"]}},
+  decode:         {fn: strings.decodeFn,         arity: {1: ["String"]}},
 
   abs:            {fn: math.abs},
   ceiling:        {fn: math.ceiling},
@@ -629,11 +635,12 @@ function parse(path) {
  * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
  *  This resource will be modified by this function to add type information.
  * @param {object} parsedPath - a special object created by the parser that describes the structure of a fhirpath expression.
- * @param {object} context - a hash of variable name/value pairs.
- * @param {object} model - The "model" data object specific to a domain, e.g. R4.
+ * @param {object} [context] - a hash of variable name/value pairs.
+ * @param {object} [model] - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} [options] - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
+ * @param {function} [options.traceFn] - An optional trace function to call when tracing
  *  types should be converted to strings, true by default.
  */
 function applyParsedPath(resource, parsedPath, context, model, options) {
@@ -658,6 +665,9 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
     }, {});
   }
   let ctx = {dataRoot, vars: Object.assign(vars, context), model};
+  if (options && options.traceFn) {
+    ctx.customTraceFn = options.traceFn;
+  }
   return  engine.doEval(ctx, dataRoot, parsedPath.children[0])
     // engine.doEval returns array of "ResourceNode" and/or "FP_Type" instances.
     // "ResourceNode" or "FP_Type" instances are not created for sub-items.
@@ -713,11 +723,12 @@ function resolveInternalTypes(val) {
  *  or object, if fhirData represents the part of the FHIR resource:
  * @param {string} path.base - base path in resource from which fhirData was extracted
  * @param {string} path.expression - FHIRPath expression relative to path.base
- * @param {object} context - a hash of variable name/value pairs.
- * @param {object} model - The "model" data object specific to a domain, e.g. R4.
+ * @param {object} [context] - a hash of variable name/value pairs.
+ * @param {object} [model] - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} [options] - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
+ * @param {function} [options.traceFn] - An optional trace function to call when tracing
  *  types should be converted to standard JavaScript types (true by default).
  *  If false is passed, this conversion can be done later by calling
  *  resolveInternalTypes().
@@ -736,10 +747,11 @@ function evaluate(fhirData, path, context, model, options) {
  * @param {string} path.base - base path in resource from which a part of
  *   the resource was extracted
  * @param {string} path.expression - FHIRPath expression relative to path.base
- * @param {object} model - The "model" data object specific to a domain, e.g. R4.
+ * @param {object} [model] - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} [options] - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
+ * @param {function} [options.traceFn] - An optional trace function to call when tracing
  *  types should be converted to strings, true by default.
  */
 function compile(path, model, options) {

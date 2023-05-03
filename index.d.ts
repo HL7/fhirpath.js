@@ -9,10 +9,11 @@ declare module "fhirpath" {
   export function evaluate(
     fhirData: any,
     path: string | Path,
-    context: Context,
+    context?: Context,
     model?: Model,
     options?: {
-      resolveInternalTypes?: boolean
+      resolveInternalTypes?: boolean,
+      traceFn?: (value: any, label: string) => void
     }
   ): any[];
   export function resolveInternalTypes(value: any): any;
@@ -75,6 +76,6 @@ interface Model {
   };
 }
 
-type Compile = (resource: any, context: Context) => any[];
+type Compile = (resource: any, context?: Context) => any[];
 
 type Context = void | Record<string, any>;

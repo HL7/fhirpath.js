@@ -154,6 +154,20 @@ describe('evaluate', () => {
       )
     ).toStrictEqual([new FP_Quantity(2, "'cm'")]);
   });
+
+  it('should support providing a custom function to "trace"', () => {
+    var traceobj = null;
+    var tracelabel = null;
+    const result = fhirpath.evaluate(
+      {},
+      "'stringdata'.trace('blah')",
+      null,
+      null,
+      { traceFn: (data, label) => { tracelabel = label; traceobj = data;} });
+    expect(result).toStrictEqual(['stringdata']);
+    expect(tracelabel).toStrictEqual('blah');
+    expect(traceobj).toStrictEqual(['stringdata']);
+  });
 });
 
 describe('resolveInternalTypes', () => {
