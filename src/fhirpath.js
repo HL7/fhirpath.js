@@ -635,8 +635,8 @@ function parse(path) {
  * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
  *  This resource will be modified by this function to add type information.
  * @param {object} parsedPath - a special object created by the parser that describes the structure of a fhirpath expression.
- * @param {object} context - a hash of variable name/value pairs.
- * @param {object} model - The "model" data object specific to a domain, e.g. R4.
+ * @param {object} [context] - a hash of variable name/value pairs.
+ * @param {object} [model] - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} [options] - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
@@ -721,8 +721,8 @@ function resolveInternalTypes(val) {
  *  or object, if fhirData represents the part of the FHIR resource:
  * @param {string} path.base - base path in resource from which fhirData was extracted
  * @param {string} path.expression - FHIRPath expression relative to path.base
- * @param {object} context - a hash of variable name/value pairs.
- * @param {object} model - The "model" data object specific to a domain, e.g. R4.
+ * @param {object} [context] - a hash of variable name/value pairs.
+ * @param {object} [model] - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} [options] - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
@@ -745,7 +745,7 @@ function evaluate(fhirData, path, context, model, options) {
  * @param {string} path.base - base path in resource from which a part of
  *   the resource was extracted
  * @param {string} path.expression - FHIRPath expression relative to path.base
- * @param {object} model - The "model" data object specific to a domain, e.g. R4.
+ * @param {object} [model] - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} [options] - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
