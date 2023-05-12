@@ -1,6 +1,6 @@
 {
   "name": "fhirpath",
-  "version": "3.3.3",
+  "version": "3.5.1",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "dependencies": {
@@ -11,7 +11,7 @@
     "js-yaml": "^3.13.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.17.5",
+    "@babel/core": "^7.21.4",
     "@babel/eslint-parser": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
     "babel-loader": "^8.2.3",
@@ -34,7 +34,7 @@
     "webpack": "^5.11.1",
     "webpack-bundle-analyzer": "^4.4.2",
     "webpack-cli": "^4.9.1",
-    "xml2js": "^0.4.19",
+    "xml2js": "^0.5.0",
     "yargs": "^15.1.0"
   },
   "engines": {
@@ -42,7 +42,7 @@
   },
   "scripts": {
     "generateParser": "cd src/parser; rimraf ./generated/*; java -Xmx500M -cp \"../../antlr-4.9.3-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o generated -Dlanguage=JavaScript FHIRPath.g4; grunt updateParserRequirements",
-    "build": "cd browser-build && webpack && rimraf fhirpath.zip && bestzip fhirpath.zip LICENSE.md fhirpath.min.js fhirpath.r4.min.js fhirpath.stu3.min.js fhirpath.dstu2.min.js && rimraf  LICENSE.md",
+    "build": "cd browser-build && webpack && rimraf fhirpath.zip && bestzip fhirpath.zip LICENSE.md fhirpath.min.js fhirpath.r5.min.js fhirpath.r4.min.js fhirpath.stu3.min.js fhirpath.dstu2.min.js && rimraf  LICENSE.md",
     "test:unit": "jest && TZ=America/New_York jest && TZ=Europe/Paris jest",
     "test:unit:debug": "echo 'open chrome chrome://inspect/' && node --inspect node_modules/.bin/jest --runInBand",
     "build:demo": "npm run build && cd demo && npm run build",

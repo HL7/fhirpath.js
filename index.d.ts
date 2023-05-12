@@ -9,10 +9,11 @@ declare module "fhirpath" {
   export function evaluate(
     fhirData: any,
     path: string | Path,
-    context: Context,
+    context?: Context,
     model?: Model,
     options?: {
-      resolveInternalTypes?: boolean
+      resolveInternalTypes?: boolean,
+      traceFn?: (value: any, label: string) => void
     }
   ): any[];
   export function resolveInternalTypes(value: any): any;
@@ -20,15 +21,39 @@ declare module "fhirpath" {
 }
 
 declare module "fhirpath/fhir-context/dstu2" {
-  export const { choiceTypePaths, pathsDefinedElsewhere }: Model;
+  export const {
+    choiceTypePaths,
+    pathsDefinedElsewhere,
+    type2Parent,
+    path2Type
+  }: Model;
+}
+
+declare module "fhirpath/fhir-context/r5" {
+  export const {
+    choiceTypePaths,
+    pathsDefinedElsewhere,
+    type2Parent,
+    path2Type
+  }: Model;
 }
 
 declare module "fhirpath/fhir-context/r4" {
-  export const { choiceTypePaths, pathsDefinedElsewhere }: Model;
+  export const {
+    choiceTypePaths,
+    pathsDefinedElsewhere,
+    type2Parent,
+    path2Type
+  }: Model;
 }
 
 declare module "fhirpath/fhir-context/stu3" {
-  export const { choiceTypePaths, pathsDefinedElsewhere }: Model;
+  export const {
+    choiceTypePaths,
+    pathsDefinedElsewhere,
+    type2Parent,
+    path2Type
+  }: Model;
 }
 
 interface Path {
@@ -43,8 +68,14 @@ interface Model {
   pathsDefinedElsewhere: {
     [path: string]: string;
   };
+  type2Parent: {
+    [path: string]: string;
+  };
+  path2Type: {
+    [path: string]: string;
+  };
 }
 
-type Compile = (resource: any, context: Context) => any[];
+type Compile = (resource: any, context?: Context) => any[];
 
 type Context = void | Record<string, any>;

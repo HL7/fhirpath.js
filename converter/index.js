@@ -22,7 +22,7 @@ module.exports = {
    * Converts XML test cases to the YAML format
    * @param {string} from - path to XML file
    * @param {string} to - path to YAML file
-   * @param {string} model - model name, e.g. 'r4','stu3', 'dstu2'
+   * @param {string} model - model name, e.g. 'r5', 'r4','stu3', 'dstu2'
    */
   testsXmlFileToYamlFile: async (from, to, model) => {
     const xmlData = await readFile(from);

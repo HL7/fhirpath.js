@@ -17,8 +17,23 @@ engine.iifMacro = function(data, cond, ok, fail) {
   }
 };
 
-engine.traceFn = function(x, label) {
-  console.log("TRACE:[" + (label || "") + "]", JSON.stringify(x, null, " "));
+engine.traceFn = function (x, label, expr) {
+  if (this.customTraceFn) {
+    if (expr){
+      this.customTraceFn(expr(x), label ?? "");
+    }
+    else {
+      this.customTraceFn(x, label ?? "");
+    }
+  }
+  else {
+    if (expr){
+      console.log("TRACE:[" + (label || "") + "]", JSON.stringify(expr(x), null, " "));
+    }
+    else {
+      console.log("TRACE:[" + (label || "") + "]", JSON.stringify(x, null, " "));
+    }
+  }
   return x;
 };
 

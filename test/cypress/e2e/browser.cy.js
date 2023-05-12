@@ -17,7 +17,7 @@ describe('Browser build of FHIRPath', function() {
     // Observation.value does not exist if no model is selected:
     cy.get('#result').should('have.value', '[]');
 
-    for (let fhirVers of ['dstu2', 'stu3', 'r4']) {
+    for (let fhirVers of ['dstu2', 'stu3', 'r4', 'r5']) {
       // Change the model used:
       cy.get('#'+fhirVers).click();
       // Observation.value exists if a model is selected:
