@@ -3,6 +3,13 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.3.3] - 2023-05-12
+### Fixed
+- Fixed exception in the "hashObject" internal function when an object has
+  a property with the "null" value. This affects functions that may compare
+  objects:
+  intersect(), subsetOf(), repeat(), union(), distinct(), isDistinct().
+
 ## [3.3.2] - 2023-03-29
 ### Fixed
 - toQuantity() now works with subclasses of Quantity.
