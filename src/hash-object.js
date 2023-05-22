@@ -25,7 +25,7 @@ function hashObject(obj) {
 function prepareObject(value) {
   value = valDataConverted(value);
   if (value === null) {
-    return null;
+    return undefined;
   } else if (typeof value === 'number') {
     return roundToMaxPrecision(value);
   } else if (value instanceof Date) {
@@ -42,14 +42,27 @@ function prepareObject(value) {
   } else if (value instanceof FP_Type) {
     return value.toString();
   } else if (typeof value === 'object') {
-    return Array.isArray(value) ?
-      value.map(prepareObject) :
-      Object.keys(value).sort().reduce(
+    if (Array.isArray(value)) {
+      const arr = value.map(prepareObject);
+      // Ignore null and empty values only at the end, we need to keep the indexes
+      while(arr.length && arr[arr.length-1] === undefined) {
+        arr.length--;
+      }
+      if (arr.length === 0) {
+        return undefined;
+      }
+      return arr;
+    } else {
+      return Object.keys(value).sort().reduce(
         (o, key) => {
-          const v = value[key];
-          o[key] = prepareObject(v);
+          const v = prepareObject(value[key]);
+          // Ignore null and empty properties (see https://hl7.org/fhirpath/#null-and-empty)
+          if (v !== undefined) {
+            o[key] = v;
+          }
           return o;
         }, {});
+    }
   }
 
   return  value;

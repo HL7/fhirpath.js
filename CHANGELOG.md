@@ -9,6 +9,7 @@ This log documents significant changes for each release.  This project follows
   a property with the "null" value. This affects functions that may compare
   objects:
   intersect(), subsetOf(), repeat(), union(), distinct(), isDistinct().
+- Added ignoring null and empty properties when comparing objects.
 
 ## [3.5.0] - 2023-05-04
 ### Added

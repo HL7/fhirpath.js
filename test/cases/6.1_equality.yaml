@@ -311,6 +311,15 @@ tests:
         expression: '@T12 = time1.toTime()'
         result: []
 
+      - desc: '** should ignore null properties'
+        inputfile: patient-bundle.json
+        model: r4
+        focus: true
+        expression: >-
+          Bundle.entry[2] = Bundle.entry[3]
+        result:
+          - true
+
 
   - 'group: 6.1.2. ~ (Equivalent)':
 
