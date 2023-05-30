@@ -54,28 +54,28 @@ class FP_Type {
    *  than otherObj.
    */
   compare(/* otherObj */) {
-    throw 'Comparison not implemented for ' + this.constructor;
+    throw 'Comparison not implemented for ' + this.constructor.name;
   }
 
   /**
    *  Adds other value to this value.
    */
   plus(/* otherObj */) {
-    throw 'Addition not implemented for ' + this.constructor;
+    throw 'Addition not implemented for ' + this.constructor.name;
   }
 
   /**
    * Multiplies this value by another value.
    */
   mul(/* otherObj */) {
-    throw 'Multiplication not implemented for ' + this.constructor;
+    throw 'Multiplication not implemented for ' + this.constructor.name;
   }
 
   /**
    * Divides this value by another value.
    */
   div(/* otherObj */) {
-    throw 'Division not implemented for ' + this.constructor;
+    throw 'Division not implemented for ' + this.constructor.name;
   }
 }
 
@@ -168,12 +168,22 @@ class FP_Quantity extends FP_Type {
    * @return {FP_Quantity|null}
    */
   plus(otherQuantity) {
+    if (!FP_Quantity.mapTimeUnitsToUCUMCode[this.unit] !== !FP_Quantity._yearMonthConversionFactor[otherQuantity.unit]) {
+      return null;
+    }
+
+    const ucumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(this.unit);
+    const otherUcumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit);
+
+    if (ucumUtils.getSpecifiedUnit(ucumUnitCode, 'validate').unit.isSpecial_
+      || ucumUtils.getSpecifiedUnit(otherUcumUnitCode, 'validate').unit.isSpecial_) {
+      return null;
+    }
+
     if (this.unit === otherQuantity.unit) {
       return new FP_Quantity(this.value + otherQuantity.value, this.unit);
     }
-    const ucumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(this.unit),
-      otherUcumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit),
-      convResult = ucumUtils.convertUnitTo(otherUcumUnitCode, otherQuantity.value, ucumUnitCode);
+    const convResult = ucumUtils.convertUnitTo(otherUcumUnitCode, otherQuantity.value, ucumUnitCode);
 
     if (convResult.status !== 'succeeded') {
       return null;
@@ -188,12 +198,24 @@ class FP_Quantity extends FP_Type {
    * @return {FP_Quantity}
    */
   mul(otherQuantity) {
+    if (FP_Quantity.mapTimeUnitsToUCUMCode[this.unit] || FP_Quantity._yearMonthConversionFactor[otherQuantity.unit]) {
+      return null;
+    }
+
+    const ucumUnitCode = this.unit.replace(surroundingApostrophesRegex, '');
+    const otherUcumUnitCode = otherQuantity.unit.replace(surroundingApostrophesRegex, '');
+
+    if (ucumUtils.getSpecifiedUnit(ucumUnitCode, 'validate').unit.isSpecial_
+      || ucumUtils.getSpecifiedUnit(otherUcumUnitCode, 'validate').unit.isSpecial_) {
+      return null;
+    }
+
     // Do not use UCUM unit codes for durations in simple cases
     const resultUnit = this.unit === "'1'"
       ? otherQuantity.unit
       : otherQuantity.unit === "'1'"
         ? this.unit
-        : `'(${FP_Quantity.getEquivalentUcumUnitCode(this.unit)}).(${FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit)})'`;
+        : `'(${ucumUnitCode}).(${otherUcumUnitCode})'`;
     return new FP_Quantity(
       this.value * otherQuantity.value,
       resultUnit
@@ -206,12 +228,24 @@ class FP_Quantity extends FP_Type {
    * @return {FP_Quantity}
    */
   div(otherQuantity) {
+    if (FP_Quantity.mapTimeUnitsToUCUMCode[this.unit] || FP_Quantity._yearMonthConversionFactor[otherQuantity.unit]) {
+      return null;
+    }
+
+    const ucumUnitCode = this.unit.replace(surroundingApostrophesRegex, '');
+    const otherUcumUnitCode = otherQuantity.unit.replace(surroundingApostrophesRegex, '');
+
+    if (ucumUtils.getSpecifiedUnit(ucumUnitCode, 'validate').unit.isSpecial_
+      || ucumUtils.getSpecifiedUnit(otherUcumUnitCode, 'validate').unit.isSpecial_) {
+      return null;
+    }
+
     if (otherQuantity.value === 0) {
       return null;
     }
     const resultUnit = otherQuantity.unit === "'1'"
       ? this.unit
-      : `'(${FP_Quantity.getEquivalentUcumUnitCode(this.unit)})/(${FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit)})'`;
+      : `'(${ucumUnitCode})/(${otherUcumUnitCode})'`;
 
     return new FP_Quantity(
       this.value / otherQuantity.value,
