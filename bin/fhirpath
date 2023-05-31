@@ -16,10 +16,8 @@ options.parse(process.argv);
 // this cli util is part of public interface of fhirpath
 // it can be extended with understading urls and files
 // TODO: introduce subcommands to inspect, eval fhirpath etc
-
 const expression =  options.expression;
 const base =  options.basePath;
-
 if (!expression)
   options.help();
 else {

@@ -265,4 +265,15 @@ engine.singleton = function (coll, type) {
   throw new Error('Not supported type ' + type);
 };
 
+/**
+ * Checks whether a primitve value is present
+ */
+engine.hasValueFn = function(coll) {
+  return [isPrimitive(coll[0].data)];
+};
+
+function isPrimitive(data){
+  return data !== null && typeof data !== "object";
+}
+
 module.exports = engine;
