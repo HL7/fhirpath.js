@@ -168,24 +168,36 @@ class FP_Quantity extends FP_Type {
    * @return {FP_Quantity|null}
    */
   plus(otherQuantity) {
-    if (!FP_Quantity.mapTimeUnitsToUCUMCode[this.unit] !== !FP_Quantity._yearMonthConversionFactor[otherQuantity.unit]) {
-      return null;
-    }
-
-    const ucumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(this.unit);
-    const otherUcumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit);
-
-    if (ucumUtils.getSpecifiedUnit(ucumUnitCode, 'validate').unit.isSpecial_
-      || ucumUtils.getSpecifiedUnit(otherUcumUnitCode, 'validate').unit.isSpecial_) {
+    const isNotTimeUnit = !FP_Quantity.mapTimeUnitsToUCUMCode[this.unit];
+    const isOtherNotTimeUnit = !FP_Quantity._yearMonthConversionFactor[otherQuantity.unit];
+    if (isNotTimeUnit !== isOtherNotTimeUnit) {
       return null;
     }
 
     if (this.unit === otherQuantity.unit) {
+      if (isNotTimeUnit
+        && ucumUtils.getSpecifiedUnit(
+          this.unit.replace(surroundingApostrophesRegex, ''), 'validate'
+        ).unit.isSpecial_
+        || isOtherNotTimeUnit
+        && ucumUtils.getSpecifiedUnit(
+          otherQuantity.unit.replace(surroundingApostrophesRegex, ''), 'validate'
+        ).unit.isSpecial_
+      ) {
+        return null;
+      }
       return new FP_Quantity(this.value + otherQuantity.value, this.unit);
     }
-    const convResult = ucumUtils.convertUnitTo(otherUcumUnitCode, otherQuantity.value, ucumUnitCode);
 
-    if (convResult.status !== 'succeeded') {
+    const convResult = ucumUtils.convertUnitTo(
+      FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit),
+      otherQuantity.value, FP_Quantity.getEquivalentUcumUnitCode(this.unit)
+    );
+
+
+    if (convResult.status !== 'succeeded'
+      || convResult.fromUnit.isSpecial_
+      || convResult.toUnit.isSpecial_) {
       return null;
     }
 
