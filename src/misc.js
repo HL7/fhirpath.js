@@ -37,6 +37,17 @@ engine.traceFn = function (x, label, expr) {
   return x;
 };
 
+// Used by the `withVariable` function to inject a variable into the context
+engine.varFn = function (x, label, expr) {
+  let data = x;
+  if (expr){
+    data = expr(x);
+  }
+  // console.log("Injecting variable :[" + (label) + "]", JSON.stringify(data, null, " "));
+  this.vars[label] = data;
+  return x;
+};
+
 var intRegex = /^[+-]?\d+$/;
 engine.toInteger = function(coll){
   if(coll.length !== 1) { return []; }
