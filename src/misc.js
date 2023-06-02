@@ -269,7 +269,11 @@ engine.singleton = function (coll, type) {
  * Checks whether a primitve value is present
  */
 engine.hasValueFn = function(coll) {
-  return [isPrimitive(coll[0].data)];
+  if (coll.length === 1){
+    return [isPrimitive(coll[0].data)];
+  } else {
+    return [false];
+  }
 };
 
 function isPrimitive(data){
