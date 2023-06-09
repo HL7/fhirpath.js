@@ -11,6 +11,11 @@ var isArguments = function (object) {
   return Object.prototype.toString.call(object) == '[object Arguments]';
 };
 
+/**
+ * Returns the keys of a source object for which there is a value.
+ * @param {Object} o - source object
+ * @return {string[]}
+ */
 function objectKeys(o) {
   const keys = Object.keys(o);
   // Ignore null and empty properties
