@@ -1,15 +1,63 @@
 tests:
-  - desc: 'collection only contains one string'
-    inputfile: patient-example.json
-    expression: Patient.name.given[0].hasValue()
-    result: [true]
+  - 'group: no model specified':
+    - desc: 'collection only contains one string'
+      inputfile: patient-example.json
+      expression: Patient.name.given[0].hasValue()
+      result: [true]
 
-  - desc: 'collection contains array of strings'
-    inputfile: patient-example.json
-    expression: Patient.name.given.hasValue()
-    result: [false]
+    - desc: 'collection contains array of strings'
+      inputfile: patient-example.json
+      expression: Patient.name.given.hasValue()
+      result: [false]
 
-  - desc: 'collection contains object'
-    inputfile: patient-example.json
-    expression: Patient.name.hasValue()
-    result: [false]
+    - desc: 'collection contains object'
+      inputfile: patient-example.json
+      expression: Patient.name.hasValue()
+      result: [false]
+      
+  - 'group: model specified':
+    - desc: 'collection only contains one string'
+      inputfile: patient-example.json
+      expression: Patient.name.given[0].hasValue()
+      model: 'r5'
+      result: [true]
+    - desc: 'collection contains array of strings'
+      inputfile: patient-example.json
+      expression: Patient.name.given.hasValue()
+      model: 'r5'
+      result: [false]
+
+    - desc: 'collection only contains one string'
+      inputfile: patient-example.json
+      expression: Patient.name.given[0].hasValue()
+      model: 'r4'
+      result: [true]
+    - desc: 'collection contains array of strings'
+      inputfile: patient-example.json
+      expression: Patient.name.given.hasValue()
+      model: 'r4'
+      result: [false]
+
+    - desc: 'collection only contains one string'
+      inputfile: patient-example.json
+      expression: Patient.name.given[0].hasValue()
+      model: 'stu3'
+      result: [true]
+    - desc: 'collection contains array of strings'
+      inputfile: patient-example.json
+      expression: Patient.name.given.hasValue()
+      model: 'stu3'
+      result: [false]
+
+    - desc: 'collection only contains one string'
+      inputfile: patient-example.json
+      expression: Patient.name.given[0].hasValue()
+      model: 'dstu2'
+      result: [true]
+    - desc: 'collection contains array of strings'
+      inputfile: patient-example.json
+      expression: Patient.name.given.hasValue()
+      model: 'dstu2'
+      result: [false]
+      
+
