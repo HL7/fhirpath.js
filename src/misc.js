@@ -310,8 +310,7 @@ function isPrimitiveDefault(data){
     case 'string':
     case 'number':
     case 'boolean':
-    case 'symbol':
-    case 'bigint':
+    // case 'bigint':
       return true;
     default:
       return false;
