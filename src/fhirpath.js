@@ -442,7 +442,6 @@ function makeParam(ctx, parentData, type, param) {
     return engine.TypeSpecifier(ctx, parentData, param);
   }
 
-  ctx.$this = parentData;
   const res = engine.doEval(ctx, parentData, param);
   if(type === "Any") {
     return res;

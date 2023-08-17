@@ -127,6 +127,12 @@ tests:
   - expression:  identifier.where($this.type.coding.code = 'Z').value
     result: []
 
+  - desc:
+    inputfile: patient-example.json
+    expression: name.given.combine(name.family) = name.trace('n').given.combine(name.family)
+    result:
+      - true
+
   - expression:  (2).combine(3)
     desc: 'Parenthesized expression'
     result: [2,3]
