@@ -127,9 +127,15 @@ tests:
   - expression:  identifier.where($this.type.coding.code = 'Z').value
     result: []
 
-  - desc:
+  - desc: trace(name) don't affect the context of the following subexpressions
     inputfile: patient-example.json
     expression: name.given.combine(name.family) = name.trace('n').given.combine(name.family)
+    result:
+      - true
+
+  - desc: trace(name, projection) don't affect the context of the following subexpressions
+    inputfile: patient-example.json
+    expression: name.given.combine(name.family) = name.trace('m', family).given.combine(name.family)
     result:
       - true
 

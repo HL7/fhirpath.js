@@ -422,13 +422,13 @@ engine.realizeParams = function(ctx, parentData, args) {
 function makeParam(ctx, parentData, type, param) {
   if(type === "Expr"){
     return function(data) {
-      ctx.$this = util.arraify(data);
-      return engine.doEval(ctx, ctx.$this, param);
+      const $this = util.arraify(data);
+      return engine.doEval({ ...ctx, $this }, $this, param);
     };
   }
   if(type === "AnyAtRoot"){
-    ctx.$this = ctx.$this || ctx.dataRoot;
-    return engine.doEval(ctx, ctx.$this, param);
+    const $this = ctx.$this || ctx.dataRoot;
+    return engine.doEval({ ...ctx, $this}, $this, param);
   }
   if(type === "Identifier"){
     if(param.type === "TermExpression") {
