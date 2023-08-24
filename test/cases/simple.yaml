@@ -127,6 +127,18 @@ tests:
   - expression:  identifier.where($this.type.coding.code = 'Z').value
     result: []
 
+  - desc: trace(name) doesn't affect the context of the following subexpressions
+    inputfile: patient-example.json
+    expression: name.given.combine(name.family) = name.trace('n').given.combine(name.family)
+    result:
+      - true
+
+  - desc: trace(name, projection) doesn't affect the context of the following subexpressions
+    inputfile: patient-example.json
+    expression: name.given.combine(name.family) = name.trace('m', family).given.combine(name.family)
+    result:
+      - true
+
   - expression:  (2).combine(3)
     desc: 'Parenthesized expression'
     result: [2,3]
