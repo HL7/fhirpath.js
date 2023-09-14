@@ -53,12 +53,7 @@ combineFns.exclude = function(coll1, coll2) {
       coll2hash[hash] = true;
     });
 
-    coll1.forEach(item => {
-      let hash = hashObject(item);
-      if (!coll2hash[hash]) {
-        result.push(item);
-      }
-    });
+    result = coll1.filter(item => !coll2hash[hashObject(item)]);
   }
 
   return result;
