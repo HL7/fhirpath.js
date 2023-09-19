@@ -3,6 +3,18 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.7.0] - 2023-09-12
+### Added
+- exclude() function.
+
+## [3.6.1] - 2023-08-17
+### Fixed
+- trace() affected the context of the following subexpressions.
+
+## [3.6.0] - 2023-07-11
+### Added
+- hasValue() function.
+
 ## [3.5.0] - 2023-05-04
 ### Added
 - Add `split` and `join` functions

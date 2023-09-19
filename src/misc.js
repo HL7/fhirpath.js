@@ -276,4 +276,56 @@ engine.singleton = function (coll, type) {
   throw new Error('Not supported type ' + type);
 };
 
+/**
+ * Checks whether a primitve value is present
+ */
+const fhirPrimitives = new Set([
+  "instant",
+  "time",
+  "date",
+  "dateTime",
+  "base64Binary",
+  "decimal",
+  "integer64",
+  "boolean",
+  "string",
+  "code",
+  "markdown",
+  "id",
+  "integer",
+  "unsignedInt",
+  "positiveInt",
+  "uri",
+  "oid",
+  "uuid",
+  "canonical",
+  "url"
+]);
+
+engine.hasValueFn = function(coll) {
+  let model = this.model;
+
+  if (coll.length === 1){
+    if(model){
+      return [fhirPrimitives.has(coll[0].path)];
+    } else {
+      return [isPrimitiveDefault(util.valData(coll[0]))];
+    }
+  } else {
+    return [false];
+  }
+};
+
+function isPrimitiveDefault(data){
+  switch (typeof data){
+    case 'string':
+    case 'number':
+    case 'boolean':
+    // case 'bigint':
+      return true;
+    default:
+      return false;
+  }
+}
+
 module.exports = engine;

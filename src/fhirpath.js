@@ -96,6 +96,7 @@ engine.invocationTable = {
   combine:      {fn: combining.combineFn, arity: {1: ["AnyAtRoot"]}},
   union:        {fn: combining.union,   arity: {1: ["AnyAtRoot"]}},
   intersect:    {fn: combining.intersect,   arity: {1: ["AnyAtRoot"]}},
+  exclude:      {fn: combining.exclude,   arity: {1: ["AnyAtRoot"]}},
   iif:          {fn: misc.iifMacro,    arity: {2: ["Expr", "Expr"], 3: ["Expr", "Expr", "Expr"]}},
   trace:        {fn: misc.traceFn,     arity: {1: ["String"], 2: ["String", "Expr"]}},
   withVariable: {fn: misc.varFn,     arity: {1: ["String"], 2: ["String", "Expr"]}},
@@ -107,6 +108,7 @@ engine.invocationTable = {
   toTime:       {fn: misc.toTime},
   toBoolean:    {fn: misc.toBoolean},
   toQuantity:   {fn: misc.toQuantity, arity: {0: [], 1: ["String"]}},
+  hasValue:     {fn: misc.hasValueFn},
   convertsToBoolean:    {fn: misc.createConvertsToFn(misc.toBoolean, 'boolean')},
   convertsToInteger:    {fn: misc.createConvertsToFn(misc.toInteger, 'number')},
   convertsToDecimal:    {fn: misc.createConvertsToFn(misc.toDecimal, 'number')},
@@ -422,13 +424,13 @@ engine.realizeParams = function(ctx, parentData, args) {
 function makeParam(ctx, parentData, type, param) {
   if(type === "Expr"){
     return function(data) {
-      ctx.$this = util.arraify(data);
-      return engine.doEval(ctx, ctx.$this, param);
+      const $this = util.arraify(data);
+      return engine.doEval({ ...ctx, $this }, $this, param);
     };
   }
   if(type === "AnyAtRoot"){
-    ctx.$this = ctx.$this || ctx.dataRoot;
-    return engine.doEval(ctx, ctx.$this, param);
+    const $this = ctx.$this || ctx.dataRoot;
+    return engine.doEval({ ...ctx, $this}, $this, param);
   }
   if(type === "Identifier"){
     if(param.type === "TermExpression") {
@@ -442,7 +444,6 @@ function makeParam(ctx, parentData, type, param) {
     return engine.TypeSpecifier(ctx, parentData, param);
   }
 
-  ctx.$this = parentData;
   const res = engine.doEval(ctx, parentData, param);
   if(type === "Any") {
     return res;

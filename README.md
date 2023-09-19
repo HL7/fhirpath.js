@@ -247,6 +247,10 @@ Completed sections:
 - 8   (Lexical Elements) - handled by ANTLR parser
 - 9   (Environment Variables)
 
+Supported additional functions from FHIR:
+- extension(url : string) : collection
+- hasValue() : Boolean
+
 ## Development Notes
 
 This section is for people doing development on this package (as opposed to
