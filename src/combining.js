@@ -43,4 +43,21 @@ combineFns.intersect = function(coll1, coll2) {
 };
 
 
+combineFns.exclude = function(coll1, coll2) {
+  let result = [];
+
+  if (coll1.length) {
+    let coll2hash = {};
+    coll2.forEach(item => {
+      const hash = hashObject(item);
+      coll2hash[hash] = true;
+    });
+
+    result = coll1.filter(item => !coll2hash[hashObject(item)]);
+  }
+
+  return result;
+};
+
+
 module.exports = combineFns;
