@@ -4,7 +4,6 @@ var util = require("./utilities");
 var deepEqual = require('./deep-equal');
 var types = require('./types');
 const FP_Type = types.FP_Type;
-const FP_Date = types.FP_Date;
 const FP_DateTime = types.FP_DateTime;
 
 var engine = {};
@@ -53,8 +52,8 @@ function typecheck(a, b){
   util.assertAtMostOne(b, "Singleton was expected");
   a = util.valDataConverted(a[0]);
   b = util.valDataConverted(b[0]);
-  let lClass = a.constructor === FP_Date ? FP_DateTime : a.constructor;
-  let rClass = b.constructor === FP_Date ? FP_DateTime : b.constructor;
+  let lClass = a instanceof FP_DateTime ? FP_DateTime : a.constructor;
+  let rClass = b instanceof FP_DateTime ? FP_DateTime : b.constructor;
   if (lClass !== rClass) {
     util.raiseError('Type of "'+a+'" ('+lClass.name+') did not match type of "'+
         b+'" ('+rClass.name+')', 'InequalityExpression');

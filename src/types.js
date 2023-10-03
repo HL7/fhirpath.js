@@ -10,6 +10,8 @@ let dateTimeRE = new RegExp(
   '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T'+timeFormat+')?)?)?Z?$');
 let dateRE = new RegExp(
   '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9])?)?$');
+let instantRE = new RegExp(
+  '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T[0-9][0-9](\\:[0-9][0-9](\\:[0-9][0-9](\\.[0-9]+)?))(Z|(\\+|-)[0-9][0-9]\\:[0-9][0-9]))))$');
 // FHIR date/time regular expressions are slightly different.  For now, we will
 // stick with the FHIRPath regular expressions.
 //let fhirTimeRE = /([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?/;
@@ -1000,6 +1002,37 @@ FP_Date.isoDate = function(date, precision) {
   return FP_DateTime.isoDateTime(date, precision);
 };
 
+class FP_Instant extends FP_DateTime {
+  /**
+   * Constructs an FP_Instant, assuming dateStr is valid.  If you don't know
+   * whether a string is a valid Date, use FP_Instant.checkString instead.
+   */
+  constructor(dateStr) {
+    super(dateStr);
+  }
+
+
+  /**
+   * Returns the match data from matching dateRE against the date string.
+   * Also sets this.precision.
+   */
+  _getMatchData() {
+    return FP_TimeBase.prototype._getMatchData.apply(this, [instantRE, 5]);
+  }
+}
+
+
+/**
+ * Tests str to see if it is convertible to a Date.
+ * @return If str is convertible to a Date, returns an FP_Date;
+ *  otherwise returns null.
+ */
+FP_Instant.checkString = function(str) {
+  let d = new FP_Instant(str);
+  if (!d._getMatchData())
+    d = null;
+  return d;
+};
 
 /**
  *  A class that represents a node in a FHIR resource, with path and possibly type
@@ -1080,6 +1113,8 @@ class ResourceNode {
       data = FP_Date.checkString(data) || data;
     } else if (this.path === 'dateTime') {
       data = FP_DateTime.checkString(data) || data;
+    } else if (this.path === 'instant') {
+      data = FP_Instant.checkString(data) || data;
     } else if (this.path === 'time') {
       data = FP_Time.checkString(data) || data;
     }
@@ -1249,6 +1284,7 @@ module.exports = {
   FP_TimeBase: FP_TimeBase,
   FP_Date: FP_Date,
   FP_DateTime: FP_DateTime,
+  FP_Instant: FP_Instant,
   FP_Time: FP_Time,
   FP_Quantity: FP_Quantity,
   timeRE: timeRE,

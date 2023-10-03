@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.8.0] - 2023-10-03
+### Added
+- support FHIR.instant in expressions.
+
 ## [3.7.0] - 2023-09-12
 ### Added
 - exclude() function.
@@ -22,7 +26,7 @@ This log documents significant changes for each release.  This project follows
 - Added a callback (traceFn) to the options object for the `trace` function
 ### Fixed
 - Update the typescript definition to mark context and model as optional
-- Corect the `trace` function's name parameter is required
+- Correct the `trace` function's name parameter is required
 
 ## [3.4.0] - 2023-04-26
 ### Added

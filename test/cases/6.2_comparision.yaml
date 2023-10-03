@@ -225,6 +225,22 @@ tests:
       - desc: Comparison with later time in resource (4)
         expression: '@T17:00-05:00 > timeWithOutT.toTime()'
         result: [false]
+    - 'group:  Instant':
+      - desc: Comparison using the greater than operator
+        inputfile: diagnosticreport-example.json
+        expression: 'DiagnosticReport.effectiveDateTime > DiagnosticReport.issued'
+        model: r4
+        result: [true]
+      - desc: Comparison using the less than operator
+        inputfile: diagnosticreport-example.json
+        expression: 'DiagnosticReport.issued < DiagnosticReport.effectiveDateTime'
+        model: r4
+        result: [true]
+      - desc: Comparison using the equality operator
+        inputfile: diagnosticreport-example.json
+        expression: 'DiagnosticReport.issued = @2005-01-27T06:40:01Z'
+        model: r4
+        result: [true]
 
 subject:
   date: "2019-02-25"
