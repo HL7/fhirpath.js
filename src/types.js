@@ -1024,7 +1024,7 @@ class FP_Instant extends FP_DateTime {
 
 /**
  * Tests str to see if it is convertible to a Date.
- * @return If str is convertible to a Date, returns an FP_Date;
+ * @return If str match the "instant" RegExp, returns an FP_Instant;
  *  otherwise returns null.
  */
 FP_Instant.checkString = function(str) {
