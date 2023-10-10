@@ -458,7 +458,7 @@ function makeParam(ctx, parentData, type, param) {
 }
 
 function doInvoke(ctx, fnName, data, rawParams){
-  var invoc = engine.invocationTable[fnName];
+  var invoc = ctx.vars?.userInvocationTable?.[fnName] ?? engine.invocationTable[fnName];
   var res;
   if(invoc) {
     if(!invoc.arity){
