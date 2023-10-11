@@ -3,6 +3,12 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.7.2] - 2023-10-11
+### Fixed
+- Use `deepEqual` instead of `hashObject` to optimize the comparison of items of
+  small collections in these functions: intersect(), union(), exclude(),
+  subsetOf(), distinct().
+
 ## [3.7.1] - 2023-09-27
 ### Fixed
 - crash in `exists()` when running in strict mode.

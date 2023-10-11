@@ -12,18 +12,18 @@ module.exports = ({
                     currentVersion,
                     previousVersion
                   }) => {
-  const smallCollectionLength = Math.floor(maxCollSizeForDeepEqual/2);
 
+  const smallCollectionLength = Math.floor(maxCollSizeForDeepEqual/2);
   [{
-    name: 'intersect() of two collections with',
-    filename: 'intersect',
+    name: 'exclude() all elements from a collection with',
+    filename: 'exclude',
     bigItems: current_fhirpath
       .evaluate(minimumDataset,'repeat(item)', {},  current_r4_model),
     smallItems: current_fhirpath
       .evaluate(minimumDataset,'repeat(item).repeat(code)', {},  current_r4_model)
   }, {
-    name: 'intersect() of two small collections with',
-    filename: 'intersect-for-small-collections',
+    name: 'exclude() all elements from a small collection with',
+    filename: 'exclude-for-small-collections',
     bigItems: current_fhirpath
       .evaluate(minimumDataset,'repeat(item)', {},  current_r4_model)
       .slice(-smallCollectionLength),
@@ -39,7 +39,7 @@ module.exports = ({
     const smallItemsCopy = _.cloneDeep(smallItems);
     const numberOfSmallItems = smallItems.length;
 
-    const expression = '%items.intersect(%itemsCopy)';
+    const expression = '%items.exclude(%itemsCopy)';
 
     const cases = [
       {

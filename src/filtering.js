@@ -7,6 +7,7 @@
 const util = require('./utilities');
 const {TypeInfo, ResourceNode} = require('./types');
 const hashObject = require('./hash-object');
+const { deepEqual, maxCollSizeForDeepEqual } = require('./deep-equal');
 
 var engine = {};
 engine.whereMacro = function(parentData, expr) {
@@ -105,17 +106,27 @@ engine.ofTypeFn = function(coll, typeInfo) {
 
 engine.distinctFn = function(x) {
   let unique = [];
-  // Since this requires a deep equals, use a hash table (on JSON strings) for
-  // efficiency.
   if (x.length > 0) {
-    let uniqueHash = {};
-    for (let i=0, len=x.length; i<len; ++i) {
-      let xObj = x[i];
-      let xStr = hashObject(xObj);
-      if (!uniqueHash[xStr]) {
-        unique.push(xObj);
-        uniqueHash[xStr] = true;
+    if (x.length > maxCollSizeForDeepEqual) {
+      // When we have more than maxCollSizeForDeepEqual items in input collection,
+      // we use a hash table (on JSON strings) for efficiency.
+      let uniqueHash = {};
+      for (let i = 0, len = x.length; i < len; ++i) {
+        let xObj = x[i];
+        let xStr = hashObject(xObj);
+        if (!uniqueHash[xStr]) {
+          unique.push(xObj);
+          uniqueHash[xStr] = true;
+        }
       }
+    } else {
+      // Otherwise, it is more efficient to perform a deep comparison.
+      x = x.concat();
+      do {
+        let xObj = x.shift();
+        unique.push(xObj);
+        x = x.filter(o => !deepEqual(xObj, o));
+      } while (x.length);
     }
   }
   return unique;

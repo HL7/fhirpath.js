@@ -1,8 +1,8 @@
 // This file holds code to handle the FHIRPath Math functions.
 
-var util = require("./utilities");
-var deepEqual = require('./deep-equal');
-var types = require('./types');
+const util = require("./utilities");
+const { deepEqual } = require('./deep-equal');
+const types = require('./types');
 const FP_Type = types.FP_Type;
 const FP_Date = types.FP_Date;
 const FP_DateTime = types.FP_DateTime;

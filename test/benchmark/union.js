@@ -15,15 +15,15 @@ module.exports = ({
   const smallCollectionLength = Math.floor(maxCollSizeForDeepEqual/2);
 
   [{
-    name: 'intersect() of two collections with',
-    filename: 'intersect',
+    name: 'union() of two collections with',
+    filename: 'union',
     bigItems: current_fhirpath
       .evaluate(minimumDataset,'repeat(item)', {},  current_r4_model),
     smallItems: current_fhirpath
       .evaluate(minimumDataset,'repeat(item).repeat(code)', {},  current_r4_model)
   }, {
-    name: 'intersect() of two small collections with',
-    filename: 'intersect-for-small-collections',
+    name: 'union() of two small collections with',
+    filename: 'union-for-small-collections',
     bigItems: current_fhirpath
       .evaluate(minimumDataset,'repeat(item)', {},  current_r4_model)
       .slice(-smallCollectionLength),
@@ -39,7 +39,7 @@ module.exports = ({
     const smallItemsCopy = _.cloneDeep(smallItems);
     const numberOfSmallItems = smallItems.length;
 
-    const expression = '%items.intersect(%itemsCopy)';
+    const expression = '%items.union(%itemsCopy)';
 
     const cases = [
       {
@@ -105,7 +105,6 @@ module.exports = ({
     ).then(() => {
       open(__dirname + `/results/${suite.filename}.chart.html`);
     });
-
-  });
+  })
 
 }

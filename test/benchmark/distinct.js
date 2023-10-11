@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const { maxCollSizeForDeepEqual } = require('../../src/deep-equal');
 
 module.exports = ({
@@ -12,58 +11,54 @@ module.exports = ({
                     currentVersion,
                     previousVersion
                   }) => {
-  const smallCollectionLength = Math.floor(maxCollSizeForDeepEqual/2);
-
   [{
-    name: 'intersect() of two collections with',
-    filename: 'intersect',
+    name: 'distinct() of a collection with',
+    filename: 'distinct',
     bigItems: current_fhirpath
       .evaluate(minimumDataset,'repeat(item)', {},  current_r4_model),
     smallItems: current_fhirpath
       .evaluate(minimumDataset,'repeat(item).repeat(code)', {},  current_r4_model)
   }, {
-    name: 'intersect() of two small collections with',
-    filename: 'intersect-for-small-collections',
+    name: 'distinct() of a small collection with',
+    filename: 'distinct-for-small-collections',
     bigItems: current_fhirpath
       .evaluate(minimumDataset,'repeat(item)', {},  current_r4_model)
-      .slice(-smallCollectionLength),
+      .slice(-maxCollSizeForDeepEqual),
     smallItems: current_fhirpath
       .evaluate(minimumDataset,'repeat(item).repeat(code)', {},  current_r4_model)
-      .slice(-smallCollectionLength)
+      .slice(-maxCollSizeForDeepEqual)
   }].forEach(suite => {
     const bigItems = suite.bigItems;
-    const bigItemsCopy = _.cloneDeep(bigItems);
     const numberOfBigItems = bigItems.length;
 
     const smallItems = suite.smallItems;
-    const smallItemsCopy = _.cloneDeep(smallItems);
     const numberOfSmallItems = smallItems.length;
 
-    const expression = '%items.intersect(%itemsCopy)';
+    const expression = '%items.distinct()';
 
     const cases = [
       {
         name: `${numberOfBigItems} big items using evaluate()`,
         testFunction: (fhirpath, model) => {
-          fhirpath.evaluate({}, expression, { items: bigItems, itemsCopy: bigItemsCopy }, model);
+          fhirpath.evaluate({}, expression, { items: bigItems }, model);
         }
       },
       {
         name: `${numberOfBigItems} big items using compile()`,
         testFunction: (fhirpath, model, compiledFn) => {
-          compiledFn({}, { items: bigItems, itemsCopy: bigItemsCopy });
+          compiledFn({}, { items: bigItems });
         }
       },
       {
         name: `${numberOfSmallItems} small items using evaluate()`,
         testFunction: (fhirpath, model) => {
-          fhirpath.evaluate({}, expression, { items: smallItems, itemsCopy: smallItemsCopy }, model);
+          fhirpath.evaluate({}, expression, { items: smallItems }, model);
         }
       },
       {
         name: `${numberOfSmallItems} small items using compile()`,
         testFunction: (fhirpath, model, compiledFn) => {
-          compiledFn({}, { items: smallItems, itemsCopy: smallItemsCopy });
+          compiledFn({}, { items: smallItems });
         }
       }
     ].reduce((arr, item) => {
@@ -105,7 +100,6 @@ module.exports = ({
     ).then(() => {
       open(__dirname + `/results/${suite.filename}.chart.html`);
     });
-
-  });
+  })
 
 }

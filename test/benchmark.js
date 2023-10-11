@@ -35,7 +35,11 @@ child.on('exit', code => {
     // Insert performance test suites here:
     [
       'intersect',
-      'member-invocation'
+      'member-invocation',
+      'union',
+      'exclude',
+      'subsetof',
+      'distinct'
     ].forEach(filename => {
       require('./benchmark/'+ filename)({
         benny,
