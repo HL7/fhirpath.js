@@ -1004,16 +1004,16 @@ FP_Date.isoDate = function(date, precision) {
 
 class FP_Instant extends FP_DateTime {
   /**
-   * Constructs an FP_Instant, assuming dateStr is valid.  If you don't know
-   * whether a string is a valid Date, use FP_Instant.checkString instead.
+   * Constructs an FP_Instant, assuming instantStr is valid.  If you don't know
+   * whether a string is a valid "instant", use FP_Instant.checkString instead.
    */
-  constructor(dateStr) {
-    super(dateStr);
+  constructor(instantStr) {
+    super(instantStr);
   }
 
 
   /**
-   * Returns the match data from matching dateRE against the date string.
+   * Returns the match data from matching instantRE against the "instant" string.
    * Also sets this.precision.
    */
   _getMatchData() {
@@ -1023,7 +1023,7 @@ class FP_Instant extends FP_DateTime {
 
 
 /**
- * Tests str to see if it is convertible to a Date.
+ * Tests str to see if it is convertible to an "instant".
  * @return If str match the "instant" RegExp, returns an FP_Instant;
  *  otherwise returns null.
  */
@@ -1098,7 +1098,10 @@ class ResourceNode {
    */
   convertData() {
     var data = this.data;
-    if (TypeInfo.isType(this.path, 'Quantity')) {
+    const cls = TypeInfo.typeToClassWithCheckString[this.path];
+    if (cls) {
+      data = cls.checkString(data) || data;
+    } else if (TypeInfo.isType(this.path, 'Quantity')) {
       if (data?.system === ucumSystemUrl) {
         if (typeof data.value === 'number' && typeof data.code === 'string') {
           if (data.comparator !== undefined)
@@ -1109,14 +1112,6 @@ class ResourceNode {
           );
         }
       }
-    } else if (this.path === 'date') {
-      data = FP_Date.checkString(data) || data;
-    } else if (this.path === 'dateTime') {
-      data = FP_DateTime.checkString(data) || data;
-    } else if (this.path === 'instant') {
-      data = FP_Instant.checkString(data) || data;
-    } else if (this.path === 'time') {
-      data = FP_Time.checkString(data) || data;
     }
 
     return data;
@@ -1166,6 +1161,17 @@ class TypeInfo {
     return false;
   }
 }
+
+/**
+ * Defines a map from a datatype to a datatype class which has a checkString method.
+ * @type {Object.<string, FP_DateTime | FP_Time>}
+ */
+TypeInfo.typeToClassWithCheckString = {
+  date: FP_Date,
+  dateTime: FP_DateTime,
+  instant: FP_Instant,
+  time: FP_Time
+};
 
 /**
  * Checks if the type name or its parent type name is equal to

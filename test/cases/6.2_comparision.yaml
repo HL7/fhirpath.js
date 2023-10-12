@@ -228,7 +228,7 @@ tests:
     - 'group:  Instant':
       - desc: Comparison using the greater than operator
         inputfile: diagnosticreport-example.json
-        expression: 'DiagnosticReport.effectiveDateTime > DiagnosticReport.issued'
+        expression: 'now() > DiagnosticReport.issued'
         model: r4
         result: [true]
       - desc: Comparison using the less than operator
