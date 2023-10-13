@@ -100,6 +100,7 @@ engine.invocationTable = {
   iif:          {fn: misc.iifMacro,    arity: {2: ["Expr", "Expr"], 3: ["Expr", "Expr", "Expr"]}},
   trace:        {fn: misc.traceFn,     arity: {1: ["String"], 2: ["String", "Expr"]}},
   withVariable: {fn: misc.varFn,     arity: {1: ["String"], 2: ["String", "Expr"]}},
+  defineVariable: {fn: misc.varFn,     arity: {1: ["String"], 2: ["String", "Expr"]}},
   toInteger:    {fn: misc.toInteger},
   toDecimal:    {fn: misc.toDecimal},
   toString:     {fn: misc.toString},
