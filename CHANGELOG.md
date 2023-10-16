@@ -7,6 +7,10 @@ This log documents significant changes for each release.  This project follows
 ### Added
 - support FHIR.instant in expressions.
 
+## [3.7.1] - 2023-09-27
+### Fixed
+- crash in `exists()` when running in strict mode.
+
 ## [3.7.0] - 2023-09-12
 ### Added
 - exclude() function.
