@@ -458,7 +458,7 @@ function makeParam(ctx, parentData, type, param) {
 }
 
 function doInvoke(ctx, fnName, data, rawParams){
-  var invoc = ctx.vars?.userInvocationTable?.[fnName] ?? engine.invocationTable[fnName];
+  var invoc = ctx.userInvocationTable?.[fnName] ?? engine.invocationTable[fnName];
   var res;
   if(invoc) {
     if(!invoc.arity){
@@ -641,8 +641,10 @@ function parse(path) {
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} [options] - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
- * @param {function} [options.traceFn] - An optional trace function to call when tracing
  *  types should be converted to strings, true by default.
+ * @param {function} [options.traceFn] - An optional trace function to call when tracing.
+ * @param {object} [options.userInvocationTable] - a user invocation table used
+ *  to replace any existing or define new functions.
  */
 function applyParsedPath(resource, parsedPath, context, model, options) {
   constants.reset();
@@ -666,8 +668,11 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
     }, {});
   }
   let ctx = {dataRoot, vars: Object.assign(vars, context), model};
-  if (options && options.traceFn) {
+  if (options.traceFn) {
     ctx.customTraceFn = options.traceFn;
+  }
+  if (options.userInvocationTable) {
+    ctx.userInvocationTable = options.userInvocationTable;
   }
   return  engine.doEval(ctx, dataRoot, parsedPath.children[0])
     // engine.doEval returns array of "ResourceNode" and/or "FP_Type" instances.
@@ -729,10 +734,12 @@ function resolveInternalTypes(val) {
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} [options] - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
- * @param {function} [options.traceFn] - An optional trace function to call when tracing
  *  types should be converted to standard JavaScript types (true by default).
  *  If false is passed, this conversion can be done later by calling
  *  resolveInternalTypes().
+ * @param {function} [options.traceFn] - An optional trace function to call when tracing.
+ * @param {object} [options.userInvocationTable] - a user invocation table used
+ *  to replace any existing or define new functions.
  */
 function evaluate(fhirData, path, context, model, options) {
   return compile(path, model, options)(fhirData, context);
@@ -752,8 +759,10 @@ function evaluate(fhirData, path, context, model, options) {
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} [options] - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
- * @param {function} [options.traceFn] - An optional trace function to call when tracing
  *  types should be converted to strings, true by default.
+ * @param {function} [options.traceFn] - An optional trace function to call when tracing.
+ * @param {object} [options.userInvocationTable] - a user invocation table used
+ *  to replace any existing or define new functions.
  */
 function compile(path, model, options) {
   options = {

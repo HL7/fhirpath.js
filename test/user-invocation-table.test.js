@@ -1,23 +1,22 @@
 const fhirpath = require('../src/fhirpath');
-const engine = require('../src/misc');
 
 describe('custom fn to square values', () => {
 
   it('Can apply custom fn', () => {
 
-    const context = {
+    const options = {
       userInvocationTable: {
         pow: {fn: (inputs,pow=2)=>inputs.map(i => Math.pow(i?.data ?? i, pow)), arity: {0: [], 1: ["Integer"]}},
       }
     };
 
-    let retrieved = fhirpath.evaluate({"a": [5,6,7]}, "a.pow()", context);
+    let retrieved = fhirpath.evaluate({"a": [5,6,7]}, "a.pow()", null, null, options);
     expect(retrieved).toEqual([25, 36, 49]);
 
-    retrieved = fhirpath.evaluate({}, "(5 | 6 | 7).pow()", context);
+    retrieved = fhirpath.evaluate({}, "(5 | 6 | 7).pow()", null, null, options);
     expect(retrieved).toEqual([25, 36, 49]);
 
-    retrieved = fhirpath.evaluate({"a": [5,6,7]}, "a.pow(3)", context);
+    retrieved = fhirpath.evaluate({"a": [5,6,7]}, "a.pow(3)", null, null, options);
     expect(retrieved).toEqual([125, 216, 343]);
 
   });
@@ -33,22 +32,22 @@ describe('concept', () => {
       c: {display: "C"}
     };
 
-    const context = {
+    const options = {
       userInvocationTable: {
         concept: {fn: ([{data: ref}]) => [concepts[ref]] , arity: {0: []}},
       }
     };
 
     let expr =  "next.concept().display";
-    let retrieved = fhirpath.evaluate(concepts.a, expr, context);
+    let retrieved = fhirpath.evaluate(concepts.a, expr, null, null, options);
     expect(retrieved).toEqual(["B"]);
 
     expr = "next.concept().select($this.display)";
-    retrieved = fhirpath.evaluate(concepts.a, expr, context);
+    retrieved = fhirpath.evaluate(concepts.a, expr, null, null, options);
     expect(retrieved).toEqual(["B"]);
 
     expr = "next.concept().select($this | $this.next.concept()).display";
-    retrieved = fhirpath.evaluate(concepts.a, expr, context);
+    retrieved = fhirpath.evaluate(concepts.a, expr, null, null, options);
     expect(retrieved).toEqual(["B", "C"]);
 
   });

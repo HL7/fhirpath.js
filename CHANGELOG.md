@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.9.0] - 2023-10-17
+### Added
+- support for user-defined functions.
+
 ## [3.8.0] - 2023-10-03
 ### Added
 - support FHIR.instant in expressions.
