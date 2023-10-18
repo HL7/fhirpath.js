@@ -1,6 +1,6 @@
 {
   "name": "fhirpath",
-  "version": "3.7.0",
+  "version": "3.8.0",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "dependencies": {
@@ -43,7 +43,7 @@
   "scripts": {
     "generateParser": "cd src/parser; rimraf ./generated/*; java -Xmx500M -cp \"../../antlr-4.9.3-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o generated -Dlanguage=JavaScript FHIRPath.g4; grunt updateParserRequirements",
     "build": "cd browser-build && webpack && rimraf fhirpath.zip && bestzip fhirpath.zip LICENSE.md fhirpath.min.js fhirpath.r5.min.js fhirpath.r4.min.js fhirpath.stu3.min.js fhirpath.dstu2.min.js && rimraf  LICENSE.md",
-    "test:unit": "jest && TZ=America/New_York jest && TZ=Europe/Paris jest",
+    "test:unit": "node --use_strict node_modules/.bin/jest && TZ=America/New_York node --use_strict node_modules/.bin/jest && TZ=Europe/Paris node --use_strict node_modules/.bin/jest",
     "test:unit:debug": "echo 'open chrome chrome://inspect/' && node --inspect node_modules/.bin/jest --runInBand",
     "build:demo": "npm run build && cd demo && npm run build",
     "test:e2e": "npm run build:demo && cypress run",

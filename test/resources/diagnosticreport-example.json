@@ -1,0 +1,118 @@
+{
+  "resourceType": "DiagnosticReport",
+  "id": "3",
+  "meta": {
+    "lastUpdated": "2012-04-14T10:35:23Z"
+  },
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">\n\t\t\t\t\t\t\t\t\t<table>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Sodium</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>140</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>mmol/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>137-147</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Serum Potassium</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>4.2</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>mmol/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>3.5-5.0</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Chloride</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>105</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>mmol/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>96-109</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Bicarbonate</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>26</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>mmol/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>25-33</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Other Anions</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>13</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>mmol/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>4-17</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Glucose</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>7.4</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>mmol/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>3.0-7.7</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Urea</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>4.7</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>mmol/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>2.0-7.0</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Serum Creatinine</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>0.09</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>mmol/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>0.04-0.11</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Serum Uric Acid</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>0.39</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>mmol/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>0.14-0.35</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>\n\t\t\t\t\t\t\t\t\t\t\t\t<b>+</b>\n\t\t\t\t\t\t\t\t\t\t\t</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Total Bilirubin</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>7</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>umol/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>2-20</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Direct Bilirubin</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>3</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>umol/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>0-8</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Alkaline phosphatase [Enzymatic activity/volume] in Serum or Plasma</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>108</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>U/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>30-115</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Gamma G.T.</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>35</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>U/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>0-45</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>ALT</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>54</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>U/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>0-45</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>\n\t\t\t\t\t\t\t\t\t\t\t\t<b>+</b>\n\t\t\t\t\t\t\t\t\t\t\t</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>AST</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>30</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>U/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>0-41</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>LD</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>131</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>U/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>80-250</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Serum Calcium</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>2.38</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>mmol/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>2.25-2.65</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Corrected Calcium</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>2.39</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>mmol/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>2.25-2.65</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Serum Phosphate</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>1.5</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>mmol/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>0.8-1.5</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Total Protein</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>67</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>g/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>60-82</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Serum Albumin</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>42</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>g/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>35-50</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Globulins</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>25</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>g/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>20-40</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Iron</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>5</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>umol/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>10-33</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>\n\t\t\t\t\t\t\t\t\t\t\t\t<b>--</b>\n\t\t\t\t\t\t\t\t\t\t\t</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Cholesterol</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>3.8</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>mmol/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>3.6-6.7</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td> </td>\n\t\t\t\t\t\t\t\t\t\t\t<td colspan=\"4\">Revised NHF cholesterol guidelines (Nov.,2001): Target below 4.0 mmol/L if high risk patient. Consider lipid lowering treatment if cholesterol above 6.0 mmol/L, and no other risk factor of CHD.</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>Triglycerides</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>0.9</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>mmol/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>0.3-4.0</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t\t\t\t<td>HDL Cholesterol</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>1.2</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>mmol/L</td>\n\t\t\t\t\t\t\t\t\t\t\t<td>1.0-2.0</td>\n\t\t\t\t\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t\t\t\t</table>\n\t\t\t\t\t\t\t\t</div>"
+  },
+  "identifier": [
+    {
+      "system": "http://acme.com/lab/reports",
+      "value": "5234342"
+    }
+  ],
+  "status": "final",
+  "code": {
+    "coding": [
+      {
+        "system": "http://acme.com/labs/reports",
+        "code": "25T",
+        "display": "E/LFT (MASTER)"
+      }
+    ]
+  },
+  "subject": {
+    "reference": "Patient/1"
+  },
+  "effectiveDateTime": "2005-01-27T06:40:17Z",
+  "issued": "2005-01-27T06:40:01Z",
+  "performer": [
+    {
+      "reference": "Organization/1832473e-2fe0-452d-abe9-3cdb9879522f",
+      "display": "Acme Laboratory, Inc"
+    }
+  ],
+  "result": [
+    {
+      "reference": "Observation/o1-3"
+    },
+    {
+      "reference": "Observation/o2-3"
+    },
+    {
+      "reference": "Observation/o3-3"
+    },
+    {
+      "reference": "Observation/o4-3"
+    },
+    {
+      "reference": "Observation/o5-3"
+    },
+    {
+      "reference": "Observation/o6-3"
+    },
+    {
+      "reference": "Observation/o7-3"
+    },
+    {
+      "reference": "Observation/o8-3"
+    },
+    {
+      "reference": "Observation/o9-3"
+    },
+    {
+      "reference": "Observation/o10-3"
+    },
+    {
+      "reference": "Observation/o11-3"
+    },
+    {
+      "reference": "Observation/o12-3"
+    },
+    {
+      "reference": "Observation/o13-3"
+    },
+    {
+      "reference": "Observation/o14-3"
+    },
+    {
+      "reference": "Observation/o15-3"
+    },
+    {
+      "reference": "Observation/o16-3"
+    },
+    {
+      "reference": "Observation/o17-3"
+    },
+    {
+      "reference": "Observation/o18-3"
+    },
+    {
+      "reference": "Observation/o19-3"
+    },
+    {
+      "reference": "Observation/o20-3"
+    },
+    {
+      "reference": "Observation/o21-3"
+    },
+    {
+      "reference": "Observation/o22-3"
+    },
+    {
+      "reference": "Observation/o23-3"
+    },
+    {
+      "reference": "Observation/o24-3"
+    },
+    {
+      "reference": "Observation/o25-3"
+    },
+    {
+      "reference": "Observation/o26-3"
+    }
+  ]
+}

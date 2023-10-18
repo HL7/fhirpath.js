@@ -17,7 +17,7 @@ engine.notFn = function(coll) {
 engine.existsMacro  = function(coll, expr) {
   var vec = coll;
   if (expr) {
-    return engine.existsMacro(whereMacro(coll, expr));
+    return engine.existsMacro(whereMacro.call(this, coll, expr));
   }
   return !util.isEmpty(vec);
 };
