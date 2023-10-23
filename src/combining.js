@@ -78,7 +78,7 @@ combineFns.exclude = function(coll1, coll2) {
       // Otherwise, it is more efficient to perform a deep comparison.
       result = coll1.filter(item => {
         let item1 = util.valData(item);
-        return !coll2.some(item2 => deepEqual(item1, util.valData(item2)));
+        return !coll2.some(item2 => deepEqual(item1, item2));
       });
     }
   }

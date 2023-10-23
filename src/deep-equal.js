@@ -140,7 +140,9 @@ function objEquiv(a, b, opts) {
 
 module.exports = {
   deepEqual,
-  // Maximum collection length to use deepEqual()
+  // Maximum collection length to use deepEqual(). When comparing a large number
+  // of collection items, it is more efficient to convert the items to strings
+  // using the hashObject() function and compare them.
   maxCollSizeForDeepEqual: 6
 };
 
