@@ -639,7 +639,7 @@ function parse(path) {
  * @param {object} [context] - a hash of variable name/value pairs.
  * @param {object} [model] - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
- * @param {object} [options] - additional options:
+ * @param {object} options - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
  *  types should be converted to strings, true by default.
  * @param {function} [options.traceFn] - An optional trace function to call when tracing.

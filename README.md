@@ -183,13 +183,19 @@ function, `userInvocationTable.pow.arity` is a hash table describing the
 mapping between the allowed number of possible parameters and their types.
 
 Available parameter types:
-- `Expr` - means that FHIRPath expression passed to the function will be converted
-  to a javascript function which will be passed as a parameter to `fn`.
-  This javascript function expects one parameter which will be used as $this for
-  the expression.
-- `AnyAtRoot` - FHIRPath expression passed to the function will be evaluated
-  with $this pointing to the root node of the parent expression before it will
-  be passed to `fn`.
+- `Expr` - means that a FHIRPath expression passed to the function will be
+  converted to a javascript function which will be passed as a parameter to `fn`.
+  This javascript function expects one parameter which will be used as `$this`
+  for the expression.
+- `AnyAtRoot` - a FHIRPath expression passed to the function will be evaluated
+  before it is passed to `fn` with `$this` from the parent expression, or, if
+  `$this` is not defined for the parent expression, then $this will point to the
+  root node of the resource for which the expression is evaluated.
+
+  For example, for the expression `Patient.name.first().subsetOf($this.name)`:
+  `Patient.name.first()` is the parent of `$this.name`.
+  `$this.name` will be evaluated before it is passed to `subsetOf`, with `$this`
+   pointing to the Patient.
 - `Identifier` - currently not in use.
 - `TypeSpecifier` - expects a type specifier to be converted to an instance of
   the TypeInfo class (see src/types.js) before it will be passed to `fn`.
