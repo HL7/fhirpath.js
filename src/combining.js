@@ -1,10 +1,9 @@
 // This file holds code to hande the FHIRPath Combining functions.
 
 const combineFns = {};
-const {distinctFn} = require('./filtering');
+const { distinctFn } = require('./filtering');
 const hashObject = require('./hash-object');
 const { deepEqual, maxCollSizeForDeepEqual } = require('./deep-equal');
-const util = require('./utilities');
 
 combineFns.union = function(coll1, coll2){
   return distinctFn(coll1.concat(coll2));
@@ -77,8 +76,7 @@ combineFns.exclude = function(coll1, coll2) {
     } else {
       // Otherwise, it is more efficient to perform a deep comparison.
       result = coll1.filter(item => {
-        let item1 = util.valData(item);
-        return !coll2.some(item2 => deepEqual(item1, item2));
+        return !coll2.some(item2 => deepEqual(item, item2));
       });
     }
   }

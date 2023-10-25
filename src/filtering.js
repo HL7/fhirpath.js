@@ -121,9 +121,11 @@ engine.distinctFn = function(x) {
       }
     } else {
       // Otherwise, it is more efficient to perform a deep comparison.
-      x = x.concat();
+      // Use reverse() + pop() instead of shift() to improve performance and
+      // maintain order.
+      x = x.concat().reverse();
       do {
-        let xObj = x.shift();
+        let xObj = x.pop();
         unique.push(xObj);
         x = x.filter(o => !deepEqual(xObj, o));
       } while (x.length);
