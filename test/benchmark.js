@@ -21,7 +21,7 @@ const current_fhirpath = require('../src/fhirpath');
 const current_r4_model = require('../fhir-context/r4');
 const minimumDataset = require('./resources/Minimum-Data-Set---version-3.0.R4.json');
 const _ = require('lodash');
-const currentVersion = require('../package.json').version;
+const currentVersion = 'current';
 
 
 const child = spawn('npm', ['i','--prefix', './test/benchmark/prev-fhirpath', 'fhirpath' + prevVersion], {
