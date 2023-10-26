@@ -159,7 +159,7 @@ table has the following structure:
 ```
 {
   <function name>: {
-    fn: <function>,
+    fn: <function implementation>,
     arity: {
       <allowed number of parameters>: <array of parameter types>,
       ...
@@ -173,10 +173,11 @@ table has the following structure:
 An example of defining a function for raising a number to a specified power (by
 default to a power of 2):
 ```js
+const valData = fhirpath.util.valData;
 const userInvocationTable = {
-  pow: {fn: (inputs,pow=2)=>inputs.map(i => Math.pow(i?.data ?? i, pow)), arity: {0: [], 1: ["Integer"]}},
+  pow: {fn: (inputs,pow=2)=>inputs.map(i => Math.pow(valData(i), pow)), arity: {0: [], 1: ["Integer"]}},
 };
-const res = fhirpath.evaluate(contextNode, path, environment, fhirpath_r4_model, { userInvocationTable });
+const res = fhirpath.evaluate({"a": [5,6,7]}, "a.pow()", null, null, { userInvocationTable });
 ```
 Where `pow` is the name of the function, `userInvocationTable.pow.fn` is the
 implementation of the `pow` function, `userInvocationTable.pow.arity` is a hash
@@ -184,9 +185,12 @@ table describing the mapping between the allowed number of possible parameters
 and their types.
 
 A function implementation (e.g. `userInvocationTable.pow.fn`) is a function
-whose first parameter is a resource or part of a resource on which the function
-is executed, subsequent parameters are the parameters passed to the FHIRPath
-function (e.g. `pow`).
+whose first parameter is an array of resource nodes (see class ResourceNode in
+src/types.js), or array of values on which the function is executed, subsequent
+parameters are the parameters passed to the FHIRPath function (e.g. `pow`).
+To ensure that you get the value from the `ResourceNode` or the value as is, you
+can use the `fhirpath.util.valData` or `fhirpath.util.valDataConverted` function
+(see src/utils.js).
 
 Available parameter types:
 - `Expr` - means that a FHIRPath expression passed to the function will be

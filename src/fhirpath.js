@@ -808,5 +808,7 @@ module.exports = {
   resolveInternalTypes,
   types: typesFn,
   // Might as well export the UCUM library, since we are using it.
-  ucumUtils: require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance()
+  ucumUtils: require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance(),
+  // Utility functions that can be used to implement custom functions
+  util
 };

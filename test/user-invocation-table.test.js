@@ -1,4 +1,5 @@
 const fhirpath = require('../src/fhirpath');
+const valData = fhirpath.util.valData;
 
 describe('custom fn to square values', () => {
 
@@ -6,7 +7,7 @@ describe('custom fn to square values', () => {
 
     const options = {
       userInvocationTable: {
-        pow: {fn: (inputs,pow=2)=>inputs.map(i => Math.pow(i?.data ?? i, pow)), arity: {0: [], 1: ["Integer"]}},
+        pow: {fn: (inputs,pow=2)=>inputs.map(i => Math.pow(valData(i), pow)), arity: {0: [], 1: ["Integer"]}},
       }
     };
 
@@ -34,7 +35,7 @@ describe('concept', () => {
 
     const options = {
       userInvocationTable: {
-        concept: {fn: ([{data: ref}]) => [concepts[ref]] , arity: {0: []}},
+        concept: {fn: (input) => [concepts[valData(input[0])]], arity: {0: []}},
       }
     };
 
