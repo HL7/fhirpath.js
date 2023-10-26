@@ -179,8 +179,14 @@ const userInvocationTable = {
 const res = fhirpath.evaluate(contextNode, path, environment, fhirpath_r4_model, { userInvocationTable });
 ```
 Where `pow` is the name of the function, `userInvocationTable.pow.fn` is the
-function, `userInvocationTable.pow.arity` is a hash table describing the
-mapping between the allowed number of possible parameters and their types.
+implementation of the `pow` function, `userInvocationTable.pow.arity` is a hash
+table describing the mapping between the allowed number of possible parameters
+and their types.
+
+A function implementation (e.g. `userInvocationTable.pow.fn`) is a function
+whose first parameter is a resource or part of a resource on which the function
+is executed, subsequent parameters are the parameters passed to the FHIRPath
+function (e.g. `pow`).
 
 Available parameter types:
 - `Expr` - means that a FHIRPath expression passed to the function will be
