@@ -9,19 +9,19 @@ module.exports = ({
                     smallItemsCopy
                   }) => {
   const smallCollectionLength = Math.floor(maxCollSizeForDeepEqual/2);
-  const expression = '%items.intersect(%itemsCopy)';
+  const expression = '%items.exclude(%itemsCopy)';
 
   return [{
-    name: 'intersect() of two collections with',
-    filename: 'intersect',
+    name: 'exclude() all elements from a collection with',
+    filename: 'exclude',
     expression,
     bigItems,
     bigItemsCopy,
     smallItems,
     smallItemsCopy
   }, {
-    name: 'intersect() of two small collections with',
-    filename: 'intersect-for-small-collections',
+    name: 'exclude() all elements from a small collection with',
+    filename: 'exclude-for-small-collections',
     expression,
     bigItems: bigItems.slice(-smallCollectionLength),
     bigItemsCopy: bigItemsCopy.slice(-smallCollectionLength),

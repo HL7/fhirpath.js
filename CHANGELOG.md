@@ -3,6 +3,12 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.8.1] - 2023-10-11
+### Fixed
+- Use `deepEqual` instead of `hashObject` to optimize the comparison of items of
+  small collections in these functions: intersect(), union(), exclude(),
+  subsetOf(), distinct().
+
 ## [3.8.0] - 2023-10-03
 ### Added
 - support FHIR.instant in expressions.
