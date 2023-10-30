@@ -769,6 +769,27 @@ function compile(path, model, options) {
     resolveInternalTypes: true,
     ... options
   };
+
+  const userInvocationTable = options.userInvocationTable;
+  if (userInvocationTable) {
+    options.userInvocationTable = Object.keys(userInvocationTable).reduce(
+      (invocationTable, fnName) => {
+        if (userInvocationTable[fnName].internalStructures) {
+          invocationTable[fnName] = userInvocationTable[fnName];
+        } else {
+          invocationTable[fnName] = {
+            ...userInvocationTable[fnName],
+            fn: (...args) => {
+              return userInvocationTable[fnName].fn.apply(
+                this, args.map(arg => Array.isArray(arg) ? arg.map(item => util.valData(item)) : arg)
+              );
+            }
+          }
+        }
+        return invocationTable;
+      }, {});
+  }
+
   if (typeof path === 'object') {
     const node = parse(path.expression);
     return function (fhirData, context) {

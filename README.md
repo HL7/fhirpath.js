@@ -164,7 +164,8 @@ table has the following structure:
       <allowed number of parameters>: <array of parameter types>,
       ...
     },
-    [nullable: true]
+    [nullable: <boolean, false by default>],
+    [internalStructures: <boolean, false by default>]
   },
   ...
 }
@@ -185,11 +186,13 @@ table describing the mapping between the allowed number of possible parameters
 and their types.
 
 A function implementation (e.g. `userInvocationTable.pow.fn`) is a function
-whose first parameter is an array of resource nodes (see class ResourceNode in
-src/types.js), or array of values on which the function is executed, subsequent
-parameters are the parameters passed to the FHIRPath function (e.g. `pow`).
-To ensure that you get the value from the `ResourceNode` or the value as is, you
-can use the `fhirpath.util.valData` or `fhirpath.util.valDataConverted` function
+whose first parameter is an array of resource node values (if
+`internalStructures` is `true`, this is an array of ResourceNodes see class
+ResourceNode in src/types.js) or an array of values on which the function is
+executed, subsequent parameters are the parameters passed to the FHIRPath
+function (e.g. `pow`). If `internalStructures` is `true` then to ensure that you
+get the value from the `ResourceNode` or the value as is, you can use the
+`fhirpath.util.valData` or `fhirpath.util.valDataConverted` function
 (see src/utils.js).
 
 Available parameter types:
@@ -222,6 +225,9 @@ Available parameter types:
 
 The optional `nullable` flag means propagation of an empty result, i.e. instead
 of calling `fn`, if one of the parameters is empty, empty is returned.
+The optional `internalStructures` flag signals that each internal representation
+of a node (`ResourceNode`) should not be converted to a node value before passing
+it to `fn`. By default it is false.
 
 ## fhirpath CLI
 
