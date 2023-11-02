@@ -6,7 +6,7 @@ describe('custom fn to square values', () => {
 
     const options = {
       userInvocationTable: {
-        pow: {fn: (inputs,pow=2)=>inputs.map(i => Math.pow(i, pow)), arity: {0: [], 1: ["Integer"]}},
+        pow: {fn: (inputs,exp=2)=>inputs.map(i => Math.pow(i, exp)), arity: {0: [], 1: ["Integer"]}},
       }
     };
 
@@ -29,7 +29,7 @@ describe('custom fn to square values', () => {
 
     const options = {
       userInvocationTable: {
-        pow: {fn: (inputs,pow=2)=>inputs.map(i => Math.pow(valData(i), pow)), arity: {0: [], 1: ["Integer"]}, internalStructures: true},
+        pow: {fn: (inputs,exp=2)=>inputs.map(i => Math.pow(valData(i), exp)), arity: {0: [], 1: ["Integer"]}, internalStructures: true},
       }
     };
 

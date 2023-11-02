@@ -153,6 +153,8 @@ let tracefunction = function (x, label) {
 const res = fhirpath.evaluate(contextNode, path, environment, fhirpath_r4_model, { traceFn: tracefunction });
 ```
 
+### User-defined functions
+
 You can also replace any existing or define new functions. To do this you need
 to include a user invocation table in the `options` object. The user invocation
 table has the following structure:
@@ -174,9 +176,8 @@ table has the following structure:
 An example of defining a function for raising a number to a specified power (by
 default to a power of 2):
 ```js
-const valData = fhirpath.util.valData;
 const userInvocationTable = {
-  pow: {fn: (inputs,pow=2)=>inputs.map(i => Math.pow(valData(i), pow)), arity: {0: [], 1: ["Integer"]}},
+  pow: {fn: (inputs,exp=2)=>inputs.map(i => Math.pow(i, exp)), arity: {0: [], 1: ["Integer"]}},
 };
 const res = fhirpath.evaluate({"a": [5,6,7]}, "a.pow()", null, null, { userInvocationTable });
 ```
@@ -186,14 +187,9 @@ table describing the mapping between the allowed number of possible parameters
 and their types.
 
 A function implementation (e.g. `userInvocationTable.pow.fn`) is a function
-whose first parameter is an array of resource node values (if
-`internalStructures` is `true`, this is an array of ResourceNodes see class
-ResourceNode in src/types.js) or an array of values on which the function is
-executed, subsequent parameters are the parameters passed to the FHIRPath
-function (e.g. `pow`). If `internalStructures` is `true` then to ensure that you
-get the value from the `ResourceNode` or the value as is, you can use the
-`fhirpath.util.valData` or `fhirpath.util.valDataConverted` function
-(see src/utils.js).
+whose first parameter is an array of resource node values or an array of values
+on which the function is executed, and subsequent parameters are the parameters
+passed to the FHIRPath function (e.g. `pow`).
 
 Available parameter types:
 - `Expr` - means that a FHIRPath expression passed to the function will be
@@ -225,9 +221,14 @@ Available parameter types:
 
 The optional `nullable` flag means propagation of an empty result, i.e. instead
 of calling `fn`, if one of the parameters is empty, empty is returned.
-The optional `internalStructures` flag signals that each internal representation
-of a node (`ResourceNode`) should not be converted to a node value before passing
-it to `fn`. By default it is false.
+
+If access to internal structures such as `ResourceNode` (see class `ResourceNode`
+in src/types.js) is desired (e.g. for path information), then you can set a flag
+`internalStructures` to true. In this case, each parameter of a function
+implementation (e.g. `userInvocationTable.pow.fn`) can be an array of
+`ResourceNode`s. To ensure that you get the value from the `ResourceNode` or the
+value as is, you can use the `fhirpath.util.valData` or
+`fhirpath.util.valDataConverted` function (see src/utilities.js).
 
 ## fhirpath CLI
 
