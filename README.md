@@ -155,9 +155,9 @@ const res = fhirpath.evaluate(contextNode, path, environment, fhirpath_r4_model,
 
 ### User-defined functions
 
-You can also replace any existing or define new functions. To do this you need
-to include a user invocation table in the `options` object. The user invocation
-table has the following structure:
+You can also replace any existing functions or define new ones. To do this you
+need to include a user invocation table in the `options` object. The user
+invocation table has the following structure:
 ```
 {
   <function name>: {
