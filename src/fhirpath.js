@@ -781,6 +781,10 @@ function compile(path, model, options) {
             ...userInvocationTable[fnName],
             fn: (...args) => {
               return userInvocationTable[fnName].fn.apply(
+                // When we check Array.isArray(arg), we are checking if the
+                // singleton function has been called. An alternative to this is
+                // to check that the type of the argument is Integer, Boolean,
+                // Number, or String.
                 this, args.map(arg => Array.isArray(arg) ? arg.map(item => util.valData(item)) : arg)
               );
             }
