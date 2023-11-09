@@ -788,7 +788,7 @@ function compile(path, model, options) {
                 this, args.map(arg => Array.isArray(arg) ? arg.map(item => util.valData(item)) : arg)
               );
             }
-          }
+          };
         }
         return invocationTable;
       }, {});
