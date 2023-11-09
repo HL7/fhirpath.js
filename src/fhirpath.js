@@ -458,7 +458,7 @@ function makeParam(ctx, parentData, type, param) {
 }
 
 function doInvoke(ctx, fnName, data, rawParams){
-  var invoc = engine.invocationTable[fnName];
+  var invoc = ctx.userInvocationTable?.[fnName] ?? engine.invocationTable[fnName];
   var res;
   if(invoc) {
     if(!invoc.arity){
@@ -636,13 +636,15 @@ function parse(path) {
  * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
  *  This resource will be modified by this function to add type information.
  * @param {object} parsedPath - a special object created by the parser that describes the structure of a fhirpath expression.
- * @param {object} [context] - a hash of variable name/value pairs.
- * @param {object} [model] - The "model" data object specific to a domain, e.g. R4.
+ * @param {object} context - a hash of variable name/value pairs.
+ * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
- * @param {object} [options] - additional options:
+ * @param {object} options - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
- * @param {function} [options.traceFn] - An optional trace function to call when tracing
  *  types should be converted to strings, true by default.
+ * @param {function} [options.traceFn] - An optional trace function to call when tracing.
+ * @param {object} [options.userInvocationTable] - a user invocation table used
+ *  to replace any existing or define new functions.
  */
 function applyParsedPath(resource, parsedPath, context, model, options) {
   constants.reset();
@@ -666,8 +668,11 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
     }, {});
   }
   let ctx = {dataRoot, vars: Object.assign(vars, context), model};
-  if (options && options.traceFn) {
+  if (options.traceFn) {
     ctx.customTraceFn = options.traceFn;
+  }
+  if (options.userInvocationTable) {
+    ctx.userInvocationTable = options.userInvocationTable;
   }
   return  engine.doEval(ctx, dataRoot, parsedPath.children[0])
     // engine.doEval returns array of "ResourceNode" and/or "FP_Type" instances.
@@ -729,10 +734,12 @@ function resolveInternalTypes(val) {
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} [options] - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
- * @param {function} [options.traceFn] - An optional trace function to call when tracing
  *  types should be converted to standard JavaScript types (true by default).
  *  If false is passed, this conversion can be done later by calling
  *  resolveInternalTypes().
+ * @param {function} [options.traceFn] - An optional trace function to call when tracing.
+ * @param {object} [options.userInvocationTable] - a user invocation table used
+ *  to replace any existing or define new functions.
  */
 function evaluate(fhirData, path, context, model, options) {
   return compile(path, model, options)(fhirData, context);
@@ -752,14 +759,41 @@ function evaluate(fhirData, path, context, model, options) {
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} [options] - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
- * @param {function} [options.traceFn] - An optional trace function to call when tracing
  *  types should be converted to strings, true by default.
+ * @param {function} [options.traceFn] - An optional trace function to call when tracing.
+ * @param {object} [options.userInvocationTable] - a user invocation table used
+ *  to replace any existing or define new functions.
  */
 function compile(path, model, options) {
   options = {
     resolveInternalTypes: true,
     ... options
   };
+
+  const userInvocationTable = options.userInvocationTable;
+  if (userInvocationTable) {
+    options.userInvocationTable = Object.keys(userInvocationTable).reduce(
+      (invocationTable, fnName) => {
+        if (userInvocationTable[fnName].internalStructures) {
+          invocationTable[fnName] = userInvocationTable[fnName];
+        } else {
+          invocationTable[fnName] = {
+            ...userInvocationTable[fnName],
+            fn: (...args) => {
+              return userInvocationTable[fnName].fn.apply(
+                // When we check Array.isArray(arg), we are checking if the
+                // singleton function has been called. An alternative to this is
+                // to check that the type of the argument is Integer, Boolean,
+                // Number, or String.
+                this, args.map(arg => Array.isArray(arg) ? arg.map(item => util.valData(item)) : arg)
+              );
+            }
+          };
+        }
+        return invocationTable;
+      }, {});
+  }
+
   if (typeof path === 'object') {
     const node = parse(path.expression);
     return function (fhirData, context) {
@@ -799,5 +833,7 @@ module.exports = {
   resolveInternalTypes,
   types: typesFn,
   // Might as well export the UCUM library, since we are using it.
-  ucumUtils: require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance()
+  ucumUtils: require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance(),
+  // Utility functions that can be used to implement custom functions
+  util
 };

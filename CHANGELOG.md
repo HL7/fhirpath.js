@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.9.0] - 2023-11-09
+### Added
+- support for user-defined functions.
+
 ## [3.8.1] - 2023-10-11
 ### Fixed
 - Use `deepEqual` instead of `hashObject` to optimize the comparison of items of
