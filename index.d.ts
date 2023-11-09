@@ -89,6 +89,7 @@ type UserInvocationTable = {
     arity: {
       [numberOfParams: number]: Array<'Expr' | 'AnyAtRoot' | 'Identifier' | 'TypeSpecifier' | 'Any' | 'Integer' | 'Boolean' | 'Number' | 'String'>
     },
-    nullable?: boolean
+    nullable?: boolean,
+    internalStructures?: boolean
   }
 };
