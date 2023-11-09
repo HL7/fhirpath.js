@@ -8,20 +8,20 @@ module.exports = ({
                     smallItems,
                     smallItemsCopy
                   }) => {
+  const expression = '%items.union(%itemsCopy)';
   const smallCollectionLength = Math.floor(maxCollSizeForDeepEqual/2);
-  const expression = '%items.intersect(%itemsCopy)';
 
   return [{
-    name: 'intersect() of two collections with',
-    filename: 'intersect',
+    name: 'union() of two collections with',
+    filename: 'union',
     expression,
     bigItems,
     bigItemsCopy,
     smallItems,
     smallItemsCopy
   }, {
-    name: 'intersect() of two small collections with',
-    filename: 'intersect-for-small-collections',
+    name: 'union() of two small collections with',
+    filename: 'union-for-small-collections',
     expression,
     bigItems: bigItems.slice(-smallCollectionLength),
     bigItemsCopy: bigItemsCopy.slice(-smallCollectionLength),

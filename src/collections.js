@@ -1,8 +1,8 @@
 // This file holds code to hande the FHIRPath Math functions.
 
-var deepEqual = require('./deep-equal');
+const { deepEqual } = require('./deep-equal');
 
-var engine = {};
+const engine = {};
 
 
 // b is assumed to have one element and it tests whether b[0] is in a
