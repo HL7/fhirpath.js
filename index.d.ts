@@ -4,6 +4,8 @@ declare module "fhirpath" {
       model?: Model,
       options?: {
         resolveInternalTypes?: boolean
+        traceFn?: (value: any, label: string) => void,
+        userInvocationTable?: UserInvocationTable
       }
     ): Compile;
   export function evaluate(
@@ -13,7 +15,8 @@ declare module "fhirpath" {
     model?: Model,
     options?: {
       resolveInternalTypes?: boolean,
-      traceFn?: (value: any, label: string) => void
+      traceFn?: (value: any, label: string) => void,
+      userInvocationTable?: UserInvocationTable
     }
   ): any[];
   export function resolveInternalTypes(value: any): any;
@@ -79,3 +82,14 @@ interface Model {
 type Compile = (resource: any, context?: Context) => any[];
 
 type Context = void | Record<string, any>;
+
+type UserInvocationTable = {
+  [name: string]: {
+    fn: Function,
+    arity: {
+      [numberOfParams: number]: Array<'Expr' | 'AnyAtRoot' | 'Identifier' | 'TypeSpecifier' | 'Any' | 'Integer' | 'Boolean' | 'Number' | 'String'>
+    },
+    nullable?: boolean,
+    internalStructures?: boolean
+  }
+};
