@@ -6,7 +6,8 @@ module.exports = ({
                     bigItems,
                     bigItemsCopy,
                     smallItems,
-                    smallItemsCopy
+                    smallItemsCopy,
+                    options
                   }) => {
   const expression = '%items.union(%itemsCopy)';
   const smallCollectionLength = Math.floor(maxCollSizeForDeepEqual/2);
@@ -18,7 +19,8 @@ module.exports = ({
     bigItems,
     bigItemsCopy,
     smallItems,
-    smallItemsCopy
+    smallItemsCopy,
+    options
   }, {
     name: 'union() of two small collections with',
     filename: 'union-for-small-collections',
@@ -26,7 +28,8 @@ module.exports = ({
     bigItems: bigItems.slice(-smallCollectionLength),
     bigItemsCopy: bigItemsCopy.slice(-smallCollectionLength),
     smallItems: smallItems.slice(-smallCollectionLength),
-    smallItemsCopy: smallItemsCopy.slice(-smallCollectionLength)
+    smallItemsCopy: smallItemsCopy.slice(-smallCollectionLength),
+    options
   }].map(createSuiteForExpression);
 
 }

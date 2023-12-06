@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.9.1] - 2023-12-06
+### Changed
+- Improved performance comparison task: added command line options and enabled
+  Ctrl+C for stopping the tests.
+
 ## [3.9.0] - 2023-11-09
 ### Added
 - support for user-defined functions.

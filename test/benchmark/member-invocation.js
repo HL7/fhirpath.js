@@ -3,7 +3,8 @@ const _ = require('lodash');
 module.exports = ({
                     current_fhirpath,
                     current_r4_model,
-                    minimumDataset
+                    minimumDataset,
+                    options
                   }) => {
 
   const numberOfItems = current_fhirpath.evaluate(minimumDataset,'Questionnaire.item.count()', {},  current_r4_model);
@@ -14,12 +15,14 @@ module.exports = ({
     filename: 'member-invocation',
     expression,
     cases: [
-      {
+      ...(options.compileOnly
+      ? []
+      : [{
         name: `using evaluate()`,
         testFunction: (fhirpath, model) => {
           fhirpath.evaluate(minimumDataset, expression, {}, model);
         }
-      },
+      }]),
       {
         name: `using compile()`,
         testFunction: (fhirpath, model, compiledFn) => {
