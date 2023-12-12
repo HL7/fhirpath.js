@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.9.2] - 2023-12-12
+### Fixed
+- children() and descendants() were returning resource nodes with the incorrect
+  data types.
+
 ## [3.9.1] - 2023-12-06
 ### Changed
 - Improved performance comparison task: added command line options and enabled

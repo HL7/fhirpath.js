@@ -53,6 +53,8 @@ const {
   FP_Type, ResourceNode, TypeInfo
 } = types;
 let makeResNode = ResourceNode.makeResNode;
+const makeChildResNodes = util.makeChildResNodes;
+const pushFn = util.pushFn;
 
 // * fn: handler
 // * arity: is index map with type signature
@@ -336,49 +338,8 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
       const path = parentData.path || parentData.__path__;
       return parentData.reduce(function(acc, res) {
         res = makeResNode(res, path);
-        var childPath = res.path + '.' + key;
-        if (model) {
-          let defPath = model.pathsDefinedElsewhere[childPath];
-          if (defPath)
-            childPath = defPath;
-        }
-        let toAdd, _toAdd;
-        let actualTypes = model && model.choiceTypePaths[childPath];
-        if (actualTypes) {
-          // Use actualTypes to find the field's value
-          for (let t of actualTypes) {
-            let field = key + t;
-            toAdd = res.data?.[field];
-            _toAdd = res.data?.['_' + field];
-            if (toAdd !== undefined || _toAdd !== undefined) {
-              childPath += t;
-              break;
-            }
-          }
-        }
-        else {
-          toAdd = res.data?.[key];
-          _toAdd = res.data?.['_' + key];
-          if (toAdd === undefined && _toAdd === undefined) {
-            toAdd = res._data[key];
-          }
-          if (key === 'extension') {
-            childPath = 'Extension';
-          }
-        }
-        childPath = model && model.path2Type[childPath] || childPath;
-
-        if (util.isSome(toAdd) || util.isSome(_toAdd)) {
-          if(Array.isArray(toAdd)) {
-            acc = acc.concat(toAdd.map((x, i)=>
-              makeResNode(x, childPath, _toAdd && _toAdd[i])));
-          } else {
-            acc.push(makeResNode(toAdd, childPath, _toAdd));
-          }
-          return acc;
-        } else {
-          return acc;
-        }
+        pushFn(acc, makeChildResNodes(res, key, model));
+        return acc;
       }, []);
     }
   } else {

@@ -3,6 +3,7 @@
 const util =  {};
 const types = require('./types');
 let {ResourceNode} = types;
+const makeResNode = ResourceNode.makeResNode;
 
 /**
  *  Reports and error to the calling environment and stops processing.
@@ -112,6 +113,72 @@ util.valDataConverted = function(val) {
  */
 util.escapeStringForRegExp = function (str) {
   return str.replace(/[-[\]{}()*+?.,\\/^$|#\s]/g, '\\$&');
+};
+
+/**
+ * Binding to the Array.prototype.push.apply function to define a function to
+ * push the contents of the source array to the destination array.
+ * @name pushFn
+ * @function
+ * @param {Array} destArray - destination array
+ * @param {Array} sourceArray - source array
+ * @returns the new length property of destArray
+ */
+util.pushFn = Function.prototype.apply.bind(Array.prototype.push);
+
+/**
+ * Creates child resource nodes for the specified resource node property.
+ * @param {ResourceNode} parentResNode - resource node
+ * @param {string} childProperty - name of property
+ * @param {object} [model] - "model" data object
+ * @return {ResourceNode[]}
+ */
+util.makeChildResNodes = function(parentResNode, childProperty, model/*??*/) {
+  let childPath = parentResNode.path + '.' + childProperty;
+
+  if (model) {
+    let defPath = model.pathsDefinedElsewhere[childPath];
+    if (defPath)
+      childPath = defPath;
+  }
+  let toAdd, _toAdd;
+  let actualTypes = model && model.choiceTypePaths[childPath];
+  if (actualTypes) {
+    // Use actualTypes to find the field's value
+    for (let t of actualTypes) {
+      let field = childProperty + t;
+      toAdd = parentResNode.data?.[field];
+      _toAdd = parentResNode.data?.['_' + field];
+      if (toAdd !== undefined || _toAdd !== undefined) {
+        childPath += t;
+        break;
+      }
+    }
+  }
+  else {
+    toAdd = parentResNode.data?.[childProperty];
+    _toAdd = parentResNode.data?.['_' + childProperty];
+    if (toAdd === undefined && _toAdd === undefined) {
+      toAdd = parentResNode._data[childProperty];
+    }
+    if (childProperty === 'extension') {
+      childPath = 'Extension';
+    }
+  }
+  childPath = model && model.path2Type[childPath] || childPath;
+
+  let result;
+  if (util.isSome(toAdd) || util.isSome(_toAdd)) {
+    if(Array.isArray(toAdd)) {
+      result = toAdd.map((x, i)=>
+        makeResNode(x, childPath, _toAdd && _toAdd[i]));
+    } else {
+      result = [makeResNode(toAdd, childPath, _toAdd)];
+    }
+  } else {
+    result = [];
+  }
+  return result;
 };
 
 module.exports = util;

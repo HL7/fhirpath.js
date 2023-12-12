@@ -251,6 +251,34 @@ tests:
     result:
       - true
 
+  - desc: '** descendants() returns resource nodes with the correct data types (1)'
+    inputfile: patient-example.json
+    expression: descendants().where($this is Identifier and system = 'urn:oid:1.2.36.146.595.217.0.1').use = 'usual'
+    model: 'r4'
+    result:
+      - true
+
+  - desc: '** descendants() returns resource nodes with the correct data types (2)'
+    inputfile: patient-example.json
+    expression: descendants().where($this is System.String).count() = 3
+    model: 'r4'
+    result:
+      - true
+
+  - desc: '** descendants() returns resource nodes with the correct data types (3)'
+    inputfile: patient-example.json
+    expression: descendants().where($this is FHIR.string).count() = 49
+    model: 'r4'
+    result:
+      - true
+
+  - desc: '** descendants() returns resource nodes with the correct data types (4)'
+    inputfile: patient-example.json
+    expression: descendants().where($this is string or $this is String ).count() = 52
+    model: 'r4'
+    result:
+      - true
+
 subject:
   coll:
     - a: 1
