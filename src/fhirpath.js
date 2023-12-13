@@ -53,8 +53,6 @@ const {
   FP_Type, ResourceNode, TypeInfo
 } = types;
 let makeResNode = ResourceNode.makeResNode;
-const makeChildResNodes = util.makeChildResNodes;
-const pushFn = util.pushFn;
 
 // * fn: handler
 // * arity: is index map with type signature
@@ -338,7 +336,7 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
       const path = parentData.path || parentData.__path__;
       return parentData.reduce(function(acc, res) {
         res = makeResNode(res, path);
-        pushFn(acc, makeChildResNodes(res, key, model));
+        util.pushFn(acc, util.makeChildResNodes(res, key, model));
         return acc;
       }, []);
     }

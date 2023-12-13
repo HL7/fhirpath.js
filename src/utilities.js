@@ -2,8 +2,7 @@
 
 const util =  {};
 const types = require('./types');
-let {ResourceNode} = types;
-const makeResNode = ResourceNode.makeResNode;
+const {ResourceNode} = types;
 
 /**
  *  Reports and error to the calling environment and stops processing.
@@ -171,9 +170,9 @@ util.makeChildResNodes = function(parentResNode, childProperty, model/*??*/) {
   if (util.isSome(toAdd) || util.isSome(_toAdd)) {
     if(Array.isArray(toAdd)) {
       result = toAdd.map((x, i)=>
-        makeResNode(x, childPath, _toAdd && _toAdd[i]));
+        ResourceNode.makeResNode(x, childPath, _toAdd && _toAdd[i]));
     } else {
-      result = [makeResNode(toAdd, childPath, _toAdd)];
+      result = [ResourceNode.makeResNode(toAdd, childPath, _toAdd)];
     }
   } else {
     result = [];
