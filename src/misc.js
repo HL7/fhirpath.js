@@ -269,6 +269,7 @@ engine.singleton = function (coll, type) {
  * Checks whether a primitve value is present
  */
 const fhirPrimitives = new Set([
+  // TODO: Check if IE11 supports `new Set(iterable)`
   "instant",
   "time",
   "date",

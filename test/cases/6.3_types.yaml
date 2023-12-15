@@ -7,11 +7,12 @@ tests:
     result: [true]
 
   - desc: '** values is integer'
-    expression: coll.a is integer
+    expression: coll.a is Integer
     result: [true]
 
   - desc: '** values isnt Patient type'
     expression: coll.all($this is Patient)
+    model: r4
     result: [false]
 
   - desc: '** is Quantity'
@@ -170,11 +171,11 @@ tests:
   - desc: '6.3.3. as type specifier'
 
   - desc: '** more than one item in the input collection for "as"'
-    expression: mixedTypeVals as integer
+    expression: mixedTypeVals as Integer
     error: true
 
   - desc: '** as integer'
-    expression: mixedTypeVals.select($this as integer)
+    expression: mixedTypeVals.select($this as Integer)
     result: [1]
 
   - desc: '** as Quantity'
@@ -197,15 +198,16 @@ tests:
   - desc: '** "as FHIR.Quantity" returns the empty collection for the System.Quantity'
     inputfile: patient-example.json
     expression: 1 year as FHIR.Quantity
+    model: r4
     result: []
 
   - desc: '6.3.4. as(type : type specifier)'
   - desc: '** more than one item in the input collection for "as()"'
-    expression: mixedTypeVals.as(integer)
+    expression: mixedTypeVals.as(Integer)
     error: true
 
-  - desc: '** as(integer)'
-    expression: mixedTypeVals.select($this.as(integer))
+  - desc: '** as(Integer)'
+    expression: mixedTypeVals.select($this.as(Integer))
     result: [1]
 
   - desc: '** as(Quantity)'
@@ -220,7 +222,7 @@ tests:
 
   - desc: '** as FHIR.Quantity'
     inputfile: quantity-example.json
-    model: 'r4'
+    model: r4
     expression: QuestionnaireResponse.item.select(answer.value.as(FHIR.Quantity)).count()
     result:
       - 4
@@ -228,6 +230,7 @@ tests:
   - desc: '** "as(FHIR.Quantity)" returns the empty collection for the System.Quantity'
     inputfile: patient-example.json
     expression: 1 year.as(FHIR.Quantity)
+    model: r4
     result: []
 
   - desc: '** as Coding'
@@ -260,24 +263,24 @@ tests:
 
   - desc: '** descendants() returns resource nodes with the correct data types (2)'
     inputfile: patient-example.json
-    expression: descendants().where($this is System.String).count() = 3
+    expression: descendants().where($this is System.String).count()
     model: 'r4'
     result:
-      - true
+      - 4
 
   - desc: '** descendants() returns resource nodes with the correct data types (3)'
     inputfile: patient-example.json
-    expression: descendants().where($this is FHIR.string).count() = 49
+    expression: descendants().where($this is FHIR.string).count()
     model: 'r4'
     result:
-      - true
+      - 49
 
   - desc: '** descendants() returns resource nodes with the correct data types (4)'
     inputfile: patient-example.json
-    expression: descendants().where($this is string or $this is String ).count() = 52
+    expression: descendants().where($this is string or $this is String ).count()
     model: 'r4'
     result:
-      - true
+      - 53
 
 subject:
   coll:

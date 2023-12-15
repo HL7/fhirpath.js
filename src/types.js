@@ -1043,15 +1043,17 @@ class ResourceNode {
    *  Constructs a instance for the given node ("data") of a resource.  If the
    *  data is the top-level node of a resouce, the path and type parameters will
    *  be ignored in favor of the resource's resourceType field.
-   * @param data the node's data or value (which might be an object with
+   * @param {*} data the node's data or value (which might be an object with
    *  sub-nodes, an array, or FHIR data type)
-   * @param path the node's path in the resource (e.g. Patient.name).  If the
-   *  data's type can be determined from data, that will take precedence over
-   *  this parameter.
-   * @param _data additional data stored in a property named with "_" prepended,
-   *  see https://www.hl7.org/fhir/element.html#json for details.
+   * @param {string} path the node's path in the resource (e.g. Patient.name).
+   *  If the data's type can be determined from data, that will take precedence
+   *  over this parameter.
+   * @param {*} _data additional data stored in a property named with "_"
+   *  prepended, see https://www.hl7.org/fhir/element.html#json for details.
+   * @param {boolean} isBackbone true if the path points to a backbone element
+   *  in the model, false otherwise.
    */
-  constructor(data, path, _data) {
+  constructor(data, path, _data, isBackbone) {
     // If data is a resource (maybe a contained resource) reset the path
     // information to the resource type.
     if (data?.resourceType)
@@ -1059,6 +1061,7 @@ class ResourceNode {
     this.path = path;
     this.data = data;
     this._data = _data || {};
+    this.isBackbone = isBackbone;
   }
 
   /**
@@ -1066,19 +1069,25 @@ class ResourceNode {
    * @return {TypeInfo}
    */
   getTypeInfo() {
-    const namespace = TypeInfo.FHIR;
-
-    if (/^System\.(.*)$/.test(this.path)) {
-      return new TypeInfo({namespace: TypeInfo.System, name: RegExp.$1});
-    } else if (this.path.indexOf('.') === -1) {
-      return new TypeInfo({namespace, name: this.path});
-    }
+    let result;
 
     if (!TypeInfo.model) {
-      return TypeInfo.createByValueInNamespace({namespace, value: this.data});
+      result = TypeInfo.createByValueInSystemNamespace(this.data);
+    } else if (this.isBackbone) {
+      result = new TypeInfo({
+        namespace: TypeInfo.FHIR,
+        name: 'BackboneElement'
+      });
+    } else if (/^System\.(.*)$/.test(this.path)) {
+      result = new TypeInfo({namespace: TypeInfo.System, name: RegExp.$1});
+    } else if (this.path.indexOf('.') === -1) {
+      result = new TypeInfo({namespace: TypeInfo.FHIR, name: this.path});
     }
 
-    return new TypeInfo({namespace, name: 'BackboneElement'});
+    return result
+      // Resource object properties that are not defined in the model now have
+      // System.* data types:
+      || TypeInfo.createByValueInSystemNamespace(this.data);
   }
 
   toJSON() {
@@ -1125,8 +1134,8 @@ class ResourceNode {
  *  given node is already a ResourceNode.  Takes the same arguments as the
  *  constructor for ResourceNode.
  */
-ResourceNode.makeResNode = function(data, path, _data) {
-  return (data instanceof ResourceNode) ? data : new ResourceNode(data, path, _data);
+ResourceNode.makeResNode = function(data, path, _data, isBackbone = false) {
+  return (data instanceof ResourceNode) ? data : new ResourceNode(data, path, _data, isBackbone);
 };
 
 /**
@@ -1142,6 +1151,9 @@ class TypeInfo {
 
   // The "model" data object specific to a domain, e.g. R4.
   static model = null;
+  // The set of available data types in the System namespace
+  static availableSystemTypes = new Set(['Boolean', 'String', 'Integer',
+    'Decimal', 'Date', 'DateTime', 'Time', 'Quantity']);
 
   /**
    * Checks for equality with another TypeInfo object, or that another TypeInfo
@@ -1159,6 +1171,31 @@ class TypeInfo {
         : this.name === other.name;
     }
     return false;
+  }
+
+  /**
+   * Returns the string representation of type info.
+   * @returns {string}
+   */
+  toString() {
+    return (this.namespace ? this.namespace + '.' : '') + this.name;
+  }
+
+  /**
+   * Returns true if type info represents a valid type identifier, false otherwise.
+   * @returns {boolean}
+   */
+  isValid() {
+    let result = false;
+    if (this.namespace === 'System') {
+      result = TypeInfo.availableSystemTypes.has(this.name);
+    } else if (this.namespace === 'FHIR') {
+      result = TypeInfo.model?.availableTypes.has(this.name);
+    } else if (!this.namespace) {
+      result = TypeInfo.availableSystemTypes.has(this.name)
+        || TypeInfo.model?.availableTypes.has(this.name);
+    }
+    return result;
   }
 }
 
@@ -1194,12 +1231,11 @@ TypeInfo.System = 'System';
 TypeInfo.FHIR = 'FHIR';
 
 /**
- * Creates new TypeInfo object for specified namespace and value
- * @param {String} namespace
+ * Creates new TypeInfo object for specified value in the System namespace.
  * @param {*} value
  * @return {TypeInfo}
  */
-TypeInfo.createByValueInNamespace = function({namespace, value}) {
+TypeInfo.createByValueInSystemNamespace = function(value) {
   let name = typeof value;
 
   if (Number.isInteger(value)) {
@@ -1216,12 +1252,11 @@ TypeInfo.createByValueInNamespace = function({namespace, value}) {
     name = 'Quantity';
   }
 
-  if (namespace === TypeInfo.System) {
-    name = name.replace(/^\w/, c => c.toUpperCase());
-  }
+  name = name.replace(/^\w/, c => c.toUpperCase());
 
-  // TODO: currently can return name = 'object" or "Object" which is probably wrong
-  return new TypeInfo({namespace, name}) ;
+  // Currently can return name = "Object" which is probably wrong,
+  // but the isValid method allows you to check this.
+  return new TypeInfo({namespace: TypeInfo.System, name}) ;
 };
 
 /**
@@ -1232,7 +1267,7 @@ TypeInfo.createByValueInNamespace = function({namespace, value}) {
 TypeInfo.fromValue = function (value) {
   return value instanceof ResourceNode
     ? value.getTypeInfo()
-    : TypeInfo.createByValueInNamespace({namespace: TypeInfo.System, value});
+    : TypeInfo.createByValueInSystemNamespace(value);
 };
 
 /**

@@ -2,7 +2,7 @@
  *  Exports the FHIR model data for R5.  This is an internal structure that
  *  will likely evolve as more FHIR specific processing is added.
  */
-module.exports = {
+const modelInfo = {
   /**
    *  A hash of resource element paths (e.g. Observation.value) that are known
    *  to point to fiels that are choice types.
@@ -22,4 +22,10 @@ module.exports = {
    * Mapping paths to data types.
    */
   path2Type: require('./path2Type.json')
-}
+};
+
+// Generate a set of available data types
+// TODO: Check if IE11 supports `new Set(iterable)`
+modelInfo.availableTypes = new Set([].concat(Object.keys(modelInfo.type2Parent), Object.values(modelInfo.type2Parent)));
+
+module.exports = modelInfo;

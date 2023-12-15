@@ -164,15 +164,18 @@ util.makeChildResNodes = function(parentResNode, childProperty, model/*??*/) {
       childPath = 'Extension';
     }
   }
-  childPath = model && model.path2Type[childPath] || childPath;
+
+  const type = model && model.path2Type[childPath];
+  const isBackbone = type === 'BackboneElement';
+  childPath = isBackbone ? childPath : type || childPath;
 
   let result;
   if (util.isSome(toAdd) || util.isSome(_toAdd)) {
     if(Array.isArray(toAdd)) {
       result = toAdd.map((x, i)=>
-        ResourceNode.makeResNode(x, childPath, _toAdd && _toAdd[i]));
+        ResourceNode.makeResNode(x, childPath, _toAdd && _toAdd[i], isBackbone));
     } else {
-      result = [ResourceNode.makeResNode(toAdd, childPath, _toAdd)];
+      result = [ResourceNode.makeResNode(toAdd, childPath, _toAdd, isBackbone)];
     }
   } else {
     result = [];

@@ -229,7 +229,11 @@ engine.TypeSpecifier = function(ctx, parentData, node) {
       throw new Error("Expected TypeSpecifier node, got " + JSON.stringify(node));
   }
 
-  return new TypeInfo({ namespace, name });
+  const typeInfo =  new TypeInfo({ namespace, name });
+  if (!typeInfo.isValid()) {
+    throw new Error('"' + typeInfo + '" cannot be resolved to a valid type identifier');
+  }
+  return typeInfo;
 };
 
 engine.ExternalConstantTerm = function(ctx, parentData, node) {
