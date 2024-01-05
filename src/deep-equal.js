@@ -7,23 +7,10 @@ var FP_Type = types.FP_Type;
 var util = require('./utilities');
 var numbers = require('./numbers');
 var pSlice = Array.prototype.slice;
+var objectKeys = Object.keys;
 var isArguments = function (object) {
   return Object.prototype.toString.call(object) == '[object Arguments]';
 };
-
-/**
- * Returns the keys of a source object for which there is a value.
- * @param {Object} o - source object
- * @return {string[]}
- */
-function objectKeys(o) {
-  const keys = Object.keys(o);
-  // Ignore null and empty properties
-  return keys.filter(key => {
-    const v = o[key];
-    return v !== null && v !== undefined;
-  });
-}
 
 function isString(myVar) {
   return (typeof myVar === 'string' || myVar instanceof String);

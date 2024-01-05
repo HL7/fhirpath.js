@@ -311,12 +311,11 @@ tests:
         expression: '@T12 = time1.toTime()'
         result: []
 
-      - desc: '** should ignore null properties'
+      - desc: '** should not ignore null properties in arrays'
         inputfile: patient-bundle.json
         model: r4
-        focus: true
         expression: >-
-          Bundle.entry[2] = Bundle.entry[3]
+          Bundle.entry[1] != Bundle.entry[2]
         result:
           - true
 
