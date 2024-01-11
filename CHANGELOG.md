@@ -6,10 +6,15 @@ This log documents significant changes for each release.  This project follows
 ## [3.5.1] - 2023-05-12
 ### Fixed
 - Fixed exception in the "hashObject" internal function when an object has
-  a property with the "null" value. This affects functions that may compare
+  a property with the "null" value. This may affects functions that compare
   objects:
   intersect(), subsetOf(), repeat(), union(), distinct(), isDistinct().
-- Added ignoring null and empty properties when comparing objects.
+- Null values are excluded from the expression evaluation result.
+- Fixed an issue when evaluating an expression for a resource object with missed
+  values at the end of the array in a property.
+- Fixed an issue when evaluating an expression for a resource object when there
+  are no values at all for a property, but there is a list of associated data
+  (ids/extensions).
 
 ## [3.5.0] - 2023-05-04
 ### Added
