@@ -45,7 +45,7 @@ describe('compile', () => {
     );
     const partOfResource = getPartOfResource(input.quantityExample);
     let execExpression = fhirpath.compile(
-      "%partOfResource.answer.value = 3 'min'",
+      "%partOfResource.answer.value = 3 minutes",
       r4_model
     );
     let result = execExpression({}, {partOfResource});
@@ -85,7 +85,7 @@ describe('evaluate', () => {
     );
     let result = fhirpath.evaluate(
       {},
-      "%partOfResource.answer.value = 3 'min'",
+      "%partOfResource.answer.value = 3 minutes",
       {partOfResource},
       r4_model
     );

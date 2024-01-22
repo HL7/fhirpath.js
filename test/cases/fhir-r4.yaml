@@ -1120,6 +1120,7 @@ tests:
         expression: 7 days = 1 'wk'
         result:
           - true
+        disable: true
       - desc: '** testQuantity7'
         inputfile: patient-example.json
         expression: 6 days < 1 week

@@ -96,6 +96,18 @@ class FP_Quantity extends FP_Type {
       return false;
     }
 
+    const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
+    const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
+
+    if (
+      !thisUnitInSeconds !== !otherUnitInSeconds &&
+      (thisUnitInSeconds > 1 || otherUnitInSeconds > 1)
+    ) {
+      // If one of the operands is a calendar duration greater than seconds and
+      // another one is not a calendar duration, return empty result
+      return null;
+    }
+
     if (this.unit === otherQuantity.unit) {
       return numbers.isEqual(this.value, otherQuantity.value);
     }
@@ -236,45 +248,28 @@ class FP_Quantity extends FP_Type {
       return null;
     }
 
-    let thisUcumUnitCode;
-    let otherUcumUnitCode;
-
-    if (thisUnitInSeconds) {
-      thisUcumUnitCode = 's';
-    } else {
-      thisUcumUnitCode = this.unit.replace(surroundingApostrophesRegex, '');
-      const convThis = ucumUtils.convertToBaseUnits(thisUcumUnitCode, 1);
-      if (convThis.status !== 'succeeded' || convThis.fromUnitIsSpecial) {
-        // If the first operand is not a UCUM quantity or it has a special unit
-        return null;
-      }
+    const thisQ = this.convToUcumUnits(this, thisUnitInSeconds);
+    if (!thisQ) {
+      // If the first operand is not a UCUM quantity or it has a special unit
+      return null;
     }
 
-    if (otherUnitInSeconds) {
-      otherUcumUnitCode = 's';
-    } else {
-      otherUcumUnitCode = otherQuantity.unit.replace(surroundingApostrophesRegex, '');
-      const convOther = ucumUtils.convertToBaseUnits(otherUcumUnitCode, 1);
-      if (convOther.status !== 'succeeded' || convOther.fromUnitIsSpecial) {
-        // If the second operand is not a UCUM quantity or it has a special unit
-        return null;
-      }
+    const otherQ = this.convToUcumUnits(otherQuantity, otherUnitInSeconds);
+    if (!otherQ) {
+      // If the second operand is not a UCUM quantity or it has a special unit
+      return null;
     }
 
     // Do not use UCUM unit codes for durations in simple cases
-    const thisIsNumber = this.unit === "'1'";
-    const otherIsNumber = otherQuantity.unit === "'1'";
-    const thisValue = this.value * (otherIsNumber ? 1 : thisUnitInSeconds || 1);
-    const otherValue = otherQuantity.value * (thisIsNumber ? 1 : otherUnitInSeconds || 1);
+    if (this.unit === "'1'") {
+      return new FP_Quantity(this.value * otherQuantity.value, otherQuantity.unit);
+    } else if (otherQuantity.unit === "'1'") {
+      return new FP_Quantity(this.value * otherQuantity.value, this.unit);
+    }
 
-    const resultUnit = thisIsNumber
-      ? otherQuantity.unit
-      : otherIsNumber
-        ? this.unit
-        : `'(${thisUcumUnitCode}).(${otherUcumUnitCode})'`;
     return new FP_Quantity(
-      thisValue * otherValue,
-      resultUnit
+      thisQ.value * otherQ.value,
+      `'(${thisQ.unit}).(${otherQ.unit})'`
     );
   }
 
@@ -323,7 +318,7 @@ class FP_Quantity extends FP_Type {
 
     const otherQ = this.convToUcumUnits(otherQuantity, otherUnitInSeconds);
     if (!otherQ) {
-      // If the first operand is not a UCUM quantity or it has a special unit
+      // If the second operand is not a UCUM quantity or it has a special unit
       return null;
     }
 
@@ -343,8 +338,7 @@ class FP_Quantity extends FP_Type {
   }
 
   /**
-   * Converts a quantity to UCUM unit for division if possible, otherwise returns
-   * null.
+   * Converts a quantity to UCUM unit if possible, otherwise returns null.
    * @param {FP_Quantity} quantity - source quantity.
    * @param {number|undefined} unitInSeconds - if the source quantity is a
    *  calendar duration then the value of the quantity unit in seconds,
