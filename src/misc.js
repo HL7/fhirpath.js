@@ -46,29 +46,28 @@ const quantityRegex = /^((\+|-)?\d+(\.\d+)?)\s*(('[^']+')|([a-zA-Z]+))?$/,
 engine.toQuantity = function (coll, toUnit) {
   let result;
 
-  if (toUnit) {
-    const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
-    const toUnitInSeconds = FP_Quantity._calendarDuration2Seconds[toUnit];
-    if (
-      !thisUnitInSeconds !== !toUnitInSeconds &&
-      (thisUnitInSeconds > 1 || toUnitInSeconds > 1)
-    ) {
-      // Conversion from calendar duration quantities greater than seconds to
-      // time-valued UCUM quantities greater than seconds or vice versa is not
-      // allowed.
-      return null;
-    }
-  }
-
-
-  // Surround UCUM unit code in the toUnit parameter with single quotes
-  if (toUnit && !FP_Quantity.mapTimeUnitsToUCUMCode[toUnit]) {
-    toUnit = `'${toUnit}'`;
-  }
-
   if (coll.length > 1) {
     throw new Error("Could not convert to quantity: input collection contains multiple items");
   } else if (coll.length === 1) {
+    if (toUnit) {
+      const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
+      const toUnitInSeconds = FP_Quantity._calendarDuration2Seconds[toUnit];
+      if (
+        !thisUnitInSeconds !== !toUnitInSeconds &&
+        (thisUnitInSeconds > 1 || toUnitInSeconds > 1)
+      ) {
+        // Conversion from calendar duration quantities greater than seconds to
+        // time-valued UCUM quantities greater than seconds or vice versa is not
+        // allowed.
+        return null;
+      }
+
+      // Surround UCUM unit code in the toUnit parameter with single quotes
+      if (!FP_Quantity.mapTimeUnitsToUCUMCode[toUnit]) {
+        toUnit = `'${toUnit}'`;
+      }
+    }
+
     var v = util.valDataConverted(coll[0]);
     let quantityRegexRes;
 
