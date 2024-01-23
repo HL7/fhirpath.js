@@ -8,20 +8,20 @@ module.exports = ({
                     smallItems,
                     smallItemsCopy
                   }) => {
+  const expression = '%items.subsetOf(%itemsCopy)';
   const smallCollectionLength = Math.floor(maxCollSizeForDeepEqual/2);
-  const expression = '%items.intersect(%itemsCopy)';
 
   return [{
-    name: 'intersect() of two collections with',
-    filename: 'intersect',
+    name: 'subsetOf() of all elements for a collection with',
+    filename: 'subsetof',
     expression,
     bigItems,
     bigItemsCopy,
     smallItems,
     smallItemsCopy
   }, {
-    name: 'intersect() of two small collections with',
-    filename: 'intersect-for-small-collections',
+    name: 'subsetOf() of all elements for a small collection with',
+    filename: 'subsetof-for-small-collections',
     expression,
     bigItems: bigItems.slice(-smallCollectionLength),
     bigItemsCopy: bigItemsCopy.slice(-smallCollectionLength),

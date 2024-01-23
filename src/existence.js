@@ -5,6 +5,7 @@ const util = require("./utilities");
 const {whereMacro, distinctFn} = require("./filtering");
 const misc = require("./misc");
 const hashObject = require('./hash-object');
+const { deepEqual, maxCollSizeForDeepEqual } = require('./deep-equal');
 
 const engine = {};
 engine.emptyFn = util.isEmpty;
@@ -17,7 +18,7 @@ engine.notFn = function(coll) {
 engine.existsMacro  = function(coll, expr) {
   var vec = coll;
   if (expr) {
-    return engine.existsMacro(whereMacro(coll, expr));
+    return engine.existsMacro(whereMacro.call(this, coll, expr));
   }
   return !util.isEmpty(vec);
 };
@@ -74,13 +75,24 @@ engine.anyFalseFn  = function(x) {
  */
 function subsetOf(coll1, coll2) {
   const coll1Length = coll1.length;
-  let rtn = coll1Length <= coll2.length;
-  if (rtn && coll1Length) {
-    const c2Hash = coll2.reduce((hash, item) => {
-      hash[hashObject(item)] = true;
-      return hash;
-    }, {});
-    rtn = !coll1.some(item => !c2Hash[hashObject(item)]);
+  const coll2Length = coll2.length;
+  let rtn = coll1Length <= coll2Length;
+  if (rtn) {
+    if (coll1Length + coll2Length > maxCollSizeForDeepEqual) {
+      // When we have more than maxCollSizeForDeepEqual items in input collections,
+      // we use a hash table (on JSON strings) for efficiency.
+      const c2Hash = coll2.reduce((hash, item) => {
+        hash[hashObject(item)] = true;
+        return hash;
+      }, {});
+      rtn = !coll1.some(item => !c2Hash[hashObject(item)]);
+    } else {
+      // Otherwise, it is more efficient to perform a deep comparison.
+      for (let p=0, pLen=coll1.length; p<pLen && rtn; ++p) {
+        let obj1 = util.valData(coll1[p]);
+        rtn = coll2.some(obj2 => deepEqual(obj1, util.valData(obj2)));
+      }
+    }
   }
   return rtn;
 }

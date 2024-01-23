@@ -3,7 +3,7 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [3.5.1] - 2023-05-12
+## [3.9.1] - 2024-01-22
 ### Fixed
 - Fixed exception in the "hashObject" internal function when an object has
   a property with the "null" value. This may affect functions that compare
@@ -16,6 +16,36 @@ This log documents significant changes for each release.  This project follows
   are no values at all for a property, but there is a list of associated data
   (ids/extensions).
 
+## [3.9.0] - 2023-11-09
+### Added
+- support for user-defined functions.
+
+## [3.8.1] - 2023-10-11
+### Fixed
+- Use `deepEqual` instead of `hashObject` to optimize the comparison of items of
+  small collections in these functions: intersect(), union(), exclude(),
+  subsetOf(), distinct().
+
+## [3.8.0] - 2023-10-03
+### Added
+- support FHIR.instant in expressions.
+
+## [3.7.1] - 2023-09-27
+### Fixed
+- crash in `exists()` when running in strict mode.
+
+## [3.7.0] - 2023-09-12
+### Added
+- exclude() function.
+
+## [3.6.1] - 2023-08-17
+### Fixed
+- trace() affected the context of the following subexpressions.
+
+## [3.6.0] - 2023-07-11
+### Added
+- hasValue() function.
+
 ## [3.5.0] - 2023-05-04
 ### Added
 - Add `split` and `join` functions
@@ -23,7 +53,7 @@ This log documents significant changes for each release.  This project follows
 - Added a callback (traceFn) to the options object for the `trace` function
 ### Fixed
 - Update the typescript definition to mark context and model as optional
-- Corect the `trace` function's name parameter is required
+- Correct the `trace` function's name parameter is required
 
 ## [3.4.0] - 2023-04-26
 ### Added

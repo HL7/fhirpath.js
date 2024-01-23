@@ -6,7 +6,6 @@ var engine = {};
 
 engine.children = function(coll){
   let model = this.model; // "this" is the context object
-
   return coll.reduce(function(acc, x){
     let d = util.valData(x);
     x = makeResNode(x);

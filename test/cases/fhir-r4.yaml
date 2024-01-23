@@ -2853,7 +2853,6 @@ tests:
         expression: 1.combine(1).exclude(2).count() = 2
         result:
           - true
-    disable: true
   - 'group: testIn':
       - desc: '** testIn1'
         inputfile: patient-example.json

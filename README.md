@@ -153,6 +153,83 @@ let tracefunction = function (x, label) {
 const res = fhirpath.evaluate(contextNode, path, environment, fhirpath_r4_model, { traceFn: tracefunction });
 ```
 
+### User-defined functions
+
+You can also replace any existing functions or define new ones. To do this you
+need to include a user invocation table in the `options` object. The user
+invocation table has the following structure:
+```
+{
+  <function name>: {
+    fn: <function implementation>,
+    arity: {
+      <allowed number of parameters>: <array of parameter types>,
+      ...
+    },
+    [nullable: <boolean, false by default>],
+    [internalStructures: <boolean, false by default>]
+  },
+  ...
+}
+```
+
+An example of defining a function for raising a number to a specified power (by
+default to a power of 2):
+```js
+const userInvocationTable = {
+  pow: {fn: (inputs,exp=2)=>inputs.map(i => Math.pow(i, exp)), arity: {0: [], 1: ["Integer"]}},
+};
+const res = fhirpath.evaluate({"a": [5,6,7]}, "a.pow()", null, null, { userInvocationTable });
+```
+Where `pow` is the name of the function, `userInvocationTable.pow.fn` is the
+implementation of the `pow` function, `userInvocationTable.pow.arity` is a hash
+table describing the mapping between the allowed number of possible parameters
+and their types.
+
+A function implementation (e.g. `userInvocationTable.pow.fn`) is a function
+whose first parameter is an array of resource node values or an array of values
+on which the function is executed, and subsequent parameters are the parameters
+passed to the FHIRPath function (e.g. `pow`).
+
+Available parameter types:
+- `Expr` - means that a FHIRPath expression passed to the function will be
+  converted to a javascript function which will be passed as a parameter to `fn`.
+  This javascript function expects one parameter which will be used as `$this`
+  for the expression.
+- `AnyAtRoot` - a FHIRPath expression passed to the function will be evaluated
+  before it is passed to `fn` with `$this` from the parent expression, or, if
+  `$this` is not defined for the parent expression, then $this will point to the
+  root node of the resource for which the expression is evaluated.
+
+  For example, for the expression `Patient.name.first().subsetOf($this.name)`:
+  `Patient.name.first()` is the parent of `$this.name`.
+  `$this.name` will be evaluated before it is passed to `subsetOf`, with `$this`
+   pointing to the Patient.
+- `Identifier` - currently not in use.
+- `TypeSpecifier` - expects a type specifier to be converted to an instance of
+  the TypeInfo class (see src/types.js) before it will be passed to `fn`.
+- `Any` - FHIRPath expression passed to the function will be evaluated before it
+  will be passed to `fn`.
+- `Integer` - a value will be passed to `fn` if it is an integer, otherwise an
+  exception will be thrown.
+- `Boolean` - a value will be passed to `fn` if it is a boolean, otherwise an
+  exception will be thrown.
+- `Number` - a value will be passed to `fn` if it is a number, otherwise an
+  exception will be thrown.
+- `String` - a value will be passed to `fn` if it is a string, otherwise an
+  exception will be thrown.
+
+The optional `nullable` flag means propagation of an empty result, i.e. instead
+of calling `fn`, if one of the parameters is empty, empty is returned.
+
+If access to internal structures such as `ResourceNode` (see class `ResourceNode`
+in src/types.js) is desired (e.g. for path information), then you can set a flag
+`internalStructures` to true. In this case, each parameter of a function
+implementation (e.g. `userInvocationTable.pow.fn`) can be an array of
+`ResourceNode`s. To ensure that you get the value from the `ResourceNode` or the
+value as is, you can use the `fhirpath.util.valData` or
+`fhirpath.util.valDataConverted` function (see src/utilities.js).
+
 ## fhirpath CLI
 
 bin/fhirpath is a command-line tool for experimenting with FHIRPath.
@@ -246,6 +323,10 @@ Completed sections:
 - 7   (Aggregates)
 - 8   (Lexical Elements) - handled by ANTLR parser
 - 9   (Environment Variables)
+
+Supported additional functions from FHIR:
+- extension(url : string) : collection
+- hasValue() : Boolean
 
 ## Development Notes
 

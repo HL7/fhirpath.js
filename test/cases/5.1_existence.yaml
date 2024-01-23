@@ -242,6 +242,14 @@ tests:
     expression: Functions.subsetTestC1.subsetOf(Functions.subsetTestC2)
     result: [true]
 
+  - desc: '** subsetOf for a large collections 1'
+    expression: (1 | 2 | 3 | 4 | 5).subsetOf(1 | 2 | 3 | 4 | 6 | 7)
+    result: [false]
+
+  - desc: '** subsetOf for a large collections 2'
+    expression: (1 | 2 | 3 | 4 | 5).subsetOf(1 | 2 | 3 | 4 | 5 | 6)
+    result: [true]
+
   - desc: '** 5.1.10. supersetOf(other : collection) : boolean'
 # Returns true if all items in the collection passed as the other argument are members of the input
 # collection. Membership is determined using the equals (=) operation (see
@@ -301,6 +309,16 @@ tests:
   - desc: '** isDistinct of coll with same values'
     expression: Functions.coll1.collfalse.attr.isDistinct()
     result: [false]
+
+  - desc: '** isDistinct of a large collection 1'
+    expression: (1 | 2 | 3 | 4 | 5 | 6 | 7).combine(7).isDistinct()
+    result:
+      - false
+
+  - desc: '** isDistinct of a large collection 2'
+    expression: (1 | 2 | 3 | 4 | 5 | 6 | 7).isDistinct()
+    result:
+      - true
 
 
   - desc: '5.1.12. distinct() : collection'
