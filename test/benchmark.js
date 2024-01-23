@@ -44,7 +44,8 @@ child.on('exit', code => {
       'union',
       'exclude',
       'subsetof',
-      'distinct'
+      'distinct',
+      'contains'
     ].forEach(filename => {
       const suites = require('./benchmark/'+ filename)({
         benny,

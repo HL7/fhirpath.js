@@ -372,6 +372,18 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
           if(Array.isArray(toAdd)) {
             acc = acc.concat(toAdd.map((x, i)=>
               makeResNode(x, childPath, _toAdd && _toAdd[i])));
+            // Add items to the end of the ResourceNode list that have no value
+            // but have associated data, such as extensions or ids.
+            const _toAddLength = _toAdd?.length || 0;
+            for (let i = toAdd.length; i < _toAddLength; ++i) {
+              acc.push(makeResNode(null, childPath, _toAdd[i]));
+            }
+          } else if (toAdd == null && Array.isArray(_toAdd)) {
+            // Add items to the end of the ResourceNode list when there are no
+            // values at all, but there is a list of associated data, such as
+            // extensions or ids.
+            acc = acc.concat(_toAdd.map((x) =>
+              makeResNode(null, childPath, x)));
           } else {
             acc.push(makeResNode(toAdd, childPath, _toAdd));
           }
@@ -680,7 +692,7 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
     // Resolve any internal "ResourceNode" instances to plain objects and if
     // options.resolveInternalTypes is true, resolve any internal "FP_Type"
     // instances to strings.
-    .map(n => {
+    .reduce((acc,n) => {
       // Path for the data extracted from the resource.
       let path = n instanceof ResourceNode ? n.path : null;
       n = util.valData(n);
@@ -689,13 +701,17 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
           n = n.toString();
         }
       }
-      // Add a hidden (non-enumerable) property with the path to the data extracted
-      // from the resource.
-      if (path && typeof n === 'object') {
-        Object.defineProperty(n, '__path__', {value: path});
+      // Exclude nulls
+      if (n != null) {
+        // Add a hidden (non-enumerable) property with the path to the data extracted
+        // from the resource.
+        if (path && typeof n === 'object') {
+          Object.defineProperty(n, '__path__', {value: path});
+        }
+        acc.push(n);
       }
-      return n;
-    });
+      return acc;
+    }, []);
 }
 
 /**
