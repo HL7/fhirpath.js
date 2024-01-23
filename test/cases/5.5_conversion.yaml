@@ -139,9 +139,8 @@ tests:
     result: []
   - desc: '** string to Quantity'
     inputfile: patient-example.json
-    expression: '''1 \''wk\''''.toQuantity(''days'') = 7 days'
-    result:
-      - true
+    expression: '''1 \''wk\''''.toQuantity(''days'')'
+    result: []
   - desc: '** string to Quantity'
     inputfile: patient-example.json
     expression: "'1 \\'wk\\''.toQuantity('d') = 7 days"
