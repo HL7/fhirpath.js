@@ -12,7 +12,8 @@ function makeBaseConfig() {
     devtool: 'source-map',
     output: {
       libraryTarget: 'window',
-      path: __dirname
+      path: __dirname,
+      chunkFormat: 'commonjs'
     },
     module: {
       rules: [
@@ -62,7 +63,7 @@ config.plugins = [
 module.exports.push(config);
 
 // FHIR model files
-for (let fhirVers of ['dstu2', 'stu3', 'r4']) {
+for (let fhirVers of ['dstu2', 'stu3', 'r4', 'r5']) {
   config = makeBaseConfig();
   config.entry = '../fhir-context/'+fhirVers+'/index';
   config.output.filename = './fhirpath.'+fhirVers+'.min.js';

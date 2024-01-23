@@ -355,6 +355,14 @@ tests:
         expression: '@T12 = time1.toTime()'
         result: []
 
+      - desc: '** should not ignore null properties in arrays'
+        inputfile: patient-bundle.json
+        model: r4
+        expression: >-
+          Bundle.entry[1] != Bundle.entry[2]
+        result:
+          - true
+
 
   - 'group: 6.1.2. ~ (Equivalent)':
 

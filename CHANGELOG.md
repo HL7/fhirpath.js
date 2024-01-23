@@ -3,12 +3,72 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [3.4.0] - 2023-03-02
+## [3.10.0] - 2024-01-23
 ### Added
 - Support for comparison and math operations with Quantity values.
   It also became possible to use Quantity values with `aggregate()`, `min()`,
   `max()`, `sum()`, `avg()`, and `abs()`.
 - Unary `-` for a Quantity value.
+
+## [3.9.1] - 2024-01-22
+### Fixed
+- Fixed exception in the "hashObject" internal function when an object has
+  a property with the "null" value. This may affect functions that compare
+  objects:
+  intersect(), subsetOf(), repeat(), union(), distinct(), isDistinct().
+- Null values are excluded from the expression evaluation result.
+- Fixed an issue when evaluating an expression for a resource object with missed
+  values at the end of the array in a property.
+- Fixed an issue when evaluating an expression for a resource object when there
+  are no values at all for a property, but there is a list of associated data
+  (ids/extensions).
+
+## [3.9.0] - 2023-11-09
+### Added
+- support for user-defined functions.
+
+## [3.8.1] - 2023-10-11
+### Fixed
+- Use `deepEqual` instead of `hashObject` to optimize the comparison of items of
+  small collections in these functions: intersect(), union(), exclude(),
+  subsetOf(), distinct().
+
+## [3.8.0] - 2023-10-03
+### Added
+- support FHIR.instant in expressions.
+
+## [3.7.1] - 2023-09-27
+### Fixed
+- crash in `exists()` when running in strict mode.
+
+## [3.7.0] - 2023-09-12
+### Added
+- exclude() function.
+
+## [3.6.1] - 2023-08-17
+### Fixed
+- trace() affected the context of the following subexpressions.
+
+## [3.6.0] - 2023-07-11
+### Added
+- hasValue() function.
+
+## [3.5.0] - 2023-05-04
+### Added
+- Add `split` and `join` functions
+- Add `encode` and `decode` functions
+- Added a callback (traceFn) to the options object for the `trace` function
+### Fixed
+- Update the typescript definition to mark context and model as optional
+- Correct the `trace` function's name parameter is required
+
+## [3.4.0] - 2023-04-26
+### Added
+- support for FHIR R5 publication.
+
+## [3.3.2] - 2023-03-29
+### Fixed
+- toQuantity() now works with subclasses of Quantity.
 
 ## [3.3.1] - 2022-11-22
 ### Fixed

@@ -150,7 +150,13 @@ function objEquiv(a, b, opts) {
   return typeof a === typeof b;
 }
 
-module.exports = deepEqual;
+module.exports = {
+  deepEqual,
+  // Maximum collection length to use deepEqual(). When comparing a large number
+  // of collection items, it is more efficient to convert the items to strings
+  // using the hashObject() function and compare them.
+  maxCollSizeForDeepEqual: 6
+};
 
 // The license for node-deep-equal, on which the above code is based, is as
 // follows:

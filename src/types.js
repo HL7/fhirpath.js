@@ -10,6 +10,8 @@ let dateTimeRE = new RegExp(
   '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T'+timeFormat+')?)?)?Z?$');
 let dateRE = new RegExp(
   '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9])?)?$');
+let instantRE = new RegExp(
+  '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T[0-9][0-9](\\:[0-9][0-9](\\:[0-9][0-9](\\.[0-9]+)?))(Z|(\\+|-)[0-9][0-9]\\:[0-9][0-9]))))$');
 // FHIR date/time regular expressions are slightly different.  For now, we will
 // stick with the FHIRPath regular expressions.
 //let fhirTimeRE = /([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?/;
@@ -1244,6 +1246,37 @@ FP_Date.isoDate = function(date, precision) {
   return FP_DateTime.isoDateTime(date, precision);
 };
 
+class FP_Instant extends FP_DateTime {
+  /**
+   * Constructs an FP_Instant, assuming instantStr is valid.  If you don't know
+   * whether a string is a valid "instant", use FP_Instant.checkString instead.
+   */
+  constructor(instantStr) {
+    super(instantStr);
+  }
+
+
+  /**
+   * Returns the match data from matching instantRE against the "instant" string.
+   * Also sets this.precision.
+   */
+  _getMatchData() {
+    return FP_TimeBase.prototype._getMatchData.apply(this, [instantRE, 5]);
+  }
+}
+
+
+/**
+ * Tests str to see if it is convertible to an "instant".
+ * @return If str match the "instant" RegExp, returns an FP_Instant;
+ *  otherwise returns null.
+ */
+FP_Instant.checkString = function(str) {
+  let d = new FP_Instant(str);
+  if (!d._getMatchData())
+    d = null;
+  return d;
+};
 
 /**
  *  A class that represents a node in a FHIR resource, with path and possibly type
@@ -1309,25 +1342,20 @@ class ResourceNode {
    */
   convertData() {
     var data = this.data;
-    switch (this.path) {
-      case 'Quantity':
-        if (data?.system === ucumSystemUrl) {
-          if (typeof data.value === 'number' && typeof data.code === 'string') {
-            if (data.comparator !== undefined)
-              throw new Error('Cannot convert a FHIR.Quantity that has a comparator');
-            data =
-              new FP_Quantity(data.value, FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\'');
-          }
+    const cls = TypeInfo.typeToClassWithCheckString[this.path];
+    if (cls) {
+      data = cls.checkString(data) || data;
+    } else if (TypeInfo.isType(this.path, 'Quantity')) {
+      if (data?.system === ucumSystemUrl) {
+        if (typeof data.value === 'number' && typeof data.code === 'string') {
+          if (data.comparator !== undefined)
+            throw new Error('Cannot convert a FHIR.Quantity that has a comparator');
+          data = new FP_Quantity(
+            data.value,
+            FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\''
+          );
         }
-        break;
-      case 'date':
-        data = FP_Date.checkString(data) || data;
-        break;
-      case 'dateTime':
-        data = FP_DateTime.checkString(data) || data;
-        break;
-      case 'time':
-        data = FP_Time.checkString(data) || data;
+      }
     }
 
     return data;
@@ -1366,22 +1394,44 @@ class TypeInfo {
    * @return {boolean}
    */
   is(other) {
-    if (other instanceof TypeInfo
-      && (!this.namespace || !other.namespace || this.namespace === other.namespace)) {
-      if (TypeInfo.model && (!this.namespace || this.namespace === TypeInfo.FHIR)) {
-        let name = this.name;
-        do {
-          if (name === other.name) {
-            return true;
-          }
-        } while ((name = TypeInfo.model.type2Parent[name]));
-      } else {
-        return this.name === other.name;
-      }
+    if (
+      other instanceof TypeInfo &&
+      (!this.namespace || !other.namespace || this.namespace === other.namespace)
+    ) {
+      return TypeInfo.model && (!this.namespace || this.namespace === TypeInfo.FHIR)
+        ? TypeInfo.isType(this.name, other.name)
+        : this.name === other.name;
     }
     return false;
   }
 }
+
+/**
+ * Defines a map from a datatype to a datatype class which has a checkString method.
+ * @type {Object.<string, FP_DateTime | FP_Time>}
+ */
+TypeInfo.typeToClassWithCheckString = {
+  date: FP_Date,
+  dateTime: FP_DateTime,
+  instant: FP_Instant,
+  time: FP_Time
+};
+
+/**
+ * Checks if the type name or its parent type name is equal to
+ * the expected type name.
+ * @param type - type name to check.
+ * @param superType - expected type name.
+ * @return {boolean}
+ */
+TypeInfo.isType = function(type, superType) {
+  do {
+    if (type === superType) {
+      return true;
+    }
+  } while ((type = TypeInfo.model?.type2Parent[type]));
+  return false;
+};
 
 // Available namespaces:
 TypeInfo.System = 'System';
@@ -1484,6 +1534,7 @@ module.exports = {
   FP_TimeBase: FP_TimeBase,
   FP_Date: FP_Date,
   FP_DateTime: FP_DateTime,
+  FP_Instant: FP_Instant,
   FP_Time: FP_Time,
   FP_Quantity: FP_Quantity,
   timeRE: timeRE,
