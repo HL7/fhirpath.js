@@ -3,6 +3,13 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.10.0] - 2024-01-23
+### Added
+- Support for comparison and math operations with Quantity values.
+  It also became possible to use Quantity values with `aggregate()`, `min()`,
+  `max()`, `sum()`, `avg()`, and `abs()`.
+- Unary `-` for a Quantity value.
+
 ## [3.9.1] - 2024-01-22
 ### Fixed
 - Fixed exception in the "hashObject" internal function when an object has

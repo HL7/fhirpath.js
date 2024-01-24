@@ -83,6 +83,50 @@ tests:
       expression: "true = Ops.unexists"
       result: []
 
+    - 'group: Quantity Equality':
+      - expression: 1 year != 1 'a'
+        result: [true]
+
+      - expression: 12 months = 1 year
+        result: [true]
+
+      - expression: 12 'mo' = 1 'a'
+        result: [true]
+
+      - expression: 1 year = 1 year
+        result: [true]
+
+      - expression: 1 month != 1 'mo'
+        result: [true]
+
+      - expression: 1 month = 30 'd'
+        result: []
+
+      - expression: 1 month = 30 days
+        result: [true]
+
+      - expression: 1 week = 1 'wk'
+        result: []
+
+      - expression: 1 week = 7 days
+        result: [true]
+
+      - expression: 1 day = 1 'd'
+        result: []
+
+      - expression: 1 day = 24 hours
+        result: [true]
+
+      - expression: 1 day = 24 'h'
+        result: []
+
+      - expression: 1 second = 1 's'
+        result: [true]
+
+      - expression: 10 'kg.m/s2' = 5 'kg' * 4 'm' / (2 seconds * 1000 'ms')
+        result: [true]
+
+
     - desc: '* For complex types, equality requires all child properties to be equal, recursively.'
 
     - desc: '** two objects'
@@ -373,6 +417,19 @@ tests:
       result: [false]
     - expression: 0.010 ~ 0.00000010
       result: [false]
+
+    - 'group: Quantity Equivalence':
+      - expression: 1 year ~ 1 'a'
+        result: [true]
+
+      - expression: 12 months ~ 1 'a'
+        result: [true]
+
+      - expression: 1 month ~ 1 'mo'
+        result: [true]
+
+      - expression: 30 days ~ 1 'mo'
+        result: [true]
 
   # dateTime and time: values must be equal, except that for partial date/time
   # values, the comparison returns false, not empty ({ }). If one operand has less

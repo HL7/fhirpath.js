@@ -23,13 +23,11 @@ tests:
       - desc: '** test'
         inputfile: patient-example.json
         expression: '''1 day''.toQuantity() = 1 ''d'''
-        result:
-          - true
+        result: []
       - desc: '** test'
         inputfile: patient-example.json
         expression: '''1 \''wk\''''.toQuantity() = 1 week'
-        result:
-          - true
+        result: []
       - desc: '** test'
         inputfile: patient-example.json
         expression: '''1.0''.toQuantity() ~ 1 ''1'''
@@ -55,10 +53,10 @@ tests:
         expression: QuestionnaireResponse.item[0].answer.value != 2 'a'
         result:
           - true
-      - desc: After converting 'min' to minute it is equal to 'min'
+      - desc: After converting 'min' to minutes it is equal to minutes
         inputfile: quantity-example.json
         model: 'r4'
-        expression: QuestionnaireResponse.item[1].answer.value = 3 'min'
+        expression: QuestionnaireResponse.item[1].answer.value = 3 minutes
         result:
           - true
       - desc: Unable to convert from non-UCUM system
