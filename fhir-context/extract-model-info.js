@@ -43,6 +43,24 @@ function addPath2Type(path, code) {
   }
 }
 
+/**
+ * Extracts data type code from the type description object.
+ * @param {Object} typeDesc - type description object. e.g.
+ *  {
+ *    "extension" : [{
+ *      "url" : "http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type",
+ *        "valueUrl" : "id"
+ *      }],
+ *      "code" : "http://hl7.org/fhirpath/System.String"
+ *  }
+ * @return {string}
+ */
+function getTypeCode(typeDesc) {
+  return typeDesc.extension?.find(
+    e => e.url === 'http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type'
+  )?.valueUrl || typeDesc.code;
+}
+
 for (let f of choiceTypeFiles) {
   // for DSTU2 we use "nameReference" instead of "contentReference"
   // (https://www.hl7.org/fhir/DSTU2/elementdefinition.html)
@@ -105,14 +123,35 @@ for (let f of choiceTypeFiles) {
           // Uppercase the first letter of the type codes so they can be appended to
           // the choice field name.
           let types = n.type.map(t => {
-            const suffix = t.code[0].toUpperCase() + t.code.slice(1);
-            addPath2Type(prefix + suffix, t.code);
+            const typeCode = getTypeCode(t);
+            const suffix = typeCode[0].toUpperCase() + typeCode.slice(1);
+            addPath2Type(prefix + suffix, typeCode);
             return suffix;
           });
           // Remove the [x] from end of the path and store only unique "types"
           choiceTypePaths[prefix] = [...new Set(types)];
         } else {
-          addPath2Type(n.path, n.type[0].code);
+          const typeDesc = n.type[0];
+
+          let pathParts = n.path.split('.');
+          if (pathParts[1] === 'id' && typeDesc.extension?.find(
+            e => e.url === 'http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type'
+          )) {
+            // Temporary workaround for incorrect data types in R4/R5 JSON FHIR
+            // Definitions (https://hl7.org/fhir/R4/downloads.html) for "*.id".
+            // According to the specification published on the Web, "Resource.id"
+            // is of type "FHIR.id", and "Element.id" is of type "FHIR.string".
+            if (pathParts.length === 2 && (
+              pathParts[0].endsWith('Resource') || type2Parent[pathParts[0]]?.endsWith('Resource')
+            )) {
+              addPath2Type(n.path, 'id');
+            } else {
+              addPath2Type(n.path, 'string');
+            }
+          } else {
+            // Obtaining FHIR Definition Data in the normal way
+            addPath2Type(n.path, getTypeCode(typeDesc));
+          }
         }
       }
       else {

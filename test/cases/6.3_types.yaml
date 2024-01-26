@@ -122,9 +122,16 @@ tests:
       - true
     model: r4
 
-  - desc: '** Patient.id is System.String'
+  - desc: '** Patient.id is id (R5)'
     inputfile: patient-example.json
-    expression: Patient.id is System.String
+    expression: Patient.id is id
+    result:
+      - true
+    model: r5
+
+  - desc: '** Patient.id is id (R4)'
+    inputfile: patient-example.json
+    expression: Patient.id is id
     result:
       - true
     model: r4
@@ -260,21 +267,21 @@ tests:
 
   - desc: '** descendants() returns resource nodes with the correct data types (2)'
     inputfile: patient-example.json
-    expression: descendants().where($this is System.String).count() = 3
+    expression: descendants().where($this is FHIR.id).count() = 1
     model: 'r4'
     result:
       - true
 
   - desc: '** descendants() returns resource nodes with the correct data types (3)'
     inputfile: patient-example.json
-    expression: descendants().where($this is FHIR.string).count() = 49
+    expression: descendants().where($this is FHIR.string).count() = 50
     model: 'r4'
     result:
       - true
 
   - desc: '** descendants() returns resource nodes with the correct data types (4)'
     inputfile: patient-example.json
-    expression: descendants().where($this is string or $this is String ).count() = 52
+    expression: descendants().where($this is System.String).count() = 0
     model: 'r4'
     result:
       - true

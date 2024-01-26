@@ -7,6 +7,8 @@ This log documents significant changes for each release.  This project follows
 ### Fixed
 - children() and descendants() were returning resource nodes with the incorrect
   data types.
+- incorrect parsing of JSON FHIR definitions was causing some resource fields to
+  be of type System.String.
 
 ## [3.9.1] - 2023-12-06
 ### Changed
