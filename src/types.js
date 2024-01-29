@@ -56,7 +56,28 @@ class FP_Type {
    *  than otherObj.
    */
   compare(/* otherObj */) {
-    throw 'Not implemented';
+    throw 'Comparison not implemented for ' + this.constructor.name;
+  }
+
+  /**
+   *  Adds other value to this value.
+   */
+  plus(/* otherObj */) {
+    throw 'Addition not implemented for ' + this.constructor.name;
+  }
+
+  /**
+   * Multiplies this value by another value.
+   */
+  mul(/* otherObj */) {
+    throw 'Multiplication not implemented for ' + this.constructor.name;
+  }
+
+  /**
+   * Divides this value by another value.
+   */
+  div(/* otherObj */) {
+    throw 'Division not implemented for ' + this.constructor.name;
   }
 }
 
@@ -75,6 +96,18 @@ class FP_Quantity extends FP_Type {
   equals(otherQuantity) {
     if (!(otherQuantity instanceof this.constructor)) {
       return false;
+    }
+
+    const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
+    const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
+
+    if (
+      !thisUnitInSeconds !== !otherUnitInSeconds &&
+      (thisUnitInSeconds > 1 || otherUnitInSeconds > 1)
+    ) {
+      // If one of the operands is a calendar duration greater than seconds and
+      // another one is not a calendar duration, return empty result
+      return null;
     }
 
     if (this.unit === otherQuantity.unit) {
@@ -117,6 +150,221 @@ class FP_Quantity extends FP_Type {
     }
 
     return numbers.isEquivalent(this.value, convResult.toVal);
+  }
+
+  /**
+   *  Returns a number less than 0, equal to 0 or greater than 0
+   *  if this quantity is less than, equal to, or greater than otherQuantity.
+   *  If the quantities could not be compared, returns null, which will be
+   *  converted to an empty collection in the "doInvoke" function
+   *  See https://hl7.org/fhirpath/#comparison
+   *  @param {FP_Quantity} otherQuantity
+   *  @return {number|null}
+   */
+  compare(otherQuantity) {
+    if (this.unit === otherQuantity.unit) {
+      return this.value - otherQuantity.value;
+    }
+
+    const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
+    const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
+
+    if (
+      !thisUnitInSeconds !== !otherUnitInSeconds &&
+      (thisUnitInSeconds > 1 || otherUnitInSeconds > 1)
+    ) {
+      // If one of the operands is a calendar duration greater than seconds and
+      // another one is not a calendar duration, return empty result
+      // For example, 1 year > 1 'a' should return []
+      return null;
+    }
+
+    const ucumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(this.unit),
+      otherUcumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit),
+      convResult = ucumUtils.convertUnitTo(otherUcumUnitCode, otherQuantity.value, ucumUnitCode);
+
+    if (convResult.status !== 'succeeded') {
+      return null;
+    }
+
+    return this.value - convResult.toVal;
+  }
+
+  /**
+   *  Adds a quantity to this quantity.
+   * @param {FP_Quantity} otherQuantity a quantity to be added to this quantity.
+   * @return {FP_Quantity|null}
+   */
+  plus(otherQuantity) {
+    const thisConvFactor = FP_Quantity._yearMonthConversionFactor[this.unit];
+    const otherConvFactor = FP_Quantity._yearMonthConversionFactor[otherQuantity.unit];
+    if (thisConvFactor && otherConvFactor) {
+      // If the values are indicated in years and months, we use the conversion factor: 1 year = 12 months
+      return new FP_Quantity(this.value + otherQuantity.value * otherConvFactor / thisConvFactor, this.unit);
+    }
+
+    const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
+    const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
+
+    if (
+      !thisUnitInSeconds !== !otherUnitInSeconds &&
+      (thisUnitInSeconds > 1 || otherUnitInSeconds > 1)
+    ) {
+      // If one of the operands is a calendar duration greater than seconds and
+      // another one is not a calendar duration, return empty result
+      return null;
+    }
+
+    const thisUcumUnitCode = thisUnitInSeconds ? 's' : this.unit.replace(surroundingApostrophesRegex, '');
+    const thisValue = (thisUnitInSeconds || 1) * this.value;
+
+    const otherUcumUnitCode = otherUnitInSeconds ? 's' : otherQuantity.unit.replace(surroundingApostrophesRegex, '');
+    const otherValue = (otherUnitInSeconds || 1) * otherQuantity.value;
+
+    const convResult = ucumUtils.convertUnitTo(otherUcumUnitCode, otherValue, thisUcumUnitCode);
+
+    if (convResult.status !== 'succeeded'
+      || convResult.fromUnit.isSpecial_
+      || convResult.toUnit.isSpecial_) {
+      return null;
+    }
+
+    return new FP_Quantity(thisValue + convResult.toVal, thisUcumUnitCode);
+  }
+
+  /**
+   * Multiplies this quantity to another quantity.
+   * @param {FP_Quantity} otherQuantity a quantity by which to multiply this quantity.
+   * @return {FP_Quantity}
+   */
+  mul(otherQuantity) {
+    const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
+    const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
+
+    if (
+      (thisUnitInSeconds > 1 && otherQuantity.unit !== "'1'") ||
+      (otherUnitInSeconds > 1 && this.unit !== "'1'")
+    ) {
+      // If one of the operands is a calendar duration greater than seconds and
+      // another one is not a number, return empty result
+      return null;
+    }
+
+    const thisQ = this.convToUcumUnits(this, thisUnitInSeconds);
+    if (!thisQ) {
+      // If the first operand is not a UCUM quantity or it has a special unit
+      return null;
+    }
+
+    const otherQ = this.convToUcumUnits(otherQuantity, otherUnitInSeconds);
+    if (!otherQ) {
+      // If the second operand is not a UCUM quantity or it has a special unit
+      return null;
+    }
+
+    // Do not use UCUM unit codes for durations in simple cases
+    if (this.unit === "'1'") {
+      return new FP_Quantity(this.value * otherQuantity.value, otherQuantity.unit);
+    } else if (otherQuantity.unit === "'1'") {
+      return new FP_Quantity(this.value * otherQuantity.value, this.unit);
+    }
+
+    return new FP_Quantity(
+      thisQ.value * otherQ.value,
+      `'(${thisQ.unit}).(${otherQ.unit})'`
+    );
+  }
+
+  /**
+   * Divides this quantity by another quantity.
+   * @param {FP_Quantity} otherQuantity a quantity by which to divide this quantity.
+   * @return {FP_Quantity}
+   */
+  div(otherQuantity) {
+    // Division by zero always gives an empty result
+    if (otherQuantity.value === 0) {
+      return null;
+    }
+
+    const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
+    const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
+
+    if (thisUnitInSeconds) {
+      if (otherUnitInSeconds) {
+        // If both operands are calendar duration quantities
+        const thisConvFactor = FP_Quantity._yearMonthConversionFactor[this.unit];
+        const otherConvFactor = FP_Quantity._yearMonthConversionFactor[otherQuantity.unit];
+        if (thisConvFactor && otherConvFactor) {
+          // If the values are indicated in years and months, we use the conversion factor: 1 year = 12 months
+          return new FP_Quantity(this.value * thisConvFactor / (otherQuantity.value * otherConvFactor), "'1'");
+        }
+      } else if (otherQuantity.unit === "'1'") {
+        // If the second operand is a number
+        return new FP_Quantity(this.value / otherQuantity.value, this.unit);
+      } else if (thisUnitInSeconds > 1) {
+        // If the first operand is a calendar duration greater than seconds
+        // and the other is not a calendar duration or number, return an empty result.
+        return null;
+      }
+    } else if (otherUnitInSeconds > 1) {
+      // If the first operands is not a calendar duration and the other is a
+      // calendar duration greater than seconds, return an empty result.
+      return null;
+    }
+
+    const thisQ = this.convToUcumUnits(this, thisUnitInSeconds);
+    if (!thisQ) {
+      // If the first operand is not a UCUM quantity or it has a special unit
+      return null;
+    }
+
+    const otherQ = this.convToUcumUnits(otherQuantity, otherUnitInSeconds);
+    if (!otherQ) {
+      // If the second operand is not a UCUM quantity or it has a special unit
+      return null;
+    }
+
+    const resultUnit = otherQ.unit === '1'
+      ? thisQ.unit
+      : `(${thisQ.unit})/(${otherQ.unit})`;
+
+    const convResult = ucumUtils.convertToBaseUnits(resultUnit, thisQ.value / otherQ.value);
+    if (convResult.status !== 'succeeded') {
+      // If the result units are unclear
+      return null;
+    }
+    return new FP_Quantity(
+      convResult.magnitude,
+      `'${Object.keys(convResult.unitToExp).map(key => key+convResult.unitToExp[key]).join('.') || "1"}'`
+    );
+  }
+
+  /**
+   * Converts a quantity to UCUM unit if possible, otherwise returns null.
+   * @param {FP_Quantity} quantity - source quantity.
+   * @param {number|undefined} unitInSeconds - if the source quantity is a
+   *  calendar duration then the value of the quantity unit in seconds,
+   *  otherwise undefined.
+   * @return {{unit: string, value: number} | null}
+   */
+  convToUcumUnits(quantity, unitInSeconds) {
+    if (unitInSeconds) {
+      return {
+        value: unitInSeconds * quantity.value,
+        unit: 's'
+      };
+    } else {
+      const unit = quantity.unit.replace(surroundingApostrophesRegex, '');
+      const convRes = ucumUtils.convertToBaseUnits(unit, quantity.value);
+      if (convRes.status !== 'succeeded' || convRes.fromUnitIsSpecial) {
+        // If it is not a UCUM quantity or it has a special unit
+        return null;
+      }
+      return {
+        value: convRes.magnitude,
+        unit: Object.keys(convRes.unitToExp).map(key => key+convRes.unitToExp[key]).join('.') || "1"
+      };
+    }
   }
 
   /**
@@ -254,10 +502,10 @@ FP_Quantity._yearMonthConversionFactor = {
 };
 
 /**
- *  Defines a map from time units that are supported for arithmetic (including
- *  some UCUM time based units) to FHIRPath time units.
+ *  Defines a map from time units that are supported for date/time arithmetic
+ *  (including some UCUM time based units) to FHIRPath time units.
  */
-FP_Quantity.arithmeticDurationUnits = {
+FP_Quantity.dateTimeArithmeticDurationUnits = {
   'years': "year",
   'months': "month",
   'weeks': "week",
@@ -274,10 +522,6 @@ FP_Quantity.arithmeticDurationUnits = {
   'minute': "minute",
   'second': "second",
   'millisecond': "millisecond",
-  "'wk'": "week",
-  "'d'": "day",
-  "'h'": "hour",
-  "'min'": "minute",
   "'s'": "second",
   "'ms'": "millisecond"
 };
@@ -319,11 +563,11 @@ class FP_TimeBase extends FP_Type {
    */
   plus(timeQuantity) {
     const unit = timeQuantity.unit;
-    let timeUnit = FP_Quantity.arithmeticDurationUnits[unit];
+    let timeUnit = FP_Quantity.dateTimeArithmeticDurationUnits[unit];
     if (!timeUnit) {
       throw new Error('For date/time arithmetic, the unit of the quantity ' +
         'must be one of the following time-based units: ' +
-        Object.keys(FP_Quantity.arithmeticDurationUnits));
+        Object.keys(FP_Quantity.dateTimeArithmeticDurationUnits));
     }
     const cls = this.constructor;
     const unitPrecision = cls._timeUnitToDatePrecision[timeUnit];

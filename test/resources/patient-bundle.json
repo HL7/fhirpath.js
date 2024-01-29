@@ -1,0 +1,79 @@
+{
+  "id": "fake-list-of-similar-patient-data",
+  "type": "searchset",
+  "total": 3,
+  "resourceType": "Bundle",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "family": "Chalmers",
+            "given": [
+              "Peter",
+              "James"
+            ],
+            "_given": [
+              null,
+              {
+                "extension" : [ {
+                  "url" : "http://hl7.org/fhir/StructureDefinition/display",
+                  "valueString" : "Jacomus"
+                }]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "family": "Chalmers",
+            "given": [
+              "Peter",
+              "James"
+            ],
+            "_given": [
+              null,
+              {
+                "extension" : [ {
+                  "url" : "http://hl7.org/fhir/StructureDefinition/display",
+                  "valueString" : "Jacomus"
+                }]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "name": [
+          {
+            "use": "official",
+            "family": "Chalmers",
+            "given": [
+              "Peter",
+              "James"
+            ],
+            "_given": [
+              {
+                "extension" : [ {
+                  "url" : "http://hl7.org/fhir/StructureDefinition/display",
+                  "valueString" : "Jacomus"
+                }]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

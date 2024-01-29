@@ -136,18 +136,15 @@ tests:
   - desc: '** string to Quantity'
     inputfile: patient-example.json
     expression: '''1 \''wk\''''.toQuantity() = 7 days'
-    result:
-      - true
+    result: []
   - desc: '** string to Quantity'
     inputfile: patient-example.json
-    expression: '''1 \''wk\''''.toQuantity(''days'') = 7 days'
-    result:
-      - true
+    expression: '''1 \''wk\''''.toQuantity(''days'')'
+    result: []
   - desc: '** string to Quantity'
     inputfile: patient-example.json
     expression: "'1 \\'wk\\''.toQuantity('d') = 7 days"
-    result:
-      - true
+    result: []
   - desc: '** string to Quantity - result UCUM unit code must be surrounded with single quotes'
     inputfile: patient-example.json
     expression: "'1 \\'wk\\''.toQuantity('d').toString() = '7 \\'d\\''"

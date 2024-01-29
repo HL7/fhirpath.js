@@ -23,7 +23,8 @@ const availableTests = [
   'union',
   'exclude',
   'subsetof',
-  'distinct'
+  'distinct',
+  'contains'
 ];
 
 const options = require('commander');
