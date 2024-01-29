@@ -14,12 +14,14 @@
  *  "%items" variable.
  * @param {Array} desc.smallItemsCopy - copy of desc.smallItems in case
  *  expression uses it as "%itemsCopy".
+ * @param {Object} desc.options - command line options. See benchmark.js.
  * @return an object describing a suite with 4 cases for use in benchmark.js.
  */
 function createSuiteForExpression(desc) {
   const collectionOfBigItems = desc.bigItems;
   const collectionOfBigItemsCopy = desc.bigItemsCopy;
   const numberOfBigItems = collectionOfBigItems.length;
+  const options = desc.options;
 
   const collectionOfSmallItems = desc.smallItems;
   const collectionOfSmallItemsCopy = desc.smallItemsCopy;
@@ -30,24 +32,33 @@ function createSuiteForExpression(desc) {
     filename: desc.filename,
     expression: desc.expression,
     cases: [
-      {
-        name: `${numberOfBigItems} big items using evaluate()`,
-        testFunction: (fhirpath, model) => {
-          fhirpath.evaluate({}, desc.expression, { items: collectionOfBigItems, itemsCopy: collectionOfBigItemsCopy }, model);
-        }
-      },
+      ...(options.compileOnly
+        ? []
+        : [{
+          name: `${numberOfBigItems} big items using evaluate()`,
+          testFunction: (fhirpath, model) => {
+            fhirpath.evaluate({}, desc.expression, {
+              items: collectionOfBigItems,
+              itemsCopy: collectionOfBigItemsCopy
+            }, model);
+          }
+        }]
+      ),
       {
         name: `${numberOfBigItems} big items using compile()`,
         testFunction: (fhirpath, model, compiledFn) => {
           compiledFn({}, { items: collectionOfBigItems, itemsCopy: collectionOfBigItemsCopy });
         }
       },
-      {
-        name: `${numberOfSmallItems} small items using evaluate()`,
-        testFunction: (fhirpath, model) => {
-          fhirpath.evaluate({}, desc.expression, { items: collectionOfSmallItems, itemsCopy: collectionOfSmallItemsCopy }, model);
-        }
-      },
+      ...(options.compileOnly
+        ? []
+        : [{
+          name: `${numberOfSmallItems} small items using evaluate()`,
+          testFunction: (fhirpath, model) => {
+            fhirpath.evaluate({}, desc.expression, { items: collectionOfSmallItems, itemsCopy: collectionOfSmallItemsCopy }, model);
+          }
+        }]
+      ),
       {
         name: `${numberOfSmallItems} small items using compile()`,
         testFunction: (fhirpath, model, compiledFn) => {

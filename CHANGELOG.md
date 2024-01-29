@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.10.1] - 2024-01-29
+### Changed
+- Improved performance comparison task: added command line options and enabled
+  Ctrl+C for stopping the tests.
+
 ## [3.10.0] - 2024-01-23
 ### Added
 - Support for comparison and math operations with Quantity values.

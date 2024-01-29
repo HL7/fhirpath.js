@@ -6,7 +6,8 @@ module.exports = ({
                     bigItems,
                     bigItemsCopy,
                     smallItems,
-                    smallItemsCopy
+                    smallItemsCopy,
+                    options
                   }) => {
   const smallCollectionLength = Math.floor(maxCollSizeForDeepEqual/2);
   const expression = '%items.intersect(%itemsCopy)';
@@ -18,7 +19,8 @@ module.exports = ({
     bigItems,
     bigItemsCopy,
     smallItems,
-    smallItemsCopy
+    smallItemsCopy,
+    options
   }, {
     name: 'intersect() of two small collections with',
     filename: 'intersect-for-small-collections',
@@ -26,7 +28,8 @@ module.exports = ({
     bigItems: bigItems.slice(-smallCollectionLength),
     bigItemsCopy: bigItemsCopy.slice(-smallCollectionLength),
     smallItems: smallItems.slice(-smallCollectionLength),
-    smallItemsCopy: smallItemsCopy.slice(-smallCollectionLength)
+    smallItemsCopy: smallItemsCopy.slice(-smallCollectionLength),
+    options
   }].map(createSuiteForExpression);
 
 }
