@@ -14,7 +14,17 @@ tests:
       inputfile: patient-example.json
       expression: Patient.name.hasValue()
       result: [false]
-      
+
+    - desc: 'collection only contains an element without a value but with an extension'
+      inputfile: patient-example-3.json
+      expression: Patient.birthDate.hasValue()
+      result: [false]
+
+    - desc: 'collection only contains an element of a non-FHIR primitive type'
+      expression: >-
+        '5'.hasValue()
+      result: [false]
+
   - 'group: model specified':
     - desc: 'collection only contains one string'
       inputfile: patient-example.json
@@ -60,4 +70,14 @@ tests:
       model: 'dstu2'
       result: [false]
       
+    - desc: 'collection only contains an element without a value but with an extension'
+      inputfile: patient-example-3.json
+      expression: Patient.birthDate.hasValue()
+      model: 'r4'
+      result: [false]
 
+    - desc: 'collection only contains an element of a non-FHIR primitive type'
+      expression: >-
+        '5'.hasValue()
+      model: 'r4'
+      result: [false]

@@ -4,6 +4,7 @@
 
 var util = require("./utilities");
 var types = require("./types");
+const { ResourceNode } = require('./types');
 
 const { FP_Quantity } = types;
 
@@ -308,16 +309,12 @@ const fhirPrimitives = new Set([
 
 engine.hasValueFn = function(coll) {
   let model = this.model;
+  const v = coll.length === 1 && coll[0];
 
-  if (coll.length === 1){
-    if(model){
-      return [fhirPrimitives.has(coll[0].path)];
-    } else {
-      return [isPrimitiveDefault(util.valData(coll[0]))];
-    }
-  } else {
-    return [false];
-  }
+  return [
+    v instanceof ResourceNode &&
+    (model ? v?.data && fhirPrimitives.has(v.path) || false : isPrimitiveDefault(v.data))
+  ];
 };
 
 function isPrimitiveDefault(data){

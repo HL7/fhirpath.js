@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.10.2] - 2024-01-29
+### Fixed
+- hasValue() function has only checked the data type of an input single-element
+  collection, but not the existence of a value.
+
 ## [3.10.1] - 2024-01-29
 ### Changed
 - Improved performance comparison task: added command line options and enabled
