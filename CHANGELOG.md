@@ -5,8 +5,8 @@ This log documents significant changes for each release.  This project follows
 
 ## [3.10.2] - 2024-01-29
 ### Fixed
-- hasValue() function has only checked the data type of an input single-element
-  collection, but not the existence of a value.
+- hasValue() function previously only checked the data type of an input
+  single-element collection, but not the existence of a value.
 
 ## [3.10.1] - 2024-01-29
 ### Changed
