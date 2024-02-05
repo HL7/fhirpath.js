@@ -139,8 +139,10 @@ for (let f of choiceTypeFiles) {
           )) {
             // Temporary workaround for incorrect data types in R4/R5 JSON FHIR
             // Definitions (https://hl7.org/fhir/R4/downloads.html) for "*.id".
-            // According to the specification published on the Web, "Resource.id"
-            // is of type "FHIR.id", and "Element.id" is of type "FHIR.string".
+            // According to the specification published on the Web, the "id" in
+            // "Resource" (and objects inherited from "Resource") is of type
+            // "FHIR.id", but the "id" in "Element" (and objects inherited
+            // from "Element") is of type "FHIR.string".
             if (pathParts.length === 2 && (
               pathParts[0].endsWith('Resource') || type2Parent[pathParts[0]]?.endsWith('Resource')
             )) {
