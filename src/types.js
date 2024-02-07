@@ -1138,6 +1138,11 @@ ResourceNode.makeResNode = function(data, path, _data, isBackbone = false) {
   return (data instanceof ResourceNode) ? data : new ResourceNode(data, path, _data, isBackbone);
 };
 
+// The set of available data types in the System namespace
+const availableSystemTypes = new Set();
+// IE11 probably doesn't support `new Set(iterable)`
+['Boolean', 'String', 'Integer', 'Decimal', 'Date', 'DateTime', 'Time', 'Quantity'].forEach(i => availableSystemTypes.add(i));
+
 /**
  * Object class defining type information.
  * Used for minimal type support.
@@ -1151,9 +1156,6 @@ class TypeInfo {
 
   // The "model" data object specific to a domain, e.g. R4.
   static model = null;
-  // The set of available data types in the System namespace
-  static availableSystemTypes = new Set(['Boolean', 'String', 'Integer',
-    'Decimal', 'Date', 'DateTime', 'Time', 'Quantity']);
 
   /**
    * Checks for equality with another TypeInfo object, or that another TypeInfo
@@ -1188,11 +1190,11 @@ class TypeInfo {
   isValid() {
     let result = false;
     if (this.namespace === 'System') {
-      result = TypeInfo.availableSystemTypes.has(this.name);
+      result = availableSystemTypes.has(this.name);
     } else if (this.namespace === 'FHIR') {
       result = TypeInfo.model?.availableTypes.has(this.name);
     } else if (!this.namespace) {
-      result = TypeInfo.availableSystemTypes.has(this.name)
+      result = availableSystemTypes.has(this.name)
         || TypeInfo.model?.availableTypes.has(this.name);
     }
     return result;

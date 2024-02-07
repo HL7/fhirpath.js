@@ -25,8 +25,10 @@ const modelInfo = {
 };
 
 // Generate a set of available data types
-// TODO: Check if IE11 supports `new Set(iterable)`
-modelInfo.availableTypes = new Set([].concat(Object.keys(modelInfo.type2Parent), Object.values(modelInfo.type2Parent)));
+modelInfo.availableTypes = new Set();
+// IE11 probably doesn't support `new Set(iterable)`
+Object.keys(modelInfo.type2Parent).forEach(i => modelInfo.availableTypes.add(i));
+Object.values(modelInfo.type2Parent).forEach(i => modelInfo.availableTypes.add(i));
 
 module.exports = modelInfo;
 

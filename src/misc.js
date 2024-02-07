@@ -268,8 +268,9 @@ engine.singleton = function (coll, type) {
 /**
  * Checks whether a primitve value is present
  */
-const fhirPrimitives = new Set([
-  // TODO: Check if IE11 supports `new Set(iterable)`
+const fhirPrimitives = new Set();
+// IE11 probably doesn't support `new Set(iterable)`
+[
   "instant",
   "time",
   "date",
@@ -290,7 +291,7 @@ const fhirPrimitives = new Set([
   "uuid",
   "canonical",
   "url"
-]);
+].forEach(i => fhirPrimitives.add(i));
 
 engine.hasValueFn = function(coll) {
   let model = this.model;
