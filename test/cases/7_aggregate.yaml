@@ -21,6 +21,18 @@ tests:
         expression: ('a'|'b'|'c').aggregate($total & '-' & $this, 'concat')
         result:
           - 'concat-a-b-c'
+      - desc: 'aggregate() function for collection with null elements'
+        inputfile: patient-example-2.json
+        model: r4
+        expression: Patient.name.given.aggregate($total & '-' & $this, '')
+        result:
+          - '-Peter-James'
+      - desc: 'aggregate() function for collection with null initial value'
+        inputfile: patient-example-2.json
+        model: r4
+        expression: (Patient.name.given[1] | Patient.name.given[2]).aggregate($total & '-' & $this, %context.name.given[0])
+        result:
+          - '-Peter-James'
       - desc: 'aggregate() function with quantity values'
         expression: (1 'cm'|3 'cm'|1 'm').aggregate($total + $this, 0 'cm') = 104 'cm'
         result:
@@ -36,6 +48,11 @@ tests:
       - desc: 'sum() function calculates the sum of undefined input collection'
         expression: UndefinedInput.sum()
         result: []
+      - desc: 'sum() function calculates the sum of input collection with null elements'
+        inputfile: patient-example-2.json
+        model: r4
+        expression: Patient.name.given.sum()
+        result: ['JamesPeter']
       - desc: 'sum() function calculates the sum of quantity values'
         expression: (1 'cm'|3 'cm'|1 'm').sum() = 104 'cm'
         result:

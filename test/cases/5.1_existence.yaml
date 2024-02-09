@@ -8,6 +8,12 @@ tests:
     expression: Functions.attrempty.empty()
     result: [true]
 
+  - desc: '** null is empty'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].empty()
+    result: [true]
+
   - desc: '** not empty coll'
     expression: Functions.attrsingle.empty()
     result: [false]
@@ -71,6 +77,12 @@ tests:
 
   - desc: '** exists for empty coll should return false'
     expression: Functions.attrempty.exists()
+    result: [false]
+
+  - desc: '** exists for null should return false'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].exists()
     result: [false]
 
   - desc: '** exists for undefined coll should return false'

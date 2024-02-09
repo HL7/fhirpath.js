@@ -60,6 +60,9 @@ let makeResNode = ResourceNode.makeResNode;
 //   function accepts value of this type or empty value {}
 // * nullable - means propagate empty result, i.e. instead
 //   calling function if one of params is  empty return empty
+// * accessToNull - means not to filter out source ResourceNodes if they have
+//   a null value and the function (like "extension()") handles such situations
+//   on its own.
 
 engine.invocationTable = {
   empty:        {fn: existence.emptyFn},
@@ -76,7 +79,7 @@ engine.invocationTable = {
   distinct:     {fn: filtering.distinctFn},
   count:        {fn: aggregate.countFn},
   where:        {fn: filtering.whereMacro, arity: {1: ["Expr"]}},
-  extension:    {fn: filtering.extension, arity: {1: ["String"]}},
+  extension:    {fn: filtering.extension, arity: {1: ["String"]}, accessToNull: true},
   select:       {fn: filtering.selectMacro, arity: {1: ["Expr"]}},
   aggregate:    {fn: aggregate.aggregateMacro, arity: {1: ["Expr"], 2: ["Expr", "Any"]}},
   sum:          {fn: aggregate.sumFn},
@@ -449,7 +452,7 @@ function makeParam(ctx, parentData, type, param) {
   }
   if(type === "AnyAtRoot"){
     const $this = ctx.$this || ctx.dataRoot;
-    return engine.doEval({ ...ctx, $this}, $this, param);
+    return engine.doEval({ ...ctx, $this}, $this, param).filter(i => util.valData(i) !== null);
   }
   if(type === "Identifier"){
     if(param.type === "TermExpression") {
@@ -463,7 +466,7 @@ function makeParam(ctx, parentData, type, param) {
     return engine.TypeSpecifier(ctx, parentData, param);
   }
 
-  const res = engine.doEval(ctx, parentData, param);
+  const res = engine.doEval(ctx, parentData, param).filter(i => util.valData(i) !== null);
   if(type === "Any") {
     return res;
   }
@@ -479,11 +482,14 @@ function makeParam(ctx, parentData, type, param) {
 
 function doInvoke(ctx, fnName, data, rawParams){
   var invoc = ctx.userInvocationTable?.[fnName] ?? engine.invocationTable[fnName];
+  if (!invoc.accessToNull) {
+    data = data.filter(i => util.valData(i) !== null);
+  }
   var res;
   if(invoc) {
     if(!invoc.arity){
       if(!rawParams){
-        res = invoc.fn.call(ctx, util.arraify(data));
+        res = invoc.fn.call(ctx, data);
         return util.arraify(res);
       } else {
         throw new Error(fnName + " expects no params");
@@ -521,6 +527,7 @@ function isNullable(x) {
 
 function infixInvoke(ctx, fnName, data, rawParams){
   var invoc = engine.invocationTable[fnName];
+  data = data.filter(i => util.valData(i) !== null);
   if(invoc && invoc.fn) {
     var paramsNumber = rawParams ? rawParams.length : 0;
     if(paramsNumber !== 2) { throw new Error("Infix invoke should have arity 2"); }

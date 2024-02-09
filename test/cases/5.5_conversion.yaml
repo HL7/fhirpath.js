@@ -131,6 +131,12 @@ tests:
     expression: attrdec.toString()
     result: ['101.99']
 
+  - desc: '** null to string'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].toString()
+    result: []
+
 
   - desc: '5.5.7. toQuantity([unit:string]) : Quantity'
   - desc: '** string to Quantity'

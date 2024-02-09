@@ -280,6 +280,31 @@ tests:
   - desc: '** Empty collection in concatenation is empty string (3)'
     expression: n4 & n4
     result: [""]
+  - desc: '** Empty collection in concatenation using +'
+    expression: n4 + s5
+    result: []
+  - desc: '** Null in concatenation is treated as an empty collection (1)'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0] + 'c'
+    result: []
+  - desc: '** Null in concatenation is treated as an empty collection (2)'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: >-
+      'c' + Patient.name.given[0]
+    result: []
+  - desc: '** Null in concatenation is treated as an empty collection (3)'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0] & 'c'
+    result: ["c"]
+  - desc: '** Null in concatenation is treated as an empty collection (4)'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: >-
+      'c' & Patient.name.given[0]
+    result: ["c"]
   - 'group:  6.7 Date/Time Arithmetic':
     - expression: "@2018 + 1 'a' = @2019"
       error: true
