@@ -114,11 +114,11 @@ tests:
       result:
         - true
 
-    - desc: '** do not count nodes without value, but with extensions'
+    - desc: '** count nodes without value, but with extensions'
       inputfile: patient-example-2.json
       model: r4
       expression: >-
-        Patient.name.given.count() = 2
+        Patient.name.given.count() = 4
       result:
         - true
 

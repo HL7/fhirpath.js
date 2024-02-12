@@ -65,9 +65,9 @@ let makeResNode = ResourceNode.makeResNode;
 //   on its own.
 
 engine.invocationTable = {
-  empty:        {fn: existence.emptyFn},
+  empty:        {fn: existence.emptyFn, accessToNull: true},
   not:          {fn: existence.notFn},
-  exists:       {fn: existence.existsMacro, arity: {0: [], 1: ["Expr"]}},
+  exists:       {fn: existence.existsMacro, arity: {0: [], 1: ["Expr"]}, accessToNull: true},
   all:          {fn: existence.allMacro, arity: {1: ["Expr"]}},
   allTrue:      {fn: existence.allTrueFn},
   anyTrue:      {fn: existence.anyTrueFn},
@@ -77,7 +77,7 @@ engine.invocationTable = {
   supersetOf:   {fn: existence.supersetOfFn, arity: {1: ["AnyAtRoot"]}},
   isDistinct:   {fn: existence.isDistinctFn},
   distinct:     {fn: filtering.distinctFn},
-  count:        {fn: aggregate.countFn},
+  count:        {fn: aggregate.countFn, accessToNull: true},
   where:        {fn: filtering.whereMacro, arity: {1: ["Expr"]}},
   extension:    {fn: filtering.extension, arity: {1: ["String"]}, accessToNull: true},
   select:       {fn: filtering.selectMacro, arity: {1: ["Expr"]}},
@@ -452,7 +452,7 @@ function makeParam(ctx, parentData, type, param) {
   }
   if(type === "AnyAtRoot"){
     const $this = ctx.$this || ctx.dataRoot;
-    return engine.doEval({ ...ctx, $this}, $this, param).filter(i => util.valData(i) !== null);
+    return engine.doEval({ ...ctx, $this}, $this, param).filter(i => util.valData(i) != null);
   }
   if(type === "Identifier"){
     if(param.type === "TermExpression") {
@@ -466,7 +466,7 @@ function makeParam(ctx, parentData, type, param) {
     return engine.TypeSpecifier(ctx, parentData, param);
   }
 
-  const res = engine.doEval(ctx, parentData, param).filter(i => util.valData(i) !== null);
+  const res = engine.doEval(ctx, parentData, param).filter(i => util.valData(i) != null);
   if(type === "Any") {
     return res;
   }
@@ -483,7 +483,7 @@ function makeParam(ctx, parentData, type, param) {
 function doInvoke(ctx, fnName, data, rawParams){
   var invoc = ctx.userInvocationTable?.[fnName] ?? engine.invocationTable[fnName];
   if (!invoc.accessToNull) {
-    data = data.filter(i => util.valData(i) !== null);
+    data = data.filter(i => util.valData(i) != null);
   }
   var res;
   if(invoc) {
@@ -527,7 +527,7 @@ function isNullable(x) {
 
 function infixInvoke(ctx, fnName, data, rawParams){
   var invoc = engine.invocationTable[fnName];
-  data = data.filter(i => util.valData(i) !== null);
+  data = data.filter(i => util.valData(i) != null);
   if(invoc && invoc.fn) {
     var paramsNumber = rawParams ? rawParams.length : 0;
     if(paramsNumber !== 2) { throw new Error("Infix invoke should have arity 2"); }

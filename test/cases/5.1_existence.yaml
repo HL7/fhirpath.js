@@ -12,7 +12,7 @@ tests:
     inputfile: patient-example-2.json
     model: r4
     expression: Patient.name.given[0].empty()
-    result: [true]
+    result: [false]
 
   - desc: '** not empty coll'
     expression: Functions.attrsingle.empty()
@@ -83,7 +83,7 @@ tests:
     inputfile: patient-example-2.json
     model: r4
     expression: Patient.name.given[0].exists()
-    result: [false]
+    result: [true]
 
   - desc: '** exists for undefined coll should return false'
     expression: Functions.nothing.exists()
