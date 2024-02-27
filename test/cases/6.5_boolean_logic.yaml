@@ -28,6 +28,12 @@ tests:
   - desc: '* and (false and {})'
     expression: ups1 and emp
     result: [false]
+  - desc: '* and (true and null)'
+    expression: ok1 and i
+    result: []
+  - desc: '* and (false and null)'
+    expression: ups1 and i
+    result: [false]
 
   - desc: '* 6.5.2 or'
   - desc: '* or (true and true)'
@@ -55,6 +61,12 @@ tests:
     result: []
   - desc: '* or ({} or {})'
     expression: emp or emp
+    result: []
+  - desc: '* or (true and null)'
+    expression: ok1 or i
+    result: [true]
+  - desc: '* or (false and null)'
+    expression: ups1 or i
     result: []
 
   - desc: '* 6.5.3 not'
@@ -94,7 +106,12 @@ tests:
   - desc: '* xor ({} xor {})'
     expression: emp xor emp
     result: []
-
+  - desc: '* xor (true and null)'
+    expression: ok1 xor i
+    result: []
+  - desc: '* xor (false and null)'
+    expression: ups1 xor i
+    result: []
 
   - desc: '* 6.5.5 implies'
   - desc: '* implies (true implies true)'
@@ -135,6 +152,9 @@ tests:
 subject:
   ok1: true
   ok2: true
+  i: null
+  _i:
+    id: nullId
   ups1: false
   ups2: false
   emp: []

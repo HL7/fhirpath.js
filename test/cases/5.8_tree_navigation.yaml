@@ -25,6 +25,12 @@ tests:
     expression: desc.descendants()
     result: [{b: {c: {d: 1}}}, {c: {d: 1}},  {d: 1}, 1]
 
+  - desc: '** descendants() on a collection with null elements does not throw an error'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: name.given.descendants()
+    result: []
+
 
 subject:
   desc:

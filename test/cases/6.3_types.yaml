@@ -150,6 +150,12 @@ tests:
       - true
     model: r4
 
+  - desc: '** "is" for the null element of a collection'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[3] is FHIR.string
+    result: [true]
+
   - desc: '** The type of a valid but missing property is empty'
     inputfile: patient-example.json
     expression: Patient.photo is Attachment
@@ -166,6 +172,12 @@ tests:
     expression: 1 day.is(System.Quantity)
     result:
       - true
+
+  - desc: '** is() for the null element of a collection'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[3].is(FHIR.string)
+    result: [true]
 
   - desc: '6.3.3. as type specifier'
 
@@ -193,6 +205,12 @@ tests:
     expression: QuestionnaireResponse.item.select(answer.value as FHIR.Quantity).count()
     result:
       - 4
+
+  - desc: '** "as" for the null element of a collection'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: (Patient.name.given[3] as FHIR.string).count() = 1
+    result: [true]
 
   - desc: '** "as FHIR.Quantity" returns the empty collection for the System.Quantity'
     inputfile: patient-example.json
@@ -229,6 +247,12 @@ tests:
     inputfile: patient-example.json
     expression: 1 year.as(FHIR.Quantity)
     result: []
+
+  - desc: '** as() for the null element of a collection'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[3].as(FHIR.string).count() = 1
+    result: [true]
 
   - desc: '** as Coding'
     inputfile: questionnaire-example.json

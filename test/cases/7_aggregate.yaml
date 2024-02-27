@@ -21,12 +21,18 @@ tests:
         expression: ('a'|'b'|'c').aggregate($total & '-' & $this, 'concat')
         result:
           - 'concat-a-b-c'
-      - desc: 'aggregate() function for collection with null elements'
+      - desc: 'aggregate() function for collection with null elements (1)'
         inputfile: patient-example-2.json
         model: r4
         expression: Patient.name.given.aggregate($total & '-' & $this, '')
         result:
-          - '-Peter-James'
+          - '--Peter-James-'
+      - desc: 'aggregate() function for collection with null elements (2)'
+        inputfile: patient-example-2.json
+        model: r4
+        expression: Patient.name.given.aggregate($total & '-' & $this & $this.id, '')
+        result:
+          - '-Jacomus1Id-Peter-James-Jacomus2Id'
       - desc: 'aggregate() function for collection with null initial value'
         inputfile: patient-example-2.json
         model: r4
@@ -52,7 +58,7 @@ tests:
         inputfile: patient-example-2.json
         model: r4
         expression: Patient.name.given.sum()
-        result: ['JamesPeter']
+        result: []
       - desc: 'sum() function calculates the sum of quantity values'
         expression: (1 'cm'|3 'cm'|1 'm').sum() = 104 'cm'
         result:
@@ -68,6 +74,9 @@ tests:
         expression: (1 'cm'|3 'cm'|1 'm').min() = 1 'cm'
         result:
           - true
+      - desc: 'min() function for collection with nulls'
+        expression: Functions.attr.min()
+        result: [1]
       - desc: 'max() function returns the maximum value from the input collection'
         expression: (7|8|9|1|2|3|4|5|6).max() = 9
         result:
@@ -79,6 +88,9 @@ tests:
         expression: (1 'cm'|3 'cm'|1 'm').max() = 1 'm'
         result:
           - true
+      - desc: 'max() function for collection with nulls'
+        expression: Functions.attr.max()
+        result: [2]
       - desc: 'avg() function calculates the average value for the input collection'
         expression: (7|8|9|1|2|3|4|5|6).avg() = 5
         result:
@@ -87,6 +99,19 @@ tests:
         expression: (7 'm' |8 'm'|9 'm'|1 'm'|2 'm'|3 'm'|400 'cm'|5 'm'|6 'm').avg() = 5 'm'
         result:
           - true
+      - desc: 'avg() function for collection with nulls'
+        expression: Functions.attr.avg()
+        result: []
       - desc: 'avg() function returns an empty value for the undefined input collection'
         expression: UndefinedInput.avg()
-        error: true
+        result: []
+
+
+subject:
+  resourceType: Functions
+  attr:
+    - null
+    - 1
+    - 2
+  _attr:
+    - id: nullId

@@ -24,14 +24,19 @@ engine.countFn = function(x) {
 // Shortcut for "value.tail().aggregate($this+$total, value.first())" `
 engine.sumFn = function(data) {
   return engine.aggregateMacro.apply(this, [data.slice(1), ($this) => {
-    return math.plus(util.arraify($this), util.arraify(this.$total));
+    let x = util.arraify($this).filter(i => util.valData(i) != null);
+    let y = util.arraify(this.$total).filter(i => util.valData(i) != null);
+    if (x.length === 0 || y.length === 0) {
+      return [];
+    }
+    return math.plus(x, y);
   }, data[0]]);
 };
 
 // Shortcut for "value.aggregate(iif($total.empty(), $this, iif($this < $total, $this, $total)))"
 engine.minFn = function (data) {
   return engine.aggregateMacro.apply(this, [data, (curr) => {
-    const $this = util.arraify(curr);
+    const $this = util.arraify(curr).filter(i => util.valData(i) != null);
     const $total = util.arraify(this.$total);
     return util.isEmpty($total)
       ? $this
@@ -42,9 +47,9 @@ engine.minFn = function (data) {
 // Shortcut for "value.aggregate(iif($total.empty(), $this, iif($this > $total, $this, $total)))"
 engine.maxFn = function (data) {
   return engine.aggregateMacro.apply(this, [data, (curr) => {
-    const $this = util.arraify(curr);
+    const $this = util.arraify(curr).filter(i => util.valData(i) != null);
     const $total = util.arraify(this.$total);
-    return util.isEmpty($total)
+    return $total.length === 0
       ? $this
       : equality.gt($this, $total) ? $this : $total;
   }]);
@@ -52,10 +57,12 @@ engine.maxFn = function (data) {
 
 // Shortcut for "value.sum()/value.count()"
 engine.avgFn = function (data) {
-  return math.div(
-    util.arraify(engine.sumFn(data)),
-    util.arraify(engine.countFn(data))
-  );
+  const x = util.arraify(engine.sumFn(data));
+  const y = util.arraify(engine.countFn(data));
+  if (x.length === 0 || y.length === 0) {
+    return [];
+  }
+  return math.div(x, y);
 };
 
 module.exports = engine;

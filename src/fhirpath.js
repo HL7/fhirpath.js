@@ -60,14 +60,11 @@ let makeResNode = ResourceNode.makeResNode;
 //   function accepts value of this type or empty value {}
 // * nullable - means propagate empty result, i.e. instead
 //   calling function if one of params is  empty return empty
-// * accessToNull - means not to filter out source ResourceNodes if they have
-//   a null value and the function (like "extension()") handles such situations
-//   on its own.
 
 engine.invocationTable = {
-  empty:        {fn: existence.emptyFn, accessToNull: true},
+  empty:        {fn: existence.emptyFn},
   not:          {fn: existence.notFn},
-  exists:       {fn: existence.existsMacro, arity: {0: [], 1: ["Expr"]}, accessToNull: true},
+  exists:       {fn: existence.existsMacro, arity: {0: [], 1: ["Expr"]}},
   all:          {fn: existence.allMacro, arity: {1: ["Expr"]}},
   allTrue:      {fn: existence.allTrueFn},
   anyTrue:      {fn: existence.anyTrueFn},
@@ -77,11 +74,11 @@ engine.invocationTable = {
   supersetOf:   {fn: existence.supersetOfFn, arity: {1: ["AnyAtRoot"]}},
   isDistinct:   {fn: existence.isDistinctFn},
   distinct:     {fn: filtering.distinctFn},
-  count:        {fn: aggregate.countFn, accessToNull: true},
+  count:        {fn: aggregate.countFn},
   where:        {fn: filtering.whereMacro, arity: {1: ["Expr"]}},
-  extension:    {fn: filtering.extension, arity: {1: ["String"]}, accessToNull: true},
+  extension:    {fn: filtering.extension, arity: {1: ["String"]}},
   select:       {fn: filtering.selectMacro, arity: {1: ["Expr"]}},
-  aggregate:    {fn: aggregate.aggregateMacro, arity: {1: ["Expr"], 2: ["Expr", "Any"]}},
+  aggregate:    {fn: aggregate.aggregateMacro, arity: {1: ["Expr"], 2: ["Expr", "AnyAtRoot"]}},
   sum:          {fn: aggregate.sumFn},
   min:          {fn: aggregate.minFn},
   max:          {fn: aggregate.maxFn},
@@ -110,6 +107,7 @@ engine.invocationTable = {
   toTime:       {fn: misc.toTime},
   toBoolean:    {fn: misc.toBoolean},
   toQuantity:   {fn: misc.toQuantity, arity: {0: [], 1: ["String"]}},
+  // TODO: The hasValue function should be taken into account in a separate request
   hasValue:     {fn: misc.hasValueFn},
   convertsToBoolean:    {fn: misc.createConvertsToFn(misc.toBoolean, 'boolean')},
   convertsToInteger:    {fn: misc.createConvertsToFn(misc.toInteger, 'number')},
@@ -146,7 +144,7 @@ engine.invocationTable = {
   ln:             {fn: math.ln},
   log:            {fn: math.log, arity:  {1: ["Number"]}, nullable: true},
   power:          {fn: math.power, arity:  {1: ["Number"]}, nullable: true},
-  round:          {fn: math.round, arity:  {1: ["Number"]}},
+  round:          {fn: math.round, arity:  {0: [], 1: ["Number"]}},
   sqrt:           {fn: math.sqrt},
   truncate:       {fn: math.truncate},
 
@@ -452,7 +450,7 @@ function makeParam(ctx, parentData, type, param) {
   }
   if(type === "AnyAtRoot"){
     const $this = ctx.$this || ctx.dataRoot;
-    return engine.doEval({ ...ctx, $this}, $this, param).filter(i => util.valData(i) != null);
+    return engine.doEval({ ...ctx, $this}, $this, param);
   }
   if(type === "Identifier"){
     if(param.type === "TermExpression") {
@@ -466,7 +464,7 @@ function makeParam(ctx, parentData, type, param) {
     return engine.TypeSpecifier(ctx, parentData, param);
   }
 
-  const res = engine.doEval(ctx, parentData, param).filter(i => util.valData(i) != null);
+  let res = engine.doEval(ctx, parentData, param);
   if(type === "Any") {
     return res;
   }
@@ -482,9 +480,6 @@ function makeParam(ctx, parentData, type, param) {
 
 function doInvoke(ctx, fnName, data, rawParams){
   var invoc = ctx.userInvocationTable?.[fnName] ?? engine.invocationTable[fnName];
-  if (!invoc.accessToNull) {
-    data = data.filter(i => util.valData(i) != null);
-  }
   var res;
   if(invoc) {
     if(!invoc.arity){
@@ -527,7 +522,6 @@ function isNullable(x) {
 
 function infixInvoke(ctx, fnName, data, rawParams){
   var invoc = engine.invocationTable[fnName];
-  data = data.filter(i => util.valData(i) != null);
   if(invoc && invoc.fn) {
     var paramsNumber = rawParams ? rawParams.length : 0;
     if(paramsNumber !== 2) { throw new Error("Infix invoke should have arity 2"); }

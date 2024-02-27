@@ -8,37 +8,31 @@ const util = require("./utilities");
  */
 const engine = {};
 
-function ensureNumberSingleton(x){
-  let d = util.valData(x);
-  if (typeof d !== 'number') {
-    if (d.length === 1 && typeof (d=util.valData(d[0])) === 'number') {
-      return d;
-    }else{
-      throw new Error("Expected number, but got " + JSON.stringify(d || x));
-    }
-  }
-  else
-    return d;
-}
-
 /**
- * Returns the data value of the given parameter (which might be a ResourceNode)
- * if its type is number or FP_Quantity. Otherwise, an exception is thrown.
- * @param {ResourceNode|number|FP_Quantity|any} x - value or a ResourceNode with a value
+ * Checks if input collection is a number singleton and runs the passed function.
+ * @param {Array<ResourceNode|number|FP_Quantity|any>} x - input collection
+ * @param {Function} fn - math function
  * @throws Error
  * @return {number|FP_Quantity}
  */
-function ensureNumberOrQuantitySingleton(x){
-  let d = util.valData(x);
-  if (typeof d !== 'number' && !(d instanceof FP_Quantity)) {
-    if (d.length === 1 && (typeof (d=util.valData(d[0])) === 'number' || d instanceof FP_Quantity) ) {
-      return d;
+function checkInputColAndRunFn(x, fn){
+  let res;
+  if (isEmpty(x)){
+    res = [];
+  } else if (x.length !== 1) {
+    throw new Error("Unexpected collection" + JSON.stringify(x) +
+      "; expected singleton of type number");
+  } else {
+    const num = util.valData(x[0]);
+    if (num == null) {
+      res = [];
+    } else if (typeof num === 'number') {
+      res = fn(num);
     } else {
-      throw new Error("Expected number or Quantity, but got " + JSON.stringify(d || x));
+      throw new Error("Expected number, but got " + JSON.stringify(num));
     }
   }
-  else
-    return d;
+  return res;
 }
 
 function isEmpty(x) {
@@ -63,7 +57,9 @@ engine.plus = function(xs, ys){
     // to preserve the type information (integer vs decimal, and maybe decimal
     // vs string if decimals are represented as strings), in order to support
     // "as" and "is", but that support is deferred for now.
-    if(typeof x == "string" && typeof y == "string") {
+    if (x == null || y == null) {
+      res = [];
+    } else if (typeof x == "string" && typeof y == "string") {
       res = x + y;
     } else if(typeof x == "number") {
       if (typeof y == "number") {
@@ -91,6 +87,9 @@ engine.minus = function(xs, ys){
   if(xs.length === 1 && ys.length === 1) {
     const x = util.valDataConverted(xs[0]);
     const y = util.valDataConverted(ys[0]);
+    if (x == null || y == null) {
+      return [];
+    }
     if(typeof x == "number") {
       if (typeof y == "number") {
         return x - y;
@@ -117,6 +116,9 @@ engine.mul = function(xs, ys){
   if(xs.length === 1 && ys.length === 1) {
     const x = util.valDataConverted(xs[0]);
     const y = util.valDataConverted(ys[0]);
+    if (x == null || y == null) {
+      return [];
+    }
     if(typeof x == "number") {
       if (typeof y == "number") {
         return x * y;
@@ -142,6 +144,9 @@ engine.div = function(xs, ys){
   if(xs.length === 1 && ys.length === 1) {
     const x = util.valDataConverted(xs[0]);
     const y = util.valDataConverted(ys[0]);
+    if (x == null || y == null) {
+      return [];
+    }
     if(typeof x == "number") {
       if (typeof y == "number") {
         if (y === 0) return [];
@@ -180,113 +185,80 @@ engine.abs = function(x){
 
   if (isEmpty(x)) {
     res = [];
+  } else if (x.length !== 1) {
+    throw new Error("Unexpected collection" + JSON.stringify(x) +
+      "; expected singleton of type number or Quantity");
   } else {
-    const val = ensureNumberOrQuantitySingleton(x);
-    if (val instanceof FP_Quantity) {
+    var val = util.valData(x[0]);
+    if (val == null) {
+      res = [];
+    } else if (typeof val === 'number') {
+      res = Math.abs(val);
+    } else if (val instanceof FP_Quantity) {
       res = new FP_Quantity(Math.abs(val.value), val.unit);
     } else {
-      res = Math.abs(val);
+      throw new Error("Expected number or Quantity, but got " + JSON.stringify(val || x));
     }
   }
 
   return res;
 };
 
-engine.ceiling = function(x){
-  if (isEmpty(x)){
-    return [];
-  }else{
-    let num = ensureNumberSingleton(x);
-    return Math.ceil(num);
-  }
+engine.ceiling = function(x) {
+  return checkInputColAndRunFn(x, Math.ceil);
 };
 
 engine.exp = function(x){
-  if (isEmpty(x)){
-    return [];
-  }else{
-    let num = ensureNumberSingleton(x);
-    return Math.exp(num);
-  }
+  return checkInputColAndRunFn(x, Math.exp);
 };
 
 engine.floor = function(x){
-  if (isEmpty(x)){
-    return [];
-  }else{
-    let num = ensureNumberSingleton(x);
-    return Math.floor(num);
-  }
+  return checkInputColAndRunFn(x, Math.floor);
 };
 
 engine.ln = function(x){
-  if (isEmpty(x)){
-    return [];
-  }else{
-    let num = ensureNumberSingleton(x);
-    return Math.log(num);
-  }
+  return checkInputColAndRunFn(x, Math.log);
 };
 
 engine.log = function(x, base){
-  if (isEmpty(x) || isEmpty(base)){
-    return [];
-  }else{
-    let num = ensureNumberSingleton(x);
-    let num2 = ensureNumberSingleton(base);
-    return (Math.log(num) / Math.log(num2));
-  }
+  return checkInputColAndRunFn(x, (num) => {
+    return (Math.log(num) / Math.log(base));
+  });
 };
 
 engine.power = function(x, degree){
-  if (isEmpty(x) || isEmpty(degree)){
-    return [];
-  }else{
-    let num = ensureNumberSingleton(x);
-    let num2 = ensureNumberSingleton(degree);
-    if (num < 0 && (Math.floor(num2) !== num2)){
+  return checkInputColAndRunFn(x, (num) => {
+    if (num < 0 && (Math.floor(degree) !== degree)){
       return [];
-    }else{
-      return Math.pow(num, num2);
+    } else {
+      return Math.pow(num, degree);
     }
-  }
+  });
 };
 
 engine.round = function(x, acc){
-  if (isEmpty(x)){
-    return [];
-  }else{
-    let num = ensureNumberSingleton(x);
-    if (isEmpty(acc)){
+  return checkInputColAndRunFn(x, (num) => {
+    if (acc === undefined || isEmpty(acc)) {
       return (Math.round(num));
-    }else{
-      let num2 = ensureNumberSingleton(acc);
-      let degree = Math.pow(10, num2);
+    } else {
+      let degree = Math.pow(10, acc);
       return (Math.round(num * degree) / degree);
     }
-  }
+  });
 };
 
 engine.sqrt = function(x){
-  if (isEmpty(x)){
-    return [];
-  }else{
-    let num = ensureNumberSingleton(x);
+  return checkInputColAndRunFn(x, (num) => {
     if (num < 0) {
       return [];
-    }else{
+    } else {
       return Math.sqrt(num);
     }
-  }
+  });
 };
 
 engine.truncate = function(x){
-  if (isEmpty(x)){
-    return [];
-  }else{
-    let num = ensureNumberSingleton(x);
-    return Math.trunc(num);
-  }
+  return checkInputColAndRunFn(x, Math.trunc);
 };
 
 module.exports = engine;

@@ -129,6 +129,7 @@ engine.toDecimal = function(coll){
 engine.toString = function(coll){
   if(coll.length !== 1) { return []; }
   var v = util.valDataConverted(coll[0]);
+  if (v == null) { return []; }
   return v.toString();
 };
 
@@ -144,9 +145,13 @@ function defineTimeConverter(timeType) {
     if (coll.length > 1)
       throw Error('to '+timeName+' called for a collection of length '+coll.length);
     if (coll.length === 1) {
-      var t = types[timeType].checkString(util.valData(coll[0]));
-      if (t)
-        rtn = t;
+      var v = util.valData(coll[0]);
+      if (typeof v === "string") {
+        var t = types[timeType].checkString(v);
+        if (t) {
+          rtn = t;
+        }
+      }
     }
     return rtn;
   };
@@ -224,28 +229,24 @@ engine.createConvertsToFn = function (toFunction, type) {
 };
 
 const singletonEvalByType = {
-  "Integer": function(coll){
-    const d = util.valData(coll[0]);
+  "Integer": function(d){
     if (Number.isInteger(d)) {
       return d;
     }
   },
-  "Boolean": function(coll){
-    const d = util.valData(coll[0]);
+  "Boolean": function(d){
     if (d === true || d === false) {
       return d;
-    } else if (coll.length === 1) {
+    } else {
       return true;
     }
   },
-  "Number": function(coll) {
-    const d = util.valData(coll[0]);
+  "Number": function(d) {
     if (typeof d === "number") {
       return d;
     }
   },
-  "String": function(coll){
-    const d = util.valData(coll[0]);
+  "String": function(d){
     if (typeof d === "string") {
       return d;
     }
@@ -269,9 +270,13 @@ engine.singleton = function (coll, type) {
   } else if (coll.length === 0) {
     return [];
   }
+  const v = util.valData(coll[0]);
+  if (v == null) {
+    return [];
+  }
   const toSingleton = singletonEvalByType[type];
   if (toSingleton) {
-    const value = toSingleton(coll);
+    const value = toSingleton(v);
     if (value !== undefined) {
       return value;
     }

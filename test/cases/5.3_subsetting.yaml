@@ -39,9 +39,15 @@ tests:
 
   - desc: '** single on many'
     expression: Functions.attrdouble.single()
-    result:
-      - $status: error
-        $error: Expected single
+    error: true
+
+  - desc: '** single for collection with null values (1)'
+    expression: Functions.collWithNullsAndTrue[0].single()
+    result: []
+
+  - desc: '** single for collection with null values (2)'
+    expression: Functions.collWithNullsAndTrue.single()
+    error: true
 
   - desc: '5.3.3. first() : collection'
 # Returns a collection containing only the first
@@ -50,6 +56,11 @@ tests:
   - desc: '** first'
     expression: Functions.attrdouble.first()
     result: [1]
+
+  - desc: '** first for collection with null values'
+    expression: Functions.collWithNullsAndTrue.first().id
+    result:
+      - nullId
 
   - desc: '** first nothing'
     expression: Functions.nothing.first()
@@ -71,6 +82,11 @@ tests:
   - desc: '** last on empty'
     expression: Functions.attrempty.last()
     result: []
+
+  - desc: '** last for collection with null values'
+    expression: Functions.collWithNullsAndTrue.last().id
+    result:
+      - lastNullId
 
   - desc: '** last nothing'
     expression: Functions.nothing.last()
@@ -100,6 +116,11 @@ tests:
   - desc: '** tail (alternative)'
     expression: Functions.coll1.coll2.attr.tail()
     result: [2, 3, 4, 5]
+
+  - desc: '** tail for collection with null values'
+    expression: Functions.collWithNullsAndTrue.tail()[1].id
+    result:
+      - lastNullId
 
 
   - desc: '5.3.6. skip(num : integer) : collection'
@@ -131,6 +152,11 @@ tests:
   - desc: '** skip 6'
     expression: Functions.coll1.coll2.attr.skip(6)
     result: []
+
+  - desc: '** skip for collection with null values'
+    expression: Functions.collWithNullsAndTrue.skip(2).id
+    result:
+      - lastNullId
 
 
   - desc: '5.3.7. take(num : integer) : collection'
@@ -171,6 +197,11 @@ tests:
     expression: Functions.coll1.coll2.attr.take(5)
     result: [1, 2, 3, 4, 5]
 
+  - desc: '** take for collection with null values'
+    expression: Functions.collWithNullsAndTrue.take(1).id
+    result:
+      - nullId
+
   - desc: '5.3.8. intersect(other: collection) : collection'
   - desc: '** should not depend on the order of properties in an object'
     expression: Functions.objects.group1.intersect(Functions.objects.group2)
@@ -206,6 +237,11 @@ tests:
     result:
       - 3 'min'
 
+  - desc: '** intersect for collection with null values'
+    expression: Functions.collWithNullsAndTrue[0].intersect(Functions.collWithNullsAndTrue[2]).id
+    result:
+      - nullId
+
   - desc: '5.3.9. exclude(other: collection) : collection'
   - desc: '** with large collection 1'
     inputfile: patient-example.json
@@ -228,6 +264,12 @@ tests:
     result:
       - true
 
+  - desc: '** exclude for collection with null values'
+    expression: (Functions.collWithNullsAndTrue[0] | Functions.collWithNullsAndTrue[1]).exclude(Functions.collWithNullsAndTrue[1]).id
+    result:
+      - nullId
+
+
 subject:
   resourceType: Functions
   attrempty: []
@@ -246,6 +288,14 @@ subject:
     repeatingAttr:
       a: 1
     a: 2
+  collWithNullsAndTrue:
+    - null
+    - true
+    - null
+  _collWithNullsAndTrue:
+    - id: nullId
+    - id: trueId
+    - id: lastNullId
   coll1:
     - coll2:
         - attr: 1

@@ -83,6 +83,16 @@ tests:
       expression: "true = Ops.unexists"
       result: []
 
+    - desc: '** equality for null values'
+      inputfile: patient-example-2.json
+      model: r4
+      # Patient.name.given[0].empty() = false
+      # and
+      # Patient.name.given[3].empty() = false
+      # So, these are not empty collections and the result should not be empty.
+      expression: Patient.name.given[0] = Patient.name.given[3]
+      result: [true]
+
     - 'group: Quantity Equality':
       - expression: 1 year != 1 'a'
         result: [true]
@@ -511,6 +521,12 @@ tests:
       expression: "Ops.complex ~ Ops.complexother"
       result: [false]
 
+    - desc: '** equivalence for null values'
+      inputfile: patient-example-2.json
+      model: r4
+      expression: Patient.name.given[0] ~ Patient.name.given[3]
+      result: [true]
+
 
   - 'group: 6.1.3. != (Not Equals)':
 # The inverse of the equals operator.
@@ -584,6 +600,16 @@ tests:
     - desc: '** propagate empty coll'
       expression: "true != Ops.unexists"
       result: []
+
+    - desc: '** inequality for null values'
+      inputfile: patient-example-2.json
+      model: r4
+      # Patient.name.given[0].empty() = false
+      # and
+      # Patient.name.given[3].empty() = false
+      # So, these are not empty collections and the result should not be empty.
+      expression: Patient.name.given[0] != Patient.name.given[3]
+      result: [false]
 
     - 'group: Dates & Times':
       - desc:  'DateTime literal compared with DateTime'
@@ -714,6 +740,12 @@ tests:
 
     - desc: '* collections for equivalence { } !~ { } will result in true.'
       expression: "Ops.unexists !~ Ops.unexists"
+      result: [false]
+
+    - desc: '** non-equivalence for null values'
+      inputfile: patient-example-2.json
+      model: r4
+      expression: Patient.name.given[0] !~ Patient.name.given[3]
       result: [false]
 
   # If both operands are collections with a single item:

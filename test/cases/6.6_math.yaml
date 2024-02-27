@@ -28,6 +28,9 @@ tests:
   - desc: '** Empty result multiplying empty collection (2)'
     expression: n4 * n1
     result: []
+  - desc: '** Empty result when one of the operands is null'
+    expression: n1 * i
+    result: []
   - desc: '** Can multiply two quantities'
     expression: 2 'kg' * 5 'm' = 10 'kg.m'
     result: [true]
@@ -61,6 +64,9 @@ tests:
   - desc: '** Can divide two number literals'
     expression: 5/2
     result: [2.5]
+  - desc: '** Empty result when one of the operands is null'
+    expression: n1 / i
+    result: []
   - desc: '** Can divide two quantities'
     expression: 10 'kg' / 5 'm' = 2 'kg/m'
     result: [true]
@@ -167,6 +173,9 @@ tests:
   - desc: '** Empty result if one or both operands is empty (3)'
     expression: n4 + n4
     result: []
+  - desc: '** Empty result when one of the operands is null'
+    expression: n1 + i
+    result: []
   - desc: '** Empty result when one of the operands has a special unit'
     expression: 1 'B' + 1 'B'
     result: []
@@ -202,6 +211,12 @@ tests:
   - desc: '** Can subtract two number literals'
     expression:  5-3
     result: [2]
+  - desc: '** Empty result when one of the operands is empty'
+    expression: n1 - n4
+    result: []
+  - desc: '** Empty result when one of the operands is null'
+    expression: n1 - i
+    result: []
   - desc: '** Can subtract two quantity literals'
     expression: 3 'm' - 3 'cm' = 297 'cm'
     result: [true]
@@ -238,6 +253,9 @@ tests:
   - desc: '** Can div two numbers'
     expression: n2 div n1
     result: [2]
+  - desc: '** Empty result when one of the operands is null'
+    expression: n1 div i
+    result: []
   - desc: '** Error truncated divide array of numbers'
     expression: MathTestData.n1 div MathTestData.a3
     error: true
@@ -253,6 +271,9 @@ tests:
   - desc: '** Can mod two numbers'
     expression: n2 mod n1
     result: [1]
+  - desc: '** Empty result when one of the operands is null'
+    expression: n1 mod i
+    result: []
   - desc: '** Error reminder of truncated division array of numbers'
     expression: MathTestData.n1 mod MathTestData.a3
     error: true
@@ -459,6 +480,9 @@ subject:
   a3:
     - 1
     - 2
+  i: null
+  _i:
+    id: nullId
   n4: []
   s5: "one"
   s6: "two"

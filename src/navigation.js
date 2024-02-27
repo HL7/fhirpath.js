@@ -8,8 +8,9 @@ engine.children = function(coll){
   let model = this.model; // "this" is the context object
   return coll.reduce(function(acc, x){
     let d = util.valData(x);
-    x = makeResNode(x);
-    if(typeof d === 'object'){
+    if (d == null) {
+      return acc;
+    } else if (typeof d === 'object') {
       for (var prop of Object.keys(d)) {
         var v = d[prop];
         var childPath = x.path + '.' + prop;
