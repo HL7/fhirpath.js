@@ -56,9 +56,11 @@ function addPath2Type(path, code) {
  * @return {string}
  */
 function getTypeCode(typeDesc) {
-  return typeDesc.extension?.find(
-    e => e.url === 'http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type'
-  )?.valueUrl || typeDesc.code;
+  return typeDesc.code;
+  // We don't currently use the extension, but we may need to in the future.
+  // return typeDesc.extension?.find(
+  //   e => e.url === 'http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type'
+  // )?.valueUrl || typeDesc.code;
 }
 
 for (let f of choiceTypeFiles) {
@@ -132,28 +134,8 @@ for (let f of choiceTypeFiles) {
           choiceTypePaths[prefix] = [...new Set(types)];
         } else {
           const typeDesc = n.type[0];
-
-          let pathParts = n.path.split('.');
-          if (pathParts[1] === 'id' && typeDesc.extension?.find(
-            e => e.url === 'http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type'
-          )) {
-            // Temporary workaround for incorrect data types in R4/R5 JSON FHIR
-            // Definitions (https://hl7.org/fhir/R4/downloads.html) for "*.id".
-            // According to the specification published on the Web, the "id" in
-            // "Resource" (and objects inherited from "Resource") is of type
-            // "FHIR.id", but the "id" in "Element" (and objects inherited
-            // from "Element") is of type "FHIR.string".
-            if (pathParts.length === 2 && (
-              pathParts[0].endsWith('Resource') || type2Parent[pathParts[0]]?.endsWith('Resource')
-            )) {
-              addPath2Type(n.path, 'id');
-            } else {
-              addPath2Type(n.path, 'string');
-            }
-          } else {
-            // Obtaining FHIR Definition Data in the normal way
-            addPath2Type(n.path, getTypeCode(typeDesc));
-          }
+          // Obtaining FHIR Definition Data in the normal way
+          addPath2Type(n.path, getTypeCode(typeDesc));
         }
       }
       else {

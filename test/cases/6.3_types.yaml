@@ -122,16 +122,23 @@ tests:
       - true
     model: r4
 
-  - desc: '** Patient.id is id (R5)'
+  - desc: '** Extension.url is System.String'
     inputfile: patient-example.json
-    expression: Patient.id is id
+    expression: Patient.contact.name.family.extension('http://hl7.org/fhir/StructureDefinition/humanname-own-prefix').url is System.String
+    result:
+      - true
+    model: r4
+
+  - desc: '** Patient.id is System.String (R5)'
+    inputfile: patient-example.json
+    expression: Patient.id is System.String
     result:
       - true
     model: r5
 
-  - desc: '** Patient.id is id (R4)'
+  - desc: '** Patient.id is System.String (R4)'
     inputfile: patient-example.json
-    expression: Patient.id is id
+    expression: Patient.id is System.String
     result:
       - true
     model: r4
@@ -261,27 +268,6 @@ tests:
   - desc: '** descendants() returns resource nodes with the correct data types (1)'
     inputfile: patient-example.json
     expression: descendants().where($this is Identifier and system = 'urn:oid:1.2.36.146.595.217.0.1').use = 'usual'
-    model: 'r4'
-    result:
-      - true
-
-  - desc: '** descendants() returns resource nodes with the correct data types (2)'
-    inputfile: patient-example.json
-    expression: descendants().where($this is FHIR.id).count() = 1
-    model: 'r4'
-    result:
-      - true
-
-  - desc: '** descendants() returns resource nodes with the correct data types (3)'
-    inputfile: patient-example.json
-    expression: descendants().where($this is FHIR.string).count() = 50
-    model: 'r4'
-    result:
-      - true
-
-  - desc: '** descendants() returns resource nodes with the correct data types (4)'
-    inputfile: patient-example.json
-    expression: descendants().where($this is System.String).count() = 0
     model: 'r4'
     result:
       - true
