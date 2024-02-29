@@ -4,9 +4,8 @@
 
 var util = require("./utilities");
 var types = require("./types");
-const { ResourceNode } = require('./types');
 
-const { FP_Quantity } = types;
+const { FP_Quantity, TypeInfo } = types;
 
 var engine = {};
 
@@ -284,7 +283,9 @@ engine.singleton = function (coll, type) {
 /**
  * Checks whether a primitve value is present
  */
-const fhirPrimitives = new Set([
+const primitives = new Set();
+// IE11 probably doesn't support `new Set(iterable)`
+[
   "instant",
   "time",
   "date",
@@ -304,29 +305,18 @@ const fhirPrimitives = new Set([
   "oid",
   "uuid",
   "canonical",
-  "url"
-]);
+  "url",
+  "Integer",
+  "Decimal",
+  "String",
+  "Date",
+  "DateTime",
+  "Time"
+].forEach(i => primitives.add(i));
 
 engine.hasValueFn = function(coll) {
-  let model = this.model;
-  const v = coll.length === 1 && coll[0];
-
-  return [
-    v instanceof ResourceNode &&
-    (model ? v?.data && fhirPrimitives.has(v.path) || false : isPrimitiveDefault(v.data))
-  ];
+  return coll.length === 1 && util.valData(coll[0]) != null
+    && primitives.has(TypeInfo.fromValue(coll[0]).name);
 };
-
-function isPrimitiveDefault(data){
-  switch (typeof data){
-    case 'string':
-    case 'number':
-    case 'boolean':
-    // case 'bigint':
-      return true;
-    default:
-      return false;
-  }
-}
 
 module.exports = engine;
