@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const { maxCollSizeForDeepEqual } = require('../../src/deep-equal');
 const { createSuiteForExpression } = require('./common-benchmark-utils');
 
@@ -10,14 +9,15 @@ module.exports = ({
                     options
                   }) => {
   const smallCollectionLength = Math.floor(maxCollSizeForDeepEqual/2);
+  const bigItemsCollectionLength = 10;
   const expression = '%items.intersect(%itemsCopy)';
 
   return [{
     name: 'intersect() of two collections with',
     filename: 'intersect',
     expression,
-    bigItems,
-    bigItemsCopy,
+    bigItems: bigItems.slice(-bigItemsCollectionLength),
+    bigItemsCopy: bigItemsCopy.slice(-bigItemsCollectionLength),
     smallItems,
     smallItemsCopy,
     options
