@@ -29,7 +29,7 @@ const filenamesToOpen = [];
  * @returns Promise<any>
  */
 async function run(filename, options) {
-  const suites = require('./'+ filename)({
+  const suites = [].concat(...require('./'+ filename)({
     benny,
     open,
     previous_fhirpath,
@@ -44,7 +44,7 @@ async function run(filename, options) {
     smallItems,
     smallItemsCopy,
     options
-  });
+  }));
   for (const suite of suites) {
     {
       const cases = suite.cases.reduce((arr, item) => {
@@ -61,7 +61,7 @@ async function run(filename, options) {
         );
         arr.push(
           benny.add(
-            `${item.name} [${currentVersion}]`,
+            item.name ? `${item.name} [${currentVersion}]` : `[${currentVersion}]`,
             item.testFunction.bind(
               this,
               current_fhirpath,

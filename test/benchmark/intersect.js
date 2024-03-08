@@ -1,5 +1,5 @@
 const { maxCollSizeForDeepEqual } = require('../../src/deep-equal');
-const { createSuiteForExpression } = require('./common-benchmark-utils');
+const { createSuitesForExpression } = require('./common-benchmark-utils');
 
 module.exports = ({
                     bigItems,
@@ -9,15 +9,14 @@ module.exports = ({
                     options
                   }) => {
   const smallCollectionLength = Math.floor(maxCollSizeForDeepEqual/2);
-  const bigItemsCollectionLength = 10;
   const expression = '%items.intersect(%itemsCopy)';
 
   return [{
     name: 'intersect() of two collections with',
     filename: 'intersect',
     expression,
-    bigItems: bigItems.slice(-bigItemsCollectionLength),
-    bigItemsCopy: bigItemsCopy.slice(-bigItemsCollectionLength),
+    bigItems,
+    bigItemsCopy,
     smallItems,
     smallItemsCopy,
     options
@@ -30,6 +29,6 @@ module.exports = ({
     smallItems: smallItems.slice(-smallCollectionLength),
     smallItemsCopy: smallItemsCopy.slice(-smallCollectionLength),
     options
-  }].map(createSuiteForExpression);
+  }].map(createSuitesForExpression);
 
 }
