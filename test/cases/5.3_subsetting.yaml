@@ -178,6 +178,14 @@ tests:
       - prop1: 1
         prop2: 2
 
+  - desc: '** should ignore null properties'
+    inputfile: patient-bundle.json
+    model: r4
+    expression: >-
+      Bundle.entry.intersect(Bundle.entry) = (Bundle.entry[0] | Bundle.entry[2])
+    result:
+      - true
+
   - desc: '** should use year-to-month conversion factor (https://hl7.org/fhirpath/#equals)'
     expression: (1 year).combine(12 months).intersect(12 months)
     result:

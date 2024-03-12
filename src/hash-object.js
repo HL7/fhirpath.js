@@ -24,8 +24,9 @@ function hashObject(obj) {
  */
 function prepareObject(value) {
   value = valDataConverted(value);
-
-  if (typeof value === 'number') {
+  if (value === null) {
+    return null;
+  } else if (typeof value === 'number') {
     return roundToMaxPrecision(value);
   } else if (value instanceof Date) {
     return value.toISOString();

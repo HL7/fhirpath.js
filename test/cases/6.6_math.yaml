@@ -28,6 +28,30 @@ tests:
   - desc: '** Empty result multiplying empty collection (2)'
     expression: n4 * n1
     result: []
+  - desc: '** Can multiply two quantities'
+    expression: 2 'kg' * 5 'm' = 10 'kg.m'
+    result: [true]
+  - desc: '** Can multiply a quantity by a number'
+    expression: 2 'kg' * 5 = 10 'kg'
+    result: [true]
+  - desc: '** Can multiply a number by a quantity'
+    expression: 2 * 5 'kg' = 10 'kg'
+    result: [true]
+  - desc: '** Empty result when one of the operands has a special unit'
+    expression: 1 'B' * 2
+    result: []
+  - desc: '** Empty result when one of the operands is a calendar duration quantity greater than seconds (1)'
+    expression: 1 'm' * 1 year
+    result: []
+  - desc: '** Can multiply a quantity by a calendar duration quantity less than or equal to seconds (1)'
+    expression: 1 'm' * (1 year).toQuantity('seconds') = 31536000 'm.s'
+    result: [true]
+  - desc: '** Empty result when one of the operands is a calendar duration quantity greater than seconds (2)'
+    expression: 1 year * 1 year
+    result: []
+  - desc: '** Can multiply a quantity by a calendar duration quantity less than or equal to seconds (2)'
+    expression: (1 year).toQuantity('s') * (1 year).toQuantity('seconds') = 994519296000000 's2'
+    result: [true]
 
 
   - desc: '6.6.2 division'
@@ -37,6 +61,68 @@ tests:
   - desc: '** Can divide two number literals'
     expression: 5/2
     result: [2.5]
+  - desc: '** Can divide two quantities'
+    expression: 10 'kg' / 5 'm' = 2 'kg/m'
+    result: [true]
+  - desc: '** Can divide a quantity by a number'
+    expression: 20 'kg' / 5 = 4 'kg'
+    result: [true]
+  - desc: '** Can divide a number by a quantity'
+    expression: 20 / 5 'kg' = 4 '1/kg'
+    result: [true]
+  - desc: '** Empty result when one of the operands has a special unit'
+    expression: 1 'B' / 2
+    result: []
+  - desc: '** Empty result when one of the operands is a calendar duration quantity greater than seconds (1)'
+    expression: 1 'mo' / 1 year
+    result: []
+  - desc: '** Can divide a UCUM duration quantity by a calendar duration quantity less than or equal to seconds'
+    expression: 1 'mo' / (1 year).toQuantity('seconds') = 0.08339041095890411
+    result: [true]
+  - desc: '** Empty result when one of the operands is a calendar duration quantity greater than seconds (2)'
+    expression: 1 year / 1 'mo'
+    result: []
+  - desc: '** Can divide a calendar duration quantity less than or equal to seconds by a UCUM duration quantity'
+    expression: (1 year).toQuantity('seconds') / 1 'mo' = 11.991786447638603
+    result: [true]
+  - desc: '** Empty result when one of the operands is a calendar duration quantity greater than seconds (3)'
+    expression: 3 minutes / 1 's'
+    result: []
+  - desc: '** Allow division of a UCUM duration quantity'
+    expression: 3 's' / 3 milliseconds = 1000
+    result: [true]
+  - desc: '** Empty result when one of the operands is a calendar duration quantity greater than seconds (4)'
+    expression: 1 'kg' / 3 months
+    result: []
+  - desc: '** Empty result when one of the operands is a calendar duration quantity greater than seconds (5)'
+    expression: 1 / 3 months
+    result: []
+  - desc: '** Can divide a UCUM quantity by a calendar duration quantity less than or equal to seconds'
+    expression: 1 'kg' / (3 months).toQuantity('seconds') = 0.0001286008230452675 'g/s'
+    result: [true]
+  - desc: '** Empty result when a calendar duration quantity divided by zero'
+    expression: 1 year / 0 months
+    result: []
+  - desc: '** Can divide when both operands are calendar duration quantities'
+    expression: 3 month / 2 year = 1 / 8
+    result: [true]
+  - desc: '** Can divide a calendar duration quantity by a number'
+    expression: 1 year / 2 = 6 months
+    result: [true]
+  - desc: '** Can divide System.Quantity (converted from FHIR.Quantity) by System.Quantity'
+    # Since FHIR.Quantity automatically converted to System.Quantity
+    # See https://hl7.org/fhir/fhirpath.html#quantity
+    inputfile: observation-example-2.json
+    model: r4
+    expression: Observation.value / 185 months = 1
+    result: [true]
+  - desc: '** Empty result when one of the operands is a calendar duration quantity greater than seconds (6)'
+    # Since FHIR.Quantity automatically converted to System.Quantity
+    # See https://hl7.org/fhir/fhirpath.html#quantity
+    inputfile: observation-example-2.json
+    model: r4
+    expression: Observation.value / 185 'mo'
+    result: []
 
 
   - desc: '6.6.3 addition'
@@ -46,6 +132,15 @@ tests:
   - desc: '** Can add two number literals'
     expression: 2+3
     result: [5]
+  - desc: '** Can add two quantity literals'
+    expression: 3 'm' + 3 'cm' = 303 'cm'
+    result: [true]
+  - desc: '** Can add a number to a quantity'
+    expression: 3 '1' + 2 = 5 '1'
+    result: [true]
+  - desc: '** Can add a quantity to a number'
+    expression: 3 + 2 '1' = 5 '1'
+    result: [true]
   - desc: '** Error adding array of numbers'
     expression: n1 + a3
     error: true
@@ -72,6 +167,33 @@ tests:
   - desc: '** Empty result if one or both operands is empty (3)'
     expression: n4 + n4
     result: []
+  - desc: '** Empty result when one of the operands has a special unit'
+    expression: 1 'B' + 1 'B'
+    result: []
+  - desc: '** Empty result when one of the operands is a calendar duration quantity greater than seconds'
+    expression: 1 'a' + 1 year
+    result: []
+  - desc: '** Can add a calendar duration quantity less than or equal to seconds to a UCUM time-valued quantity'
+    expression: 1 'a' + (1 year).toQuantity('seconds') = 63093600 seconds # 31557600 's' + 365*24*60*60 seconds
+    result: [true]
+  - desc: '** Empty result when one of the operands is a calendar duration quantity greater than seconds'
+    expression: 1 year + 1 'a'
+    result: []
+  - desc: '** Can add a UCUM time-valued quantity to a calendar duration quantity less than or equal to seconds'
+    expression: (1 year).toQuantity('seconds') + 1 'a' = 63093600 seconds # 365*24*60*60 seconds + 31557600 's'
+    result: [true]
+  - desc: '** Changing the places of the terms may change the sum because of the year/month conversion factor'
+    expression: (1 year + 6 months).toQuantity('seconds') + 1 'a' - (2.5 days).toQuantity('seconds') = 1 'a' + (6 months).toQuantity('seconds') + (1 year).toQuantity('seconds') # 0.5 year = 365 days/2 = 182.5 days;  6 month = 180 days
+    result: [true]
+  - desc: '** Changing the places of the terms does not change the sum'
+    expression: (1 year).toQuantity('seconds') + 6 'mo' + 1 'a' = 1 'a' + 6 'mo' + (1 year).toQuantity('seconds')
+    result: [true]
+  - desc: '** Can add a calendar duration quantity to a calendar duration quantity'
+    expression: 2 years + 6 months = 2.5 year
+    result: [true]
+  - desc: '** Can add a UCUM time-valued quantity to an UCUM time-valued quantity'
+    expression: 2 'a' + 1 'a' = 3 'a'
+    result: [true]
 
   - desc: '6.6.4 substraction'
   - desc: '** Can subtract two numbers'
@@ -80,6 +202,36 @@ tests:
   - desc: '** Can subtract two number literals'
     expression:  5-3
     result: [2]
+  - desc: '** Can subtract two quantity literals'
+    expression: 3 'm' - 3 'cm' = 297 'cm'
+    result: [true]
+  - desc: '** Can subtract a quantity from a number'
+    expression: 3 - 2 '1' = 1 '1'
+    result: [true]
+  - desc: '** Can subtract a number from a quantity'
+    expression: 3 '1' - 2 = 1 '1'
+    result: [true]
+  - desc: '** Empty result when one of the operands has a special unit'
+    expression: 1 'B' - 1 'B'
+    result: []
+  - desc: '** Empty result when one of the operands is a calendar duration quantity greater than seconds (1)'
+    expression: 1 'a' - 1 year
+    result: []
+  - desc: '** Can subtract a calendar duration quantity less than or equal to seconds from a UCUM time-valued quantity'
+    expression: 1 'a' - (1 year).toQuantity('seconds') = 21600 seconds # 31557600 's' - 365*24*60*60 seconds
+    result: [true]
+  - desc: '** Empty result when one of the operands is a calendar duration quantity greater than seconds (1)'
+    expression: 1 year - 1 'a'
+    result: []
+  - desc: '** Can subtract a UCUM time-valued quantity from a calendar duration quantity less than or equal to seconds'
+    expression: (1 year).toQuantity('seconds') - 1 'a' = -21600 seconds  # 365*24*60*60 seconds - 31557600 's'
+    result: [true]
+  - desc: '** Can subtract a calendar duration quantity from a calendar duration quantity'
+    expression: 3 year - 1 year = 2 year
+    result: [true]
+  - desc: '** Can subtract a UCUM time-valued quantity from an UCUM time-valued quantity'
+    expression: 3 'a' - 1 'a' = 2 'a'
+    result: [true]
 
 
   - desc: '6.6.5 div'
@@ -156,11 +308,13 @@ tests:
     - expression: "@2016-01 + 29 days"
       result: ['2016-01']
     - expression: "@2016-01 + 29 'd'"
-      result: ['2016-01']
+#      result: ['2016-01']
+      error: true
     - expression: "@2016-01 + 30 days"
       result: ['2016-02']
     - expression: "@2016-01 + 30 'd'"
-      result: ['2016-02']
+#      result: ['2016-02']
+      error: true
     - expression: "@2016-01 + 1 hour"
       result: ['2016-01']
     - expression: "@2018-01-03 + 2 years"
@@ -171,6 +325,20 @@ tests:
       result: ['2016-03-29']
     - expression: "@2016-02-29 + 1 year"
       result: ['2017-02-28']
+    - expression: "1 year + @2016-02-29"
+      result: ['2017-02-28']
+    - expression: "@2016-02-29 + @2016-02-29"
+      error: true
+    - expression: "1 year - @2016-02-29"
+      error: true
+    - expression: "1 year - 6 months - 1 year + 18 months = 1 year"
+      result: [true]
+    - expression: "1 year * 2 = 2 year"
+      result: [true]
+    - expression: "2 * 5 months = 10 months"
+      result: [true]
+    - expression: "1 year / 6 months = 2"
+      result: [true]
     - expression: "@2016-01-31 + 1 month"
       result: ['2016-02-29']
     - expression: "@2016-01-31 + 1 month + 1 day"
@@ -178,7 +346,8 @@ tests:
     - expression: "@2016-02-28 + 1 week"
       result: ['2016-03-06']
     - expression: "@2016-02-28 + 1 'wk'"
-      result: ['2016-03-06']
+#      result: ['2016-03-06']
+      error: true
     - expression: "@2016-02-28 + 1 day"
       result: ['2016-02-29']
     - expression: "@2016-02-28 + 2 days"
@@ -237,7 +406,8 @@ tests:
     - expression: "@2016-02-28 - 1.5 weeks"
       result: ['2016-02-21']
     - expression: "@2016-02-28 + 1.5 'wk'"
-      result: ['2016-03-06']
+      #result: ['2016-03-06']
+      error: true
     - expression: "@2016-02-28 + 1.5 day"
       result: ['2016-02-29']
     - expression: "@T23:59:23-05:00 + 1.5 hours = @T00:59:23-05:00"

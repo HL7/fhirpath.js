@@ -3,15 +3,35 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [3.9.2] - 2023-12-12
+## [3.10.2] - 2024-03-12
 ### Fixed
 - children() and descendants() were returning resource nodes with the incorrect
   data types.
 
-## [3.9.1] - 2023-12-06
+## [3.10.1] - 2024-01-29
 ### Changed
 - Improved performance comparison task: added command line options and enabled
   Ctrl+C for stopping the tests.
+
+## [3.10.0] - 2024-01-23
+### Added
+- Support for comparison and math operations with Quantity values.
+  It also became possible to use Quantity values with `aggregate()`, `min()`,
+  `max()`, `sum()`, `avg()`, and `abs()`.
+- Unary `-` for a Quantity value.
+
+## [3.9.1] - 2024-01-22
+### Fixed
+- Fixed exception in the "hashObject" internal function when an object has
+  a property with the "null" value. This may affect functions that compare
+  objects:
+  intersect(), subsetOf(), repeat(), union(), distinct(), isDistinct().
+- Null values are excluded from the expression evaluation result.
+- Fixed an issue when evaluating an expression for a resource object with missed
+  values at the end of the array in a property.
+- Fixed an issue when evaluating an expression for a resource object when there
+  are no values at all for a property, but there is a list of associated data
+  (ids/extensions).
 
 ## [3.9.0] - 2023-11-09
 ### Added

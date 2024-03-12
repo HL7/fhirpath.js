@@ -1,22 +1,40 @@
 // This file holds code to hande the FHIRPath Math functions.
 
-var types = require('./types');
-let {FP_TimeBase, FP_Quantity} = types;
+const {FP_Quantity, FP_Type} = require('./types');
 const util = require("./utilities");
 
 /**
  *  Adds the math functions to the given FHIRPath engine.
  */
-
-var engine = {};
+const engine = {};
 
 function ensureNumberSingleton(x){
   let d = util.valData(x);
   if (typeof d !== 'number') {
-    if (d.length == 1 && typeof (d=util.valData(d[0])) === 'number') {
+    if (d.length === 1 && typeof (d=util.valData(d[0])) === 'number') {
       return d;
     }else{
       throw new Error("Expected number, but got " + JSON.stringify(d || x));
+    }
+  }
+  else
+    return d;
+}
+
+/**
+ * Returns the data value of the given parameter (which might be a ResourceNode)
+ * if its type is number or FP_Quantity. Otherwise, an exception is thrown.
+ * @param {ResourceNode|number|FP_Quantity|any} x - value or a ResourceNode with a value
+ * @throws Error
+ * @return {number|FP_Quantity}
+ */
+function ensureNumberOrQuantitySingleton(x){
+  let d = util.valData(x);
+  if (typeof d !== 'number' && !(d instanceof FP_Quantity)) {
+    if (d.length === 1 && (typeof (d=util.valData(d[0])) === 'number' || d instanceof FP_Quantity) ) {
+      return d;
+    } else {
+      throw new Error("Expected number or Quantity, but got " + JSON.stringify(d || x));
     }
   }
   else
@@ -27,7 +45,7 @@ function isEmpty(x) {
   if(typeof(x) == 'number'){
     return false;
   }
-  return x.length == 0;
+  return x.length === 0;
 }
 
 engine.amp = function(x, y){
@@ -37,46 +55,114 @@ engine.amp = function(x, y){
 //HACK: for only polymorphic function
 //  Actually, "minus" is now also polymorphic
 engine.plus = function(xs, ys){
-  if(xs.length == 1 && ys.length == 1) {
-    var x = util.valDataConverted(xs[0]);
-    var y = util.valDataConverted(ys[0]);
+  let res;
+  if(xs.length === 1 && ys.length === 1) {
+    const x = util.valDataConverted(xs[0]);
+    const y = util.valDataConverted(ys[0]);
     // In the future, this and other functions might need to return ResourceNode
     // to preserve the type information (integer vs decimal, and maybe decimal
     // vs string if decimals are represented as strings), in order to support
     // "as" and "is", but that support is deferred for now.
     if(typeof x == "string" && typeof y == "string") {
-      return x + y;
-    }
-    if(typeof x == "number" && typeof y == "number") {
-      return x + y;
-    }
-    if(x instanceof FP_TimeBase && y instanceof FP_Quantity) {
-      return x.plus(y);
+      res = x + y;
+    } else if(typeof x == "number") {
+      if (typeof y == "number") {
+        res = x + y;
+      } else if (y instanceof FP_Quantity) {
+        res = (new FP_Quantity(x, "'1'")).plus(y);
+      }
+    } else if(x instanceof FP_Type) {
+      if (y instanceof FP_Quantity) {
+        res = x.plus(y);
+      } else if (y instanceof FP_Type) {
+        res = y.plus(x);
+      } else if (typeof y == "number") {
+        res = x.plus(new FP_Quantity(y, "'1'"));
+      }
     }
   }
-  throw new Error("Cannot " + JSON.stringify(xs) + " + " + JSON.stringify(ys));
+  if (res === undefined) {
+    throw new Error("Cannot " + JSON.stringify(xs) + " + " + JSON.stringify(ys));
+  }
+  return res;
 };
 
 engine.minus = function(xs, ys){
-  if(xs.length == 1 && ys.length == 1) {
-    var x = util.valDataConverted(xs[0]);
-    var y = util.valDataConverted(ys[0]);
-    if(typeof x == "number" && typeof y == "number")
-      return x - y;
-    if(x instanceof FP_TimeBase && y instanceof FP_Quantity)
-      return x.plus(new FP_Quantity(-y.value, y.unit));
+  if(xs.length === 1 && ys.length === 1) {
+    const x = util.valDataConverted(xs[0]);
+    const y = util.valDataConverted(ys[0]);
+    if(typeof x == "number") {
+      if (typeof y == "number") {
+        return x - y;
+      }
+      if (y instanceof FP_Quantity) {
+        return (new FP_Quantity(x, "'1'")).plus(new FP_Quantity(-y.value, y.unit));
+      }
+    }
+
+    if(x instanceof FP_Type) {
+      if (y instanceof FP_Quantity) {
+        return x.plus(new FP_Quantity(-y.value, y.unit));
+      }
+      if (typeof y == "number") {
+        return x.plus(new FP_Quantity(-y, "'1'"));
+      }
+    }
   }
   throw new Error("Cannot " + JSON.stringify(xs) + " - " + JSON.stringify(ys));
 };
 
 
-engine.mul = function(x, y){
-  return x * y;
+engine.mul = function(xs, ys){
+  if(xs.length === 1 && ys.length === 1) {
+    const x = util.valDataConverted(xs[0]);
+    const y = util.valDataConverted(ys[0]);
+    if(typeof x == "number") {
+      if (typeof y == "number") {
+        return x * y;
+      }
+      if (y instanceof FP_Quantity) {
+        return (new FP_Quantity(x, "'1'")).mul(y);
+      }
+    }
+
+    if(x instanceof FP_Type) {
+      if (y instanceof FP_Quantity) {
+        return x.mul(y);
+      }
+      if (typeof y == 'number') {
+        return x.mul(new FP_Quantity(y, "'1'"));
+      }
+    }
+  }
+  throw new Error("Cannot " + JSON.stringify(xs) + " * " + JSON.stringify(ys));
 };
 
-engine.div = function(x, y){
-  if (y === 0) return [];
-  return x / y;
+engine.div = function(xs, ys){
+  if(xs.length === 1 && ys.length === 1) {
+    const x = util.valDataConverted(xs[0]);
+    const y = util.valDataConverted(ys[0]);
+    if(typeof x == "number") {
+      if (typeof y == "number") {
+        if (y === 0) return [];
+        return x / y;
+      }
+      if (y instanceof FP_Quantity) {
+        return (new FP_Quantity(x, "'1'")).div(y);
+      }
+    }
+
+    if(x instanceof FP_Type) {
+      if (y instanceof FP_Quantity) {
+        return x.div(y);
+      }
+      if (typeof y == "number") {
+        return x.div(new FP_Quantity(y, "'1'"));
+      }
+    }
+  }
+  throw new Error("Cannot " + JSON.stringify(xs) + " / " + JSON.stringify(ys));
+
 };
 
 engine.intdiv = function(x, y){
@@ -90,12 +176,20 @@ engine.mod = function(x, y){
 };
 
 engine.abs = function(x){
-  if (isEmpty(x)){
-    return [];
-  }else{
-    let num = ensureNumberSingleton(x);
-    return Math.abs(num);
+  let res;
+
+  if (isEmpty(x)) {
+    res = [];
+  } else {
+    const val = ensureNumberOrQuantitySingleton(x);
+    if (val instanceof FP_Quantity) {
+      res = new FP_Quantity(Math.abs(val.value), val.unit);
+    } else {
+      res = Math.abs(val);
+    }
   }
+
+  return res;
 };
 
 engine.ceiling = function(x){
@@ -150,7 +244,7 @@ engine.power = function(x, degree){
   }else{
     let num = ensureNumberSingleton(x);
     let num2 = ensureNumberSingleton(degree);
-    if (num < 0 && (Math.floor(num2) != num2)){
+    if (num < 0 && (Math.floor(num2) !== num2)){
       return [];
     }else{
       return Math.pow(num, num2);

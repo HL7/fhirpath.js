@@ -24,6 +24,7 @@ const availableTests = [
   'exclude',
   'subsetof',
   'distinct',
+  'contains',
   'descendants'
 ];
 
