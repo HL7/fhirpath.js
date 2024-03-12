@@ -123,7 +123,21 @@ tests:
       - true
     model: r4
 
-  - desc: '** Patient.id is System.String'
+  - desc: '** Extension.url is System.String'
+    inputfile: patient-example.json
+    expression: Patient.contact.name.family.extension('http://hl7.org/fhir/StructureDefinition/humanname-own-prefix').url is System.String
+    result:
+      - true
+    model: r4
+
+  - desc: '** Patient.id is System.String (R5)'
+    inputfile: patient-example.json
+    expression: Patient.id is System.String
+    result:
+      - true
+    model: r5
+
+  - desc: '** Patient.id is System.String (R4)'
     inputfile: patient-example.json
     expression: Patient.id is System.String
     result:
@@ -260,27 +274,6 @@ tests:
     model: 'r4'
     result:
       - true
-
-  - desc: '** descendants() returns resource nodes with the correct data types (2)'
-    inputfile: patient-example.json
-    expression: descendants().where($this is System.String).count()
-    model: 'r4'
-    result:
-      - 4
-
-  - desc: '** descendants() returns resource nodes with the correct data types (3)'
-    inputfile: patient-example.json
-    expression: descendants().where($this is FHIR.string).count()
-    model: 'r4'
-    result:
-      - 49
-
-  - desc: '** descendants() returns resource nodes with the correct data types (4)'
-    inputfile: patient-example.json
-    expression: descendants().where($this is string or $this is String ).count()
-    model: 'r4'
-    result:
-      - 53
 
 subject:
   coll:

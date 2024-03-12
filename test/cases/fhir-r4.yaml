@@ -494,7 +494,6 @@ tests:
         expression: Observation.value.value < 'test'
         error: true
         model: r4
-        disable: true
       - desc: '** testDateEqual'
         inputfile: patient-example.json
         expression: Patient.birthDate = @1974-12-25

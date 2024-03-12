@@ -75,6 +75,62 @@ tests:
       result:
         - testing
 
+    - desc: '** expression with extension() for an item of an array of primitive types when associated value is null'
+      inputfile: patient-bundle.json
+      model: r4
+      expression: >-
+        Bundle.entry.resource.name[0].given[0].extension('http://hl7.org/fhir/StructureDefinition/display').value
+      result: []
+
+    - desc: '** expression with extension() for an item of an array of primitive types when associated value is not null'
+      inputfile: patient-bundle.json
+      model: r4
+      expression: >-
+        Bundle.entry.resource.name[0].given[1].extension('http://hl7.org/fhir/StructureDefinition/display').value
+      result:
+        - Jacomus
+
+    - desc: '** expression with extension() for the null item of an array of primitive types when it has a non-null extension'
+      inputfile: patient-example-2.json
+      model: r4
+      expression: >-
+        Patient.name.given[0].extension('http://hl7.org/fhir/StructureDefinition/display').value = 'Jacomus1'
+      result:
+        - true
+
+    - desc: '** expression with extension() when the list of primitive types is shorter than the list of extensions'
+      inputfile: patient-example-2.json
+      model: r4
+      expression: >-
+        Patient.name.given[3].extension('http://hl7.org/fhir/StructureDefinition/display').value = 'Jacomus2'
+      result:
+        - true
+
+    - desc: '** expression with extension() when the list of values doesn''t exists but the list of extensions does'
+      inputfile: patient-example-2.json
+      model: r4
+      expression: >-
+        Patient.address[1].id = 'someId'
+      result:
+        - true
+
+    - desc: '** count nodes without value, but with extensions'
+      inputfile: patient-example-2.json
+      model: r4
+      expression: >-
+        Patient.name.given.count() = 4
+      result:
+        - true
+
+    - desc: '** exclude null values from the result'
+      inputfile: patient-example-2.json
+      model: r4
+      expression: >-
+        Patient.name.given
+      result:
+        - Peter
+        - James
+
     - desc: '** expression with extension() for primitive type (using FHIR model data)'
       inputfile: patient-example.json
       model: r4

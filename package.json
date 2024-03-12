@@ -1,10 +1,10 @@
 {
   "name": "fhirpath",
-  "version": "3.9.3",
+  "version": "3.10.3",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "dependencies": {
-    "@lhncbc/ucum-lhc": "^4.1.3",
+    "@lhncbc/ucum-lhc": "^5.0.0",
     "antlr4": "~4.9.3",
     "commander": "^2.18.0",
     "date-fns": "^1.30.1",
@@ -55,5 +55,5 @@
     "fhirpath": "bin/fhirpath"
   },
   "repository": "github:HL7/fhirpath.js",
-  "license": "MIT"
+  "license": "SEE LICENSE in LICENSE.md"
 }

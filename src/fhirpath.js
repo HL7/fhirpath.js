@@ -171,8 +171,8 @@ engine.invocationTable = {
   "&":          {fn: math.amp,     arity:  {2: ["String", "String"]}},
   "+":          {fn: math.plus,    arity:  {2: ["Any", "Any"]}, nullable: true},
   "-":          {fn: math.minus,   arity:  {2: ["Any", "Any"]}, nullable: true},
-  "*":          {fn: math.mul,     arity:  {2: ["Number", "Number"]}, nullable: true},
-  "/":          {fn: math.div,     arity:  {2: ["Number", "Number"]}, nullable: true},
+  "*":          {fn: math.mul,     arity:  {2: ["Any", "Any"]}, nullable: true},
+  "/":          {fn: math.div,     arity:  {2: ["Any", "Any"]}, nullable: true},
   "mod":        {fn: math.mod,     arity:  {2: ["Number", "Number"]}, nullable: true},
   "div":        {fn: math.intdiv,  arity:  {2: ["Number", "Number"]}, nullable: true},
 
@@ -206,12 +206,20 @@ engine.PolarityExpression = function(ctx, parentData, node) {
   var rtn = engine.doEval(ctx,parentData, node.children[0]);
   if (rtn.length !== 1) {  // not yet in spec, but per Bryn Rhodes
     throw new Error('Unary ' + sign +
-     ' can only be applied to an individual number.');
+     ' can only be applied to an individual number or Quantity.');
   }
-  if (typeof rtn[0] != 'number' || isNaN(rtn[0]))
-    throw new Error('Unary ' + sign + ' can only be applied to a number.');
-  if (sign === '-')
-    rtn[0] = -rtn[0];
+  if (rtn[0] instanceof FP_Quantity) {
+    if (sign === '-') {
+      rtn[0] = new FP_Quantity(-rtn[0].value, rtn[0].unit);
+    }
+  } else if (typeof rtn[0] === 'number' && !isNaN(rtn[0])) {
+    if (sign === '-') {
+      rtn[0] = -rtn[0];
+    }
+  } else {
+    throw new Error('Unary ' + sign + ' can only be applied to a number or Quantity.');
+  }
+
   return rtn;
 };
 
@@ -643,7 +651,7 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
     // Resolve any internal "ResourceNode" instances to plain objects and if
     // options.resolveInternalTypes is true, resolve any internal "FP_Type"
     // instances to strings.
-    .map(n => {
+    .reduce((acc,n) => {
       // Path for the data extracted from the resource.
       let path = n instanceof ResourceNode ? n.path : null;
       n = util.valData(n);
@@ -652,13 +660,17 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
           n = n.toString();
         }
       }
-      // Add a hidden (non-enumerable) property with the path to the data extracted
-      // from the resource.
-      if (path && typeof n === 'object') {
-        Object.defineProperty(n, '__path__', {value: path});
+      // Exclude nulls
+      if (n != null) {
+        // Add a hidden (non-enumerable) property with the path to the data extracted
+        // from the resource.
+        if (path && typeof n === 'object') {
+          Object.defineProperty(n, '__path__', {value: path});
+        }
+        acc.push(n);
       }
-      return n;
-    });
+      return acc;
+    }, []);
 }
 
 /**

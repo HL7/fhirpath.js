@@ -132,7 +132,7 @@ util.pushFn = Function.prototype.apply.bind(Array.prototype.push);
  * @param {object} [model] - "model" data object
  * @return {ResourceNode[]}
  */
-util.makeChildResNodes = function(parentResNode, childProperty, model/*??*/) {
+util.makeChildResNodes = function(parentResNode, childProperty, model) {
   let childPath = parentResNode.path + '.' + childProperty;
 
   if (model) {
@@ -174,6 +174,17 @@ util.makeChildResNodes = function(parentResNode, childProperty, model/*??*/) {
     if(Array.isArray(toAdd)) {
       result = toAdd.map((x, i)=>
         ResourceNode.makeResNode(x, childPath, _toAdd && _toAdd[i], isBackbone));
+      // Add items to the end of the ResourceNode list that have no value
+      // but have associated data, such as extensions or ids.
+      const _toAddLength = _toAdd?.length || 0;
+      for (let i = toAdd.length; i < _toAddLength; ++i) {
+        result.push(ResourceNode.makeResNode(null, childPath, _toAdd[i], isBackbone));
+      }
+    } else if (toAdd == null && Array.isArray(_toAdd)) {
+      // Add items to the end of the ResourceNode list when there are no
+      // values at all, but there is a list of associated data, such as
+      // extensions or ids.
+      result = _toAdd.map((x) => ResourceNode.makeResNode(null, childPath, x, isBackbone));
     } else {
       result = [ResourceNode.makeResNode(toAdd, childPath, _toAdd, isBackbone)];
     }

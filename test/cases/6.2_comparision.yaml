@@ -89,6 +89,41 @@ tests:
   - desc: less than or equal, expecting false
     expression: j <= d
     result: [false]
+  - 'group: Quantities':
+    - expression: 1 year > 1 'a'
+      result: []
+    - expression: 1 's' > 1 year
+      result: []
+    - expression: 1 'min' < 2 minutes
+      result: []
+    - expression: 1 'kg' < 2 's'
+      result: []
+    - expression: 1 year > 12 months
+      result: [false]
+    - expression: 1 year < 12 months
+      result: [false]
+    - expression: 1 minute > 59 seconds
+      result: [true]
+    - expression: 1 minute < 61 seconds
+      result: [true]
+    - expression: 1 'min' < 61 seconds
+      result: [true]
+    - expression: 10 seconds > 1 's'
+      result: [true]
+    - expression: 10 seconds < 1 's'
+      result: [false]
+    - expression: 1 's' > 10 seconds
+      result: [false]
+    - expression: 1 's' < 10 seconds
+      result: [true]
+    - expression: 999 'g' < 1 'kg'
+      result: [true]
+    - expression: 999 'g' > 1 'kg'
+      result: [false]
+    - expression: 1001 'g' > 1 'kg'
+      result: [true]
+    - expression: 1001 'g' < 1 'kg'
+      result: [false]
   - 'group: Dates & Times':
     - 'group:  Date >':
       - expression: '@2018 > @2019'
