@@ -1322,41 +1322,37 @@ tests:
         result:
           - true
         model: r4
+        disable: true
       - desc: '** testQuantity7'
         inputfile: patient-example.json
         expression: 6 days < 1 week
         result:
           - true
         model: r4
-        disable: true
       - desc: '** testQuantity8'
         inputfile: patient-example.json
         expression: 8 days > 1 week
         result:
           - true
         model: r4
-        disable: true
       - desc: '** testQuantity9'
         inputfile: patient-example.json
         expression: 2.0 'cm' * 2.0 'm' = 0.040 'm2'
         result:
           - true
         model: r4
-        disable: true
       - desc: '** testQuantity10'
         inputfile: patient-example.json
         expression: 4.0 'g' / 2.0 'm' = 2 'g/m'
         result:
           - true
         model: r4
-        disable: true
       - desc: '** testQuantity11'
         inputfile: patient-example.json
         expression: 1.0 'm' / 1.0 'm' = 1 '1'
         result:
           - true
         model: r4
-        disable: true
   - 'group: testCollectionBoolean':
       - desc: '** testCollectionBoolean1'
         inputfile: patient-example.json
@@ -2774,7 +2770,6 @@ tests:
         result:
           - true
         model: r4
-        disable: true
       - desc: '** testLessThan23'
         inputfile: patient-example.json
         expression: '@2018-03 < @2018-03-01'
@@ -2935,7 +2930,6 @@ tests:
         result:
           - true
         model: r4
-        disable: true
       - desc: '** testLessOrEqual23'
         inputfile: patient-example.json
         expression: '@2018-03 <= @2018-03-01'
@@ -3096,7 +3090,6 @@ tests:
         result:
           - true
         model: r4
-        disable: true
       - desc: '** testGreatorOrEqual23'
         inputfile: patient-example.json
         expression: '@2018-03 >= @2018-03-01'
@@ -3257,7 +3250,6 @@ tests:
         result:
           - true
         model: r4
-        disable: true
       - desc: '** testGreaterThan23'
         inputfile: patient-example.json
         expression: '@2018-03 > @2018-03-01'
@@ -3887,7 +3879,6 @@ tests:
         result:
           - true
         model: r4
-        disable: true
   - 'group: testCeiling':
       - desc: '** testCeiling1'
         inputfile: patient-example.json
