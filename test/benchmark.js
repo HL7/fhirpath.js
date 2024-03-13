@@ -24,7 +24,8 @@ const availableTests = [
   'exclude',
   'subsetof',
   'distinct',
-  'contains'
+  'contains',
+  'descendants'
 ];
 
 const options = require('commander');

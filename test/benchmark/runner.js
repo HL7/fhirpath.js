@@ -4,8 +4,8 @@
  */
 const current_fhirpath = require('../../src/fhirpath');
 const minimumDataset = require('../resources/Minimum-Data-Set---version-3.0.R4.json');
+const patientExample = require('../resources/patient-example.json');
 const current_r4_model = require('../../fhir-context/r4');
-const _ = require('lodash');
 const benny = require('benny');
 const open = require('open');
 const currentVersion = 'current';
@@ -37,6 +37,7 @@ async function run(filename, options) {
     current_fhirpath,
     current_r4_model,
     minimumDataset,
+    patientExample,
     currentVersion,
     previousVersion,
     bigItems,

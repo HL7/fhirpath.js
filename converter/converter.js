@@ -73,17 +73,16 @@ const transform = (node, model = null) => {
       case 'test':
         return [...acc, ...node[key].map(item => {
           let test = transform(item, model);
+          // Add model to the test if it is specified
+          if (model) {
+            test.model = model;
+          }
           if (!Object.prototype.hasOwnProperty.call(test,'result') && !test.error) {
             test.result = [];
           }
           if (!validateTest(test)) {
-            if (model && validateTest(Object.assign({}, test, { model }))) {
-              // if the test cannot be passed without set the model, we set the model
-              test.model = model;
-            } else {
-              // if the test cannot be passed at all, we disable it
-              test.disable = true;
-            }
+            // if the test cannot be passed, we disable it
+            test.disable = true;
           }
           return test;
         })];
