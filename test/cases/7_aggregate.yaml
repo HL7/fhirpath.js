@@ -76,7 +76,7 @@ tests:
           - true
       - desc: 'min() function for collection with nulls'
         expression: Functions.attr.min()
-        result: [1]
+        error: true
       - desc: 'max() function returns the maximum value from the input collection'
         expression: (7|8|9|1|2|3|4|5|6).max() = 9
         result:
@@ -90,7 +90,7 @@ tests:
           - true
       - desc: 'max() function for collection with nulls'
         expression: Functions.attr.max()
-        result: [2]
+        error: true
       - desc: 'avg() function calculates the average value for the input collection'
         expression: (7|8|9|1|2|3|4|5|6).avg() = 5
         result:

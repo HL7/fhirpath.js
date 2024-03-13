@@ -36,22 +36,24 @@ engine.sumFn = function(data) {
 // Shortcut for "value.aggregate(iif($total.empty(), $this, iif($this < $total, $this, $total)))"
 engine.minFn = function (data) {
   return engine.aggregateMacro.apply(this, [data, (curr) => {
-    const $this = util.arraify(curr).filter(i => util.valData(i) != null);
+    const $this = util.arraify(curr);
     const $total = util.arraify(this.$total);
     return util.isEmpty($total)
       ? $this
-      : equality.lt($this, $total) ? $this : $total;
+      : equality.lt($this.filter(i => util.valData(i) != null), $total.filter(i => util.valData(i) != null))
+        ? $this : $total;
   }]);
 };
 
 // Shortcut for "value.aggregate(iif($total.empty(), $this, iif($this > $total, $this, $total)))"
 engine.maxFn = function (data) {
   return engine.aggregateMacro.apply(this, [data, (curr) => {
-    const $this = util.arraify(curr).filter(i => util.valData(i) != null);
+    const $this = util.arraify(curr);
     const $total = util.arraify(this.$total);
-    return $total.length === 0
+    return util.isEmpty($total)
       ? $this
-      : equality.gt($this, $total) ? $this : $total;
+      : equality.gt($this.filter(i => util.valData(i) != null), $total.filter(i => util.valData(i) != null))
+        ? $this : $total;
   }]);
 };
 

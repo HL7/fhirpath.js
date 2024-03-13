@@ -1332,7 +1332,6 @@ tests:
         inputfile: patient-example.json
         expression: Patient.name.single().exists()
         error: true
-        disable: true
   - 'group: testFirstLast':
       - desc: '** testFirstLast1'
         inputfile: patient-example.json
@@ -3243,7 +3242,7 @@ tests:
         expression: 3.14159.round(3) = 2
         result:
           - true
-    disable: true
+        disable: true
   - 'group: testSqrt':
       - desc: '** testSqrt1'
         inputfile: patient-example.json

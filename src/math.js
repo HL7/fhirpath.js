@@ -10,12 +10,12 @@ const engine = {};
 
 /**
  * Checks if input collection is a number singleton and runs the passed function.
- * @param {Array<ResourceNode|number|FP_Quantity|any>} x - input collection
+ * @param {Array<ResourceNode|number|any>} x - input collection
  * @param {Function} fn - math function
  * @throws Error
- * @return {number|FP_Quantity}
+ * @return {number}
  */
-function checkInputColAndRunFn(x, fn){
+function callFnForNumericSingleton(x, fn){
   let res;
   if (isEmpty(x)){
     res = [];
@@ -205,50 +205,54 @@ engine.abs = function(x){
 };
 
 engine.ceiling = function(x) {
-  return checkInputColAndRunFn(x, Math.ceil);
+  return callFnForNumericSingleton(x, Math.ceil);
 };
 
 engine.exp = function(x){
-  return checkInputColAndRunFn(x, Math.exp);
+  return callFnForNumericSingleton(x, Math.exp);
 };
 
 engine.floor = function(x){
-  return checkInputColAndRunFn(x, Math.floor);
+  return callFnForNumericSingleton(x, Math.floor);
 };
 
 engine.ln = function(x){
-  return checkInputColAndRunFn(x, Math.log);
+  return callFnForNumericSingleton(x, Math.log);
 };
 
 engine.log = function(x, base){
-  return checkInputColAndRunFn(x, (num) => {
+  return callFnForNumericSingleton(x, (num) => {
     return (Math.log(num) / Math.log(base));
   });
 };
 
-engine.power = function(x, degree){
-  return checkInputColAndRunFn(x, (num) => {
-    if (num < 0 && (Math.floor(degree) !== degree)){
-      return [];
-    } else {
-      return Math.pow(num, degree);
-    }
+engine.power = function(x, exponent){
+  return callFnForNumericSingleton(x, (num) => {
+    const res = Math.pow(num, exponent);
+    return isNaN(res) ? [] : res;
   });
 };
 
-engine.round = function(x, acc){
-  return checkInputColAndRunFn(x, (num) => {
-    if (acc === undefined || isEmpty(acc)) {
+/**
+ * Rounds the decimal to the nearest whole number using a traditional round.
+ * See https://hl7.org/fhirpath/#roundprecision-integer-decimal
+ * @param {Array} x - input collection
+ * @param {integer} [precision] - determines the decimal place at which the rounding will occur
+ * @return {number}
+ */
+engine.round = function(x, precision){
+  return callFnForNumericSingleton(x, (num) => {
+    if (precision === undefined) {
       return (Math.round(num));
     } else {
-      let degree = Math.pow(10, acc);
+      let degree = Math.pow(10, precision);
       return (Math.round(num * degree) / degree);
     }
   });
 };
 
 engine.sqrt = function(x){
-  return checkInputColAndRunFn(x, (num) => {
+  return callFnForNumericSingleton(x, (num) => {
     if (num < 0) {
       return [];
     } else {
@@ -258,7 +262,7 @@ engine.sqrt = function(x){
 };
 
 engine.truncate = function(x){
-  return checkInputColAndRunFn(x, Math.trunc);
+  return callFnForNumericSingleton(x, Math.trunc);
 };
 
 module.exports = engine;

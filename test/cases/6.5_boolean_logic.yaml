@@ -36,7 +36,7 @@ tests:
     result: [false]
 
   - desc: '* 6.5.2 or'
-  - desc: '* or (true and true)'
+  - desc: '* or (true or true)'
     expression: ok1 or ok2
     result: [true]
   - desc: '* or (true or false)'
@@ -62,10 +62,10 @@ tests:
   - desc: '* or ({} or {})'
     expression: emp or emp
     result: []
-  - desc: '* or (true and null)'
+  - desc: '* or (true or null)'
     expression: ok1 or i
     result: [true]
-  - desc: '* or (false and null)'
+  - desc: '* or (false or null)'
     expression: ups1 or i
     result: []
 
@@ -86,7 +86,7 @@ tests:
   - desc: '* xor (false xor true)'
     expression: ups1 xor ok1
     result: [true]
-  - desc: '* or (false or false)'
+  - desc: '* xor (false xor false)'
     expression: ups2 xor ups1
     result: [false]
 
@@ -106,10 +106,10 @@ tests:
   - desc: '* xor ({} xor {})'
     expression: emp xor emp
     result: []
-  - desc: '* xor (true and null)'
+  - desc: '* xor (true xor null)'
     expression: ok1 xor i
     result: []
-  - desc: '* xor (false and null)'
+  - desc: '* xor (false xor null)'
     expression: ups1 xor i
     result: []
 
