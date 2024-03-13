@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.10.4] - 2024-03-13
+### Fixed
+- hasValue() function previously only checked the data type of an input
+  single-element collection, but not the existence of a value.
+
 ## [3.10.3] - 2024-03-12
 ### Fixed
 - Functions `as(<type specifier>)`, `is(<type specifier>)`,
