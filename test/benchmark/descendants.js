@@ -12,26 +12,30 @@ module.exports = ({
   const numberOfItems = current_fhirpath.evaluate(patientExampleCopy1,'Patient.descendants().count()', {},  current_r4_model);
   const expression = 'Patient.descendants()';
 
-  return [{
-    name: `Getting ${numberOfItems} descendants`,
-    filename: 'descendants',
-    expression,
-    cases: [
-      ...(options.compileOnly
-        ? []
-        : [{
-          name: `using evaluate()`,
+  return [
+    ...(options.compileOnly
+      ? []
+      : [{
+        name: `Getting ${numberOfItems} descendants using evaluate()`,
+        filename: 'descendants-evaluate',
+        expression,
+        cases: [{
+          name: '',
           testFunction: (fhirpath, model) => {
             fhirpath.evaluate(fhirpath === current_fhirpath ? patientExampleCopy1 : PatientExampleCopy2, expression, {}, model);
           }
-        }]),
-      {
-        name: `using compile()`,
+        }]
+      }]),
+    {
+      name: `Getting ${numberOfItems} descendants using compile()`,
+      filename: 'descendants-compile',
+      expression,
+      cases: [{
+        name: '',
         testFunction: (fhirpath, model, compiledFn) => {
           compiledFn(fhirpath === current_fhirpath ? patientExampleCopy1 : PatientExampleCopy2, {});
         }
-      }
-    ]
-  }];
+      }]
+    }];
 
 }
