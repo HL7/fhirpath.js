@@ -33,8 +33,7 @@ let path2Type = {};
  * @param {string} code - data type code.
  */
 function addPath2Type(path, code) {
-  if (code !== 'Element' && code !== 'BackboneElement'
-      && path.indexOf('.') !== -1) {
+  if (code !== 'Element' && path.indexOf('.') !== -1) {
     if (/http:\/\/hl7\.org\/fhirpath\/(.*)/.test(code)) {
       path2Type[path] = RegExp.$1;
     } else {
