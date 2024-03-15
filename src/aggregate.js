@@ -33,28 +33,39 @@ engine.sumFn = function(data) {
   }, data[0]]);
 };
 
+/**
+ * Shortcut for "[source collection].aggregate(iif($total.empty(), $this, iif($this [operator] $total, $this, $total)))"
+ * Used for functions min() and max().
+ * @param {Array} data - source collection
+ * @param {Function} fn - operator function
+ * @return {Array}
+ */
+function minMaxShortcutTemplate(data, fn) {
+  let $total;
+  if (data.length === 0 || util.valData(data[0]) == null) {
+    $total = [];
+  } else {
+    $total = util.arraify(data[0]);
+    for (let i = 1; i < data.length; i++) {
+      if (util.valData(data[i]) == null) {
+        $total = [];
+        break;
+      }
+      const $this = util.arraify(data[i]);
+      $total = util.isTrue(fn($this, $total)) ? $this : $total;
+    }
+  }
+  return $total;
+}
+
 // Shortcut for "value.aggregate(iif($total.empty(), $this, iif($this < $total, $this, $total)))"
 engine.minFn = function (data) {
-  return engine.aggregateMacro.apply(this, [data, (curr) => {
-    const $this = util.arraify(curr);
-    const $total = util.arraify(this.$total);
-    return util.isEmpty($total)
-      ? $this
-      : equality.lt($this.filter(i => util.valData(i) != null), $total.filter(i => util.valData(i) != null))
-        ? $this : $total;
-  }]);
+  return minMaxShortcutTemplate(data, equality.lt);
 };
 
 // Shortcut for "value.aggregate(iif($total.empty(), $this, iif($this > $total, $this, $total)))"
 engine.maxFn = function (data) {
-  return engine.aggregateMacro.apply(this, [data, (curr) => {
-    const $this = util.arraify(curr);
-    const $total = util.arraify(this.$total);
-    return util.isEmpty($total)
-      ? $this
-      : equality.gt($this.filter(i => util.valData(i) != null), $total.filter(i => util.valData(i) != null))
-        ? $this : $total;
-  }]);
+  return minMaxShortcutTemplate(data, equality.gt);
 };
 
 // Shortcut for "value.sum()/value.count()"

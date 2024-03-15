@@ -484,7 +484,7 @@ subject:
     - true
   _collWithNullAndTrue:
     - id: nullId
-    - id trueId
+    - id: trueId
   collWith2NullAndTrue:
     - null
     - null
@@ -492,7 +492,7 @@ subject:
   _collWith2NullAndTrue:
     - id: nullId1
     - id: nullId2
-    - id trueId
+    - id: trueId
   coll1:
     - coll2:
         - attr: 1

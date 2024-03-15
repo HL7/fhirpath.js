@@ -234,10 +234,10 @@ engine.power = function(x, exponent){
 };
 
 /**
- * Rounds the decimal to the nearest whole number using a traditional round.
- * See https://hl7.org/fhirpath/#roundprecision-integer-decimal
+ * Implements the "round" function documented at
+ * https://hl7.org/fhirpath/#roundprecision-integer-decimal
  * @param {Array} x - input collection
- * @param {integer} [precision] - determines the decimal place at which the rounding will occur
+ * @param {integer} [precision] - determines what decimal place to round to
  * @return {number}
  */
 engine.round = function(x, precision){
