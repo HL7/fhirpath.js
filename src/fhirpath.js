@@ -192,7 +192,7 @@ engine.TermExpression = function(ctx, parentData, node) {
   if (parentData) {
     parentData = parentData.map((x) => {
       if (x instanceof Object && x.resourceType) {
-        return makeResNode(x, x.resourceType);
+        return makeResNode(x, x.resourceType, null, x.resourceType);
       }
       return x;
     });
@@ -345,9 +345,8 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
       return parentData
         .filter((x) => x instanceof ResourceNode && x.path === key);
     } else {
-      const path = parentData.path || parentData.__path__;
       return parentData.reduce(function(acc, res) {
-        res = makeResNode(res, path);
+        res = makeResNode(res, res.__path__ || null, null,res.__fhirNodeDataType__ || null);
         util.pushFn(acc, util.makeChildResNodes(res, key, model));
         return acc;
       }, []);
@@ -619,7 +618,7 @@ function parse(path) {
  */
 function applyParsedPath(resource, parsedPath, context, model, options) {
   constants.reset();
-  let dataRoot = util.arraify(resource).map(i => (i?.__path__ ? makeResNode(i, i?.__path__) : i));
+  let dataRoot = util.arraify(resource).map(i => (i?.__path__ ? makeResNode(i, i.__path__, null, i.__fhirNodeDataType__ || null) : i));
   // doEval takes a "ctx" object, and we store things in that as we parse, so we
   // need to put user-provided variable data in a sub-object, ctx.vars.
   // Set up default standard variables, and allow override from the variables.
@@ -631,9 +630,9 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   if (context) {
     context = Object.keys(context).reduce((restoredContext, key) => {
       if (Array.isArray(context[key])) {
-        restoredContext[key] = context[key].map(i => (i?.__path__ ? makeResNode(i, i.__path__) : i));
+        restoredContext[key] = context[key].map(i => (i?.__path__ ? makeResNode(i, i.__path__, null, i.__fhirNodeDataType__ || null) : i));
       } else {
-        restoredContext[key] = context[key]?.__path__ ? makeResNode(context[key], context[key].__path__) : context[key];
+        restoredContext[key] = context[key]?.__path__ ? makeResNode(context[key], context[key].__path__, null, context[key].__fhirNodeDataType__ || null) : context[key];
       }
       return restoredContext;
     }, {});
@@ -653,7 +652,12 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
     // instances to strings.
     .reduce((acc,n) => {
       // Path for the data extracted from the resource.
-      let path = n instanceof ResourceNode ? n.path : null;
+      let path;
+      let fhirNodeDataType;
+      if (n instanceof ResourceNode) {
+        path = n.path;
+        fhirNodeDataType = n.fhirNodeDataType;
+      }
       n = util.valData(n);
       if (n instanceof FP_Type) {
         if (options.resolveInternalTypes) {
@@ -666,6 +670,7 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
         // from the resource.
         if (path && typeof n === 'object') {
           Object.defineProperty(n, '__path__', {value: path});
+          Object.defineProperty(n, '__fhirNodeDataType__', {value: fhirNodeDataType});
         }
         acc.push(n);
       }
@@ -772,10 +777,16 @@ function compile(path, model, options) {
   if (typeof path === 'object') {
     const node = parse(path.expression);
     return function (fhirData, context) {
-      const resource = path.base ? makeResNode(fhirData, path.base) : fhirData;
+      if (path.base) {
+        let basePath = model.pathsDefinedElsewhere[path.base] || path.base;
+        const baseFhirNodeDataType = model && model.path2Type[basePath] || null;
+        basePath = baseFhirNodeDataType === 'BackboneElement' || baseFhirNodeDataType === 'Element' ? basePath : baseFhirNodeDataType || basePath;
+
+        fhirData = makeResNode(fhirData, basePath, null, baseFhirNodeDataType);
+      }
       // Globally set model before applying parsed FHIRPath expression
       TypeInfo.model = model;
-      return applyParsedPath(resource, node, context, model, options);
+      return applyParsedPath(fhirData, node, context, model, options);
     };
   } else {
     const node = parse(path);
@@ -795,7 +806,7 @@ function compile(path, model, options) {
  */
 function typesFn(fhirpathResult) {
   return util.arraify(fhirpathResult).map(value => {
-    const ti = TypeInfo.fromValue(value?.__path__ ? new ResourceNode(value, value.__path__) : value);
+    const ti = TypeInfo.fromValue(value?.__path__ ? new ResourceNode(value, value.__path__, null, value.__fhirNodeDataType__) : value);
     return `${ti.namespace}.${ti.name}`;
   });
 }

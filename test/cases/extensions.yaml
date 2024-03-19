@@ -75,6 +75,22 @@ tests:
       result:
         - testing
 
+    - desc: '** type of a primitive type "id" (using R4 model data)'
+      inputfile: patient-example-2.json
+      model: r4
+      expression: >-
+        Patient.communication.preferred.extension('test').value.id is System.String
+      result:
+        - true
+
+    - desc: '** type of a primitive type "id" (using DSTU2 model data)'
+      inputfile: patient-example-2.json
+      model: dstu2
+      expression: >-
+        Patient.communication.preferred.extension('test').value.id is FHIR.id
+      result:
+        - true
+
     - desc: '** expression with extension() for an item of an array of primitive types when associated value is null'
       inputfile: patient-bundle.json
       model: r4

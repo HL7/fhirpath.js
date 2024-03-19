@@ -165,28 +165,27 @@ util.makeChildResNodes = function(parentResNode, childProperty, model) {
     }
   }
 
-  const type = model && model.path2Type[childPath];
-  const isBackbone = type === 'BackboneElement';
-  childPath = isBackbone ? childPath : type || childPath;
+  const fhirNodeDataType = model && model.path2Type[childPath] || null;
+  childPath = fhirNodeDataType === 'BackboneElement' || fhirNodeDataType === 'Element' ? childPath : fhirNodeDataType || childPath;
 
   let result;
   if (util.isSome(toAdd) || util.isSome(_toAdd)) {
     if(Array.isArray(toAdd)) {
       result = toAdd.map((x, i)=>
-        ResourceNode.makeResNode(x, childPath, _toAdd && _toAdd[i], isBackbone));
+        ResourceNode.makeResNode(x, childPath, _toAdd && _toAdd[i], fhirNodeDataType));
       // Add items to the end of the ResourceNode list that have no value
       // but have associated data, such as extensions or ids.
       const _toAddLength = _toAdd?.length || 0;
       for (let i = toAdd.length; i < _toAddLength; ++i) {
-        result.push(ResourceNode.makeResNode(null, childPath, _toAdd[i], isBackbone));
+        result.push(ResourceNode.makeResNode(null, childPath, _toAdd[i], fhirNodeDataType));
       }
     } else if (toAdd == null && Array.isArray(_toAdd)) {
       // Add items to the end of the ResourceNode list when there are no
       // values at all, but there is a list of associated data, such as
       // extensions or ids.
-      result = _toAdd.map((x) => ResourceNode.makeResNode(null, childPath, x, isBackbone));
+      result = _toAdd.map((x) => ResourceNode.makeResNode(null, childPath, x, fhirNodeDataType));
     } else {
-      result = [ResourceNode.makeResNode(toAdd, childPath, _toAdd, isBackbone)];
+      result = [ResourceNode.makeResNode(toAdd, childPath, _toAdd, fhirNodeDataType)];
     }
   } else {
     result = [];

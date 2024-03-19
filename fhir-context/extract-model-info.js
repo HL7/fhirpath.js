@@ -33,7 +33,7 @@ let path2Type = {};
  * @param {string} code - data type code.
  */
 function addPath2Type(path, code) {
-  if (code !== 'Element' && path.indexOf('.') !== -1) {
+  if (path.indexOf('.') !== -1) {
     if (/http:\/\/hl7\.org\/fhirpath\/(.*)/.test(code)) {
       path2Type[path] = RegExp.$1;
     } else {
@@ -143,7 +143,7 @@ for (let f of choiceTypeFiles) {
           for (let e of n)
            visitNode(e);
         }
-        else if (typeof n === "object" && n.kind !== 'primitive-type') {
+        else if (typeof n === "object") {
           for (let k of Object.keys(n))
             visitNode(n[k]);
         }

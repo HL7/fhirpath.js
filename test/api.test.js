@@ -33,6 +33,15 @@ describe('compile', () => {
       .toStrictEqual(['2 year']);
   });
 
+  it('should evaluate type() on a part of a resource', () => {
+    let f = fhirpath.compile({
+      base: 'QuestionnaireResponse.item',
+      expression: 'type().name'
+    }, r4_model);
+    expect(f(input.questionnairePartExample))
+      .toStrictEqual(['BackboneElement']);
+  });
+
   it('should return a function that accepts a context hash', () => {
     let f = fhirpath.compile('%a + 2');
     expect(f({}, {a: 1})).toStrictEqual([3]);
