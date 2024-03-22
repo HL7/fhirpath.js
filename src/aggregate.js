@@ -45,13 +45,13 @@ function minMaxShortcutTemplate(data, fn) {
   if (data.length === 0 || util.valData(data[0]) == null) {
     $total = [];
   } else {
-    $total = util.arraify(data[0]);
+    $total = [data[0]];
     for (let i = 1; i < data.length; i++) {
       if (util.valData(data[i]) == null) {
         $total = [];
         break;
       }
-      const $this = util.arraify(data[i]);
+      const $this = [data[i]];
       $total = util.isTrue(fn($this, $total)) ? $this : $total;
     }
   }
