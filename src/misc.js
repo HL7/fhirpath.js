@@ -5,7 +5,7 @@
 var util = require("./utilities");
 var types = require("./types");
 
-const { FP_Quantity } = types;
+const { FP_Quantity, TypeInfo } = types;
 
 var engine = {};
 
@@ -71,14 +71,29 @@ const quantityRegex = /^((\+|-)?\d+(\.\d+)?)\s*(('[^']+')|([a-zA-Z]+))?$/,
   quantityRegexMap = {value:1,unit:5,time:6};
 engine.toQuantity = function (coll, toUnit) {
   let result;
-  // Surround UCUM unit code in the toUnit parameter with single quotes
-  if (toUnit && !FP_Quantity.mapTimeUnitsToUCUMCode[toUnit]) {
-    toUnit = `'${toUnit}'`;
-  }
 
   if (coll.length > 1) {
     throw new Error("Could not convert to quantity: input collection contains multiple items");
   } else if (coll.length === 1) {
+    if (toUnit) {
+      const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
+      const toUnitInSeconds = FP_Quantity._calendarDuration2Seconds[toUnit];
+      if (
+        !thisUnitInSeconds !== !toUnitInSeconds &&
+        (thisUnitInSeconds > 1 || toUnitInSeconds > 1)
+      ) {
+        // Conversion from calendar duration quantities greater than seconds to
+        // time-valued UCUM quantities greater than seconds or vice versa is not
+        // allowed.
+        return null;
+      }
+
+      // Surround UCUM unit code in the toUnit parameter with single quotes
+      if (!FP_Quantity.mapTimeUnitsToUCUMCode[toUnit]) {
+        toUnit = `'${toUnit}'`;
+      }
+    }
+
     var v = util.valDataConverted(coll[0]);
     let quantityRegexRes;
 
@@ -279,7 +294,9 @@ engine.singleton = function (coll, type) {
 /**
  * Checks whether a primitve value is present
  */
-const fhirPrimitives = new Set([
+const primitives = new Set();
+// IE11 probably doesn't support `new Set(iterable)`
+[
   "instant",
   "time",
   "date",
@@ -299,33 +316,18 @@ const fhirPrimitives = new Set([
   "oid",
   "uuid",
   "canonical",
-  "url"
-]);
+  "url",
+  "Integer",
+  "Decimal",
+  "String",
+  "Date",
+  "DateTime",
+  "Time"
+].forEach(i => primitives.add(i));
 
 engine.hasValueFn = function(coll) {
-  let model = this.model;
-
-  if (coll.length === 1){
-    if(model){
-      return [fhirPrimitives.has(coll[0].path)];
-    } else {
-      return [isPrimitiveDefault(util.valData(coll[0]))];
-    }
-  } else {
-    return [false];
-  }
+  return coll.length === 1 && util.valData(coll[0]) != null
+    && primitives.has(TypeInfo.fromValue(coll[0]).name);
 };
-
-function isPrimitiveDefault(data){
-  switch (typeof data){
-    case 'string':
-    case 'number':
-    case 'boolean':
-    // case 'bigint':
-      return true;
-    default:
-      return false;
-  }
-}
 
 module.exports = engine;

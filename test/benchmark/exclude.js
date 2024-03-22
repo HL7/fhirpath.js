@@ -1,12 +1,13 @@
 const _ = require('lodash');
 const { maxCollSizeForDeepEqual } = require('../../src/deep-equal');
-const { createSuiteForExpression } = require('./common-benchmark-utils');
+const { createSuitesForExpression } = require('./common-benchmark-utils');
 
 module.exports = ({
                     bigItems,
                     bigItemsCopy,
                     smallItems,
-                    smallItemsCopy
+                    smallItemsCopy,
+                    options
                   }) => {
   const smallCollectionLength = Math.floor(maxCollSizeForDeepEqual/2);
   const expression = '%items.exclude(%itemsCopy)';
@@ -18,7 +19,8 @@ module.exports = ({
     bigItems,
     bigItemsCopy,
     smallItems,
-    smallItemsCopy
+    smallItemsCopy,
+    options
   }, {
     name: 'exclude() all elements from a small collection with',
     filename: 'exclude-for-small-collections',
@@ -26,7 +28,8 @@ module.exports = ({
     bigItems: bigItems.slice(-smallCollectionLength),
     bigItemsCopy: bigItemsCopy.slice(-smallCollectionLength),
     smallItems: smallItems.slice(-smallCollectionLength),
-    smallItemsCopy: smallItemsCopy.slice(-smallCollectionLength)
-  }].map(createSuiteForExpression);
+    smallItemsCopy: smallItemsCopy.slice(-smallCollectionLength),
+    options
+  }].map(createSuitesForExpression);
 
 }

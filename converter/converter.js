@@ -5,8 +5,7 @@ const xml2js = require('xml2js');
 const yaml = require('js-yaml');
 
 const fhir = new (require('fhir').Fhir);
-const fhirpath = require('../src/fhirpath');
-const { getFHIRModel, calcExpression } = require("../test/test_utils");
+const { calcExpression } = require("../test/test_utils");
 const FP_DateTime = require('../src/types').FP_DateTime;
 const equals = _.isEqual;
 
@@ -33,8 +32,7 @@ function validateTest(test) {
   else if (test.error) {
     let exception = null;
     try {
-      fhirpath.evaluate({}, test.expression, null,
-        getFHIRModel(test.model));
+      calcExpression(test.expression, test);
     }
     catch (error) {
       exception = error;
@@ -75,17 +73,16 @@ const transform = (node, model = null) => {
       case 'test':
         return [...acc, ...node[key].map(item => {
           let test = transform(item, model);
+          // Add model to the test if it is specified
+          if (model) {
+            test.model = model;
+          }
           if (!Object.prototype.hasOwnProperty.call(test,'result') && !test.error) {
             test.result = [];
           }
           if (!validateTest(test)) {
-            if (model && validateTest(Object.assign({}, test, { model }))) {
-              // if the test cannot be passed without set the model, we set the model
-              test.model = model;
-            } else {
-              // if the test cannot be passed at all, we disable it
-              test.disable = true;
-            }
+            // if the test cannot be passed, we disable it
+            test.disable = true;
           }
           return test;
         })];

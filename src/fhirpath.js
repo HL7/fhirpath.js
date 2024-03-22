@@ -173,8 +173,8 @@ engine.invocationTable = {
   "&":          {fn: math.amp,     arity:  {2: ["String", "String"]}},
   "+":          {fn: math.plus,    arity:  {2: ["Any", "Any"]}, nullable: true},
   "-":          {fn: math.minus,   arity:  {2: ["Any", "Any"]}, nullable: true},
-  "*":          {fn: math.mul,     arity:  {2: ["Number", "Number"]}, nullable: true},
-  "/":          {fn: math.div,     arity:  {2: ["Number", "Number"]}, nullable: true},
+  "*":          {fn: math.mul,     arity:  {2: ["Any", "Any"]}, nullable: true},
+  "/":          {fn: math.div,     arity:  {2: ["Any", "Any"]}, nullable: true},
   "mod":        {fn: math.mod,     arity:  {2: ["Number", "Number"]}, nullable: true},
   "div":        {fn: math.intdiv,  arity:  {2: ["Number", "Number"]}, nullable: true},
 
@@ -208,12 +208,20 @@ engine.PolarityExpression = function(ctx, parentData, node) {
   var rtn = engine.doEval(ctx,parentData, node.children[0]);
   if (rtn.length !== 1) {  // not yet in spec, but per Bryn Rhodes
     throw new Error('Unary ' + sign +
-     ' can only be applied to an individual number.');
+     ' can only be applied to an individual number or Quantity.');
   }
-  if (typeof rtn[0] != 'number' || isNaN(rtn[0]))
-    throw new Error('Unary ' + sign + ' can only be applied to a number.');
-  if (sign === '-')
-    rtn[0] = -rtn[0];
+  if (rtn[0] instanceof FP_Quantity) {
+    if (sign === '-') {
+      rtn[0] = new FP_Quantity(-rtn[0].value, rtn[0].unit);
+    }
+  } else if (typeof rtn[0] === 'number' && !isNaN(rtn[0])) {
+    if (sign === '-') {
+      rtn[0] = -rtn[0];
+    }
+  } else {
+    throw new Error('Unary ' + sign + ' can only be applied to a number or Quantity.');
+  }
+
   return rtn;
 };
 
@@ -231,7 +239,11 @@ engine.TypeSpecifier = function(ctx, parentData, node) {
       throw new Error("Expected TypeSpecifier node, got " + JSON.stringify(node));
   }
 
-  return new TypeInfo({ namespace, name });
+  const typeInfo =  new TypeInfo({ namespace, name });
+  if (!typeInfo.isValid()) {
+    throw new Error('"' + typeInfo + '" cannot be resolved to a valid type identifier');
+  }
+  return typeInfo;
 };
 
 engine.ExternalConstantTerm = function(ctx, parentData, node) {
@@ -338,49 +350,8 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
       const path = parentData.path || parentData.__path__;
       return parentData.reduce(function(acc, res) {
         res = makeResNode(res, path);
-        var childPath = res.path + '.' + key;
-        if (model) {
-          let defPath = model.pathsDefinedElsewhere[childPath];
-          if (defPath)
-            childPath = defPath;
-        }
-        let toAdd, _toAdd;
-        let actualTypes = model && model.choiceTypePaths[childPath];
-        if (actualTypes) {
-          // Use actualTypes to find the field's value
-          for (let t of actualTypes) {
-            let field = key + t;
-            toAdd = res.data?.[field];
-            _toAdd = res.data?.['_' + field];
-            if (toAdd !== undefined || _toAdd !== undefined) {
-              childPath += t;
-              break;
-            }
-          }
-        }
-        else {
-          toAdd = res.data?.[key];
-          _toAdd = res.data?.['_' + key];
-          if (toAdd === undefined && _toAdd === undefined) {
-            toAdd = res._data[key];
-          }
-          if (key === 'extension') {
-            childPath = 'Extension';
-          }
-        }
-        childPath = model && model.path2Type[childPath] || childPath;
-
-        if (util.isSome(toAdd) || util.isSome(_toAdd)) {
-          if(Array.isArray(toAdd)) {
-            acc = acc.concat(toAdd.map((x, i)=>
-              makeResNode(x, childPath, _toAdd && _toAdd[i])));
-          } else {
-            acc.push(makeResNode(toAdd, childPath, _toAdd));
-          }
-          return acc;
-        } else {
-          return acc;
-        }
+        util.pushFn(acc, util.makeChildResNodes(res, key, model));
+        return acc;
       }, []);
     }
   } else {
@@ -682,7 +653,7 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
     // Resolve any internal "ResourceNode" instances to plain objects and if
     // options.resolveInternalTypes is true, resolve any internal "FP_Type"
     // instances to strings.
-    .map(n => {
+    .reduce((acc,n) => {
       // Path for the data extracted from the resource.
       let path = n instanceof ResourceNode ? n.path : null;
       n = util.valData(n);
@@ -691,13 +662,17 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
           n = n.toString();
         }
       }
-      // Add a hidden (non-enumerable) property with the path to the data extracted
-      // from the resource.
-      if (path && typeof n === 'object') {
-        Object.defineProperty(n, '__path__', {value: path});
+      // Exclude nulls
+      if (n != null) {
+        // Add a hidden (non-enumerable) property with the path to the data extracted
+        // from the resource.
+        if (path && typeof n === 'object') {
+          Object.defineProperty(n, '__path__', {value: path});
+        }
+        acc.push(n);
       }
-      return n;
-    });
+      return acc;
+    }, []);
 }
 
 /**

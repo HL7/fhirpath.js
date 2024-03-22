@@ -1,0 +1,10 @@
+{
+  "resourceType": "Observation",
+  "id": "example",
+  "valueQuantity": {
+    "value": 185,
+    "unit": "months",
+    "system": "http://unitsofmeasure.org",
+    "code": "mo"
+  }
+}

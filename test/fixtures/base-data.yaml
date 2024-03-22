@@ -5,11 +5,13 @@ tests:
         expression: birthDate
         result:
           - '1974-12-25'
+        model: r4
       - desc: '** patient has a birthDate'
         inputfile: resource-example.json
         expression: birthDate
         result:
           - true
+        model: r4
         disable: true
       - desc: '** patient telecom types'
         inputfile: resource-example.json
@@ -19,6 +21,7 @@ tests:
           - work
           - mobile
           - old
+        model: r4
   - 'group: Basics':
       - desc: '** testSimple'
         inputfile: resource-example.json
@@ -29,3 +32,4 @@ tests:
           - Jim
           - Peter
           - James
+        model: r4

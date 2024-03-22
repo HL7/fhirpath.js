@@ -1,5 +1,42 @@
 {
   "resourceType": "Patient",
+  "_address": [
+    null,
+    {
+      "id": "someId"
+    }
+  ],
+  "name": [
+    {
+      "use": "official",
+      "family": "Chalmers",
+      "given": [
+        null,
+        "Peter",
+        "James"
+      ],
+      "_given": [
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/display",
+              "valueString" : "Jacomus1"
+            }
+          ]
+        },
+        null,
+        null,
+        {
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/display",
+              "valueString" : "Jacomus2"
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "communication": [
     {
       "language": {
