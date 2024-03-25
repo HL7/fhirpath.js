@@ -3,9 +3,28 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [3.10.2] - 2024-02-09
+## [3.10.5] - 2024-03-25
 ### Fixed
 - Handling of empty values that came from nulls.
+
+## [3.10.4] - 2024-03-13
+### Fixed
+- hasValue() function previously only checked the data type of an input
+  single-element collection, but not the existence of a value.
+
+## [3.10.3] - 2024-03-12
+### Fixed
+- Functions `as(<type specifier>)`, `is(<type specifier>)`,
+  `ofType(<type specifier>)` and operators `as <type specifier>`,
+  `is <type specifier>` now throw an exception if `<type specifier>` is invalid.
+- Resource object properties that are not defined in the model now have System.*
+  data types.
+- All tests in `fhir-r4.yaml` are executed using the `R4` model.
+
+## [3.10.2] - 2024-03-12
+### Fixed
+- children() and descendants() were returning resource nodes with the incorrect
+  data types.
 
 ## [3.10.1] - 2024-01-29
 ### Changed

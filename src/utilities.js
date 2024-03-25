@@ -2,7 +2,7 @@
 
 const util =  {};
 const types = require('./types');
-let {ResourceNode} = types;
+const {ResourceNode} = types;
 
 /**
  *  Reports and error to the calling environment and stops processing.
@@ -109,6 +109,86 @@ util.valDataConverted = function(val) {
  */
 util.escapeStringForRegExp = function (str) {
   return str.replace(/[-[\]{}()*+?.,\\/^$|#\s]/g, '\\$&');
+};
+
+/**
+ * Binding to the Array.prototype.push.apply function to define a function to
+ * push the contents of the source array to the destination array.
+ * @name pushFn
+ * @function
+ * @param {Array} destArray - destination array
+ * @param {Array} sourceArray - source array
+ * @returns the new length property of destArray
+ */
+util.pushFn = Function.prototype.apply.bind(Array.prototype.push);
+
+/**
+ * Creates child resource nodes for the specified resource node property.
+ * @param {ResourceNode} parentResNode - resource node
+ * @param {string} childProperty - name of property
+ * @param {object} [model] - "model" data object
+ * @return {ResourceNode[]}
+ */
+util.makeChildResNodes = function(parentResNode, childProperty, model) {
+  let childPath = parentResNode.path + '.' + childProperty;
+
+  if (model) {
+    let defPath = model.pathsDefinedElsewhere[childPath];
+    if (defPath)
+      childPath = defPath;
+  }
+  let toAdd, _toAdd;
+  let actualTypes = model && model.choiceTypePaths[childPath];
+  if (actualTypes) {
+    // Use actualTypes to find the field's value
+    for (let t of actualTypes) {
+      let field = childProperty + t;
+      toAdd = parentResNode.data?.[field];
+      _toAdd = parentResNode.data?.['_' + field];
+      if (toAdd !== undefined || _toAdd !== undefined) {
+        childPath += t;
+        break;
+      }
+    }
+  }
+  else {
+    toAdd = parentResNode.data?.[childProperty];
+    _toAdd = parentResNode.data?.['_' + childProperty];
+    if (toAdd === undefined && _toAdd === undefined) {
+      toAdd = parentResNode._data[childProperty];
+    }
+    if (childProperty === 'extension') {
+      childPath = 'Extension';
+    }
+  }
+
+  const type = model && model.path2Type[childPath];
+  const isBackbone = type === 'BackboneElement';
+  childPath = isBackbone ? childPath : type || childPath;
+
+  let result;
+  if (util.isSome(toAdd) || util.isSome(_toAdd)) {
+    if(Array.isArray(toAdd)) {
+      result = toAdd.map((x, i)=>
+        ResourceNode.makeResNode(x, childPath, _toAdd && _toAdd[i], isBackbone));
+      // Add items to the end of the ResourceNode list that have no value
+      // but have associated data, such as extensions or ids.
+      const _toAddLength = _toAdd?.length || 0;
+      for (let i = toAdd.length; i < _toAddLength; ++i) {
+        result.push(ResourceNode.makeResNode(null, childPath, _toAdd[i], isBackbone));
+      }
+    } else if (toAdd == null && Array.isArray(_toAdd)) {
+      // Add items to the end of the ResourceNode list when there are no
+      // values at all, but there is a list of associated data, such as
+      // extensions or ids.
+      result = _toAdd.map((x) => ResourceNode.makeResNode(null, childPath, x, isBackbone));
+    } else {
+      result = [ResourceNode.makeResNode(toAdd, childPath, _toAdd, isBackbone)];
+    }
+  } else {
+    result = [];
+  }
+  return result;
 };
 
 module.exports = util;

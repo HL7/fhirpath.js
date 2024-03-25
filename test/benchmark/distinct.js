@@ -1,5 +1,5 @@
 const { maxCollSizeForDeepEqual } = require('../../src/deep-equal');
-const { createSuiteForExpression } = require('./common-benchmark-utils');
+const { createSuitesForExpression } = require('./common-benchmark-utils');
 
 module.exports = ({
                     bigItems,
@@ -22,6 +22,6 @@ module.exports = ({
     bigItems: bigItems.slice(-maxCollSizeForDeepEqual),
     smallItems: smallItems.slice(-maxCollSizeForDeepEqual),
     options
-  }].map(createSuiteForExpression);
+  }].map(createSuitesForExpression);
 
 }

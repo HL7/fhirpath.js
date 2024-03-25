@@ -4,8 +4,8 @@
  */
 const current_fhirpath = require('../../src/fhirpath');
 const minimumDataset = require('../resources/Minimum-Data-Set---version-3.0.R4.json');
+const patientExample = require('../resources/patient-example.json');
 const current_r4_model = require('../../fhir-context/r4');
-const _ = require('lodash');
 const benny = require('benny');
 const open = require('open');
 const currentVersion = 'current';
@@ -29,7 +29,7 @@ const filenamesToOpen = [];
  * @returns Promise<any>
  */
 async function run(filename, options) {
-  const suites = require('./'+ filename)({
+  const suites = [].concat(...require('./'+ filename)({
     benny,
     open,
     previous_fhirpath,
@@ -37,6 +37,7 @@ async function run(filename, options) {
     current_fhirpath,
     current_r4_model,
     minimumDataset,
+    patientExample,
     currentVersion,
     previousVersion,
     bigItems,
@@ -44,7 +45,7 @@ async function run(filename, options) {
     smallItems,
     smallItemsCopy,
     options
-  });
+  }));
   for (const suite of suites) {
     {
       const cases = suite.cases.reduce((arr, item) => {
@@ -61,7 +62,7 @@ async function run(filename, options) {
         );
         arr.push(
           benny.add(
-            `${item.name} [${currentVersion}]`,
+            item.name ? `${item.name} [${currentVersion}]` : `[${currentVersion}]`,
             item.testFunction.bind(
               this,
               current_fhirpath,

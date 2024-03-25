@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const { maxCollSizeForDeepEqual } = require('../../src/deep-equal');
-const { createSuiteForExpression } = require('./common-benchmark-utils');
+const { createSuitesForExpression } = require('./common-benchmark-utils');
 
 module.exports = ({
                     bigItems,
@@ -30,6 +30,6 @@ module.exports = ({
     smallItems: smallItems.slice(-smallCollectionLength),
     smallItemsCopy: smallItemsCopy.slice(-smallCollectionLength),
     options
-  }].map(createSuiteForExpression);
+  }].map(createSuitesForExpression);
 
 }
