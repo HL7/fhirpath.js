@@ -31,9 +31,18 @@ tests:
     disable: true
     error: true
 
+  - desc: 'in operator for the null element of a collection'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[3] in Patient.name.given
+    result: [true]
+
   - desc: '6.4.3. contains (containership)'
-# If the right operand is a collection with a single item, this operator returns true if the item is in the left operand using equality semantics. This is the inverse operation of in.
-  - desc: 'see 5.6.5. tests'
+  - desc: 'contains operator for the null element of a collection'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given contains Patient.name.given[3]
+    result: [true]
 
 
 subject:

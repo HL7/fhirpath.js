@@ -28,9 +28,15 @@ tests:
   - desc: '* and (false and {})'
     expression: ups1 and emp
     result: [false]
+  - desc: '* and (true and null)'
+    expression: ok1 and i
+    result: []
+  - desc: '* and (false and null)'
+    expression: ups1 and i
+    result: [false]
 
   - desc: '* 6.5.2 or'
-  - desc: '* or (true and true)'
+  - desc: '* or (true or true)'
     expression: ok1 or ok2
     result: [true]
   - desc: '* or (true or false)'
@@ -56,6 +62,12 @@ tests:
   - desc: '* or ({} or {})'
     expression: emp or emp
     result: []
+  - desc: '* or (true or null)'
+    expression: ok1 or i
+    result: [true]
+  - desc: '* or (false or null)'
+    expression: ups1 or i
+    result: []
 
   - desc: '* 6.5.3 not'
   - desc: '** not() for non-empty collection'
@@ -74,7 +86,7 @@ tests:
   - desc: '* xor (false xor true)'
     expression: ups1 xor ok1
     result: [true]
-  - desc: '* or (false or false)'
+  - desc: '* xor (false xor false)'
     expression: ups2 xor ups1
     result: [false]
 
@@ -94,7 +106,12 @@ tests:
   - desc: '* xor ({} xor {})'
     expression: emp xor emp
     result: []
-
+  - desc: '* xor (true xor null)'
+    expression: ok1 xor i
+    result: []
+  - desc: '* xor (false xor null)'
+    expression: ups1 xor i
+    result: []
 
   - desc: '* 6.5.5 implies'
   - desc: '* implies (true implies true)'
@@ -135,6 +152,9 @@ tests:
 subject:
   ok1: true
   ok2: true
+  i: null
+  _i:
+    id: nullId
   ups1: false
   ups2: false
   emp: []

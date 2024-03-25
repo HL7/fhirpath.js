@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.10.5] - 2024-03-25
+### Fixed
+- Handling of empty values that came from nulls.
+
 ## [3.10.4] - 2024-03-13
 ### Fixed
 - hasValue() function previously only checked the data type of an input

@@ -38,32 +38,35 @@ engine.unequival = function(a, b){
 
 /**
  *  Checks that the types of a and b are suitable for comparison in an
- *  inequality expression.  It is assumed that a check has already been made
- *  that there is at least one value in a and b.
+ *  inequality expression.
  * @param a the left side of the inequality expression (which should be an array of
  *  one value).
  * @param b the right side of the inequality expression (which should be an array of
  *  one value).
  * @return the singleton values of the arrays a, and b.  If one was an FP_Type
- *  and the other was convertible, the coverted value will be retureed.
+ *  and the other was convertible, the converted value will be returned.
  */
 function typecheck(a, b){
-  util.assertAtMostOne(a, "Singleton was expected");
-  util.assertAtMostOne(b, "Singleton was expected");
+  util.assertOnlyOne(a, "Singleton was expected");
+  util.assertOnlyOne(b, "Singleton was expected");
   a = util.valDataConverted(a[0]);
   b = util.valDataConverted(b[0]);
-  let lClass = a instanceof FP_DateTime ? FP_DateTime : a.constructor;
-  let rClass = b instanceof FP_DateTime ? FP_DateTime : b.constructor;
-  if (lClass !== rClass) {
-    util.raiseError('Type of "'+a+'" ('+lClass.name+') did not match type of "'+
-        b+'" ('+rClass.name+')', 'InequalityExpression');
+  if (a != null && b != null) {
+    let lClass = a instanceof FP_DateTime ? FP_DateTime : a.constructor;
+    let rClass = b instanceof FP_DateTime ? FP_DateTime : b.constructor;
+    if (lClass !== rClass) {
+      util.raiseError('Type of "' + a + '" (' + lClass.name + ') did not match type of "' +
+        b + '" (' + rClass.name + ')', 'InequalityExpression');
+    }
   }
   return [a, b];
 }
 
 engine.lt = function(a, b){
-  if (!a.length || !b.length) return [];
   const [a0, b0] = typecheck(a,b);
+  if (a0 == null || b0 == null) {
+    return [];
+  }
   if (a0 instanceof FP_Type) {
     const compare = a0.compare(b0);
     return compare === null ? [] : compare < 0;
@@ -72,8 +75,10 @@ engine.lt = function(a, b){
 };
 
 engine.gt = function(a, b){
-  if (!a.length || !b.length) return [];
   const [a0, b0] = typecheck(a,b);
+  if (a0 == null || b0 == null) {
+    return [];
+  }
   if (a0 instanceof FP_Type) {
     const compare = a0.compare(b0);
     return compare === null ? [] : compare > 0;
@@ -82,8 +87,10 @@ engine.gt = function(a, b){
 };
 
 engine.lte = function(a, b){
-  if (!a.length || !b.length) return [];
   const [a0, b0] = typecheck(a,b);
+  if (a0 == null || b0 == null) {
+    return [];
+  }
   if (a0 instanceof FP_Type) {
     const compare = a0.compare(b0);
     return compare === null ? [] : compare <= 0;
@@ -92,8 +99,10 @@ engine.lte = function(a, b){
 };
 
 engine.gte = function(a, b){
-  if (!a.length || !b.length) return [];
   const [a0, b0] = typecheck(a,b);
+  if (a0 == null || b0 == null) {
+    return [];
+  }
   if (a0 instanceof FP_Type) {
     const compare = a0.compare(b0);
     return compare === null ? [] : compare >= 0;

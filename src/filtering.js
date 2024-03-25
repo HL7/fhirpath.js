@@ -72,8 +72,7 @@ engine.singleFn = function(x) {
   } else if (x.length == 0) {
     return [];
   } else {
-    //TODO: should throw error?
-    return {$status: "error", $error: "Expected single"};
+    throw new Error("Expected single");
   }
 };
 
