@@ -1573,7 +1573,6 @@ tests:
         expression: Patient.name.single().exists()
         error: true
         model: r4
-        disable: true
   - 'group: testFirstLast':
       - desc: '** testFirstLast1'
         inputfile: patient-example.json
@@ -3847,7 +3846,7 @@ tests:
         result:
           - true
         model: r4
-    disable: true
+        disable: true
   - 'group: testSqrt':
       - desc: '** testSqrt1'
         inputfile: patient-example.json

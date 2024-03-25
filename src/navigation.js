@@ -1,5 +1,4 @@
 const util = require("./utilities");
-const {ResourceNode}  = require("./types");
 
 var engine = {};
 
