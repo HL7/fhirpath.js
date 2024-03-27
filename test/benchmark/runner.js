@@ -2,6 +2,7 @@
  * This file contains child process code for running benchmark suites called
  * from ../benchmark.js.
  */
+const _ = require('lodash');
 const current_fhirpath = require('../../src/fhirpath');
 const minimumDataset = require('../resources/Minimum-Data-Set---version-3.0.R4.json');
 const patientExample = require('../resources/patient-example.json');
@@ -14,10 +15,10 @@ const previous_r4_model = require('./prev-fhirpath/node_modules/fhirpath/fhir-co
 const previousVersion = require('./prev-fhirpath/node_modules/fhirpath/package.json').version;
 
 // Prepare input data using both versions of fhirpath.js to warm up both versions and reduce impact on benchmarks.
-const bigItems = current_fhirpath.evaluate(minimumDataset,'repeat(item)', {},  current_r4_model).slice(0,100);
-const bigItemsCopy = previous_fhirpath.evaluate(minimumDataset,'repeat(item)', {},  previous_r4_model).slice(0,100);
-const smallItems = current_fhirpath.evaluate(minimumDataset,'repeat(item).repeat(code)', {},  current_r4_model).slice(0,100);
-const smallItemsCopy = previous_fhirpath.evaluate(minimumDataset,'repeat(item).repeat(code)', {},  previous_r4_model).slice(0,100);
+const bigItems = _.cloneDeep(current_fhirpath.evaluate(_.cloneDeep(minimumDataset),'repeat(item)', {},  current_r4_model).slice(0,100));
+const bigItemsCopy = _.cloneDeep(previous_fhirpath.evaluate(_.cloneDeep(minimumDataset),'repeat(item)', {},  previous_r4_model).slice(0,100));
+const smallItems = _.cloneDeep(current_fhirpath.evaluate(_.cloneDeep(minimumDataset),'repeat(item).repeat(code)', {},  current_r4_model).slice(0,100));
+const smallItemsCopy = _.cloneDeep(previous_fhirpath.evaluate(_.cloneDeep(minimumDataset),'repeat(item).repeat(code)', {},  previous_r4_model).slice(0,100));
 
 // A list of result files to open in the browser
 const filenamesToOpen = [];

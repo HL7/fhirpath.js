@@ -34,6 +34,11 @@ tests:
       model: 'r4'
       result: ['medium', 'low']
 
+    - desc: 'Type of Observation contained in another resource'
+      expression: 'Observation.contained[0] is Observation'
+      model: 'r4'
+      result: [true]
+
     - desc: 'Getting choice type fields via children()'
       expression: 'Observation.children().value'
       model: 'r4'

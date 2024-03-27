@@ -1295,13 +1295,15 @@ class ResourceNode {
    * @param {*} _data additional data stored in a property named with "_"
    *  prepended, see https://www.hl7.org/fhir/element.html#json for details.
    * @param {string} fhirNodeDataType FHIR node data type, if the resource node
-   *  is match FHIR model.
+   *  is described in the FHIR model.
    */
   constructor(data, path, _data, fhirNodeDataType) {
     // If data is a resource (maybe a contained resource) reset the path
     // information to the resource type.
-    if (data?.resourceType)
+    if (data?.resourceType) {
       path = data.resourceType;
+      fhirNodeDataType = data.resourceType;
+    }
     this.path = path;
     this.data = data;
     this._data = _data || {};
