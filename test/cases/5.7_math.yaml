@@ -11,6 +11,9 @@ tests:
   - desc: '** Empty result when taking the absolute value of empty collection'
     expression: Math.n2.abs()
     result: []
+  - desc: '** Empty result when taking the absolute value of null'
+    expression: Math.arrWithNullsAndVals[0].abs()
+    result: []
   - desc: '** Error taking the absolute value due to too many input parameters'
     expression: Math.n3.abs(n4)
     error: true
@@ -31,6 +34,9 @@ tests:
   - desc: '** Empty result when rounding a number upward to its nearest integer from empty collection'
     expression: Math.n2.ceiling()
     result: []
+  - desc: '** Empty result when rounding a number upward to its nearest integer from null'
+    expression: Math.arrWithNullsAndVals[0].ceiling()
+    result: []
   - desc: '** Error rounding a number due to too many input parameters'
     expression: Math.n3.ceiling(n4)
     error: true
@@ -44,6 +50,9 @@ tests:
     result: [1]
   - desc: '** Empty result for empty degree'
     expression: Math.n2.exp()
+    result: []
+  - desc: '** Empty result for null'
+    expression: Math.arrWithNullsAndVals[0].exp()
     result: []
   - desc: '** Error exponentiation due to too many input parameters'
     expression: Math.n3.exp(n4)
@@ -65,6 +74,9 @@ tests:
   - desc: '** Empty result when rounding a number downward to its nearest integer from empty collection'
     expression: Math.n2.floor()
     result: []
+  - desc: '** Empty result when rounding a number downward to its nearest integer from null'
+    expression: Math.arrWithNullsAndVals[0].floor()
+    result: []
   - desc: '** Error rounding a number due to too many input parameters'
     expression: Math.n3.floor(n4)
     error: true
@@ -78,6 +90,9 @@ tests:
     result: [0]
   - desc: '** Empty result when taking logarithm from empty collection'
     expression: Math.n2.ln()
+    result: []
+  - desc: '** Empty result when taking logarithm from null'
+    expression: Math.arrWithNullsAndVals[0].ln()
     result: []
   - desc: '** Error taking logarithm due to too many input parameters'
     expression: Math.n3.ln(n4)
@@ -95,6 +110,12 @@ tests:
     result: []
   - desc: '** Empty result when taking logarithm with empty base'
     expression: Math.n3.log(n2)
+    result: []
+  - desc: '** Empty result when taking logarithm from null'
+    expression: Math.arrWithNullsAndVals[0].log(2)
+    result: []
+  - desc: '** Empty result when taking logarithm with base=null'
+    expression: Math.n4.log(%context.arrWithNullsAndVals[0])
     result: []
   - desc: '** Error taking logarithm if the input collection contains multiple items'
     expression: Math.arr.log(8)
@@ -119,6 +140,12 @@ tests:
   - desc: '** Empty result when raising collection to the empty power'
     expression: Math.n3.power(n2)
     result: []
+  - desc: '** Empty result when raising null to a power'
+    expression: Math.arrWithNullsAndVals[0].power(2)
+    result: []
+  - desc: '** Empty result when raising a number to the null power'
+    expression: Math.n4.power(%context.arrWithNullsAndVals[0])
+    result: []
   - desc: '** Error raising to a power if the input collection contains multiple items'
     expression: Math.arr.power(8)
     error: true
@@ -133,9 +160,18 @@ tests:
   - desc: '** Can round a number to the nearest integer if a given accuracy is empty'
     expression: Math.d2.round(n2)
     result: [-1]
+  - desc: '** Can round a number to the nearest integer if accuracy is not specified'
+    expression: Math.d2.round()
+    result: [-1]
   - desc: '** Empty result when rounding empty number'
     expression: Math.n2.round(n3)
     result: []
+  - desc: '** Empty result when rounding null'
+    expression: Math.arrWithNullsAndVals[0].round(2)
+    result: []
+  - desc: '** Can round a number to the nearest integer if a given accuracy is null'
+    expression: Math.d2.round(%context.arrWithNullsAndVals[0])
+    result: [-1]
   - desc: '** Error rounding if the input collection contains multiple items'
     expression: Math.arr.round(8)
     error: true
@@ -153,6 +189,9 @@ tests:
   - desc: '** Empty result when taking square root of an empty collection'
     expression: Math.n2.sqrt()
     result: []
+  - desc: '** Empty result when taking square root of null'
+    expression: Math.arrWithNullsAndVals[0].sqrt()
+    result: []
   - desc: '** Error taking square root due to too many input parameters'
     expression: Math.n3.sqrt(n4)
     error: true
@@ -166,6 +205,9 @@ tests:
     result: [1]
   - desc: '** Empty result when taking integer part from empty collection'
     expression: Math.n2.truncate()
+    result: []
+  - desc: '** Empty result when taking integer part from null'
+    expression: Math.arrWithNullsAndVals[0].truncate()
     result: []
   - desc: '** Error taking integer part due to too many input parameters'
     expression: Math.n3.truncate(n4)
@@ -188,4 +230,12 @@ subject:
   d3: 13.84512
   arr: [3, 5]
   quan: [4.5 'mg']
-  
+  arrWithNullsAndVals:
+    - null
+    - 1
+    - 2
+  _arrWithNullsAndVals:
+    - id: nullId
+    - id: oneId
+    - id: twoId
+    - id: lastNullId

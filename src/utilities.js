@@ -15,14 +15,14 @@ util.raiseError = function(message, fnName) {
 };
 
 /**
- *  Throws an exception if the collection contains more than one value.
+ *  Throws an exception if the collection contains not one value.
  * @param collection the collection to be checked.
  * @param errorMsgPrefix An optional prefix for the error message to assist in
  *  debugging.
  */
-util.assertAtMostOne = function (collection, errorMsgPrefix) {
-  if (collection.length > 1) {
-    util.raiseError("Was expecting no more than one element but got " +
+util.assertOnlyOne = function (collection, errorMsgPrefix) {
+  if (collection.length !== 1) {
+    util.raiseError("Was expecting only one element but got " +
       JSON.stringify(collection), errorMsgPrefix);
   }
 };
@@ -55,11 +55,8 @@ util.isSome = function(x){
 };
 
 util.isTrue = function(x){
-  return x !== null && x !== undefined && (x === true || (x.length == 1 && x[0] === true));
-};
-
-util.isFalse = function(x){
-  return x !== null && x !== undefined && (x === false || (x.length == 1 && x[0] === false));
+  // We use util.valData because we can use a boolean node as a criterion
+  return x !== null && x !== undefined && (x === true || (x.length == 1 && util.valData(x[0]) === true));
 };
 
 util.isCapitalized = function(x){

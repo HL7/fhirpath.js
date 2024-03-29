@@ -78,7 +78,7 @@ engine.invocationTable = {
   where:        {fn: filtering.whereMacro, arity: {1: ["Expr"]}},
   extension:    {fn: filtering.extension, arity: {1: ["String"]}},
   select:       {fn: filtering.selectMacro, arity: {1: ["Expr"]}},
-  aggregate:    {fn: aggregate.aggregateMacro, arity: {1: ["Expr"], 2: ["Expr", "Any"]}},
+  aggregate:    {fn: aggregate.aggregateMacro, arity: {1: ["Expr"], 2: ["Expr", "AnyAtRoot"]}},
   sum:          {fn: aggregate.sumFn},
   min:          {fn: aggregate.minFn},
   max:          {fn: aggregate.maxFn},
@@ -107,6 +107,7 @@ engine.invocationTable = {
   toTime:       {fn: misc.toTime},
   toBoolean:    {fn: misc.toBoolean},
   toQuantity:   {fn: misc.toQuantity, arity: {0: [], 1: ["String"]}},
+  // TODO: The hasValue function should be taken into account in a separate request
   hasValue:     {fn: misc.hasValueFn},
   convertsToBoolean:    {fn: misc.createConvertsToFn(misc.toBoolean, 'boolean')},
   convertsToInteger:    {fn: misc.createConvertsToFn(misc.toInteger, 'number')},
@@ -143,7 +144,7 @@ engine.invocationTable = {
   ln:             {fn: math.ln},
   log:            {fn: math.log, arity:  {1: ["Number"]}, nullable: true},
   power:          {fn: math.power, arity:  {1: ["Number"]}, nullable: true},
-  round:          {fn: math.round, arity:  {1: ["Number"]}},
+  round:          {fn: math.round, arity:  {0: [], 1: ["Number"]}},
   sqrt:           {fn: math.sqrt},
   truncate:       {fn: math.truncate},
 
@@ -414,7 +415,7 @@ function makeParam(ctx, parentData, type, param) {
     return engine.TypeSpecifier(ctx, parentData, param);
   }
 
-  const res = engine.doEval(ctx, parentData, param);
+  let res = engine.doEval(ctx, parentData, param);
   if(type === "Any") {
     return res;
   }
@@ -434,7 +435,7 @@ function doInvoke(ctx, fnName, data, rawParams){
   if(invoc) {
     if(!invoc.arity){
       if(!rawParams){
-        res = invoc.fn.call(ctx, util.arraify(data));
+        res = invoc.fn.call(ctx, data);
         return util.arraify(res);
       } else {
         throw new Error(fnName + " expects no params");
