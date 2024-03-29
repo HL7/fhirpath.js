@@ -171,6 +171,20 @@ tests:
     expression: Patient.name.given[3] is FHIR.string
     result: [true]
 
+  - desc: '** StructureDefinition.snapshot.element.type is Element'
+    inputfile: structure-definition-example.json
+    expression: StructureDefinition.snapshot.element.type is Element
+    result:
+      - true
+    model: r4
+
+  - desc: '** StructureDefinition.snapshot.element.type.code is uri'
+    inputfile: structure-definition-example.json
+    expression: StructureDefinition.snapshot.element.type.code is uri
+    result:
+      - true
+    model: r4
+
   - desc: '** The type of a valid but missing property is empty'
     inputfile: patient-example.json
     expression: Patient.photo is Attachment

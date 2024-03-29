@@ -28,7 +28,7 @@ engine.extension = function(parentData, url) {
     if (extensions) {
       return extensions
         .filter(extension => extension.url === url)
-        .map(x => ResourceNode.makeResNode(x, 'Extension'));
+        .map(x => ResourceNode.makeResNode(x, 'Extension', null, 'Extension'));
     }
     return [];
   }));

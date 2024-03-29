@@ -3,6 +3,12 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.11.0] - 2024-03-29
+### Added
+- Storing the FHIR data type along with the path in internal ResourceNode
+  objects to improve the accuracy of determining a resource node data type.
+- Missing entries to mapping paths to data types.
+
 ## [3.10.5] - 2024-03-25
 ### Fixed
 - Handling of empty values that came from nulls.

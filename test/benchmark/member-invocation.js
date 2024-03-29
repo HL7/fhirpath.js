@@ -7,7 +7,7 @@ module.exports = ({
                     options
                   }) => {
 
-  const numberOfItems = current_fhirpath.evaluate(minimumDataset,'Questionnaire.item.count()', {},  current_r4_model);
+  const numberOfItems = current_fhirpath.evaluate(_.cloneDeep(minimumDataset),'Questionnaire.item.count()', {},  current_r4_model);
   const expression = 'Questionnaire.item';
 
   return [
@@ -20,7 +20,8 @@ module.exports = ({
         cases: [{
             name: '',
             testFunction: (fhirpath, model) => {
-              fhirpath.evaluate(minimumDataset, expression, {}, model);
+              const resource = _.cloneDeep(minimumDataset);
+              return () => fhirpath.evaluate(resource, expression, {}, model);
             }
           }
         ]
@@ -33,7 +34,8 @@ module.exports = ({
         {
           name: '',
           testFunction: (fhirpath, model, compiledFn) => {
-            compiledFn(minimumDataset, {});
+            const resource = _.cloneDeep(minimumDataset);
+            return () => compiledFn(resource, {});
           }
         }
       ]

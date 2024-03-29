@@ -1,0 +1,10 @@
+{
+  "resourceType" : "StructureDefinition",
+  "snapshot" : {
+    "element" : [{
+      "type" : [{
+        "code" : "someUri"
+      }]
+    }]
+  }
+}
