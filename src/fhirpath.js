@@ -62,6 +62,8 @@ let makeResNode = ResourceNode.makeResNode;
 //   calling function if one of params is  empty return empty
 
 engine.invocationTable = {
+  // Example of a function that makes input data asynchronous
+  async:        {fn: (col) => Promise.resolve(col)},
   empty:        {fn: existence.emptyFn},
   not:          {fn: existence.notFn},
   exists:       {fn: existence.existsMacro, arity: {0: [], 1: ["Expr"]}},
@@ -436,7 +438,9 @@ function doInvoke(ctx, fnName, data, rawParams){
     if(!invoc.arity){
       if(!rawParams){
         res = invoc.fn.call(ctx, data);
-        return util.arraify(res);
+        return res instanceof Promise
+          ? res.then(r => util.arraify(r))
+          : util.arraify(res);
       } else {
         throw new Error(fnName + " expects no params");
       }
@@ -456,8 +460,18 @@ function doInvoke(ctx, fnName, data, rawParams){
             return [];
           }
         }
+        if (params.some(p => p instanceof Promise)) {
+          return Promise.all(params).then(p => {
+            res = invoc.fn.apply(ctx, p);
+            return res instanceof Promise
+              ? res.then(r => util.arraify(r))
+              : util.arraify(res);
+          });
+        }
         res = invoc.fn.apply(ctx, params);
-        return util.arraify(res);
+        return res instanceof Promise
+          ? res.then(r => util.arraify(r))
+          : util.arraify(res);
       } else {
         console.log(fnName + " wrong arity: got " + paramsNumber );
         return [];
@@ -488,6 +502,12 @@ function infixInvoke(ctx, fnName, data, rawParams){
         if(params.some(isNullable)){
           return [];
         }
+      }
+      if (params.some(p => p instanceof Promise)) {
+        return Promise.all(params).then(p => {
+          var res = invoc.fn.apply(ctx, p);
+          return util.arraify(res);
+        });
       }
       var res = invoc.fn.apply(ctx, params);
       return util.arraify(res);
@@ -589,6 +609,14 @@ engine.evalTable = { // not every evaluator is listed if they are defined on eng
 
 
 engine.doEval = function(ctx, parentData, node) {
+  if (parentData instanceof Promise) {
+    return parentData.then(p => engine.doEvalSync(ctx, p, node));
+  } else {
+    return  engine.doEvalSync(ctx, parentData, node);
+  }
+};
+
+engine.doEvalSync = function(ctx, parentData, node) {
   const evaluator = engine.evalTable[node.type] || engine[node.type];
   if(evaluator){
     return evaluator.call(engine, ctx, parentData, node);
@@ -657,13 +685,29 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   if (options.userInvocationTable) {
     ctx.userInvocationTable = options.userInvocationTable;
   }
-  return  engine.doEval(ctx, dataRoot, parsedPath.children[0])
-    // engine.doEval returns array of "ResourceNode" and/or "FP_Type" instances.
-    // "ResourceNode" or "FP_Type" instances are not created for sub-items.
-    // Resolve any internal "ResourceNode" instances to plain objects and if
-    // options.resolveInternalTypes is true, resolve any internal "FP_Type"
-    // instances to strings.
-    .reduce((acc,n) => {
+  const res = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
+  // if (res instanceof Promise) {
+  //   throw new Error('Unexpected asynchronous function during synchronous expression evaluation');
+  // }
+  return res instanceof Promise
+    ? res.then(r => prepareEvalResult(r, options))
+    : prepareEvalResult(res, options);
+}
+
+/**
+ * Prepares the result after evaluating an expression.
+ * engine.doEval returns array of "ResourceNode" and/or "FP_Type" instances.
+ * "ResourceNode" or "FP_Type" instances are not created for sub-items.
+ * Resolves any internal "ResourceNode" instances to plain objects and if
+ * options.resolveInternalTypes is true, resolve any internal "FP_Type"
+ * instances to strings.
+ * @param {Array} result - result of expression evaluation.
+ * @param {object} options - additional options (see function "applyParsedPath").
+ * @return {Array}
+ */
+function prepareEvalResult(result, options) {
+  return result
+    .reduce((acc, n) => {
       // Path for the data extracted from the resource.
       let path;
       let fhirNodeDataType;

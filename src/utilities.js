@@ -64,6 +64,13 @@ util.isCapitalized = function(x){
 };
 
 util.flatten = function(x){
+  if (x.some(i => i instanceof Promise)) {
+    return Promise.all(x).then(arr => flattenSync(arr));
+  }
+  return flattenSync(x);
+};
+
+function flattenSync(x) {
   return x.reduce(function(acc, x) {
     if(Array.isArray(x)){
       // todo replace with array modification
@@ -73,7 +80,7 @@ util.flatten = function(x){
     }
     return acc;
   }, []);
-};
+}
 
 util.arraify = function(x){
   if(Array.isArray(x)){ return x; }

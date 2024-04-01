@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.12.0] - 2024-04-01
+### Added
+- Support for asynchronous functions: if any function in an expression returns
+  a Promise, then the result of evaluating the expression is a Promise.
+
 ## [3.11.0] - 2024-03-29
 ### Added
 - Storing the FHIR data type along with the path in internal ResourceNode

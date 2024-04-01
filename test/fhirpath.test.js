@@ -25,7 +25,7 @@ const generateTest = (test, testResource) => {
   let expressions = Array.isArray(test.expression) ? test.expression : [test.expression];
   const console_log = console.log;
 
-  const getTestData = (expression) => {
+  const getTestData = (expression, done) => {
     if (test.disableConsoleLog) {
       console.log = function() {};
     }
@@ -38,24 +38,38 @@ const generateTest = (test, testResource) => {
       catch (error) {
         exception = error;
       }
-      if (!test.error) {
-        expect(exception).toBe(null);
-        // Run the result through JSON so the FP_Type quantities get converted to
-        // strings.  Also , if the result is an FP_DateTime, convert to a Date
-        // object so that timezone differences are handled.
-        if (result.length === 1 && result[0] instanceof FP_DateTime)
-          expect(new Date(result[0])).toEqual(new Date(test.result[0]))
-        else
-          expect(JSON.parse(JSON.stringify(result))).toEqual(test.result);
+      if (result instanceof Promise) {
+        result.then(
+          (r) => processTestResult(test, r, null, done),
+          (e) => processTestResult(test, null, e, done),
+        );
+      } else {
+        processTestResult(test, result, exception, done);
       }
-      else if (test.error) {
-        if (result != null)
-          console.log(result);
-        expect(exception).not.toBe(null);
-      }
-      if (test.disableConsoleLog)
-        console.log = console_log;
+    } else {
+      done();
     }
+  };
+
+  const processTestResult = (test, result, exception, done) => {
+    if (!test.error) {
+      expect(exception).toBe(null);
+      // Run the result through JSON so the FP_Type quantities get converted to
+      // strings.  Also , if the result is an FP_DateTime, convert to a Date
+      // object so that timezone differences are handled.
+      if (result.length === 1 && result[0] instanceof FP_DateTime)
+        expect(new Date(result[0])).toEqual(new Date(test.result[0]))
+      else
+        expect(JSON.parse(JSON.stringify(result))).toEqual(test.result);
+    }
+    else if (test.error) {
+      if (result != null)
+        console.log(result);
+      expect(exception).not.toBe(null);
+    }
+    if (test.disableConsoleLog)
+      console.log = console_log;
+    done();
   };
 
   expressions.forEach(expression => {
@@ -64,9 +78,9 @@ const generateTest = (test, testResource) => {
     case 'skipped':
       return it.skip(`Disabled test ${test.desc}`, () => {});
     case 'focused':
-      return it.only(((test.desc || '') + ': ' + (expressionText|| '')), () => getTestData(expression));
+      return it.only(((test.desc || '') + ': ' + (expressionText|| '')), (done) => getTestData(expression, done));
     default:
-      return it(((test.desc || '') + ': ' + (expressionText || '')), () => getTestData(expression));
+      return it(((test.desc || '') + ': ' + (expressionText || '')), (done) => getTestData(expression, done));
     }
   });
 };
