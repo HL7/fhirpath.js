@@ -37,8 +37,8 @@ engine.traceFn = function (x, label, expr) {
   return x;
 };
 
-// Used by the `withVariable` function to inject a variable into the context
-engine.varFn = function (x, label, expr) {
+// Used by the `defineVariable` function to inject a variable into the context
+engine.defineVariable = function (x, label, expr) {
   let data = x;
   if (expr){
     data = expr(x);
