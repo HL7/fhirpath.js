@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 /**
  * Prepares 4 suites for a FHIRPath expression with 1 cases each:
  *  1. big items using evaluate()
@@ -20,14 +22,9 @@
  * @return an array of objects describing suites with cases for use in benchmark.js.
  */
 function createSuitesForExpression(desc) {
-  const collectionOfBigItems = desc.bigItems;
-  const collectionOfBigItemsCopy = desc.bigItemsCopy;
-  const numberOfBigItems = collectionOfBigItems.length;
+  const numberOfBigItems = desc.bigItems.length;
   const options = desc.options;
-
-  const collectionOfSmallItems = desc.smallItems;
-  const collectionOfSmallItemsCopy = desc.smallItemsCopy;
-  const numberOfSmallItems = collectionOfSmallItems.length;
+  const numberOfSmallItems = desc.smallItems.length;
 
   return [...(options.compileOnly ? [] : [{
     name: desc.name,
@@ -37,7 +34,9 @@ function createSuitesForExpression(desc) {
       {
         name: `${numberOfBigItems} big items using evaluate()`,
         testFunction: (fhirpath, model) => {
-          fhirpath.evaluate({}, desc.expression, {
+          const collectionOfBigItems = _.cloneDeep(desc.bigItems);
+          const collectionOfBigItemsCopy =  _.cloneDeep(desc.bigItemsCopy);
+          return () =>  fhirpath.evaluate({}, desc.expression, {
             items: collectionOfBigItems,
             itemsCopy: collectionOfBigItemsCopy
           }, model);
@@ -52,7 +51,12 @@ function createSuitesForExpression(desc) {
       {
         name: `${numberOfBigItems} big items using compile()`,
         testFunction: (fhirpath, model, compiledFn) => {
-          compiledFn({}, { items: collectionOfBigItems, itemsCopy: collectionOfBigItemsCopy });
+          const collectionOfBigItems = _.cloneDeep(desc.bigItems);
+          const collectionOfBigItemsCopy =  _.cloneDeep(desc.bigItemsCopy);
+          return () => compiledFn({}, {
+            items: collectionOfBigItems,
+            itemsCopy: collectionOfBigItemsCopy
+          });
         }
       }
     ]
@@ -64,7 +68,12 @@ function createSuitesForExpression(desc) {
       {
         name: `${numberOfSmallItems} small items using evaluate()`,
         testFunction: (fhirpath, model) => {
-          fhirpath.evaluate({}, desc.expression, { items: collectionOfSmallItems, itemsCopy: collectionOfSmallItemsCopy }, model);
+          const collectionOfSmallItems =  _.cloneDeep(desc.smallItems);
+          const collectionOfSmallItemsCopy =  _.cloneDeep(desc.smallItemsCopy);
+          return () => fhirpath.evaluate({}, desc.expression, {
+            items: collectionOfSmallItems,
+            itemsCopy: collectionOfSmallItemsCopy
+          }, model);
         }
       }
     ]
@@ -76,7 +85,12 @@ function createSuitesForExpression(desc) {
       {
         name: `${numberOfSmallItems} small items using compile()`,
         testFunction: (fhirpath, model, compiledFn) => {
-          compiledFn({}, { items: collectionOfSmallItems, itemsCopy: collectionOfSmallItemsCopy });
+          const collectionOfSmallItems =  _.cloneDeep(desc.smallItems);
+          const collectionOfSmallItemsCopy =  _.cloneDeep(desc.smallItemsCopy);
+          return () => compiledFn({}, {
+            items: collectionOfSmallItems,
+            itemsCopy: collectionOfSmallItemsCopy
+          });
         }
       }
     ]

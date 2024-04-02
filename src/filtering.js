@@ -28,7 +28,7 @@ engine.extension = function(parentData, url) {
     if (extensions) {
       return extensions
         .filter(extension => extension.url === url)
-        .map(x => ResourceNode.makeResNode(x, 'Extension'));
+        .map(x => ResourceNode.makeResNode(x, 'Extension', null, 'Extension'));
     }
     return [];
   }));
@@ -72,8 +72,7 @@ engine.singleFn = function(x) {
   } else if (x.length == 0) {
     return [];
   } else {
-    //TODO: should throw error?
-    return {$status: "error", $error: "Expected single"};
+    throw new Error("Expected single");
   }
 };
 

@@ -21,6 +21,24 @@ tests:
         expression: ('a'|'b'|'c').aggregate($total & '-' & $this, 'concat')
         result:
           - 'concat-a-b-c'
+      - desc: 'aggregate() function for collection with null elements (1)'
+        inputfile: patient-example-2.json
+        model: r4
+        expression: Patient.name.given.aggregate($total & '-' & $this, '')
+        result:
+          - '--Peter-James-'
+      - desc: 'aggregate() function for collection with null elements (2)'
+        inputfile: patient-example-2.json
+        model: r4
+        expression: Patient.name.given.aggregate($total & '-' & $this & $this.id, '')
+        result:
+          - '-Jacomus1Id-Peter-James-Jacomus2Id'
+      - desc: 'aggregate() function for collection with null initial value'
+        inputfile: patient-example-2.json
+        model: r4
+        expression: (Patient.name.given[1] | Patient.name.given[2]).aggregate($total & '-' & $this, %context.name.given[0])
+        result:
+          - '-Peter-James'
       - desc: 'aggregate() function with quantity values'
         expression: (1 'cm'|3 'cm'|1 'm').aggregate($total + $this, 0 'cm') = 104 'cm'
         result:
@@ -35,6 +53,11 @@ tests:
           - true
       - desc: 'sum() function calculates the sum of undefined input collection'
         expression: UndefinedInput.sum()
+        result: []
+      - desc: 'sum() function calculates the sum of input collection with null elements'
+        inputfile: patient-example-2.json
+        model: r4
+        expression: Patient.name.given.sum()
         result: []
       - desc: 'sum() function calculates the sum of quantity values'
         expression: (1 'cm'|3 'cm'|1 'm').sum() = 104 'cm'
@@ -51,6 +74,12 @@ tests:
         expression: (1 'cm'|3 'cm'|1 'm').min() = 1 'cm'
         result:
           - true
+      - desc: 'min() function for collection with nulls (1)'
+        expression: Functions.collWithNull1.min()
+        result: []
+      - desc: 'min() function for collection with nulls (2)'
+        expression: Functions.collWithNull2.min()
+        result: []
       - desc: 'max() function returns the maximum value from the input collection'
         expression: (7|8|9|1|2|3|4|5|6).max() = 9
         result:
@@ -62,6 +91,12 @@ tests:
         expression: (1 'cm'|3 'cm'|1 'm').max() = 1 'm'
         result:
           - true
+      - desc: 'max() function for collection with nulls (1)'
+        expression: Functions.collWithNull1.max()
+        result: []
+      - desc: 'max() function for collection with nulls (2)'
+        expression: Functions.collWithNull2.max()
+        result: []
       - desc: 'avg() function calculates the average value for the input collection'
         expression: (7|8|9|1|2|3|4|5|6).avg() = 5
         result:
@@ -70,6 +105,29 @@ tests:
         expression: (7 'm' |8 'm'|9 'm'|1 'm'|2 'm'|3 'm'|400 'cm'|5 'm'|6 'm').avg() = 5 'm'
         result:
           - true
+      - desc: 'avg() function for collection with nulls (1)'
+        expression: Functions.collWithNull1.avg()
+        result: []
+      - desc: 'avg() function for collection with nulls (2)'
+        expression: Functions.collWithNull2.avg()
+        result: []
       - desc: 'avg() function returns an empty value for the undefined input collection'
         expression: UndefinedInput.avg()
-        error: true
+        result: []
+
+
+subject:
+  resourceType: Functions
+  collWithNull1:
+    - null
+    - 1
+    - 2
+  _collWithNull1:
+    - id: nullId
+  collWithNull2:
+    - 1
+    - 2
+  _collWithNull2:
+    - null
+    - null
+    - id: nullId

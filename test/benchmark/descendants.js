@@ -7,9 +7,7 @@ module.exports = ({
                     options
                   }) => {
   // We need copy of objects because the __path__ property is not configurable and may have different values in different versions
-  const patientExampleCopy1 = _.cloneDeep(patientExample);
-  const PatientExampleCopy2 = _.cloneDeep(patientExample);
-  const numberOfItems = current_fhirpath.evaluate(patientExampleCopy1,'Patient.descendants().count()', {},  current_r4_model);
+  const numberOfItems = current_fhirpath.evaluate(patientExample,'Patient.descendants().count()', {},  current_r4_model);
   const expression = 'Patient.descendants()';
 
   return [
@@ -22,7 +20,8 @@ module.exports = ({
         cases: [{
           name: '',
           testFunction: (fhirpath, model) => {
-            fhirpath.evaluate(fhirpath === current_fhirpath ? patientExampleCopy1 : PatientExampleCopy2, expression, {}, model);
+            const resource = _.cloneDeep(patientExample);
+            return () => fhirpath.evaluate(resource, expression, {}, model);
           }
         }]
       }]),
@@ -33,7 +32,8 @@ module.exports = ({
       cases: [{
         name: '',
         testFunction: (fhirpath, model, compiledFn) => {
-          compiledFn(fhirpath === current_fhirpath ? patientExampleCopy1 : PatientExampleCopy2, {});
+          const resource = _.cloneDeep(patientExample);
+          return () => compiledFn(resource, {});
         }
       }]
     }];

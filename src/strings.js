@@ -81,14 +81,20 @@ engine.lower = function (coll) {
   return util.isEmpty(str) ? [] : str.toLowerCase();
 };
 
+// See https://build.fhir.org/ig/HL7/FHIRPath/#joinseparator-string-string
 engine.joinFn = function (coll, separator) {
-  const stringValues = coll.map((n) => {
+  const stringValues = [];
+  coll.forEach((n) => {
     const d = util.valData(n);
     if (typeof d === "string") {
-      return d;
+      stringValues.push(d);
+    } else if (d != null) {
+      throw new Error('Join requires a collection of strings.');
     }
-    throw new Error('Join requires a collection of strings.');
   });
+  if (util.isEmpty(stringValues)) {
+    return [];
+  }
   if (separator === undefined) {
     separator = "";
   }

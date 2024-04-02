@@ -1294,18 +1294,20 @@ class ResourceNode {
    *  over this parameter.
    * @param {*} _data additional data stored in a property named with "_"
    *  prepended, see https://www.hl7.org/fhir/element.html#json for details.
-   * @param {boolean} isBackbone true if the path points to a backbone element
-   *  in the model, false otherwise.
+   * @param {string} fhirNodeDataType FHIR node data type, if the resource node
+   *  is described in the FHIR model.
    */
-  constructor(data, path, _data, isBackbone) {
+  constructor(data, path, _data, fhirNodeDataType) {
     // If data is a resource (maybe a contained resource) reset the path
     // information to the resource type.
-    if (data?.resourceType)
+    if (data?.resourceType) {
       path = data.resourceType;
+      fhirNodeDataType = data.resourceType;
+    }
     this.path = path;
     this.data = data;
     this._data = _data || {};
-    this.isBackbone = isBackbone;
+    this.fhirNodeDataType = fhirNodeDataType;
   }
 
   /**
@@ -1315,17 +1317,15 @@ class ResourceNode {
   getTypeInfo() {
     let result;
 
-    if (!TypeInfo.model) {
-      result = TypeInfo.createByValueInSystemNamespace(this.data);
-    } else if (this.isBackbone) {
-      result = new TypeInfo({
-        namespace: TypeInfo.FHIR,
-        name: 'BackboneElement'
-      });
-    } else if (/^System\.(.*)$/.test(this.path)) {
-      result = new TypeInfo({namespace: TypeInfo.System, name: RegExp.$1});
-    } else if (this.path.indexOf('.') === -1) {
-      result = new TypeInfo({namespace: TypeInfo.FHIR, name: this.path});
+    if (TypeInfo.model) {
+      if (/^System\.(.*)$/.test(this.fhirNodeDataType)) {
+        result = new TypeInfo({namespace: TypeInfo.System, name: RegExp.$1});
+      } else if (this.fhirNodeDataType) {
+        result = new TypeInfo({
+          namespace: TypeInfo.FHIR,
+          name: this.fhirNodeDataType
+        });
+      }
     }
 
     return result
@@ -1378,8 +1378,8 @@ class ResourceNode {
  *  given node is already a ResourceNode.  Takes the same arguments as the
  *  constructor for ResourceNode.
  */
-ResourceNode.makeResNode = function(data, path, _data, isBackbone = false) {
-  return (data instanceof ResourceNode) ? data : new ResourceNode(data, path, _data, isBackbone);
+ResourceNode.makeResNode = function(data, path, _data, fhirNodeDataType = null) {
+  return (data instanceof ResourceNode) ? data : new ResourceNode(data, path, _data, fhirNodeDataType);
 };
 
 // The set of available data types in the System namespace
