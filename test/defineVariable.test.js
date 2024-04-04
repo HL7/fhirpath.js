@@ -23,6 +23,14 @@ describe("defineVariable", () => {
       .toStrictEqual(["Peter", "James", "Jim"]);
   });
 
+  it("use of a variable in separate contexts defined in 2 but used in 1", () => {
+    // this example defines the same variable name in 2 different contexts, 
+    // but only uses it in the second. This ensures that the first context doesn't remain when using it in another context
+    let expr = `defineVariable('fam', name.first()).where(active.not()) | defineVariable('fam', name.skip(1).first()).select(%fam.given)`;
+    expect(fhirpath.evaluate(input.patientExample, expr, r4_model))
+      .toStrictEqual(["Jim"]);
+  });
+
   it("use of different variables in different contexts", () => {
     let expr = `defineVariable('fam', name.first()).select(%fam.given) | defineVariable('fam2', name.skip(1).first()).select(%fam2.given)`;
     expect(fhirpath.evaluate(input.patientExample, expr, r4_model))

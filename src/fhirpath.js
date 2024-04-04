@@ -185,24 +185,18 @@ engine.invocationTable = {
 };
 
 engine.InvocationExpression = function(ctx, parentData, node) {
-  let oldVars = undefined;
+  let ctxForChildren = ctx;
   if (node.children.length > 0) {
     // if the first child is a defineVariable function, stash the vars object
     // so that it can be restored after the invocation is complete
     if (node.children[0].type === 'TermExpression' && node.children[0].text.startsWith('defineVariable')) {
-      oldVars = ctx.vars;
-      // Clone a new vars object with all the current values in it
-      ctx.vars = Object.assign({}, ctx.vars);
+      // shallow copy the context (and also shallow copy the vars)
+      ctxForChildren = {...ctx, vars: {...ctx.vars}};
     }
   }
-  let invocResult = node.children.reduce(function(acc, ch) {
-    return engine.doEval(ctx, acc, ch);
+  return node.children.reduce(function(acc, ch) {
+    return engine.doEval(ctxForChildren, acc, ch);
   }, parentData);
-  if (oldVars) {
-    // restore the variables object (which may have been modified by the defineVariable function)
-    ctx.vars = oldVars;
-  }
-  return invocResult;
 };
 
 engine.TermExpression = function(ctx, parentData, node) {
