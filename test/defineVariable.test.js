@@ -22,6 +22,12 @@ describe("defineVariable", () => {
       .toStrictEqual(["Peter", "James"]);
   });
 
+  it("simple use of a variable 2 selects", () => {
+    let expr = `defineVariable('fam', name.first()).select(%fam.given).first()`;
+    expect(fhirpath.evaluate(input.patientExample, expr, r4_model))
+      .toStrictEqual(["Peter"]);
+  });
+
   it("use of a variable in separate contexts", () => {
     // this example defines the same variable name in 2 different contexts
     let expr = `defineVariable('fam', name.first()).select(%fam.given) | defineVariable('fam', name.skip(1).first()).select(%fam.given)`;
@@ -38,12 +44,12 @@ describe("defineVariable", () => {
   });
 
   it("use of different variables in different contexts", () => {
-    let expr = `defineVariable('fam', name.first()).select(id & '-' & %fam.given) | defineVariable('fam2', name.skip(1).first()).select(%fam2.given)`;
+    let expr = `defineVariable('fam', name.first()).select(id & '-' & %fam.given.join('|')) | defineVariable('fam2', name.skip(1).first()).select(%fam2.given)`;
     let ast = fhirpath.parse(expr);
     ast = PruneTree(ast);
     console.log("ast", JSON.stringify(ast, null, 2));
     expect(fhirpath.evaluate(input.patientExample, expr, r4_model))
-      .toStrictEqual(["Peter", "James", "Jim"]);
+      .toStrictEqual(["example-Peter|James", "Jim"]);
   });
 
   it("2 vars, one unused", () => {
@@ -53,12 +59,12 @@ describe("defineVariable", () => {
   });
 
   it("composite variable use", () => {
-    let expr = `defineVariable('v1', 'value1').defineVariable('v2', 'value2').select(%v1) | defineVariable('v3', 'value3').select(%v3)`;
-    let ast = fhirpath.parse(expr);
-    ast = PruneTree(ast);
-    console.log("ast", JSON.stringify(ast, null, 2));
+    let expr = `defineVariable('v1', 'value1').select(%v1).trace('data').defineVariable('v2', 'value2').select($this & ':' & %v1 & '-' & %v2) | defineVariable('v3', 'value3').select(%v3)`;
+    // let ast = fhirpath.parse(expr);
+    // ast = PruneTree(ast);
+    // console.log("ast", JSON.stringify(ast, null, 2));
     expect(fhirpath.evaluate(input.patientExample, expr, r4_model))
-      .toStrictEqual(["value2", "value1", "value3"]);
+      .toStrictEqual(["value1:value1-value2", "value3"]);
   });
 
 
@@ -72,12 +78,63 @@ describe("defineVariable", () => {
   });
 
   it("use undefined variable throws error", () => {
-
     // test with a variable that is not in the context that should throw an error
     let expr = `select(%fam.given)`;
     expect(() => {
       fhirpath.evaluate(input.patientExample, expr, r4_model); 
     }).toThrowError("Attempting to access an undefined environment variable: fam");
+  });
+
+  it("redefining variable throws error", () => {
+    let expr = `defineVariable('v1').defineVariable('v1').select(%v1)`;
+    expect(() => {
+      fhirpath.evaluate(input.patientExample, expr, r4_model); 
+    }).toThrowError("Variable %v1 already defined");
+  });
+
+  // Yury's tests
+  it("defineVariable() could not be the first child", () => {
+    // test with a variable that is not in the context that should throw an error
+    let expr = `Patient.name.defineVariable('fam1', first()).active | Patient.name.defineVariable('fam2', skip(1).first()).select(%fam1.given)`;
+    // let ast = fhirpath.parse(expr);
+    // ast = PruneTree(ast);
+    // console.log("ast", JSON.stringify(ast, null, 2));
+    expect(() => {
+      fhirpath.evaluate(input.patientExample, expr, r4_model); 
+    }).toThrowError("Attempting to access an undefined environment variable: fam1");
+  });
+
+  it("sequence of variable definitions tweak", () => {
+    let expr = `Patient.name.defineVariable('fam2', skip(1).first()).defineVariable('fam3', %fam2.given+%fam2.given).select(%fam3)`;
+    let ast = fhirpath.parse(expr);
+    ast = PruneTree(ast);
+    console.log("ast", JSON.stringify(ast, null, 2));
+    expect(fhirpath.evaluate(input.patientExample, expr, r4_model))
+      .toStrictEqual(["JimJim", "JimJim", "JimJim"]);
+  });
+
+  it("sequence of variable definitions original", () => {
+    let expr = `Patient.name.defineVariable('fam1', first()).exists(%fam1) | Patient.name.defineVariable('fam2', skip(1).first()).defineVariable('fam3', %fam2.given+%fam2.given).select(%fam3)`;
+    let ast = fhirpath.parse(expr);
+    ast = PruneTree(ast);
+    console.log("ast", JSON.stringify(ast, null, 2));
+    const result = fhirpath.evaluate(input.patientExample, expr, r4_model);
+    console.log(result);
+    // the duplicate JimJim values are removed due to the | operator
+    expect(result)
+      .toStrictEqual([true, "JimJim"]);
+  });
+
+  it("multi-tree vars", () => {
+    let expr = `defineVariable('root', 'r1-').select(defineVariable('v1', 'v1').defineVariable('v2', 'v2').select(%v1 | %v2)).select(%root & $this & %v1)`;
+    let ast = fhirpath.parse(expr);
+    ast = PruneTree(ast);
+    console.log("ast", JSON.stringify(ast, null, 2));
+    const result = fhirpath.evaluate(input.patientExample, expr, r4_model);
+    console.log(result);
+    // the duplicate JimJim values are removed due to the | operator
+    expect(result)
+      .toStrictEqual(["r1-v1", "r1-v2"]);
   });
 });
 
