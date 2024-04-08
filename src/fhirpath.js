@@ -186,17 +186,30 @@ engine.invocationTable = {
 
 engine.InvocationExpression = function(ctx, parentData, node) {
   let ctxForChildren = ctx;
-  if (node.children.length > 0) {
+  let varsForChildren = ctx.vars;
+  if (node.children.length > 1) {
     // if the first child is a defineVariable function, stash the vars object
     // so that it can be restored after the invocation is complete
-    if (node.children[0].type === 'TermExpression' && node.children[0].text.startsWith('defineVariable')) {
+    if (!ctx.definedVars && (node.children[0].text.startsWith('defineVariable') || node.children[1].text.startsWith('defineVariable'))) {
       // shallow copy the context (and also shallow copy the vars)
-      ctxForChildren = {...ctx, vars: {...ctx.vars}};
+      varsForChildren = {...ctx.vars};
+      ctxForChildren = {...ctx};
+      ctxForChildren.vars = varsForChildren;
+      ctxForChildren.definedVars = {};
     }
   }
-  return node.children.reduce(function(acc, ch) {
+  let result = node.children.reduce(function(acc, ch) {
     return engine.doEval(ctxForChildren, acc, ch);
   }, parentData);
+  if (ctx != ctxForChildren){
+    const oldVars = Object.keys(ctx.vars);
+    const newVars = Object.keys(varsForChildren);
+    const diffVars = newVars.filter(x => !oldVars.includes(x));
+    console.log('variables after evaluation:', diffVars.join(', '));
+    // These variables may need to be promoted to the parent context
+    console.log('variables after evaluation:', Object.keys(ctxForChildren.definedVars).join(', '));
+  }
+  return result;
 };
 
 engine.TermExpression = function(ctx, parentData, node) {
@@ -259,11 +272,16 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
   var extConstant = node.children[0];
   var identifier = extConstant.children[0];
   var varName = engine.Identifier(ctx, parentData, identifier)[0];
+  console.log("reading variable " + varName);
+
   var value = ctx.vars[varName];
   if (!(varName in ctx.vars)) {
-    throw new Error(
-      "Attempting to access an undefined environment variable: " + varName
-    );
+    if (ctx.definedVars && varName in ctx.definedVars)
+      value = ctx.definedVars[varName];
+    else
+      throw new Error(
+        "Attempting to access an undefined environment variable: " + varName
+      );
   }
   // For convenience, we all variable values to be passed in without their array
   // wrapper.  However, when evaluating, we need to put the array back in.

@@ -10,6 +10,12 @@ const input = {
 
 describe("defineVariable", () => {
 
+  it("simplest variable", () => {
+    let expr = `defineVariable('v1', 'value1').select(%v1)`;
+    expect(fhirpath.evaluate(input.patientExample, expr, r4_model))
+      .toStrictEqual(["value1"]);
+  });
+
   it("simple use of a variable", () => {
     let expr = `defineVariable('fam', name.first()).select(%fam.given)`;
     expect(fhirpath.evaluate(input.patientExample, expr, r4_model))
@@ -32,7 +38,10 @@ describe("defineVariable", () => {
   });
 
   it("use of different variables in different contexts", () => {
-    let expr = `defineVariable('fam', name.first()).select(%fam.given) | defineVariable('fam2', name.skip(1).first()).select(%fam2.given)`;
+    let expr = `defineVariable('fam', name.first()).select(id & '-' & %fam.given) | defineVariable('fam2', name.skip(1).first()).select(%fam2.given)`;
+    let ast = fhirpath.parse(expr);
+    ast = PruneTree(ast);
+    console.log("ast", JSON.stringify(ast, null, 2));
     expect(fhirpath.evaluate(input.patientExample, expr, r4_model))
       .toStrictEqual(["Peter", "James", "Jim"]);
   });
@@ -41,6 +50,15 @@ describe("defineVariable", () => {
     let expr = `defineVariable('fam', name.first()).active | defineVariable('fam2', name.skip(1).first()).select(%fam2.given)`;
     expect(fhirpath.evaluate(input.patientExample, expr, r4_model))
       .toStrictEqual([true, "Jim"]);
+  });
+
+  it("composite variable use", () => {
+    let expr = `defineVariable('v1', 'value1').defineVariable('v2', 'value2').select(%v1) | defineVariable('v3', 'value3').select(%v3)`;
+    let ast = fhirpath.parse(expr);
+    ast = PruneTree(ast);
+    console.log("ast", JSON.stringify(ast, null, 2));
+    expect(fhirpath.evaluate(input.patientExample, expr, r4_model))
+      .toStrictEqual(["value2", "value1", "value3"]);
   });
 
 
@@ -62,3 +80,17 @@ describe("defineVariable", () => {
     }).toThrowError("Attempting to access an undefined environment variable: fam");
   });
 });
+
+function PruneTree(ast){
+  if (ast.terminalNodeText)
+    delete ast.terminalNodeText;
+  if (ast.type === 'ParamList')
+    delete ast.children;
+  if (ast.type === 'ExternalConstant')
+    delete ast.children;
+
+  if (ast.children){
+    ast.children.forEach(PruneTree);
+  }
+  return ast;
+}

@@ -43,7 +43,10 @@ engine.defineVariable = function (x, label, expr) {
   if (expr){
     data = expr(x);
   }
+  console.log("setting variable", label);
+  // console.log("Injecting variable :[" + (label) + "]", JSON.stringify(data, null, " "));
   this.vars[label] = data;
+  this.definedVars[label] = data;
   return x;
 };
 
