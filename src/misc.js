@@ -55,6 +55,11 @@ engine.defineVariable = function (x, label, expr) {
   // Just in time initialization of definedVars
   if (!this.definedVars) this.definedVars = {};
 
+  if (Object.keys(this.vars).includes(label)) {
+    console.log("Can't overwrite an environment variable", label);
+    throw new Error("Environment Variable %" + label + " already defined");
+  }
+
   if (Object.keys(this.definedVars).includes(label)) {
     // console.log("Overwriting variable", label);
     throw new Error("Variable %" + label + " already defined");

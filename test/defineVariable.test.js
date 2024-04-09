@@ -162,6 +162,13 @@ describe("defineVariable", () => {
       .toThrowError("Attempting to access an undefined environment variable: v1");
   });
 
+  it('defineVariable cant overwrite an environment var', () => {
+    let expr = "defineVariable('context', 'oops')";
+    let f = fhirpath.compile(expr, r4_model);
+    expect(() => { f(input.patientExample); })
+      .toThrowError("Environment Variable %context already defined");
+  });
+
   it("realistic example with conceptmap", () => {
     let expr = `
     group.select(
