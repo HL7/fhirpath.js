@@ -402,7 +402,11 @@ function makeParam(ctx, parentData, type, param) {
   if(type === "Expr"){
     return function(data) {
       const $this = util.arraify(data);
-      return engine.doEval({ ...ctx, $this }, $this, param);
+      // Each iteration needs its own set of defined variables (cloned from the parent context)
+      let ctxExpr = { ...ctx, $this };
+      if (ctx.definedVars)
+        ctxExpr.definedVars = { ... ctx.definedVars };
+      return engine.doEval(ctxExpr, $this, param);
     };
   }
   if(type === "AnyAtRoot"){

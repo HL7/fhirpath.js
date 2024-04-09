@@ -6,6 +6,10 @@ const input = {
     // Clone input file contents to avoid one test affecting another
     return _.cloneDeep(require("../test/resources/patient-example.json"));
   },
+  get conceptMapExample() {
+    // Clone input file contents to avoid one test affecting another
+    return _.cloneDeep(require("../test/resources/conceptmap-example.json"));
+  },
 };
 
 describe("defineVariable", () => {
@@ -157,6 +161,27 @@ describe("defineVariable", () => {
     expect(() => { f(input.patientExample); })
       .toThrowError("Attempting to access an undefined environment variable: v1");
   });
+
+  it("realistic example with conceptmap", () => {
+    let expr = `
+    group.select(
+      defineVariable('grp')
+      .element
+      .select(
+        defineVariable('ele')
+        .target
+        .select(%grp.source & '|' & %ele.code & ' ' & equivalence &' ' & %grp.target & '|' & code)
+      )
+     )
+     .trace('all')
+     .isDistinct()
+    `;
+    expect(fhirpath.evaluate(input.conceptMapExample, expr, r4_model)
+    ).toStrictEqual([
+      false
+    ]);
+  });
+
 });
 
 function PruneTree(ast){
