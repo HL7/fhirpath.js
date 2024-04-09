@@ -49,9 +49,6 @@ engine.defineVariable = function (x, label, expr) {
   if (expr){
     data = expr(x);
   }
-  // console.log("setting variable", label);
-  // console.log("Injecting variable :[" + (label) + "]", JSON.stringify(data, null, " "));
-
   // Just in time initialization of definedVars
   if (!this.definedVars) this.definedVars = {};
 
@@ -61,7 +58,6 @@ engine.defineVariable = function (x, label, expr) {
   }
 
   if (Object.keys(this.definedVars).includes(label)) {
-    // console.log("Overwriting variable", label);
     throw new Error("Variable %" + label + " already defined");
   }
 

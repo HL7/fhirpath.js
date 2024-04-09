@@ -250,7 +250,6 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
   var extConstant = node.children[0];
   var identifier = extConstant.children[0];
   var varName = engine.Identifier(ctx, parentData, identifier)[0];
-  // console.log("reading variable " + varName);
 
   var value = ctx.vars[varName];
   if (!(varName in ctx.vars)) {
