@@ -143,6 +143,20 @@ describe("defineVariable", () => {
       fhirpath.evaluate(input.patientExample, expr, r4_model); 
     }).toThrowError("Attempting to access an undefined environment variable: v1");
   });
+
+  it('defineVariable with compile success', () => {
+    let expr = `defineVariable('root', 'r1-').select(defineVariable('v1', 'v1').defineVariable('v2', 'v2').select(%v1 | %v2)).select(%root & $this)`;
+    let f = fhirpath.compile(expr, r4_model);
+    expect(f(input.patientExample))
+      .toStrictEqual(["r1-v1", "r1-v2"]);
+  });
+
+  it('defineVariable with compile error', () => {
+    let expr = `defineVariable('root', 'r1-').select(defineVariable('v1', 'v1').defineVariable('v2', 'v2').select(%v1 | %v2)).select(%root & $this & %v1)`;
+    let f = fhirpath.compile(expr, r4_model);
+    expect(() => { f(input.patientExample); })
+      .toThrowError("Attempting to access an undefined environment variable: v1");
+  });
 });
 
 function PruneTree(ast){
