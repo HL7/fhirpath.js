@@ -424,7 +424,11 @@ function makeParam(ctx, parentData, type, param) {
     return engine.TypeSpecifier(ctx, parentData, param);
   }
 
-  let res = engine.doEval(ctx, parentData, param);
+  // Each iteration needs its own set of defined variables (cloned from the parent context)
+  let ctxExpr = { ...ctx };
+  if (ctx.definedVars)
+    ctxExpr.definedVars = { ... ctx.definedVars };
+  let res = engine.doEval(ctxExpr, parentData, param);
   if(type === "Any") {
     return res;
   }
@@ -488,18 +492,10 @@ function infixInvoke(ctx, fnName, data, rawParams){
     var argTypes = invoc.arity[paramsNumber];
     if(argTypes){
       var params = [];
-      const definedVars = ctx.definedVars;
       for(var i = 0; i < paramsNumber; i++){
         var tp = argTypes[i];
         var pr = rawParams[i];
-        if (definedVars || ctx.definedVars){
-          let ctxIsolated = {...ctx};
-          ctxIsolated.definedVars = definedVars; // restore the defined vars
-          params.push(makeParam(ctxIsolated, data, tp, pr));
-        }
-        else{
-          params.push(makeParam(ctx, data, tp, pr));
-        }
+        params.push(makeParam(ctx, data, tp, pr));
       }
       if(invoc.nullable) {
         if(params.some(isNullable)){

@@ -189,6 +189,19 @@ describe("defineVariable", () => {
     ]);
   });
 
+  it('defineVariable in function parameters (1)', () => {
+    let expr = "defineVariable(defineVariable('param','ppp').select(%param), defineVariable('param','value').select(%param)).select(%ppp)";
+    let f = fhirpath.compile(expr, r4_model);
+    expect(f(input.patientExample))
+      .toStrictEqual(["value"]);
+  });
+
+  it('defineVariable in function parameters (2)', () => {
+    let expr = "'aaa'.replace(defineVariable('param', 'aaa').select(%param), defineVariable('param','bbb').select(%param))";
+    let f = fhirpath.compile(expr, r4_model);
+    expect(f(input.patientExample))
+      .toStrictEqual(["bbb"]);
+  });  
 });
 
 function PruneTree(ast){
