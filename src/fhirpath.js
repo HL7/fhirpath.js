@@ -185,31 +185,9 @@ engine.invocationTable = {
 };
 
 engine.InvocationExpression = function(ctx, parentData, node) {
-  let ctxForChildren = ctx;
-  let varsForChildren = ctx.vars;
-  if (node.children.length > 1) {
-    // if the first child is a defineVariable function, stash the vars object
-    // so that it can be restored after the invocation is complete
-    if (!ctx.definedVars && (node.children[0].text.startsWith('defineVariable') || node.children[1].text.startsWith('defineVariable'))) {
-      // shallow copy the context (and also shallow copy the vars)
-      varsForChildren = {...ctx.vars};
-      ctxForChildren = {...ctx};
-      ctxForChildren.vars = varsForChildren;
-      ctxForChildren.definedVars = {};
-    }
-  }
-  let result = node.children.reduce(function(acc, ch) {
-    return engine.doEval(ctxForChildren, acc, ch);
+  return node.children.reduce(function(acc, ch) {
+    return engine.doEval(ctx, acc, ch);
   }, parentData);
-  if (ctx != ctxForChildren){
-    const oldVars = Object.keys(ctx.vars);
-    const newVars = Object.keys(varsForChildren);
-    const diffVars = newVars.filter(x => !oldVars.includes(x));
-    console.log('variables after evaluation:', diffVars.join(', '));
-    // These variables may need to be promoted to the parent context
-    console.log('variables after evaluation:', Object.keys(ctxForChildren.definedVars).join(', '));
-  }
-  return result;
 };
 
 engine.TermExpression = function(ctx, parentData, node) {
@@ -272,7 +250,7 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
   var extConstant = node.children[0];
   var identifier = extConstant.children[0];
   var varName = engine.Identifier(ctx, parentData, identifier)[0];
-  console.log("reading variable " + varName);
+  // console.log("reading variable " + varName);
 
   var value = ctx.vars[varName];
   if (!(varName in ctx.vars)) {
@@ -507,10 +485,18 @@ function infixInvoke(ctx, fnName, data, rawParams){
     var argTypes = invoc.arity[paramsNumber];
     if(argTypes){
       var params = [];
+      const definedVars = ctx.definedVars;
       for(var i = 0; i < paramsNumber; i++){
         var tp = argTypes[i];
         var pr = rawParams[i];
-        params.push(makeParam(ctx, data, tp, pr));
+        if (definedVars || ctx.definedVars){
+          let ctxIsolated = {...ctx};
+          ctxIsolated.definedVars = definedVars; // restore the defined vars
+          params.push(makeParam(ctxIsolated, data, tp, pr));
+        }
+        else{
+          params.push(makeParam(ctx, data, tp, pr));
+        }
       }
       if(invoc.nullable) {
         if(params.some(isNullable)){
@@ -533,7 +519,13 @@ engine.FunctionInvocation = function(ctx, parentData, node) {
   const fnName = args[0];
   args.shift();
   var rawParams = args && args[0] && args[0].children;
-  return doInvoke(ctx, fnName, parentData, rawParams);
+  if (fnName == 'defineVariable') {
+    return doInvoke(ctx, fnName, parentData, rawParams);
+  }
+  let ctxForArgs = { ...ctx };
+  if (ctx.definedVars)
+    ctxForArgs.definedVars = { ... ctx.definedVars };
+  return doInvoke(ctxForArgs, fnName, parentData, rawParams);
 };
 
 engine.ParamList = function(ctx, parentData, node) {

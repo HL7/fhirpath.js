@@ -17,20 +17,21 @@ describe("defineVariable", () => {
   });
 
   it("simple use of a variable", () => {
-    let expr = `defineVariable('fam', name.first()).select(%fam.given)`;
+    let expr = `defineVariable('n1', name.first()).select(%n1.given)`;
     expect(fhirpath.evaluate(input.patientExample, expr, r4_model))
       .toStrictEqual(["Peter", "James"]);
   });
 
   it("simple use of a variable 2 selects", () => {
-    let expr = `defineVariable('fam', name.first()).select(%fam.given).first()`;
+    let expr = `defineVariable('n1', name.first()).select(%n1.given).first()`;
     expect(fhirpath.evaluate(input.patientExample, expr, r4_model))
       .toStrictEqual(["Peter"]);
   });
 
   it("use of a variable in separate contexts", () => {
     // this example defines the same variable name in 2 different contexts
-    let expr = `defineVariable('fam', name.first()).select(%fam.given) | defineVariable('fam', name.skip(1).first()).select(%fam.given)`;
+    // this shouldn't report an issue where the variable is being redefined (as it's not in the same context)
+    let expr = `defineVariable('n1', name.first()).select(%n1.given) | defineVariable('n1', name.skip(1).first()).select(%n1.given)`;
     expect(fhirpath.evaluate(input.patientExample, expr, r4_model))
       .toStrictEqual(["Peter", "James", "Jim"]);
   });
@@ -38,22 +39,22 @@ describe("defineVariable", () => {
   it("use of a variable in separate contexts defined in 2 but used in 1", () => {
     // this example defines the same variable name in 2 different contexts, 
     // but only uses it in the second. This ensures that the first context doesn't remain when using it in another context
-    let expr = `defineVariable('fam', name.first()).where(active.not()) | defineVariable('fam', name.skip(1).first()).select(%fam.given)`;
+    let expr = `defineVariable('n1', name.first()).where(active.not()) | defineVariable('n1', name.skip(1).first()).select(%n1.given)`;
     expect(fhirpath.evaluate(input.patientExample, expr, r4_model))
       .toStrictEqual(["Jim"]);
   });
 
   it("use of different variables in different contexts", () => {
-    let expr = `defineVariable('fam', name.first()).select(id & '-' & %fam.given.join('|')) | defineVariable('fam2', name.skip(1).first()).select(%fam2.given)`;
-    let ast = fhirpath.parse(expr);
-    ast = PruneTree(ast);
-    console.log("ast", JSON.stringify(ast, null, 2));
+    let expr = `defineVariable('n1', name.first()).select(id & '-' & %n1.given.join('|')) | defineVariable('n2', name.skip(1).first()).select(%n2.given)`;
+    // let ast = fhirpath.parse(expr);
+    // ast = PruneTree(ast);
+    // console.log("ast", JSON.stringify(ast, null, 2));
     expect(fhirpath.evaluate(input.patientExample, expr, r4_model))
       .toStrictEqual(["example-Peter|James", "Jim"]);
   });
 
   it("2 vars, one unused", () => {
-    let expr = `defineVariable('fam', name.first()).active | defineVariable('fam2', name.skip(1).first()).select(%fam2.given)`;
+    let expr = `defineVariable('n1', name.first()).active | defineVariable('n2', name.skip(1).first()).select(%n2.given)`;
     expect(fhirpath.evaluate(input.patientExample, expr, r4_model))
       .toStrictEqual([true, "Jim"]);
   });
@@ -69,12 +70,11 @@ describe("defineVariable", () => {
 
 
   it("use of a variable outside context throws error", () => {
-
     // test with a variable that is not in the context that should throw an error
-    let expr = `defineVariable('fam', name.first()).active | defineVariable('fam2', name.skip(1).first()).select(%fam.given)`;
+    let expr = `defineVariable('n1', name.first()).active | defineVariable('n2', name.skip(1).first()).select(%n1.given)`;
     expect(() => {
       fhirpath.evaluate(input.patientExample, expr, r4_model); 
-    }).toThrowError("Attempting to access an undefined environment variable: fam");
+    }).toThrowError("Attempting to access an undefined environment variable: n1");
   });
 
   it("use undefined variable throws error", () => {
@@ -95,46 +95,53 @@ describe("defineVariable", () => {
   // Yury's tests
   it("defineVariable() could not be the first child", () => {
     // test with a variable that is not in the context that should throw an error
-    let expr = `Patient.name.defineVariable('fam1', first()).active | Patient.name.defineVariable('fam2', skip(1).first()).select(%fam1.given)`;
+    let expr = `Patient.name.defineVariable('n1', first()).active | Patient.name.defineVariable('n2', skip(1).first()).select(%n1.given)`;
     // let ast = fhirpath.parse(expr);
     // ast = PruneTree(ast);
     // console.log("ast", JSON.stringify(ast, null, 2));
     expect(() => {
       fhirpath.evaluate(input.patientExample, expr, r4_model); 
-    }).toThrowError("Attempting to access an undefined environment variable: fam1");
+    }).toThrowError("Attempting to access an undefined environment variable: n1");
   });
 
   it("sequence of variable definitions tweak", () => {
-    let expr = `Patient.name.defineVariable('fam2', skip(1).first()).defineVariable('fam3', %fam2.given+%fam2.given).select(%fam3)`;
-    let ast = fhirpath.parse(expr);
-    ast = PruneTree(ast);
-    console.log("ast", JSON.stringify(ast, null, 2));
+    let expr = `Patient.name.defineVariable('n2', skip(1).first()).defineVariable('res', %n2.given+%n2.given).select(%res)`;
+    // let ast = fhirpath.parse(expr);
+    // ast = PruneTree(ast);
+    // console.log("ast", JSON.stringify(ast, null, 2));
     expect(fhirpath.evaluate(input.patientExample, expr, r4_model))
       .toStrictEqual(["JimJim", "JimJim", "JimJim"]);
   });
 
   it("sequence of variable definitions original", () => {
-    let expr = `Patient.name.defineVariable('fam1', first()).exists(%fam1) | Patient.name.defineVariable('fam2', skip(1).first()).defineVariable('fam3', %fam2.given+%fam2.given).select(%fam3)`;
-    let ast = fhirpath.parse(expr);
-    ast = PruneTree(ast);
-    console.log("ast", JSON.stringify(ast, null, 2));
+    // A variable defined based on another variable
+    let expr = `Patient.name.defineVariable('n1', first()).exists(%n1) | Patient.name.defineVariable('n2', skip(1).first()).defineVariable('res', %n2.given+%n2.given).select(%res)`;
+    // let ast = fhirpath.parse(expr);
+    // ast = PruneTree(ast);
+    // console.log("ast", JSON.stringify(ast, null, 2));
     const result = fhirpath.evaluate(input.patientExample, expr, r4_model);
-    console.log(result);
+    // console.log(result);
     // the duplicate JimJim values are removed due to the | operator
     expect(result)
       .toStrictEqual([true, "JimJim"]);
   });
 
-  it("multi-tree vars", () => {
-    let expr = `defineVariable('root', 'r1-').select(defineVariable('v1', 'v1').defineVariable('v2', 'v2').select(%v1 | %v2)).select(%root & $this & %v1)`;
-    let ast = fhirpath.parse(expr);
-    ast = PruneTree(ast);
-    console.log("ast", JSON.stringify(ast, null, 2));
+  it("multi-tree vars valid", () => {
+    let expr = `defineVariable('root', 'r1-').select(defineVariable('v1', 'v1').defineVariable('v2', 'v2').select(%v1 | %v2)).select(%root & $this)`;
+    // let ast = fhirpath.parse(expr);
+    // ast = PruneTree(ast);
+    // console.log("ast", JSON.stringify(ast, null, 2));
     const result = fhirpath.evaluate(input.patientExample, expr, r4_model);
-    console.log(result);
-    // the duplicate JimJim values are removed due to the | operator
+    // console.log(result);
     expect(result)
       .toStrictEqual(["r1-v1", "r1-v2"]);
+  });
+
+  it("multi-tree vars exception", () => {
+    let expr = `defineVariable('root', 'r1-').select(defineVariable('v1', 'v1').defineVariable('v2', 'v2').select(%v1 | %v2)).select(%root & $this & %v1)`;
+    expect(() => {
+      fhirpath.evaluate(input.patientExample, expr, r4_model); 
+    }).toThrowError("Attempting to access an undefined environment variable: v1");
   });
 });
 

@@ -37,15 +37,29 @@ engine.traceFn = function (x, label, expr) {
   return x;
 };
 
-// Used by the `defineVariable` function to inject a variable into the context
+/**
+ * Used by the `defineVariable` function to inject a variable into the context
+ * @param {*} x The context data to use as the variable (if the expression is not provided)
+ * @param {*} label The name of the variable to define/set
+ * @param {*} expr (optional) An expression to run on the x parameter
+ * @returns x (The function should appear to be transparent to the caller)
+ */
 engine.defineVariable = function (x, label, expr) {
   let data = x;
   if (expr){
     data = expr(x);
   }
-  console.log("setting variable", label);
+  // console.log("setting variable", label);
   // console.log("Injecting variable :[" + (label) + "]", JSON.stringify(data, null, " "));
-  this.vars[label] = data;
+
+  // Just in time initialization of definedVars
+  if (!this.definedVars) this.definedVars = {};
+
+  if (Object.keys(this.definedVars).includes(label)) {
+    // console.log("Overwriting variable", label);
+    throw new Error("Variable %" + label + " already defined");
+  }
+
   this.definedVars[label] = data;
   return x;
 };
