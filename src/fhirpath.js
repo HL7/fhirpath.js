@@ -403,14 +403,19 @@ function makeParam(ctx, parentData, type, param) {
       const $this = util.arraify(data);
       // Each iteration needs its own set of defined variables (cloned from the parent context)
       let ctxExpr = { ...ctx, $this };
-      if (ctx.definedVars)
-        ctxExpr.definedVars = { ... ctx.definedVars };
+      if (ctx.definedVars) {
+        ctxExpr.definedVars = {...ctx.definedVars};
+      }
       return engine.doEval(ctxExpr, $this, param);
     };
   }
   if(type === "AnyAtRoot"){
     const $this = ctx.$this || ctx.dataRoot;
-    return engine.doEval({ ...ctx, $this}, $this, param);
+    let ctxExpr = { ...ctx, $this};
+    if (ctx.definedVars) {
+      ctxExpr.definedVars = {...ctx.definedVars};
+    }
+    return engine.doEval(ctxExpr, $this, param);
   }
   if(type === "Identifier"){
     if(param.type === "TermExpression") {
@@ -426,8 +431,9 @@ function makeParam(ctx, parentData, type, param) {
 
   // Each iteration needs its own set of defined variables (cloned from the parent context)
   let ctxExpr = { ...ctx };
-  if (ctx.definedVars)
-    ctxExpr.definedVars = { ... ctx.definedVars };
+  if (ctx.definedVars) {
+    ctxExpr.definedVars = {...ctx.definedVars};
+  }
   let res = engine.doEval(ctxExpr, parentData, param);
   if(type === "Any") {
     return res;
@@ -518,13 +524,7 @@ engine.FunctionInvocation = function(ctx, parentData, node) {
   const fnName = args[0];
   args.shift();
   var rawParams = args && args[0] && args[0].children;
-  if (fnName == 'defineVariable') {
-    return doInvoke(ctx, fnName, parentData, rawParams);
-  }
-  let ctxForArgs = { ...ctx };
-  if (ctx.definedVars)
-    ctxForArgs.definedVars = { ... ctx.definedVars };
-  return doInvoke(ctxForArgs, fnName, parentData, rawParams);
+  return doInvoke(ctx, fnName, parentData, rawParams);
 };
 
 engine.ParamList = function(ctx, parentData, node) {
