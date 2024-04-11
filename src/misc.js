@@ -38,11 +38,14 @@ engine.traceFn = function (x, label, expr) {
 };
 
 /**
- * Used by the `defineVariable` function to inject a variable into the context
- * @param {*} x The context data to use as the variable (if the expression is not provided)
- * @param {*} label The name of the variable to define/set
- * @param {*} expr (optional) An expression to run on the x parameter
- * @returns x (The function should appear to be transparent to the caller)
+ * Defines a variable named name that is accessible in subsequent expressions
+ * and has the value of expr if present, otherwise the value of the input
+ * collection.
+ * @param {Array} x - the input collection on which the function is executed
+ * @param {string} label - the name of the variable to define
+ * @param {*} [expr] - an expression to run on the input collection
+ * @returns the value of the input collection (The function should be transparent
+ *  to the caller)
  */
 engine.defineVariable = function (x, label, expr) {
   let data = x;

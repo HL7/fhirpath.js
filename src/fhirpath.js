@@ -401,9 +401,11 @@ function makeParam(ctx, parentData, type, param) {
   if(type === "Expr"){
     return function(data) {
       const $this = util.arraify(data);
-      // Each iteration needs its own set of defined variables (cloned from the parent context)
       let ctxExpr = { ...ctx, $this };
       if (ctx.definedVars) {
+        // Each parameter subexpression needs its own set of defined variables
+        // (cloned from the parent context). This way, the changes to the variables
+        // are isolated in the subexpression.
         ctxExpr.definedVars = {...ctx.definedVars};
       }
       return engine.doEval(ctxExpr, $this, param);
@@ -413,6 +415,9 @@ function makeParam(ctx, parentData, type, param) {
     const $this = ctx.$this || ctx.dataRoot;
     let ctxExpr = { ...ctx, $this};
     if (ctx.definedVars) {
+      // Each parameter subexpression needs its own set of defined variables
+      // (cloned from the parent context). This way, the changes to the variables
+      // are isolated in the subexpression.
       ctxExpr.definedVars = {...ctx.definedVars};
     }
     return engine.doEval(ctxExpr, $this, param);
@@ -429,9 +434,11 @@ function makeParam(ctx, parentData, type, param) {
     return engine.TypeSpecifier(ctx, parentData, param);
   }
 
-  // Each iteration needs its own set of defined variables (cloned from the parent context)
   let ctxExpr = { ...ctx };
   if (ctx.definedVars) {
+    // Each parameter subexpression needs its own set of defined variables
+    // (cloned from the parent context). This way, the changes to the variables
+    // are isolated in the subexpression.
     ctxExpr.definedVars = {...ctx.definedVars};
   }
   let res = engine.doEval(ctxExpr, parentData, param);
