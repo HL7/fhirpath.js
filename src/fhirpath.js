@@ -58,7 +58,7 @@ let makeResNode = ResourceNode.makeResNode;
 // * arity: is index map with type signature
 //   if type is in array (like [Boolean]) - this means
 //   function accepts value of this type or empty value {}
-// * nullable - means propagate empty result, i.e. instead
+// * nullable:  means propagate empty result, i.e. instead
 //   calling function if one of params is  empty return empty
 
 engine.invocationTable = {
@@ -99,6 +99,7 @@ engine.invocationTable = {
   exclude:      {fn: combining.exclude,   arity: {1: ["AnyAtRoot"]}},
   iif:          {fn: misc.iifMacro,    arity: {2: ["Expr", "Expr"], 3: ["Expr", "Expr", "Expr"]}},
   trace:        {fn: misc.traceFn,     arity: {1: ["String"], 2: ["String", "Expr"]}},
+  defineVariable: {fn: misc.defineVariable,     arity: {1: ["String"], 2: ["String", "Expr"]}},
   toInteger:    {fn: misc.toInteger},
   toDecimal:    {fn: misc.toDecimal},
   toString:     {fn: misc.toString},
@@ -249,11 +250,15 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
   var extConstant = node.children[0];
   var identifier = extConstant.children[0];
   var varName = engine.Identifier(ctx, parentData, identifier)[0];
+
   var value = ctx.vars[varName];
   if (!(varName in ctx.vars)) {
-    throw new Error(
-      "Attempting to access an undefined environment variable: " + varName
-    );
+    if (ctx.definedVars && varName in ctx.definedVars)
+      value = ctx.definedVars[varName];
+    else
+      throw new Error(
+        "Attempting to access an undefined environment variable: " + varName
+      );
   }
   // For convenience, we all variable values to be passed in without their array
   // wrapper.  However, when evaluating, we need to put the array back in.
@@ -396,12 +401,26 @@ function makeParam(ctx, parentData, type, param) {
   if(type === "Expr"){
     return function(data) {
       const $this = util.arraify(data);
-      return engine.doEval({ ...ctx, $this }, $this, param);
+      let ctxExpr = { ...ctx, $this };
+      if (ctx.definedVars) {
+        // Each parameter subexpression needs its own set of defined variables
+        // (cloned from the parent context). This way, the changes to the variables
+        // are isolated in the subexpression.
+        ctxExpr.definedVars = {...ctx.definedVars};
+      }
+      return engine.doEval(ctxExpr, $this, param);
     };
   }
   if(type === "AnyAtRoot"){
     const $this = ctx.$this || ctx.dataRoot;
-    return engine.doEval({ ...ctx, $this}, $this, param);
+    let ctxExpr = { ...ctx, $this};
+    if (ctx.definedVars) {
+      // Each parameter subexpression needs its own set of defined variables
+      // (cloned from the parent context). This way, the changes to the variables
+      // are isolated in the subexpression.
+      ctxExpr.definedVars = {...ctx.definedVars};
+    }
+    return engine.doEval(ctxExpr, $this, param);
   }
   if(type === "Identifier"){
     if(param.type === "TermExpression") {
@@ -415,7 +434,14 @@ function makeParam(ctx, parentData, type, param) {
     return engine.TypeSpecifier(ctx, parentData, param);
   }
 
-  let res = engine.doEval(ctx, parentData, param);
+  let ctxExpr = { ...ctx };
+  if (ctx.definedVars) {
+    // Each parameter subexpression needs its own set of defined variables
+    // (cloned from the parent context). This way, the changes to the variables
+    // are isolated in the subexpression.
+    ctxExpr.definedVars = {...ctx.definedVars};
+  }
+  let res = engine.doEval(ctxExpr, parentData, param);
   if(type === "Any") {
     return res;
   }

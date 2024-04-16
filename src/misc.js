@@ -37,6 +37,36 @@ engine.traceFn = function (x, label, expr) {
   return x;
 };
 
+/**
+ * Defines a variable named name that is accessible in subsequent expressions
+ * and has the value of expr if present, otherwise the value of the input
+ * collection.
+ * @param {Array} x - the input collection on which the function is executed
+ * @param {string} label - the name of the variable to define
+ * @param {*} [expr] - an expression to run on the input collection
+ * @returns the value of the input collection (The function should be transparent
+ *  to the caller)
+ */
+engine.defineVariable = function (x, label, expr) {
+  let data = x;
+  if (expr){
+    data = expr(x);
+  }
+  // Just in time initialization of definedVars
+  if (!this.definedVars) this.definedVars = {};
+
+  if (Object.keys(this.vars).includes(label)) {
+    throw new Error("Environment Variable %" + label + " already defined");
+  }
+
+  if (Object.keys(this.definedVars).includes(label)) {
+    throw new Error("Variable %" + label + " already defined");
+  }
+
+  this.definedVars[label] = data;
+  return x;
+};
+
 var intRegex = /^[+-]?\d+$/;
 engine.toInteger = function(coll){
   if(coll.length !== 1) { return []; }
