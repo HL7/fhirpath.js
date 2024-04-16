@@ -18,7 +18,7 @@
     "benny": "^3.7.1",
     "bestzip": "^2.2.0",
     "copy-webpack-plugin": "^6.0.3",
-    "cypress": "^10.3.0",
+    "cypress": "^13.7.2",
     "eslint": "^8.10.0",
     "fhir": "^4.10.3",
     "grunt": "^1.5.2",
