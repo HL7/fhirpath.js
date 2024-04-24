@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.13.1] - 2024-04-24
+### Fixed
+- an issue with evaluating an expression for a resource passed through an
+  environment variable.
+
 ## [3.13.0] - 2024-04-10
 ### Added
 - Function `defineVariable(name: String [, expr: expression])`.

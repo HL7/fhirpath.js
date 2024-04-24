@@ -666,12 +666,12 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
           i => i?.__path__
             ? makeResNode(i, i.__path__.path || null, null,
               i.__path__.fhirNodeDataType || null)
-            : i );
+            : makeResNode(i, null, null) );
       } else {
         restoredContext[key] = context[key]?.__path__
           ? makeResNode(context[key], context[key].__path__.path || null, null,
             context[key].__path__.fhirNodeDataType || null)
-          : context[key];
+          : makeResNode(context[key], null, null);
       }
       return restoredContext;
     }, {});

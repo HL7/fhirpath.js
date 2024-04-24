@@ -10,6 +10,13 @@ const input = {
     );
   },
 
+  get questionnaireResponseExample() {
+    // Clone input file contents to avoid one test affecting another
+    return _.cloneDeep(
+      require('../test/resources/questionnaire-response-example.json')
+    );
+  },
+
   get quantityExample() {
     // Clone input file contents to avoid one test affecting another
     return _.cloneDeep(
@@ -31,6 +38,15 @@ describe('compile', () => {
     }, r4_model);
     expect(f(input.questionnairePartExample))
       .toStrictEqual(['2 year']);
+  });
+
+  it('should accept a resource as a environment variable', () => {
+    let f = fhirpath.compile(
+      '%resource.descendants().where(linkId = \'answersFromParentQR\').answer.value',
+      r4_model
+    );
+    expect(f({}, {resource: input.questionnaireResponseExample}))
+      .toStrictEqual(['Blue', 'Green']);
   });
 
   it('should evaluate type() on a part of a resource', () => {
