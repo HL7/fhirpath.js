@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.13.1] - 2024-04-25
+### Fixed
+- Added flag 'u' for regular expressions in the `matches` and `replaceMatches`
+  functions to support the use of unicode character class escapes.
+
 ## [3.13.0] - 2024-04-10
 ### Added
 - Function `defineVariable(name: String [, expr: expression])`.

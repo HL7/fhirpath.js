@@ -162,7 +162,7 @@ if (dotAllIsSupported) {
     if (util.isEmpty(regex) || util.isEmpty(str)) {
       return [];
     }
-    const reg = new RegExp(regex, 's');
+    const reg = new RegExp(regex, 'su');
     return reg.test(str);
   };
 } else {
@@ -171,7 +171,7 @@ if (dotAllIsSupported) {
     if (util.isEmpty(regex) || util.isEmpty(str)) {
       return [];
     }
-    const reg = new RegExp(rewritePatternForDotAll(regex));
+    const reg = new RegExp(rewritePatternForDotAll(regex), 'u');
     return reg.test(str);
   };
 }
@@ -190,7 +190,7 @@ engine.replaceMatches = function (coll, regex, repl) {
   if (util.isEmpty(regex) || util.isEmpty(repl) || util.isEmpty(str)) {
     return [];
   }
-  const reg = new RegExp(regex, 'g');
+  const reg = new RegExp(regex, 'gu');
   return str.replace(reg, repl);
 };
 
