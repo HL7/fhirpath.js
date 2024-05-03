@@ -7,6 +7,7 @@ This log documents significant changes for each release.  This project follows
 ### Fixed
 - an issue with evaluating an expression for a resource passed through an
   environment variable.
+- an issue with "statusShift" during performance tests.
 
 ## [3.13.0] - 2024-04-10
 ### Added
