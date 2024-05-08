@@ -15,7 +15,7 @@
     "@babel/eslint-parser": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
     "babel-loader": "^8.2.3",
-    "benny": "github:caderek/benny#pull/40",
+    "benny": "github:caderek/benny#0ad058d3c7ef0b488a8fe9ae3519159fc7f36bb6",
     "bestzip": "^2.2.0",
     "copy-webpack-plugin": "^6.0.3",
     "cypress": "^13.7.2",

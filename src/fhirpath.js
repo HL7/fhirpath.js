@@ -251,8 +251,36 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
   var identifier = extConstant.children[0];
   var varName = engine.Identifier(ctx, parentData, identifier)[0];
 
-  var value = ctx.vars[varName];
-  if (!(varName in ctx.vars)) {
+  var value;
+  // Check the user-defined environment variables first as the user can override
+  // the "context" variable like we do in unit tests. In this case, the user
+  // environment variable can replace the system environment variable in "processedVars".
+  if (varName in ctx.vars) {
+    // Restore the ResourceNodes for the top-level objects of the environment
+    // variables. The nested objects will be converted to ResourceNodes
+    // in the MemberInvocation method.
+    value = ctx.vars[varName];
+    if (Array.isArray(value)) {
+      value = value.map(
+        i => i?.__path__
+          ? makeResNode(i, i.__path__.path || null, null,
+            i.__path__.fhirNodeDataType || null)
+          : i?.resourceType
+            ? makeResNode(i, null, null)
+            : i );
+    } else {
+      value = value?.__path__
+        ? makeResNode(value, value.__path__.path || null, null,
+          value.__path__.fhirNodeDataType || null)
+        : value?.resourceType
+          ? makeResNode(value, null, null)
+          : value;
+    }
+    ctx.processedVars[varName] = value;
+    delete ctx.vars[varName];
+  } else if (varName in ctx.processedVars) {
+    value = ctx.processedVars[varName];
+  } else {
     if (ctx.definedVars && varName in ctx.definedVars)
       value = ctx.definedVars[varName];
     else
@@ -656,27 +684,7 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   // Set up default standard variables, and allow override from the variables.
   // However, we'll keep our own copy of dataRoot for internal processing.
   let vars = {context: dataRoot, ucum: 'http://unitsofmeasure.org'};
-  // Restore the ResourceNodes for the top-level objects of the context
-  // variables. The nested objects will be converted to ResourceNodes
-  // in the MemberInvocation method.
-  if (context) {
-    context = Object.keys(context).reduce((restoredContext, key) => {
-      if (Array.isArray(context[key])) {
-        restoredContext[key] = context[key].map(
-          i => i?.__path__
-            ? makeResNode(i, i.__path__.path || null, null,
-              i.__path__.fhirNodeDataType || null)
-            : makeResNode(i, null, null) );
-      } else {
-        restoredContext[key] = context[key]?.__path__
-          ? makeResNode(context[key], context[key].__path__.path || null, null,
-            context[key].__path__.fhirNodeDataType || null)
-          : makeResNode(context[key], null, null);
-      }
-      return restoredContext;
-    }, {});
-  }
-  let ctx = {dataRoot, vars: Object.assign(vars, context), model};
+  let ctx = {dataRoot, processedVars: vars, vars: context || {}, model};
   if (options.traceFn) {
     ctx.customTraceFn = options.traceFn;
   }

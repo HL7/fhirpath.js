@@ -1315,23 +1315,26 @@ class ResourceNode {
    * @return {TypeInfo}
    */
   getTypeInfo() {
-    let result;
+    if (!this.typeInfo) {
+      let typeInfo;
 
-    if (TypeInfo.model) {
-      if (/^System\.(.*)$/.test(this.fhirNodeDataType)) {
-        result = new TypeInfo({namespace: TypeInfo.System, name: RegExp.$1});
-      } else if (this.fhirNodeDataType) {
-        result = new TypeInfo({
-          namespace: TypeInfo.FHIR,
-          name: this.fhirNodeDataType
-        });
+      if (TypeInfo.model) {
+        if (/^System\.(.*)$/.test(this.fhirNodeDataType)) {
+          typeInfo = new TypeInfo({namespace: TypeInfo.System, name: RegExp.$1});
+        } else if (this.fhirNodeDataType) {
+          typeInfo = new TypeInfo({
+            namespace: TypeInfo.FHIR,
+            name: this.fhirNodeDataType
+          });
+        }
       }
-    }
 
-    return result
-      // Resource object properties that are not defined in the model now have
-      // System.* data types:
-      || TypeInfo.createByValueInSystemNamespace(this.data);
+      this.typeInfo = typeInfo
+        // Resource object properties that are not defined in the model now have
+        // System.* data types:
+        || TypeInfo.createByValueInSystemNamespace(this.data);
+    }
+    return this.typeInfo;
   }
 
   toJSON() {
@@ -1350,24 +1353,27 @@ class ResourceNode {
    * @return {FP_Type|any}
    */
   convertData() {
-    var data = this.data;
-    const cls = TypeInfo.typeToClassWithCheckString[this.path];
-    if (cls) {
-      data = cls.checkString(data) || data;
-    } else if (TypeInfo.isType(this.path, 'Quantity')) {
-      if (data?.system === ucumSystemUrl) {
-        if (typeof data.value === 'number' && typeof data.code === 'string') {
-          if (data.comparator !== undefined)
-            throw new Error('Cannot convert a FHIR.Quantity that has a comparator');
-          data = new FP_Quantity(
-            data.value,
-            FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\''
-          );
+    if (!this.convertedData) {
+      var data = this.data;
+      const cls = TypeInfo.typeToClassWithCheckString[this.path];
+      if (cls) {
+        data = cls.checkString(data) || data;
+      } else if (TypeInfo.isType(this.path, 'Quantity')) {
+        if (data?.system === ucumSystemUrl) {
+          if (typeof data.value === 'number' && typeof data.code === 'string') {
+            if (data.comparator !== undefined)
+              throw new Error('Cannot convert a FHIR.Quantity that has a comparator');
+            data = new FP_Quantity(
+              data.value,
+              FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\''
+            );
+          }
         }
       }
-    }
 
-    return data;
+      this.convertedData = data;
+    }
+    return this.convertedData;
   }
 
 }
