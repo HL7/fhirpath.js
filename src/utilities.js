@@ -47,7 +47,7 @@ util.assertType = function(data, types, errorMsgPrefix) {
 };
 
 util.isEmpty = function(x){
-  return Array.isArray(x) && x.length == 0;
+  return Array.isArray(x) && x.length === 0;
 };
 
 util.isSome = function(x){
@@ -56,7 +56,7 @@ util.isSome = function(x){
 
 util.isTrue = function(x){
   // We use util.valData because we can use a boolean node as a criterion
-  return x !== null && x !== undefined && (x === true || (x.length == 1 && util.valData(x[0]) === true));
+  return x !== null && x !== undefined && (x === true || (x.length === 1 && util.valData(x[0]) === true));
 };
 
 util.isCapitalized = function(x){
@@ -172,20 +172,20 @@ util.makeChildResNodes = function(parentResNode, childProperty, model) {
   if (util.isSome(toAdd) || util.isSome(_toAdd)) {
     if(Array.isArray(toAdd)) {
       result = toAdd.map((x, i)=>
-        ResourceNode.makeResNode(x, childPath, _toAdd && _toAdd[i], fhirNodeDataType));
+        ResourceNode.makeResNode(x, parentResNode, childPath, _toAdd && _toAdd[i], fhirNodeDataType));
       // Add items to the end of the ResourceNode list that have no value
       // but have associated data, such as extensions or ids.
       const _toAddLength = _toAdd?.length || 0;
       for (let i = toAdd.length; i < _toAddLength; ++i) {
-        result.push(ResourceNode.makeResNode(null, childPath, _toAdd[i], fhirNodeDataType));
+        result.push(ResourceNode.makeResNode(null, parentResNode, childPath, _toAdd[i], fhirNodeDataType));
       }
     } else if (toAdd == null && Array.isArray(_toAdd)) {
       // Add items to the end of the ResourceNode list when there are no
       // values at all, but there is a list of associated data, such as
       // extensions or ids.
-      result = _toAdd.map((x) => ResourceNode.makeResNode(null, childPath, x, fhirNodeDataType));
+      result = _toAdd.map((x) => ResourceNode.makeResNode(null, parentResNode, childPath, x, fhirNodeDataType));
     } else {
-      result = [ResourceNode.makeResNode(toAdd, childPath, _toAdd, fhirNodeDataType)];
+      result = [ResourceNode.makeResNode(toAdd, parentResNode, childPath, _toAdd, fhirNodeDataType)];
     }
   } else {
     result = [];

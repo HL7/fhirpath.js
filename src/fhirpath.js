@@ -38,6 +38,7 @@ let engine    = {}; // the object with all FHIRPath functions and operations
 let existence = require("./existence");
 let filtering = require("./filtering");
 let aggregate = require("./aggregate");
+let supplements = require("./supplements");
 let combining = require("./combining");
 let misc      = require("./misc");
 let equality  = require("./equality");
@@ -83,6 +84,7 @@ engine.invocationTable = {
   min:          {fn: aggregate.minFn},
   max:          {fn: aggregate.maxFn},
   avg:          {fn: aggregate.avgFn},
+  weight:       {fn: supplements.weight},
   single:       {fn: filtering.singleFn},
   first:        {fn: filtering.firstFn},
   last:         {fn: filtering.lastFn},
@@ -194,7 +196,7 @@ engine.TermExpression = function(ctx, parentData, node) {
   if (parentData) {
     parentData = parentData.map((x) => {
       if (x instanceof Object && x.resourceType) {
-        return makeResNode(x, x.resourceType, null, x.resourceType);
+        return makeResNode(x, null, x.resourceType, null, x.resourceType);
       }
       return x;
     });
@@ -263,17 +265,17 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
     if (Array.isArray(value)) {
       value = value.map(
         i => i?.__path__
-          ? makeResNode(i, i.__path__.path || null, null,
+          ? makeResNode(i, i.__path__.parentResNode, i.__path__.path || null, null,
             i.__path__.fhirNodeDataType || null)
           : i?.resourceType
-            ? makeResNode(i, null, null)
+            ? makeResNode(i, null, null, null)
             : i );
     } else {
       value = value?.__path__
-        ? makeResNode(value, value.__path__.path || null, null,
+        ? makeResNode(value, value.__path__.parentResNode, value.__path__.path || null, null,
           value.__path__.fhirNodeDataType || null)
         : value?.resourceType
-          ? makeResNode(value, null, null)
+          ? makeResNode(value, null, null, null)
           : value;
     }
     ctx.processedVars[varName] = value;
@@ -380,7 +382,7 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
         .filter((x) => x instanceof ResourceNode && x.path === key);
     } else {
       return parentData.reduce(function(acc, res) {
-        res = makeResNode(res, res.__path__?.path || null, null,
+        res = makeResNode(res, null, res.__path__?.path || null, null,
           res.__path__?.fhirNodeDataType || null);
         util.pushFn(acc, util.makeChildResNodes(res, key, model));
         return acc;
@@ -676,14 +678,18 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   constants.reset();
   let dataRoot = util.arraify(resource).map(
     i => i?.__path__
-      ? makeResNode(i, i.__path__.path, null,
+      ? makeResNode(i, i.__path__.parentResNode, i.__path__.path, null,
         i.__path__.fhirNodeDataType || null)
       : i );
   // doEval takes a "ctx" object, and we store things in that as we parse, so we
   // need to put user-provided variable data in a sub-object, ctx.vars.
   // Set up default standard variables, and allow override from the variables.
   // However, we'll keep our own copy of dataRoot for internal processing.
-  let vars = {context: dataRoot, ucum: 'http://unitsofmeasure.org'};
+  let vars = {
+    context: dataRoot,
+    ucum: 'http://unitsofmeasure.org',
+    scoreExt: 'http://hl7.org/fhir/StructureDefinition/ordinalValue'
+  };
   let ctx = {dataRoot, processedVars: vars, vars: context || {}, model};
   if (options.traceFn) {
     ctx.customTraceFn = options.traceFn;
@@ -701,9 +707,11 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
       // Path for the data extracted from the resource.
       let path;
       let fhirNodeDataType;
+      let parentResNode;
       if (n instanceof ResourceNode) {
         path = n.path;
         fhirNodeDataType = n.fhirNodeDataType;
+        parentResNode = n.parentResNode;
       }
       n = util.valData(n);
       if (n instanceof FP_Type) {
@@ -716,7 +724,7 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
         // Add a hidden (non-enumerable) property with the path to the data extracted
         // from the resource.
         if (path && typeof n === 'object' && !n.__path__) {
-          Object.defineProperty(n, '__path__', { value: {path, fhirNodeDataType} });
+          Object.defineProperty(n, '__path__', { value: {path, fhirNodeDataType, parentResNode} });
         }
         acc.push(n);
       }
@@ -828,7 +836,7 @@ function compile(path, model, options) {
         const baseFhirNodeDataType = model && model.path2Type[basePath] || null;
         basePath = baseFhirNodeDataType === 'BackboneElement' || baseFhirNodeDataType === 'Element' ? basePath : baseFhirNodeDataType || basePath;
 
-        fhirData = makeResNode(fhirData, basePath, null, baseFhirNodeDataType);
+        fhirData = makeResNode(fhirData, null, basePath, null, baseFhirNodeDataType);
       }
       // Globally set model before applying parsed FHIRPath expression
       TypeInfo.model = model;
@@ -854,8 +862,8 @@ function typesFn(fhirpathResult) {
   return util.arraify(fhirpathResult).map(value => {
     const ti = TypeInfo.fromValue(
       value?.__path__
-        ? new ResourceNode(value, value.__path__?.path, null,
-          value.__path__?.fhirNodeDataType)
+        ? new ResourceNode(value, value.__path__?.parentResNode || null,
+          value.__path__?.path || null, null, value.__path__?.fhirNodeDataType || null)
         : value );
     return `${ti.namespace}.${ti.name}`;
   });

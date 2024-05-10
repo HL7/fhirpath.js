@@ -1287,23 +1287,25 @@ class ResourceNode {
    *  Constructs a instance for the given node ("data") of a resource.  If the
    *  data is the top-level node of a resouce, the path and type parameters will
    *  be ignored in favor of the resource's resourceType field.
-   * @param {*} data the node's data or value (which might be an object with
+   * @param {*} data - the node's data or value (which might be an object with
    *  sub-nodes, an array, or FHIR data type)
-   * @param {string} path the node's path in the resource (e.g. Patient.name).
+   * @param {ResourceNode} parentResNode - parent ResourceNode.
+   * @param {string} path - the node's path in the resource (e.g. Patient.name).
    *  If the data's type can be determined from data, that will take precedence
    *  over this parameter.
-   * @param {*} _data additional data stored in a property named with "_"
+   * @param {*} _data - additional data stored in a property named with "_"
    *  prepended, see https://www.hl7.org/fhir/element.html#json for details.
-   * @param {string} fhirNodeDataType FHIR node data type, if the resource node
+   * @param {string} fhirNodeDataType - FHIR node data type, if the resource node
    *  is described in the FHIR model.
    */
-  constructor(data, path, _data, fhirNodeDataType) {
+  constructor(data, parentResNode, path, _data, fhirNodeDataType) {
     // If data is a resource (maybe a contained resource) reset the path
     // information to the resource type.
     if (data?.resourceType) {
       path = data.resourceType;
       fhirNodeDataType = data.resourceType;
     }
+    this.parentResNode = parentResNode;
     this.path = path;
     this.data = data;
     this._data = _data || {};
@@ -1384,8 +1386,8 @@ class ResourceNode {
  *  given node is already a ResourceNode.  Takes the same arguments as the
  *  constructor for ResourceNode.
  */
-ResourceNode.makeResNode = function(data, path, _data, fhirNodeDataType = null) {
-  return (data instanceof ResourceNode) ? data : new ResourceNode(data, path, _data, fhirNodeDataType);
+ResourceNode.makeResNode = function(data, parentResNode, path, _data, fhirNodeDataType = null) {
+  return (data instanceof ResourceNode) ? data : new ResourceNode(data, parentResNode, path, _data, fhirNodeDataType);
 };
 
 // The set of available data types in the System namespace

@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.14.0] - 2024-05-09
+### Added
+- supplementary function `weight()`.
+
 ## [3.13.1] - 2024-04-24
 ### Fixed
 - an issue with evaluating an expression for a resource passed through an
