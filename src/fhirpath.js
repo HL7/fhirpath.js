@@ -279,14 +279,16 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
     ctx.processedVars[varName] = value;
     delete ctx.vars[varName];
   } else if (varName in ctx.processedVars) {
+    // "processedVars" are variables with ready-to-use values that have already
+    // been converted to ResourceNodes if necessary.
     value = ctx.processedVars[varName];
+  } else  if (ctx.definedVars && varName in ctx.definedVars) {
+    // "definedVars" are variables defined with the "defineVariable" function.
+    value = ctx.definedVars[varName];
   } else {
-    if (ctx.definedVars && varName in ctx.definedVars)
-      value = ctx.definedVars[varName];
-    else
-      throw new Error(
-        "Attempting to access an undefined environment variable: " + varName
-      );
+    throw new Error(
+      "Attempting to access an undefined environment variable: " + varName
+    );
   }
   // For convenience, we all variable values to be passed in without their array
   // wrapper.  However, when evaluating, we need to put the array back in.
