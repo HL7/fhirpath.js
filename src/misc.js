@@ -55,7 +55,7 @@ engine.defineVariable = function (x, label, expr) {
   // Just in time initialization of definedVars
   if (!this.definedVars) this.definedVars = {};
 
-  if (Object.keys(this.vars).includes(label)) {
+  if (label in this.vars || label in this.processedVars) {
     throw new Error("Environment Variable %" + label + " already defined");
   }
 

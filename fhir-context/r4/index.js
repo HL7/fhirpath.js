@@ -1,3 +1,5 @@
+const updateWithGeneratedData = require('../general-additions');
+
 /**
  *  Exports the FHIR model data for R4.  This is an internal structure that
  *  will likely evolve as more FHIR specific processing is added.
@@ -24,10 +26,7 @@ const modelInfo = {
   path2Type: require('./path2Type.json')
 };
 
-// Generate a set of available data types
-modelInfo.availableTypes = new Set();
-// IE11 probably doesn't support `new Set(iterable)`
-Object.keys(modelInfo.type2Parent).forEach(i => modelInfo.availableTypes.add(i));
-Object.values(modelInfo.type2Parent).forEach(i => modelInfo.availableTypes.add(i));
+// Update with generated data
+updateWithGeneratedData(modelInfo)
 
 module.exports = modelInfo;
