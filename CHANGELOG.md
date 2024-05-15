@@ -3,11 +3,17 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [3.13.1] - 2024-04-24
+## [3.13.2] - 2024-05-15
 ### Fixed
 - an issue with evaluating an expression for a resource passed through an
   environment variable.
 - an issue with "statusShift" during performance tests.
+
+## [3.13.1] - 2024-04-25
+### Fixed
+- Added flag 'u' for regular expressions in the specification's `matches` and
+  `replaceMatches` functions to support the use of unicode character class
+  escapes.
 
 ## [3.13.0] - 2024-04-10
 ### Added
