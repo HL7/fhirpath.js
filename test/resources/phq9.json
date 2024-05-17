@@ -995,17 +995,6 @@
       "type": "decimal",
       "extension": [
         {
-          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-displayCategory",
-          "valueCodeableConcept": {
-            "text": "The PHQ-9 is the standard (and most commonly used) depression measure, and it ranges from 0-27 Scoring: Add up all checked boxes on PHQ-9. For every check: Not at all = 0; Several days = 1; More than half the days = 2; Nearly every day = 3 (the scores are the codes that appear in the answer list for each of the PHQ-9 problem panel terms). Interpretation: 1-4 = Minimal depression; 5-9 = Mild depression; 10-14 = Moderate depression; 15-19 = Moderately severe depression; 20-27 = Severed depression.",
-            "coding": [
-              {
-                "display": "The PHQ-9 is the standard (and most commonly used) depression measure, and it ranges from 0-27 Scoring: Add up all checked boxes on PHQ-9. For every check: Not at all = 0; Several days = 1; More than half the days = 2; Nearly every day = 3 (the scores are the codes that appear in the answer list for each of the PHQ-9 problem panel terms). Interpretation: 1-4 = Minimal depression; 5-9 = Mild depression; 10-14 = Moderate depression; 15-19 = Moderately severe depression; 20-27 = Severed depression."
-              }
-            ]
-          }
-        },
-        {
           "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unit",
           "valueCoding": {
             "display": "{score}"
@@ -1142,17 +1131,6 @@
               }
             ],
             "text": "Drop down"
-          }
-        },
-        {
-          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-displayCategory",
-          "valueCodeableConcept": {
-            "text": "If you checked off any problems on this questionnaire",
-            "coding": [
-              {
-                "display": "If you checked off any problems on this questionnaire"
-              }
-            ]
           }
         },
         {

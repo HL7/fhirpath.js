@@ -1,0 +1,158 @@
+{
+  "resourceType": "QuestionnaireResponse",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaireresponse|3.0"
+    ],
+    "tag": [
+      {
+        "code": "lformsVersion: 35.0.4"
+      }
+    ]
+  },
+  "status": "completed",
+  "authored": "2024-04-04T18:41:13.730Z",
+  "item": [
+    {
+      "answer": [
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 2
+            }
+          ],
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        }
+      ],
+      "linkId": "/44250-9",
+      "text": "Little interest or pleasure in doing things?"
+    },
+    {
+      "answer": [
+        {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        }
+      ],
+      "linkId": "/44255-8",
+      "text": "Feeling down, depressed, or hopeless?"
+    },
+    {
+      "answer": [
+        {
+          "valueCoding": {
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          }
+        }
+      ],
+      "linkId": "/44259-0",
+      "text": "Trouble falling or staying asleep, or sleeping too much"
+    },
+    {
+      "answer": [
+        {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        }
+      ],
+      "linkId": "/44254-1",
+      "text": "Feeling tired or having little energy"
+    },
+    {
+      "answer": [
+        {
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 3
+            }
+          ],
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        }
+      ],
+      "linkId": "/44251-7",
+      "text": "Poor appetite or overeating"
+    },
+    {
+      "answer": [
+        {
+          "valueCoding": {
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          }
+        }
+      ],
+      "linkId": "/44258-2",
+      "text": "Feeling bad about yourself-or that you are a failure or have let yourself or your family down"
+    },
+    {
+      "answer": [
+        {
+          "valueCoding": {
+            "code": "LA6568-5",
+            "display": "Not at all"
+          }
+        }
+      ],
+      "linkId": "/44252-5",
+      "text": "Trouble concentrating on things, such as reading the newspaper or watching television"
+    },
+    {
+      "answer": [
+        {
+          "valueCoding": {
+            "code": "LA6569-3",
+            "display": "Several days"
+          }
+        }
+      ],
+      "linkId": "/44253-3",
+      "text": "Moving or speaking so slowly that other people could have noticed. Or the opposite-being so fidgety or restless that you have been moving around a lot more than usual"
+    },
+    {
+      "answer": [
+        {
+          "valueCoding": {
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          }
+        }
+      ],
+      "linkId": "/44260-8",
+      "text": "Thoughts that you would be better off dead, or of hurting yourself in some way"
+    },
+    {
+      "answer": [
+        {
+          "valueDecimal": 15
+        }
+      ],
+      "linkId": "/44261-6",
+      "text": "Patient health questionnaire 9 item total score"
+    },
+    {
+      "answer": [
+        {
+          "valueCoding": {
+            "code": "LA6572-7",
+            "display": "Not difficult at all"
+          }
+        }
+      ],
+      "linkId": "/69722-7",
+      "text": "How difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?"
+    }
+  ]
+}
