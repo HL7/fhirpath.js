@@ -377,17 +377,16 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
   const model = ctx.model;
 
   if (parentData) {
-    if(util.isCapitalized(key)) {
-      return parentData
-        .filter((x) => x instanceof ResourceNode && x.path === key);
-    } else {
-      return parentData.reduce(function(acc, res) {
-        res = makeResNode(res, null, res.__path__?.path || null, null,
-          res.__path__?.fhirNodeDataType || null);
+    return parentData.reduce(function(acc, res) {
+      res = makeResNode(res, null, res.__path__?.path || null, null,
+        res.__path__?.fhirNodeDataType || null);
+      if (res.data?.resourceType === key) {
+        acc.push(res);
+      } else {
         util.pushFn(acc, util.makeChildResNodes(res, key, model));
-        return acc;
-      }, []);
-    }
+      }
+      return acc;
+    }, []);
   } else {
     return [];
   }
