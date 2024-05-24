@@ -8,6 +8,12 @@ tests:
     expression: Functions.attrempty.empty()
     result: [true]
 
+  - desc: '** null is not empty'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].empty()
+    result: [false]
+
   - desc: '** not empty coll'
     expression: Functions.attrsingle.empty()
     result: [false]
@@ -58,6 +64,10 @@ tests:
     expression: Functions.nothing.not()
     result: []
 
+  - desc: '** error for collection that is not a singleton'
+    expression: Functions.collWithNullAndTrue.not()
+    error: true
+
 
   - desc: '5.1.3. exists([criteria : expression]) : boolean'
 #  Returns true if the collection has any elements, and false otherwise. This is the opposite of
@@ -72,6 +82,12 @@ tests:
   - desc: '** exists for empty coll should return false'
     expression: Functions.attrempty.exists()
     result: [false]
+
+  - desc: '** exists for null should return true'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].exists()
+    result: [true]
 
   - desc: '** exists for undefined coll should return false'
     expression: Functions.nothing.exists()
@@ -117,6 +133,12 @@ tests:
     expression: (0|1|2|3).all($this = $index)
     result: [true]
 
+  - desc: '** all for a collection with a null value that has an id'
+    inputfile: patient-example-2.json
+    expression: Patient.name.given[0].all(id = 'Jacomus1Id')
+    result:
+      - true
+
 
   - desc: '5.1.5. allTrue() : boolean'
 # Takes a collection of boolean values and returns
@@ -139,6 +161,10 @@ tests:
     expression: Functions.nothing.allTrue()
     result: [true]
 
+  - desc: '** allTrue for null values in the collection raise an error'
+    expression: Functions.collWithNullAndTrue.allTrue()
+    error: true
+
 
   - desc: '5.1.6. anyTrue() : boolean'
 # Takes a collection of boolean values and returns
@@ -152,6 +178,10 @@ tests:
   - desc: '** anyTrue for non-exists coll is false'
     expression: Functions.nothing.anyTrue()
     result: [false]
+
+  - desc: '** anyTrue for null values in the collection raise an error'
+    expression: Functions.collWithNullAndTrue.anyTrue()
+    error: true
 
   - desc: '** anyTrue for coll with true value'
     expression: Functions.coll1.collwithfalse.attr.anyTrue()
@@ -175,6 +205,10 @@ tests:
     expression: Functions.nothing.allFalse()
     result: [true]
 
+  - desc: '** allFalse for null values in the collection raise an error'
+    expression: Functions.collWithNullAndTrue.allFalse()
+    error: true
+
   - desc: '** allFalse for coll with all false items is true'
     expression: Functions.coll1.collfalse.attr.allFalse()
     result: [true]
@@ -196,6 +230,10 @@ tests:
   - desc: '** anyFalse for non-exists coll is false'
     expression: Functions.nothing.anyFalse()
     result: [false]
+
+  - desc: '** anyFalse for null values in the collection raise an error'
+    expression: Functions.collWithNullAndTrue.anyFalse()
+    error: true
 
   - desc: '** anyFalse for coll with false value'
     expression: Functions.coll1.collwithfalse.attr.anyFalse()
@@ -230,6 +268,14 @@ tests:
     expression: Functions.attrdouble.subsetOf(Functions.attrempty)
     result: [false]
 
+  - desc: '** subsetOf for collections with null values (1)'
+    expression: Functions.collWith2NullAndTrue.subsetOf(Functions.collWithNullAndTrue)
+    result: [false]
+
+  - desc: '** subsetOf for collections with null values (2)'
+    expression: Functions.collWithNullAndTrue.subsetOf(Functions.collWith2NullAndTrue)
+    result: [true]
+
   - desc: '** if input coll is subset of argument coll'
     expression: Functions.attrdouble.subsetOf(Functions.coll1[0].coll2.attr)
     result: [true]
@@ -240,6 +286,14 @@ tests:
 
   - desc: '** should treat objects with different key orders as equivalent'
     expression: Functions.subsetTestC1.subsetOf(Functions.subsetTestC2)
+    result: [true]
+
+  - desc: '** subsetOf for a large collections 1'
+    expression: (1 | 2 | 3 | 4 | 5).subsetOf(1 | 2 | 3 | 4 | 6 | 7)
+    result: [false]
+
+  - desc: '** subsetOf for a large collections 2'
+    expression: (1 | 2 | 3 | 4 | 5).subsetOf(1 | 2 | 3 | 4 | 5 | 6)
     result: [true]
 
   - desc: '** 5.1.10. supersetOf(other : collection) : boolean'
@@ -273,6 +327,14 @@ tests:
     expression: Functions.attrdouble.supersetOf(Functions.coll1[0].coll2.attr)
     result: [false]
 
+  - desc: '** supersetOf for collections with null values (1)'
+    expression: Functions.collWith2NullAndTrue.supersetOf(Functions.collWithNullAndTrue)
+    result: [true]
+
+  - desc: '** supersetOf for collections with null values (2)'
+    expression: Functions.collWithNullAndTrue.supersetOf(Functions.collWith2NullAndTrue)
+    result: [false]
+
 
   - desc: '5.1.11. isDistinct() : boolean'
 # Returns true if all the items in the input
@@ -301,6 +363,22 @@ tests:
   - desc: '** isDistinct of coll with same values'
     expression: Functions.coll1.collfalse.attr.isDistinct()
     result: [false]
+
+  - desc: '** isDistinct of a large collection 1'
+    expression: (1 | 2 | 3 | 4 | 5 | 6 | 7).combine(7).isDistinct()
+    result:
+      - false
+
+  - desc: '** isDistinct of a large collection 2'
+    expression: (1 | 2 | 3 | 4 | 5 | 6 | 7).isDistinct()
+    result:
+      - true
+
+  - desc: '** isDistinct of coll with nodes that have null values'
+    inputfile: patient-example-2.json
+    expression: (Patient.name.given[0]).combine(Patient.name.given[3]).isDistinct()
+    result:
+      - false
 
 
   - desc: '5.1.12. distinct() : collection'
@@ -336,6 +414,15 @@ tests:
       - prop1: 5
         prop2: 6
 
+  - desc: '** should ignore null properties'
+    inputfile: patient-bundle.json
+    model: r4
+    expression: >-
+      Bundle.entry.distinct() = (Bundle.entry[0] | Bundle.entry[2])
+    result:
+      - true
+
+
   - desc: '** should use year-to-month conversion factor (https://hl7.org/fhirpath/#equals)'
     expression: (1 year).combine(12 months).distinct()
     result:
@@ -345,6 +432,12 @@ tests:
     expression: (3 'min').combine(180 seconds).distinct()
     result:
       - 3 'min'
+
+  - desc: '** should work with nodes that have null values'
+    inputfile: patient-example-2.json
+    expression: Patient.name.given.distinct().count()
+    result:
+      - 3
 
   - desc: '5.1.13. count() : integer'
 # Returns a collection with a single value which is
@@ -386,6 +479,20 @@ subject:
     repeatingAttr:
       a: 1
     a: 2
+  collWithNullAndTrue:
+    - null
+    - true
+  _collWithNullAndTrue:
+    - id: nullId
+    - id: trueId
+  collWith2NullAndTrue:
+    - null
+    - null
+    - true
+  _collWith2NullAndTrue:
+    - id: nullId1
+    - id: nullId2
+    - id: trueId
   coll1:
     - coll2:
         - attr: 1

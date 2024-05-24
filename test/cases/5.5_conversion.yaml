@@ -38,6 +38,12 @@ tests:
     expression: Functions.iif(false, 'a')
     result: []
 
+  - desc: '** iif for collection with null values'
+    expression: Functions.iif(collWithNullsAndTrue[1], collWithNullsAndTrue[0], collWithNullsAndTrue[2]).id
+    result:
+      - nullId
+
+
   - desc: '5.5.2. toInteger() : integer'
     # If the input collection contains a single item, this functio# n will return a single integer if:
     # the item in the input collection is an integer
@@ -55,6 +61,10 @@ tests:
     expression: intstr.toInteger()
     result: [101]
 
+  - desc: '** Null to int'
+    expression: Functions.collWithNullsAndTrue[0].toInteger()
+    result: []
+
   - desc: '5.5.3. toDecimal() : decimal'
 # If the input collection contains a single item, this function will return a single decimal if:
 # the item in the input collection is an integer or decimal
@@ -71,6 +81,10 @@ tests:
     expression: decstr.toDecimal()
     result: [101.99]
 
+  - desc: '** Null to decimal'
+    expression: Functions.collWithNullsAndTrue[0].toDecimal()
+    result: []
+
   - 'group: toDateTime':
     - desc: equality
       expression: "datetime.toDateTime() = @2019-02-06T19:17-05:00"
@@ -79,6 +93,10 @@ tests:
     - desc: inequality
       expression: "datetime.toDateTime() = @2010-02-06T19:17-05:00"
       result: [false]
+
+  - desc: '** Null to dateTime'
+    expression: Functions.collWithNullsAndTrue[0].toDateTime()
+    result: []
 
   - 'group: toTime':
     - desc: equality
@@ -92,6 +110,18 @@ tests:
     - desc: inequality operator
       expression: "time.toTime() != @T18:15-05:00"
       result: [true]
+
+  - desc: '** Null to time'
+    expression: Functions.collWithNullsAndTrue[0].toTime()
+    result: []
+
+  - desc: '** Null to date'
+    expression: Functions.collWithNullsAndTrue[0].toDate()
+    result: []
+
+  - desc: '** Null to boolean'
+    expression: Functions.collWithNullsAndTrue[0].toBoolean()
+    result: []
 
 
   - desc: '5.5.4. toString() : string'
@@ -131,23 +161,26 @@ tests:
     expression: attrdec.toString()
     result: ['101.99']
 
+  - desc: '** null to string'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].toString()
+    result: []
+
 
   - desc: '5.5.7. toQuantity([unit:string]) : Quantity'
   - desc: '** string to Quantity'
     inputfile: patient-example.json
     expression: '''1 \''wk\''''.toQuantity() = 7 days'
-    result:
-      - true
+    result: []
   - desc: '** string to Quantity'
     inputfile: patient-example.json
-    expression: '''1 \''wk\''''.toQuantity(''days'') = 7 days'
-    result:
-      - true
+    expression: '''1 \''wk\''''.toQuantity(''days'')'
+    result: []
   - desc: '** string to Quantity'
     inputfile: patient-example.json
     expression: "'1 \\'wk\\''.toQuantity('d') = 7 days"
-    result:
-      - true
+    result: []
   - desc: '** string to Quantity - result UCUM unit code must be surrounded with single quotes'
     inputfile: patient-example.json
     expression: "'1 \\'wk\\''.toQuantity('d').toString() = '7 \\'d\\''"
@@ -193,6 +226,10 @@ tests:
     expression: '''some not quantity string''.toQuantity()'
     result: []
 
+  - desc: '** Null to Quantity'
+    expression: Functions.collWithNullsAndTrue[0].toQuantity()
+    result: []
+
 subject:
   resourceType: Functions
   attrempty: []
@@ -205,6 +242,14 @@ subject:
   time:  "T19:15-05:00"
   attrsingle:
     - 1
+  collWithNullsAndTrue:
+    - null
+    - true
+    - null
+  _collWithNullsAndTrue:
+    - id: nullId
+    - id: trueId
+    - id: lastNullId
   coll1:
     - coll2:
         - attr: 1

@@ -20,6 +20,12 @@ tests:
     expression: Functions.str.empty.indexOf('')
     result: []
 
+  - desc: '** indexOf on a singleton with null value'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].indexOf('Peter')
+    result: []
+
   - desc: '** index of empty substring'
     expression: Functions.str.empty.indexOf(EmptySubstring)
     result: []
@@ -55,6 +61,12 @@ tests:
     expression: Functions.str.empty.substring(0)
     result: []
 
+  - desc: '** substring on a singleton with null value'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].substring(0)
+    result: []
+
   - desc: '5.6.3. startsWith(prefix : string) : boolean'
 # If the input collection contains a single item of type string, the function will return true when the input string starts with the given prefix. Also returns true when prefix is the empty string.
   - desc: '** start with'
@@ -77,6 +89,12 @@ tests:
   # see http://hl7.org/fhirpath/N1/#propagation-of-empty-results-in-expressions
   - desc: '** start with empty prefix'
     expression: Functions.str.attr.startsWith(EmptyString)
+    result: []
+
+  - desc: '** startsWith on a singleton with null value'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].startsWith('P')
     result: []
 
   - desc: '5.6.4. endsWith(suffix : string) : boolean'
@@ -102,6 +120,12 @@ tests:
     expression: Functions.str.attr.endsWith(EmptyString)
     result: []
 
+  - desc: '** endsWith on a singleton with null value'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].endsWith('P')
+    result: []
+
   - desc: '5.6.5. contains(substring : string) : boolean'
 # If the input collection contains a single item of type string, the function will return true when the given substring is a substring of the input string. Also returns true when substring is the empty string.
   - desc: '** contains'
@@ -117,7 +141,13 @@ tests:
     result: [true]
 
   - desc: '** contains on empty input collection'
-    expression: Functions.str.empty.contains('')
+    expression: Functions.str.empty.contains('P')
+    result: []
+
+  - desc: '** contains on a singleton with null value'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].contains('P')
     result: []
 
   - desc: '5.6.6. upper() : string'
@@ -134,6 +164,12 @@ tests:
     expression: Functions.str.empty.upper()
     result: []
 
+  - desc: '** upper on a singleton with null value'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].upper()
+    result: []
+
   - desc: '5.6.7. lower() : string'
 
   - desc: '** lower 1'
@@ -146,6 +182,12 @@ tests:
 
   - desc: '** lower on empty input collection'
     expression: Functions.str.empty.lower()
+    result: []
+
+  - desc: '** lower on a singleton with null value'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].lower()
     result: []
 
   - desc: '5.6.8. replace(pattern : string, substitution : string) : string'
@@ -182,6 +224,12 @@ tests:
     expression: Functions.str.attr.replace('', EmptySubstitution)
     result: []
 
+  - desc: '** replace on a singleton with null value'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].replace('a', 'b')
+    result: []
+
   - desc: '5.6.9. matches(regex : string) : boolean'
 # If the input collection contains a single item of type string, the function will return true when the value matches the given regular expression. Regular expressions should function consistently, regardless of any culture- and locale-specific settings in the environment, should be case-sensitive, use 'single line' mode and allow Unicode characters.
   - desc: '** matches'
@@ -202,6 +250,16 @@ tests:
 
   - desc: '** matches with dotAll'
     expression: "'first line\nsecond line'.matches('line.second')"
+    result: [true]
+
+  - desc: '** matches on a singleton with null value'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].matches('.*')
+    result: []
+
+  - desc: '** matches with unicode character class escapes'
+    expression: "'Taupō'.matches('^\\\\p{Lu}\\\\p{Ll}*$')"
     result: [true]
 
   - desc: '5.6.10. replaceMatches(regex : string, substitution: string) : string'
@@ -239,6 +297,16 @@ tests:
     expression: Functions.str.attr.replaceMatches('', EmptySubstitution)
     result: []
 
+  - desc: '** replaceMatches on a singleton with null value'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].replaceMatches('(.*)', '$1')
+    result: []
+
+  - desc: '** replaceMatches with a unicode character class escape'
+    expression: "'Taupō'.replaceMatches('(\\\\p{Lu})', 'city: $1')"
+    result: ['city: Taupō']
+
   - desc: '5.6.11. length() : integer'
 # If the input collection contains a single item of type string, the function will return the length of the string. If the input collection is empty ({ }), the result is empty.
   - desc: '** length'
@@ -247,6 +315,12 @@ tests:
 
   - desc: '** length of empty coll'
     expression: Functions.str.empty.length()
+    result: []
+
+  - desc: '** length on a singleton with null value'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].length()
     result: []
 
   - desc: '5.6.12. toChars() : collection'
@@ -259,6 +333,12 @@ tests:
     expression: Functions.str.empty.toChars()
     result: []
 
+  - desc: '** toChars on a singleton with null value'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].toChars()
+    result: []
+
   - desc: '** split string on delimiter'
     expression: "'a,b,c'.split(',')"
     result: ['a', 'b', 'c']
@@ -266,6 +346,12 @@ tests:
   - desc: '** split string on delimiter'
     expression: "'a,,c'.split(',')"
     result: ['a', '', 'c']
+
+  - desc: '** split on a singleton with null value'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].split(',')
+    result: []
 
   - desc: '** join string with separator'
     expression: "('a'|'b'|'c').join(',')"
@@ -279,6 +365,16 @@ tests:
     expression: "('a'|'2023-05-28'.toDate()|'c').join(',')"
     error: true
 
+  - desc: '** join on empty input collection'
+    expression: Functions.str.empty.join(',')
+    result: []
+
+  - desc: '** join on a collection with null values'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given.join(',')
+    result: ['Peter,James']
+
   - desc: '** trim down a string'
     expression: "'   this is a string   '.trim()"
     result: ['this is a string']
@@ -288,15 +384,33 @@ tests:
     expression: "'a ,, c'.split(',').select(trim())"
     result: ['a', '', 'c']
 
+  - desc: '** trim on a singleton with null value'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].trim()
+    result: []
+
   - desc: '** encode urlbase64'
     expression: "'http://example.org/fhir'.encode('base64')"
     result: ['aHR0cDovL2V4YW1wbGUub3JnL2ZoaXI=']
+
+  - desc: '** encode on a singleton with null value'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].encode('base64')
+    result: []
 
   - desc: '** decode'
     expression: "'aHR0cDovL2V4YW1wbGUub3JnL2ZoaXI='.decode('base64')"
     result: ['http://example.org/fhir']
 
-# testEncodeDecode Tests from the FHIR spec
+  - desc: '** decode on a singleton with null value'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[0].decode('base64')
+    result: []
+
+  # testEncodeDecode Tests from the FHIR spec
   - desc: '** testEncodeDecode 1e'
     expression: "'test'.encode('base64')"
     result: ['dGVzdA==']

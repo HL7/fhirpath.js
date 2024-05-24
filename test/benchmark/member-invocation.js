@@ -1,70 +1,44 @@
 const _ = require('lodash');
 
 module.exports = ({
-                    benny,
-                    open,
-                    previous_fhirpath,
-                    previous_r4_model,
                     current_fhirpath,
                     current_r4_model,
                     minimumDataset,
-                    currentVersion,
-                    previousVersion
+                    options
                   }) => {
 
-  const numberOfItems = current_fhirpath.evaluate(minimumDataset,'Questionnaire.item.count()', {},  current_r4_model);
+  const numberOfItems = current_fhirpath.evaluate(_.cloneDeep(minimumDataset),'Questionnaire.item.count()', {},  current_r4_model);
   const expression = 'Questionnaire.item';
 
-  const cases = [
+  return [
+    ...(options.compileOnly
+      ? []
+      : [{
+        name: `Getting ${numberOfItems} items with engine.MemberInvocation using evaluate()`,
+        filename: 'member-invocation-evaluate',
+        expression,
+        cases: [{
+            name: '',
+            testFunction: (fhirpath, model) => {
+              const resource = _.cloneDeep(minimumDataset);
+              return () => fhirpath.evaluate(resource, expression, {}, model);
+            }
+          }
+        ]
+      }]),
     {
-      name: `using evaluate()`,
-      testFunction: (fhirpath, model) => {
-        fhirpath.evaluate(minimumDataset, expression, {}, model);
-      }
-    },
-    {
-      name: `using compile()`,
-      testFunction: (fhirpath, model, compiledFn) => {
-        compiledFn(minimumDataset, {});
-      }
-    }
-  ].reduce((arr, item) => {
-    arr.push(
-      benny.add(
-        `${item.name} [${previousVersion}]`,
-        item.testFunction.bind(
-          this,
-          previous_fhirpath,
-          previous_r4_model,
-          previous_fhirpath.compile(expression, previous_r4_model)
-        )
-      )
-    );
-    arr.push(
-      benny.add(
-        `${item.name} [${currentVersion}]`,
-        item.testFunction.bind(
-          this,
-          current_fhirpath,
-          current_r4_model,
-          current_fhirpath.compile(expression, current_r4_model)
-        )
-      )
-    );
-    return arr;
-  }, []);
+      name: `Getting ${numberOfItems} items with engine.MemberInvocation using compile()`,
+      filename: 'member-invocation-compile',
+      expression,
+      cases: [
+        {
+          name: '',
+          testFunction: (fhirpath, model, compiledFn) => {
+            const resource = _.cloneDeep(minimumDataset);
+            return () => compiledFn(resource, {});
+          }
+        }
+      ]
+    }];
 
-  benny.suite(
-    `Getting ${numberOfItems} items with engine.MemberInvocation`,
-    ...cases,
-    benny.cycle(),
-    benny.complete(),
-    benny.configure({
-      minDisplayPrecision: 2
-    }),
-    benny.save({ file: 'member-invocation', folder: __dirname + '/results', version: currentVersion }),
-    benny.save({ file: 'member-invocation', folder: __dirname + '/results', format: 'chart.html' }),
-  ).then(() => {
-    open(__dirname + '/results/member-invocation.chart.html');
-  });
 }

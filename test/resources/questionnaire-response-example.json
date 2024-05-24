@@ -1,0 +1,42 @@
+{
+  "resourceType": "QuestionnaireResponse",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaireresponse|3.0"
+    ],
+    "tag": [
+      {
+        "code": "lformsVersion: 36.0.2"
+      }
+    ]
+  },
+  "status": "completed",
+  "authored": "2024-04-23T13:49:53.827Z",
+  "questionnaire": "http://hl7.org/fhir/us/sirb/Questionnaire/sirb-adverse-event-questionnaire-populate",
+  "item": [
+    {
+      "linkId": "mae4",
+      "text": "Tests I",
+      "item": [
+        {
+          "linkId": "mae4.1",
+          "text": "Where Adverse Medical Event Occurred",
+          "item": [
+            {
+              "linkId": "answersFromParentQR",
+              "text": "LinkID: answersFromParentQR [Getting data from parent questionnnaire - will be hidden with questionnaire-hidden extension later]  initialExpression:  %lookupInitiateStudy.descendants().where(linkId = 'in8.9').answer.value",
+              "answer": [
+                {
+                  "valueString": "Blue"
+                },
+                {
+                  "valueString": "Green"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

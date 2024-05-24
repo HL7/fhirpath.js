@@ -5,7 +5,7 @@
 var util = require("./utilities");
 var types = require("./types");
 
-const { FP_Quantity } = types;
+const { FP_Quantity, TypeInfo } = types;
 
 var engine = {};
 
@@ -37,6 +37,36 @@ engine.traceFn = function (x, label, expr) {
   return x;
 };
 
+/**
+ * Defines a variable named name that is accessible in subsequent expressions
+ * and has the value of expr if present, otherwise the value of the input
+ * collection.
+ * @param {Array} x - the input collection on which the function is executed
+ * @param {string} label - the name of the variable to define
+ * @param {*} [expr] - an expression to run on the input collection
+ * @returns the value of the input collection (The function should be transparent
+ *  to the caller)
+ */
+engine.defineVariable = function (x, label, expr) {
+  let data = x;
+  if (expr){
+    data = expr(x);
+  }
+  // Just in time initialization of definedVars
+  if (!this.definedVars) this.definedVars = {};
+
+  if (label in this.vars || label in this.processedVars) {
+    throw new Error("Environment Variable %" + label + " already defined");
+  }
+
+  if (Object.keys(this.definedVars).includes(label)) {
+    throw new Error("Variable %" + label + " already defined");
+  }
+
+  this.definedVars[label] = data;
+  return x;
+};
+
 var intRegex = /^[+-]?\d+$/;
 engine.toInteger = function(coll){
   if(coll.length !== 1) { return []; }
@@ -60,14 +90,29 @@ const quantityRegex = /^((\+|-)?\d+(\.\d+)?)\s*(('[^']+')|([a-zA-Z]+))?$/,
   quantityRegexMap = {value:1,unit:5,time:6};
 engine.toQuantity = function (coll, toUnit) {
   let result;
-  // Surround UCUM unit code in the toUnit parameter with single quotes
-  if (toUnit && !FP_Quantity.mapTimeUnitsToUCUMCode[toUnit]) {
-    toUnit = `'${toUnit}'`;
-  }
 
   if (coll.length > 1) {
     throw new Error("Could not convert to quantity: input collection contains multiple items");
   } else if (coll.length === 1) {
+    if (toUnit) {
+      const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
+      const toUnitInSeconds = FP_Quantity._calendarDuration2Seconds[toUnit];
+      if (
+        !thisUnitInSeconds !== !toUnitInSeconds &&
+        (thisUnitInSeconds > 1 || toUnitInSeconds > 1)
+      ) {
+        // Conversion from calendar duration quantities greater than seconds to
+        // time-valued UCUM quantities greater than seconds or vice versa is not
+        // allowed.
+        return null;
+      }
+
+      // Surround UCUM unit code in the toUnit parameter with single quotes
+      if (!FP_Quantity.mapTimeUnitsToUCUMCode[toUnit]) {
+        toUnit = `'${toUnit}'`;
+      }
+    }
+
     var v = util.valDataConverted(coll[0]);
     let quantityRegexRes;
 
@@ -114,6 +159,7 @@ engine.toDecimal = function(coll){
 engine.toString = function(coll){
   if(coll.length !== 1) { return []; }
   var v = util.valDataConverted(coll[0]);
+  if (v == null) { return []; }
   return v.toString();
 };
 
@@ -129,9 +175,13 @@ function defineTimeConverter(timeType) {
     if (coll.length > 1)
       throw Error('to '+timeName+' called for a collection of length '+coll.length);
     if (coll.length === 1) {
-      var t = types[timeType].checkString(util.valData(coll[0]));
-      if (t)
-        rtn = t;
+      var v = util.valData(coll[0]);
+      if (typeof v === "string") {
+        var t = types[timeType].checkString(v);
+        if (t) {
+          rtn = t;
+        }
+      }
     }
     return rtn;
   };
@@ -209,28 +259,24 @@ engine.createConvertsToFn = function (toFunction, type) {
 };
 
 const singletonEvalByType = {
-  "Integer": function(coll){
-    const d = util.valData(coll[0]);
+  "Integer": function(d){
     if (Number.isInteger(d)) {
       return d;
     }
   },
-  "Boolean": function(coll){
-    const d = util.valData(coll[0]);
+  "Boolean": function(d){
     if (d === true || d === false) {
       return d;
-    } else if (coll.length === 1) {
+    } else {
       return true;
     }
   },
-  "Number": function(coll) {
-    const d = util.valData(coll[0]);
+  "Number": function(d) {
     if (typeof d === "number") {
       return d;
     }
   },
-  "String": function(coll){
-    const d = util.valData(coll[0]);
+  "String": function(d){
     if (typeof d === "string") {
       return d;
     }
@@ -254,9 +300,13 @@ engine.singleton = function (coll, type) {
   } else if (coll.length === 0) {
     return [];
   }
+  const v = util.valData(coll[0]);
+  if (v == null) {
+    return [];
+  }
   const toSingleton = singletonEvalByType[type];
   if (toSingleton) {
-    const value = toSingleton(coll);
+    const value = toSingleton(v);
     if (value !== undefined) {
       return value;
     }
@@ -268,7 +318,9 @@ engine.singleton = function (coll, type) {
 /**
  * Checks whether a primitve value is present
  */
-const fhirPrimitives = new Set([
+const primitives = new Set();
+// IE11 probably doesn't support `new Set(iterable)`
+[
   "instant",
   "time",
   "date",
@@ -288,33 +340,18 @@ const fhirPrimitives = new Set([
   "oid",
   "uuid",
   "canonical",
-  "url"
-]);
+  "url",
+  "Integer",
+  "Decimal",
+  "String",
+  "Date",
+  "DateTime",
+  "Time"
+].forEach(i => primitives.add(i));
 
 engine.hasValueFn = function(coll) {
-  let model = this.model;
-
-  if (coll.length === 1){
-    if(model){
-      return [fhirPrimitives.has(coll[0].path)];
-    } else {
-      return [isPrimitiveDefault(util.valData(coll[0]))];
-    }
-  } else {
-    return [false];
-  }
+  return coll.length === 1 && util.valData(coll[0]) != null
+    && primitives.has(TypeInfo.fromValue(coll[0]).name);
 };
-
-function isPrimitiveDefault(data){
-  switch (typeof data){
-    case 'string':
-    case 'number':
-    case 'boolean':
-    // case 'bigint':
-      return true;
-    default:
-      return false;
-  }
-}
 
 module.exports = engine;

@@ -2,7 +2,7 @@
 
 const util =  {};
 const types = require('./types');
-let {ResourceNode} = types;
+const {ResourceNode} = types;
 
 /**
  *  Reports and error to the calling environment and stops processing.
@@ -15,14 +15,14 @@ util.raiseError = function(message, fnName) {
 };
 
 /**
- *  Throws an exception if the collection contains more than one value.
+ *  Throws an exception if the collection contains not one value.
  * @param collection the collection to be checked.
  * @param errorMsgPrefix An optional prefix for the error message to assist in
  *  debugging.
  */
-util.assertAtMostOne = function (collection, errorMsgPrefix) {
-  if (collection.length > 1) {
-    util.raiseError("Was expecting no more than one element but got " +
+util.assertOnlyOne = function (collection, errorMsgPrefix) {
+  if (collection.length !== 1) {
+    util.raiseError("Was expecting only one element but got " +
       JSON.stringify(collection), errorMsgPrefix);
   }
 };
@@ -55,11 +55,8 @@ util.isSome = function(x){
 };
 
 util.isTrue = function(x){
-  return x !== null && x !== undefined && (x === true || (x.length == 1 && x[0] === true));
-};
-
-util.isFalse = function(x){
-  return x !== null && x !== undefined && (x === false || (x.length == 1 && x[0] === false));
+  // We use util.valData because we can use a boolean node as a criterion
+  return x !== null && x !== undefined && (x === true || (x.length == 1 && util.valData(x[0]) === true));
 };
 
 util.isCapitalized = function(x){
@@ -112,6 +109,88 @@ util.valDataConverted = function(val) {
  */
 util.escapeStringForRegExp = function (str) {
   return str.replace(/[-[\]{}()*+?.,\\/^$|#\s]/g, '\\$&');
+};
+
+/**
+ * Binding to the Array.prototype.push.apply function to define a function to
+ * push the contents of the source array to the destination array.
+ * @name pushFn
+ * @function
+ * @param {Array} destArray - destination array
+ * @param {Array} sourceArray - source array
+ * @returns the new length property of destArray
+ */
+util.pushFn = Function.prototype.apply.bind(Array.prototype.push);
+
+/**
+ * Creates child resource nodes for the specified resource node property.
+ * @param {ResourceNode} parentResNode - resource node
+ * @param {string} childProperty - name of property
+ * @param {object} [model] - "model" data object
+ * @return {ResourceNode[]}
+ */
+util.makeChildResNodes = function(parentResNode, childProperty, model) {
+  let childPath = parentResNode.path + '.' + childProperty;
+
+  if (model) {
+    let defPath = model.pathsDefinedElsewhere[childPath];
+    if (defPath)
+      childPath = defPath;
+  }
+  let toAdd, _toAdd;
+  let actualTypes = model && model.choiceTypePaths[childPath];
+  if (actualTypes) {
+    // Use actualTypes to find the field's value
+    for (let t of actualTypes) {
+      let field = childProperty + t;
+      toAdd = parentResNode.data?.[field];
+      _toAdd = parentResNode.data?.['_' + field];
+      if (toAdd !== undefined || _toAdd !== undefined) {
+        childPath += t;
+        break;
+      }
+    }
+  }
+  else {
+    toAdd = parentResNode.data?.[childProperty];
+    _toAdd = parentResNode.data?.['_' + childProperty];
+    if (toAdd === undefined && _toAdd === undefined) {
+      toAdd = parentResNode._data[childProperty];
+    }
+    if (childProperty === 'extension') {
+      childPath = 'Extension';
+    }
+  }
+
+  let fhirNodeDataType = null;
+  if (model) {
+    fhirNodeDataType = model.path2Type[childPath] || null;
+    childPath = model.path2TypeWithoutElements[childPath] || childPath;
+  }
+
+  let result;
+  if (util.isSome(toAdd) || util.isSome(_toAdd)) {
+    if(Array.isArray(toAdd)) {
+      result = toAdd.map((x, i)=>
+        ResourceNode.makeResNode(x, childPath, _toAdd && _toAdd[i], fhirNodeDataType));
+      // Add items to the end of the ResourceNode list that have no value
+      // but have associated data, such as extensions or ids.
+      const _toAddLength = _toAdd?.length || 0;
+      for (let i = toAdd.length; i < _toAddLength; ++i) {
+        result.push(ResourceNode.makeResNode(null, childPath, _toAdd[i], fhirNodeDataType));
+      }
+    } else if (toAdd == null && Array.isArray(_toAdd)) {
+      // Add items to the end of the ResourceNode list when there are no
+      // values at all, but there is a list of associated data, such as
+      // extensions or ids.
+      result = _toAdd.map((x) => ResourceNode.makeResNode(null, childPath, x, fhirNodeDataType));
+    } else {
+      result = [ResourceNode.makeResNode(toAdd, childPath, _toAdd, fhirNodeDataType)];
+    }
+  } else {
+    result = [];
+  }
+  return result;
 };
 
 module.exports = util;

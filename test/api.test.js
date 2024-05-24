@@ -10,6 +10,13 @@ const input = {
     );
   },
 
+  get questionnaireResponseExample() {
+    // Clone input file contents to avoid one test affecting another
+    return _.cloneDeep(
+      require('../test/resources/questionnaire-response-example.json')
+    );
+  },
+
   get quantityExample() {
     // Clone input file contents to avoid one test affecting another
     return _.cloneDeep(
@@ -33,6 +40,24 @@ describe('compile', () => {
       .toStrictEqual(['2 year']);
   });
 
+  it('should accept a resource as a environment variable', () => {
+    let f = fhirpath.compile(
+      '%resource.descendants().where(linkId = \'answersFromParentQR\').answer.value',
+      r4_model
+    );
+    expect(f({}, {resource: input.questionnaireResponseExample}))
+      .toStrictEqual(['Blue', 'Green']);
+  });
+
+  it('should evaluate type() on a part of a resource', () => {
+    let f = fhirpath.compile({
+      base: 'QuestionnaireResponse.item',
+      expression: 'type().name'
+    }, r4_model);
+    expect(f(input.questionnairePartExample))
+      .toStrictEqual(['BackboneElement']);
+  });
+
   it('should return a function that accepts a context hash', () => {
     let f = fhirpath.compile('%a + 2');
     expect(f({}, {a: 1})).toStrictEqual([3]);
@@ -45,7 +70,7 @@ describe('compile', () => {
     );
     const partOfResource = getPartOfResource(input.quantityExample);
     let execExpression = fhirpath.compile(
-      "%partOfResource.answer.value = 3 'min'",
+      "%partOfResource.answer.value = 3 minutes",
       r4_model
     );
     let result = execExpression({}, {partOfResource});
@@ -85,7 +110,7 @@ describe('evaluate', () => {
     );
     let result = fhirpath.evaluate(
       {},
-      "%partOfResource.answer.value = 3 'min'",
+      "%partOfResource.answer.value = 3 minutes",
       {partOfResource},
       r4_model
     );

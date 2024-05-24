@@ -3,6 +3,102 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.13.2] - 2024-05-15
+### Fixed
+- an issue with evaluating an expression for a resource passed through an
+  environment variable.
+- an issue with "statusShift" during performance tests.
+
+## [3.13.1] - 2024-04-25
+### Fixed
+- Added flag 'u' for regular expressions in the specification's `matches` and
+  `replaceMatches` functions to support the use of unicode character class
+  escapes.
+
+## [3.13.0] - 2024-04-10
+### Added
+- Function `defineVariable(name: String [, expr: expression])`.
+
+## [3.12.0] - 2024-04-10
+### Changed
+- Updated Cypress to version 13.
+
+## [3.11.0] - 2024-03-29
+### Added
+- Storing the FHIR data type along with the path in internal ResourceNode
+  objects to improve the accuracy of determining a resource node data type.
+- Missing entries to mapping paths to data types.
+
+## [3.10.5] - 2024-03-25
+### Fixed
+- Handling of empty values that came from nulls.
+
+## [3.10.4] - 2024-03-13
+### Fixed
+- hasValue() function previously only checked the data type of an input
+  single-element collection, but not the existence of a value.
+
+## [3.10.3] - 2024-03-12
+### Fixed
+- Functions `as(<type specifier>)`, `is(<type specifier>)`,
+  `ofType(<type specifier>)` and operators `as <type specifier>`,
+  `is <type specifier>` now throw an exception if `<type specifier>` is invalid.
+- Resource object properties that are not defined in the model now have System.*
+  data types.
+- All tests in `fhir-r4.yaml` are executed using the `R4` model.
+
+## [3.10.2] - 2024-03-12
+### Fixed
+- children() and descendants() were returning resource nodes with the incorrect
+  data types.
+
+## [3.10.1] - 2024-01-29
+### Changed
+- Improved performance comparison task: added command line options and enabled
+  Ctrl+C for stopping the tests.
+
+## [3.10.0] - 2024-01-23
+### Added
+- Support for comparison and math operations with Quantity values.
+  It also became possible to use Quantity values with `aggregate()`, `min()`,
+  `max()`, `sum()`, `avg()`, and `abs()`.
+- Unary `-` for a Quantity value.
+
+## [3.9.1] - 2024-01-22
+### Fixed
+- Fixed exception in the "hashObject" internal function when an object has
+  a property with the "null" value. This may affect functions that compare
+  objects:
+  intersect(), subsetOf(), repeat(), union(), distinct(), isDistinct().
+- Null values are excluded from the expression evaluation result.
+- Fixed an issue when evaluating an expression for a resource object with missed
+  values at the end of the array in a property.
+- Fixed an issue when evaluating an expression for a resource object when there
+  are no values at all for a property, but there is a list of associated data
+  (ids/extensions).
+
+## [3.9.0] - 2023-11-09
+### Added
+- support for user-defined functions.
+
+## [3.8.1] - 2023-10-11
+### Fixed
+- Use `deepEqual` instead of `hashObject` to optimize the comparison of items of
+  small collections in these functions: intersect(), union(), exclude(),
+  subsetOf(), distinct().
+
+## [3.8.0] - 2023-10-03
+### Added
+- support FHIR.instant in expressions.
+
+## [3.7.1] - 2023-09-27
+### Fixed
+- crash in `exists()` when running in strict mode.
+
+## [3.7.0] - 2023-09-12
+### Added
+- exclude() function.
+
 ## [3.6.1] - 2023-08-17
 ### Fixed
 - trace() affected the context of the following subexpressions.
@@ -18,7 +114,7 @@ This log documents significant changes for each release.  This project follows
 - Added a callback (traceFn) to the options object for the `trace` function
 ### Fixed
 - Update the typescript definition to mark context and model as optional
-- Corect the `trace` function's name parameter is required
+- Correct the `trace` function's name parameter is required
 
 ## [3.4.0] - 2023-04-26
 ### Added

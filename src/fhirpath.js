@@ -58,7 +58,7 @@ let makeResNode = ResourceNode.makeResNode;
 // * arity: is index map with type signature
 //   if type is in array (like [Boolean]) - this means
 //   function accepts value of this type or empty value {}
-// * nullable - means propagate empty result, i.e. instead
+// * nullable:  means propagate empty result, i.e. instead
 //   calling function if one of params is  empty return empty
 
 engine.invocationTable = {
@@ -78,7 +78,7 @@ engine.invocationTable = {
   where:        {fn: filtering.whereMacro, arity: {1: ["Expr"]}},
   extension:    {fn: filtering.extension, arity: {1: ["String"]}},
   select:       {fn: filtering.selectMacro, arity: {1: ["Expr"]}},
-  aggregate:    {fn: aggregate.aggregateMacro, arity: {1: ["Expr"], 2: ["Expr", "Any"]}},
+  aggregate:    {fn: aggregate.aggregateMacro, arity: {1: ["Expr"], 2: ["Expr", "AnyAtRoot"]}},
   sum:          {fn: aggregate.sumFn},
   min:          {fn: aggregate.minFn},
   max:          {fn: aggregate.maxFn},
@@ -96,8 +96,10 @@ engine.invocationTable = {
   combine:      {fn: combining.combineFn, arity: {1: ["AnyAtRoot"]}},
   union:        {fn: combining.union,   arity: {1: ["AnyAtRoot"]}},
   intersect:    {fn: combining.intersect,   arity: {1: ["AnyAtRoot"]}},
+  exclude:      {fn: combining.exclude,   arity: {1: ["AnyAtRoot"]}},
   iif:          {fn: misc.iifMacro,    arity: {2: ["Expr", "Expr"], 3: ["Expr", "Expr", "Expr"]}},
   trace:        {fn: misc.traceFn,     arity: {1: ["String"], 2: ["String", "Expr"]}},
+  defineVariable: {fn: misc.defineVariable,     arity: {1: ["String"], 2: ["String", "Expr"]}},
   toInteger:    {fn: misc.toInteger},
   toDecimal:    {fn: misc.toDecimal},
   toString:     {fn: misc.toString},
@@ -106,6 +108,7 @@ engine.invocationTable = {
   toTime:       {fn: misc.toTime},
   toBoolean:    {fn: misc.toBoolean},
   toQuantity:   {fn: misc.toQuantity, arity: {0: [], 1: ["String"]}},
+  // TODO: The hasValue function should be taken into account in a separate request
   hasValue:     {fn: misc.hasValueFn},
   convertsToBoolean:    {fn: misc.createConvertsToFn(misc.toBoolean, 'boolean')},
   convertsToInteger:    {fn: misc.createConvertsToFn(misc.toInteger, 'number')},
@@ -142,7 +145,7 @@ engine.invocationTable = {
   ln:             {fn: math.ln},
   log:            {fn: math.log, arity:  {1: ["Number"]}, nullable: true},
   power:          {fn: math.power, arity:  {1: ["Number"]}, nullable: true},
-  round:          {fn: math.round, arity:  {1: ["Number"]}},
+  round:          {fn: math.round, arity:  {0: [], 1: ["Number"]}},
   sqrt:           {fn: math.sqrt},
   truncate:       {fn: math.truncate},
 
@@ -170,8 +173,8 @@ engine.invocationTable = {
   "&":          {fn: math.amp,     arity:  {2: ["String", "String"]}},
   "+":          {fn: math.plus,    arity:  {2: ["Any", "Any"]}, nullable: true},
   "-":          {fn: math.minus,   arity:  {2: ["Any", "Any"]}, nullable: true},
-  "*":          {fn: math.mul,     arity:  {2: ["Number", "Number"]}, nullable: true},
-  "/":          {fn: math.div,     arity:  {2: ["Number", "Number"]}, nullable: true},
+  "*":          {fn: math.mul,     arity:  {2: ["Any", "Any"]}, nullable: true},
+  "/":          {fn: math.div,     arity:  {2: ["Any", "Any"]}, nullable: true},
   "mod":        {fn: math.mod,     arity:  {2: ["Number", "Number"]}, nullable: true},
   "div":        {fn: math.intdiv,  arity:  {2: ["Number", "Number"]}, nullable: true},
 
@@ -191,7 +194,7 @@ engine.TermExpression = function(ctx, parentData, node) {
   if (parentData) {
     parentData = parentData.map((x) => {
       if (x instanceof Object && x.resourceType) {
-        return makeResNode(x, x.resourceType);
+        return makeResNode(x, x.resourceType, null, x.resourceType);
       }
       return x;
     });
@@ -205,12 +208,20 @@ engine.PolarityExpression = function(ctx, parentData, node) {
   var rtn = engine.doEval(ctx,parentData, node.children[0]);
   if (rtn.length !== 1) {  // not yet in spec, but per Bryn Rhodes
     throw new Error('Unary ' + sign +
-     ' can only be applied to an individual number.');
+     ' can only be applied to an individual number or Quantity.');
   }
-  if (typeof rtn[0] != 'number' || isNaN(rtn[0]))
-    throw new Error('Unary ' + sign + ' can only be applied to a number.');
-  if (sign === '-')
-    rtn[0] = -rtn[0];
+  if (rtn[0] instanceof FP_Quantity) {
+    if (sign === '-') {
+      rtn[0] = new FP_Quantity(-rtn[0].value, rtn[0].unit);
+    }
+  } else if (typeof rtn[0] === 'number' && !isNaN(rtn[0])) {
+    if (sign === '-') {
+      rtn[0] = -rtn[0];
+    }
+  } else {
+    throw new Error('Unary ' + sign + ' can only be applied to a number or Quantity.');
+  }
+
   return rtn;
 };
 
@@ -228,15 +239,53 @@ engine.TypeSpecifier = function(ctx, parentData, node) {
       throw new Error("Expected TypeSpecifier node, got " + JSON.stringify(node));
   }
 
-  return new TypeInfo({ namespace, name });
+  const typeInfo =  new TypeInfo({ namespace, name });
+  if (!typeInfo.isValid()) {
+    throw new Error('"' + typeInfo + '" cannot be resolved to a valid type identifier');
+  }
+  return typeInfo;
 };
 
 engine.ExternalConstantTerm = function(ctx, parentData, node) {
   var extConstant = node.children[0];
   var identifier = extConstant.children[0];
   var varName = engine.Identifier(ctx, parentData, identifier)[0];
-  var value = ctx.vars[varName];
-  if (!(varName in ctx.vars)) {
+
+  var value;
+  // Check the user-defined environment variables first as the user can override
+  // the "context" variable like we do in unit tests. In this case, the user
+  // environment variable can replace the system environment variable in "processedVars".
+  if (varName in ctx.vars) {
+    // Restore the ResourceNodes for the top-level objects of the environment
+    // variables. The nested objects will be converted to ResourceNodes
+    // in the MemberInvocation method.
+    value = ctx.vars[varName];
+    if (Array.isArray(value)) {
+      value = value.map(
+        i => i?.__path__
+          ? makeResNode(i, i.__path__.path || null, null,
+            i.__path__.fhirNodeDataType || null)
+          : i?.resourceType
+            ? makeResNode(i, null, null)
+            : i );
+    } else {
+      value = value?.__path__
+        ? makeResNode(value, value.__path__.path || null, null,
+          value.__path__.fhirNodeDataType || null)
+        : value?.resourceType
+          ? makeResNode(value, null, null)
+          : value;
+    }
+    ctx.processedVars[varName] = value;
+    delete ctx.vars[varName];
+  } else if (varName in ctx.processedVars) {
+    // "processedVars" are variables with ready-to-use values that have already
+    // been converted to ResourceNodes if necessary.
+    value = ctx.processedVars[varName];
+  } else  if (ctx.definedVars && varName in ctx.definedVars) {
+    // "definedVars" are variables defined with the "defineVariable" function.
+    value = ctx.definedVars[varName];
+  } else {
     throw new Error(
       "Attempting to access an undefined environment variable: " + varName
     );
@@ -332,52 +381,11 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
       return parentData
         .filter((x) => x instanceof ResourceNode && x.path === key);
     } else {
-      const path = parentData.path || parentData.__path__;
       return parentData.reduce(function(acc, res) {
-        res = makeResNode(res, path);
-        var childPath = res.path + '.' + key;
-        if (model) {
-          let defPath = model.pathsDefinedElsewhere[childPath];
-          if (defPath)
-            childPath = defPath;
-        }
-        let toAdd, _toAdd;
-        let actualTypes = model && model.choiceTypePaths[childPath];
-        if (actualTypes) {
-          // Use actualTypes to find the field's value
-          for (let t of actualTypes) {
-            let field = key + t;
-            toAdd = res.data?.[field];
-            _toAdd = res.data?.['_' + field];
-            if (toAdd !== undefined || _toAdd !== undefined) {
-              childPath += t;
-              break;
-            }
-          }
-        }
-        else {
-          toAdd = res.data?.[key];
-          _toAdd = res.data?.['_' + key];
-          if (toAdd === undefined && _toAdd === undefined) {
-            toAdd = res._data[key];
-          }
-          if (key === 'extension') {
-            childPath = 'Extension';
-          }
-        }
-        childPath = model && model.path2Type[childPath] || childPath;
-
-        if (util.isSome(toAdd) || util.isSome(_toAdd)) {
-          if(Array.isArray(toAdd)) {
-            acc = acc.concat(toAdd.map((x, i)=>
-              makeResNode(x, childPath, _toAdd && _toAdd[i])));
-          } else {
-            acc.push(makeResNode(toAdd, childPath, _toAdd));
-          }
-          return acc;
-        } else {
-          return acc;
-        }
+        res = makeResNode(res, res.__path__?.path || null, null,
+          res.__path__?.fhirNodeDataType || null);
+        util.pushFn(acc, util.makeChildResNodes(res, key, model));
+        return acc;
       }, []);
     }
   } else {
@@ -423,12 +431,26 @@ function makeParam(ctx, parentData, type, param) {
   if(type === "Expr"){
     return function(data) {
       const $this = util.arraify(data);
-      return engine.doEval({ ...ctx, $this }, $this, param);
+      let ctxExpr = { ...ctx, $this };
+      if (ctx.definedVars) {
+        // Each parameter subexpression needs its own set of defined variables
+        // (cloned from the parent context). This way, the changes to the variables
+        // are isolated in the subexpression.
+        ctxExpr.definedVars = {...ctx.definedVars};
+      }
+      return engine.doEval(ctxExpr, $this, param);
     };
   }
   if(type === "AnyAtRoot"){
     const $this = ctx.$this || ctx.dataRoot;
-    return engine.doEval({ ...ctx, $this}, $this, param);
+    let ctxExpr = { ...ctx, $this};
+    if (ctx.definedVars) {
+      // Each parameter subexpression needs its own set of defined variables
+      // (cloned from the parent context). This way, the changes to the variables
+      // are isolated in the subexpression.
+      ctxExpr.definedVars = {...ctx.definedVars};
+    }
+    return engine.doEval(ctxExpr, $this, param);
   }
   if(type === "Identifier"){
     if(param.type === "TermExpression") {
@@ -442,7 +464,14 @@ function makeParam(ctx, parentData, type, param) {
     return engine.TypeSpecifier(ctx, parentData, param);
   }
 
-  const res = engine.doEval(ctx, parentData, param);
+  let ctxExpr = { ...ctx };
+  if (ctx.definedVars) {
+    // Each parameter subexpression needs its own set of defined variables
+    // (cloned from the parent context). This way, the changes to the variables
+    // are isolated in the subexpression.
+    ctxExpr.definedVars = {...ctx.definedVars};
+  }
+  let res = engine.doEval(ctxExpr, parentData, param);
   if(type === "Any") {
     return res;
   }
@@ -457,12 +486,12 @@ function makeParam(ctx, parentData, type, param) {
 }
 
 function doInvoke(ctx, fnName, data, rawParams){
-  var invoc = engine.invocationTable[fnName];
+  var invoc = ctx.userInvocationTable?.[fnName] ?? engine.invocationTable[fnName];
   var res;
   if(invoc) {
     if(!invoc.arity){
       if(!rawParams){
-        res = invoc.fn.call(ctx, util.arraify(data));
+        res = invoc.fn.call(ctx, data);
         return util.arraify(res);
       } else {
         throw new Error(fnName + " expects no params");
@@ -635,38 +664,34 @@ function parse(path) {
  * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
  *  This resource will be modified by this function to add type information.
  * @param {object} parsedPath - a special object created by the parser that describes the structure of a fhirpath expression.
- * @param {object} [context] - a hash of variable name/value pairs.
- * @param {object} [model] - The "model" data object specific to a domain, e.g. R4.
+ * @param {object} context - a hash of variable name/value pairs.
+ * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
- * @param {object} [options] - additional options:
+ * @param {object} options - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
- * @param {function} [options.traceFn] - An optional trace function to call when tracing
  *  types should be converted to strings, true by default.
+ * @param {function} [options.traceFn] - An optional trace function to call when tracing.
+ * @param {object} [options.userInvocationTable] - a user invocation table used
+ *  to replace any existing or define new functions.
  */
 function applyParsedPath(resource, parsedPath, context, model, options) {
   constants.reset();
-  let dataRoot = util.arraify(resource).map(i => (i?.__path__ ? makeResNode(i, i?.__path__) : i));
+  let dataRoot = util.arraify(resource).map(
+    i => i?.__path__
+      ? makeResNode(i, i.__path__.path, null,
+        i.__path__.fhirNodeDataType || null)
+      : i );
   // doEval takes a "ctx" object, and we store things in that as we parse, so we
   // need to put user-provided variable data in a sub-object, ctx.vars.
   // Set up default standard variables, and allow override from the variables.
   // However, we'll keep our own copy of dataRoot for internal processing.
   let vars = {context: dataRoot, ucum: 'http://unitsofmeasure.org'};
-  // Restore the ResourceNodes for the top-level objects of the context
-  // variables. The nested objects will be converted to ResourceNodes
-  // in the MemberInvocation method.
-  if (context) {
-    context = Object.keys(context).reduce((restoredContext, key) => {
-      if (Array.isArray(context[key])) {
-        restoredContext[key] = context[key].map(i => (i?.__path__ ? makeResNode(i, i.__path__) : i));
-      } else {
-        restoredContext[key] = context[key]?.__path__ ? makeResNode(context[key], context[key].__path__) : context[key];
-      }
-      return restoredContext;
-    }, {});
-  }
-  let ctx = {dataRoot, vars: Object.assign(vars, context), model};
-  if (options && options.traceFn) {
+  let ctx = {dataRoot, processedVars: vars, vars: context || {}, model};
+  if (options.traceFn) {
     ctx.customTraceFn = options.traceFn;
+  }
+  if (options.userInvocationTable) {
+    ctx.userInvocationTable = options.userInvocationTable;
   }
   return  engine.doEval(ctx, dataRoot, parsedPath.children[0])
     // engine.doEval returns array of "ResourceNode" and/or "FP_Type" instances.
@@ -674,22 +699,31 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
     // Resolve any internal "ResourceNode" instances to plain objects and if
     // options.resolveInternalTypes is true, resolve any internal "FP_Type"
     // instances to strings.
-    .map(n => {
+    .reduce((acc,n) => {
       // Path for the data extracted from the resource.
-      let path = n instanceof ResourceNode ? n.path : null;
+      let path;
+      let fhirNodeDataType;
+      if (n instanceof ResourceNode) {
+        path = n.path;
+        fhirNodeDataType = n.fhirNodeDataType;
+      }
       n = util.valData(n);
       if (n instanceof FP_Type) {
         if (options.resolveInternalTypes) {
           n = n.toString();
         }
       }
-      // Add a hidden (non-enumerable) property with the path to the data extracted
-      // from the resource.
-      if (path && typeof n === 'object') {
-        Object.defineProperty(n, '__path__', {value: path});
+      // Exclude nulls
+      if (n != null) {
+        // Add a hidden (non-enumerable) property with the path to the data extracted
+        // from the resource.
+        if (path && typeof n === 'object' && !n.__path__) {
+          Object.defineProperty(n, '__path__', { value: {path, fhirNodeDataType} });
+        }
+        acc.push(n);
       }
-      return n;
-    });
+      return acc;
+    }, []);
 }
 
 /**
@@ -728,10 +762,12 @@ function resolveInternalTypes(val) {
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} [options] - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
- * @param {function} [options.traceFn] - An optional trace function to call when tracing
  *  types should be converted to standard JavaScript types (true by default).
  *  If false is passed, this conversion can be done later by calling
  *  resolveInternalTypes().
+ * @param {function} [options.traceFn] - An optional trace function to call when tracing.
+ * @param {object} [options.userInvocationTable] - a user invocation table used
+ *  to replace any existing or define new functions.
  */
 function evaluate(fhirData, path, context, model, options) {
   return compile(path, model, options)(fhirData, context);
@@ -751,21 +787,54 @@ function evaluate(fhirData, path, context, model, options) {
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} [options] - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
- * @param {function} [options.traceFn] - An optional trace function to call when tracing
  *  types should be converted to strings, true by default.
+ * @param {function} [options.traceFn] - An optional trace function to call when tracing.
+ * @param {object} [options.userInvocationTable] - a user invocation table used
+ *  to replace any existing or define new functions.
  */
 function compile(path, model, options) {
   options = {
     resolveInternalTypes: true,
     ... options
   };
+
+  const userInvocationTable = options.userInvocationTable;
+  if (userInvocationTable) {
+    options.userInvocationTable = Object.keys(userInvocationTable).reduce(
+      (invocationTable, fnName) => {
+        if (userInvocationTable[fnName].internalStructures) {
+          invocationTable[fnName] = userInvocationTable[fnName];
+        } else {
+          invocationTable[fnName] = {
+            ...userInvocationTable[fnName],
+            fn: (...args) => {
+              return userInvocationTable[fnName].fn.apply(
+                // When we check Array.isArray(arg), we are checking if the
+                // singleton function has been called. An alternative to this is
+                // to check that the type of the argument is Integer, Boolean,
+                // Number, or String.
+                this, args.map(arg => Array.isArray(arg) ? arg.map(item => util.valData(item)) : arg)
+              );
+            }
+          };
+        }
+        return invocationTable;
+      }, {});
+  }
+
   if (typeof path === 'object') {
     const node = parse(path.expression);
     return function (fhirData, context) {
-      const resource = path.base ? makeResNode(fhirData, path.base) : fhirData;
+      if (path.base) {
+        let basePath = model.pathsDefinedElsewhere[path.base] || path.base;
+        const baseFhirNodeDataType = model && model.path2Type[basePath] || null;
+        basePath = baseFhirNodeDataType === 'BackboneElement' || baseFhirNodeDataType === 'Element' ? basePath : baseFhirNodeDataType || basePath;
+
+        fhirData = makeResNode(fhirData, basePath, null, baseFhirNodeDataType);
+      }
       // Globally set model before applying parsed FHIRPath expression
       TypeInfo.model = model;
-      return applyParsedPath(resource, node, context, model, options);
+      return applyParsedPath(fhirData, node, context, model, options);
     };
   } else {
     const node = parse(path);
@@ -785,7 +854,11 @@ function compile(path, model, options) {
  */
 function typesFn(fhirpathResult) {
   return util.arraify(fhirpathResult).map(value => {
-    const ti = TypeInfo.fromValue(value?.__path__ ? new ResourceNode(value, value.__path__) : value);
+    const ti = TypeInfo.fromValue(
+      value?.__path__
+        ? new ResourceNode(value, value.__path__?.path, null,
+          value.__path__?.fhirNodeDataType)
+        : value );
     return `${ti.namespace}.${ti.name}`;
   });
 }
@@ -798,5 +871,7 @@ module.exports = {
   resolveInternalTypes,
   types: typesFn,
   // Might as well export the UCUM library, since we are using it.
-  ucumUtils: require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance()
+  ucumUtils: require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance(),
+  // Utility functions that can be used to implement custom functions
+  util
 };

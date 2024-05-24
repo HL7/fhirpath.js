@@ -1,0 +1,13 @@
+{
+  "resourceType": "Patient",
+  "id": "example",
+  "gender": "male",
+  "_birthDate": {
+    "extension": [
+      {
+        "url": "http://hl7.org/fhir/StructureDefinition/patient-birthTime",
+        "valueDateTime": "1974-12-25T14:35:45-05:00"
+      }
+    ]
+  }
+}

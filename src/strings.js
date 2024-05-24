@@ -81,14 +81,20 @@ engine.lower = function (coll) {
   return util.isEmpty(str) ? [] : str.toLowerCase();
 };
 
+// See https://build.fhir.org/ig/HL7/FHIRPath/#joinseparator-string-string
 engine.joinFn = function (coll, separator) {
-  const stringValues = coll.map((n) => {
+  const stringValues = [];
+  coll.forEach((n) => {
     const d = util.valData(n);
     if (typeof d === "string") {
-      return d;
+      stringValues.push(d);
+    } else if (d != null) {
+      throw new Error('Join requires a collection of strings.');
     }
-    throw new Error('Join requires a collection of strings.');
   });
+  if (util.isEmpty(stringValues)) {
+    return [];
+  }
   if (separator === undefined) {
     separator = "";
   }
@@ -156,7 +162,7 @@ if (dotAllIsSupported) {
     if (util.isEmpty(regex) || util.isEmpty(str)) {
       return [];
     }
-    const reg = new RegExp(regex, 's');
+    const reg = new RegExp(regex, 'su');
     return reg.test(str);
   };
 } else {
@@ -165,7 +171,7 @@ if (dotAllIsSupported) {
     if (util.isEmpty(regex) || util.isEmpty(str)) {
       return [];
     }
-    const reg = new RegExp(rewritePatternForDotAll(regex));
+    const reg = new RegExp(rewritePatternForDotAll(regex), 'u');
     return reg.test(str);
   };
 }
@@ -184,7 +190,7 @@ engine.replaceMatches = function (coll, regex, repl) {
   if (util.isEmpty(regex) || util.isEmpty(repl) || util.isEmpty(str)) {
     return [];
   }
-  const reg = new RegExp(regex, 'g');
+  const reg = new RegExp(regex, 'gu');
   return str.replace(reg, repl);
 };
 

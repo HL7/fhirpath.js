@@ -33,14 +33,33 @@ let path2Type = {};
  * @param {string} code - data type code.
  */
 function addPath2Type(path, code) {
-  if (code !== 'Element' && code !== 'BackboneElement'
-      && path.indexOf('.') !== -1) {
+  if (path.indexOf('.') !== -1) {
     if (/http:\/\/hl7\.org\/fhirpath\/(.*)/.test(code)) {
       path2Type[path] = RegExp.$1;
     } else {
       path2Type[path] = code;
     }
   }
+}
+
+/**
+ * Extracts data type code from the type description object.
+ * @param {Object} typeDesc - type description object. e.g.
+ *  {
+ *    "extension" : [{
+ *      "url" : "http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type",
+ *        "valueUrl" : "id"
+ *      }],
+ *      "code" : "http://hl7.org/fhirpath/System.String"
+ *  }
+ * @return {string}
+ */
+function getTypeCode(typeDesc) {
+  return typeDesc.code;
+  // We don't currently use the extension, but we may need to in the future.
+  // return typeDesc.extension?.find(
+  //   e => e.url === 'http://hl7.org/fhir/StructureDefinition/structuredefinition-fhir-type'
+  // )?.valueUrl || typeDesc.code;
 }
 
 for (let f of choiceTypeFiles) {
@@ -105,14 +124,17 @@ for (let f of choiceTypeFiles) {
           // Uppercase the first letter of the type codes so they can be appended to
           // the choice field name.
           let types = n.type.map(t => {
-            const suffix = t.code[0].toUpperCase() + t.code.slice(1);
-            addPath2Type(prefix + suffix, t.code);
+            const typeCode = getTypeCode(t);
+            const suffix = typeCode[0].toUpperCase() + typeCode.slice(1);
+            addPath2Type(prefix + suffix, typeCode);
             return suffix;
           });
           // Remove the [x] from end of the path and store only unique "types"
           choiceTypePaths[prefix] = [...new Set(types)];
         } else {
-          addPath2Type(n.path, n.type[0].code);
+          const typeDesc = n.type[0];
+          // Obtaining FHIR Definition Data in the normal way
+          addPath2Type(n.path, getTypeCode(typeDesc));
         }
       }
       else {
@@ -121,7 +143,7 @@ for (let f of choiceTypeFiles) {
           for (let e of n)
            visitNode(e);
         }
-        else if (typeof n === "object" && n.kind !== 'primitive-type') {
+        else if (typeof n === "object") {
           for (let k of Object.keys(n))
             visitNode(n[k]);
         }

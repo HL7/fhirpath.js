@@ -9,6 +9,14 @@ tests:
           disableConsoleLog: true
           result: [1, 2, 3, 4, 5, 6]
 
+        - desc: '** trace for collection with null values'
+          inputfile: patient-example-2.json
+          model: r4
+          expression: Patient.name.given.trace('coll')[0].id
+          disableConsoleLog: true
+          result:
+            - Jacomus1Id
+
       - 'group: 5.9.2. Current date and time functions':
         - 'group: now(): DateTime':
 

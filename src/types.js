@@ -10,6 +10,8 @@ let dateTimeRE = new RegExp(
   '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T'+timeFormat+')?)?)?Z?$');
 let dateRE = new RegExp(
   '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9])?)?$');
+let instantRE = new RegExp(
+  '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T[0-9][0-9](\\:[0-9][0-9](\\:[0-9][0-9](\\.[0-9]+)?))(Z|(\\+|-)[0-9][0-9]\\:[0-9][0-9]))))$');
 // FHIR date/time regular expressions are slightly different.  For now, we will
 // stick with the FHIRPath regular expressions.
 //let fhirTimeRE = /([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?/;
@@ -54,7 +56,28 @@ class FP_Type {
    *  than otherObj.
    */
   compare(/* otherObj */) {
-    throw 'Not implemented';
+    throw 'Comparison not implemented for ' + this.constructor.name;
+  }
+
+  /**
+   *  Adds other value to this value.
+   */
+  plus(/* otherObj */) {
+    throw 'Addition not implemented for ' + this.constructor.name;
+  }
+
+  /**
+   * Multiplies this value by another value.
+   */
+  mul(/* otherObj */) {
+    throw 'Multiplication not implemented for ' + this.constructor.name;
+  }
+
+  /**
+   * Divides this value by another value.
+   */
+  div(/* otherObj */) {
+    throw 'Division not implemented for ' + this.constructor.name;
   }
 }
 
@@ -73,6 +96,18 @@ class FP_Quantity extends FP_Type {
   equals(otherQuantity) {
     if (!(otherQuantity instanceof this.constructor)) {
       return false;
+    }
+
+    const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
+    const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
+
+    if (
+      !thisUnitInSeconds !== !otherUnitInSeconds &&
+      (thisUnitInSeconds > 1 || otherUnitInSeconds > 1)
+    ) {
+      // If one of the operands is a calendar duration greater than seconds and
+      // another one is not a calendar duration, return empty result
+      return null;
     }
 
     if (this.unit === otherQuantity.unit) {
@@ -115,6 +150,221 @@ class FP_Quantity extends FP_Type {
     }
 
     return numbers.isEquivalent(this.value, convResult.toVal);
+  }
+
+  /**
+   *  Returns a number less than 0, equal to 0 or greater than 0
+   *  if this quantity is less than, equal to, or greater than otherQuantity.
+   *  If the quantities could not be compared, returns null, which will be
+   *  converted to an empty collection in the "doInvoke" function
+   *  See https://hl7.org/fhirpath/#comparison
+   *  @param {FP_Quantity} otherQuantity
+   *  @return {number|null}
+   */
+  compare(otherQuantity) {
+    if (this.unit === otherQuantity.unit) {
+      return this.value - otherQuantity.value;
+    }
+
+    const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
+    const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
+
+    if (
+      !thisUnitInSeconds !== !otherUnitInSeconds &&
+      (thisUnitInSeconds > 1 || otherUnitInSeconds > 1)
+    ) {
+      // If one of the operands is a calendar duration greater than seconds and
+      // another one is not a calendar duration, return empty result
+      // For example, 1 year > 1 'a' should return []
+      return null;
+    }
+
+    const ucumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(this.unit),
+      otherUcumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit),
+      convResult = ucumUtils.convertUnitTo(otherUcumUnitCode, otherQuantity.value, ucumUnitCode);
+
+    if (convResult.status !== 'succeeded') {
+      return null;
+    }
+
+    return this.value - convResult.toVal;
+  }
+
+  /**
+   *  Adds a quantity to this quantity.
+   * @param {FP_Quantity} otherQuantity a quantity to be added to this quantity.
+   * @return {FP_Quantity|null}
+   */
+  plus(otherQuantity) {
+    const thisConvFactor = FP_Quantity._yearMonthConversionFactor[this.unit];
+    const otherConvFactor = FP_Quantity._yearMonthConversionFactor[otherQuantity.unit];
+    if (thisConvFactor && otherConvFactor) {
+      // If the values are indicated in years and months, we use the conversion factor: 1 year = 12 months
+      return new FP_Quantity(this.value + otherQuantity.value * otherConvFactor / thisConvFactor, this.unit);
+    }
+
+    const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
+    const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
+
+    if (
+      !thisUnitInSeconds !== !otherUnitInSeconds &&
+      (thisUnitInSeconds > 1 || otherUnitInSeconds > 1)
+    ) {
+      // If one of the operands is a calendar duration greater than seconds and
+      // another one is not a calendar duration, return empty result
+      return null;
+    }
+
+    const thisUcumUnitCode = thisUnitInSeconds ? 's' : this.unit.replace(surroundingApostrophesRegex, '');
+    const thisValue = (thisUnitInSeconds || 1) * this.value;
+
+    const otherUcumUnitCode = otherUnitInSeconds ? 's' : otherQuantity.unit.replace(surroundingApostrophesRegex, '');
+    const otherValue = (otherUnitInSeconds || 1) * otherQuantity.value;
+
+    const convResult = ucumUtils.convertUnitTo(otherUcumUnitCode, otherValue, thisUcumUnitCode);
+
+    if (convResult.status !== 'succeeded'
+      || convResult.fromUnit.isSpecial_
+      || convResult.toUnit.isSpecial_) {
+      return null;
+    }
+
+    return new FP_Quantity(thisValue + convResult.toVal, thisUcumUnitCode);
+  }
+
+  /**
+   * Multiplies this quantity to another quantity.
+   * @param {FP_Quantity} otherQuantity a quantity by which to multiply this quantity.
+   * @return {FP_Quantity}
+   */
+  mul(otherQuantity) {
+    const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
+    const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
+
+    if (
+      (thisUnitInSeconds > 1 && otherQuantity.unit !== "'1'") ||
+      (otherUnitInSeconds > 1 && this.unit !== "'1'")
+    ) {
+      // If one of the operands is a calendar duration greater than seconds and
+      // another one is not a number, return empty result
+      return null;
+    }
+
+    const thisQ = this.convToUcumUnits(this, thisUnitInSeconds);
+    if (!thisQ) {
+      // If the first operand is not a UCUM quantity or it has a special unit
+      return null;
+    }
+
+    const otherQ = this.convToUcumUnits(otherQuantity, otherUnitInSeconds);
+    if (!otherQ) {
+      // If the second operand is not a UCUM quantity or it has a special unit
+      return null;
+    }
+
+    // Do not use UCUM unit codes for durations in simple cases
+    if (this.unit === "'1'") {
+      return new FP_Quantity(this.value * otherQuantity.value, otherQuantity.unit);
+    } else if (otherQuantity.unit === "'1'") {
+      return new FP_Quantity(this.value * otherQuantity.value, this.unit);
+    }
+
+    return new FP_Quantity(
+      thisQ.value * otherQ.value,
+      `'(${thisQ.unit}).(${otherQ.unit})'`
+    );
+  }
+
+  /**
+   * Divides this quantity by another quantity.
+   * @param {FP_Quantity} otherQuantity a quantity by which to divide this quantity.
+   * @return {FP_Quantity}
+   */
+  div(otherQuantity) {
+    // Division by zero always gives an empty result
+    if (otherQuantity.value === 0) {
+      return null;
+    }
+
+    const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
+    const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
+
+    if (thisUnitInSeconds) {
+      if (otherUnitInSeconds) {
+        // If both operands are calendar duration quantities
+        const thisConvFactor = FP_Quantity._yearMonthConversionFactor[this.unit];
+        const otherConvFactor = FP_Quantity._yearMonthConversionFactor[otherQuantity.unit];
+        if (thisConvFactor && otherConvFactor) {
+          // If the values are indicated in years and months, we use the conversion factor: 1 year = 12 months
+          return new FP_Quantity(this.value * thisConvFactor / (otherQuantity.value * otherConvFactor), "'1'");
+        }
+      } else if (otherQuantity.unit === "'1'") {
+        // If the second operand is a number
+        return new FP_Quantity(this.value / otherQuantity.value, this.unit);
+      } else if (thisUnitInSeconds > 1) {
+        // If the first operand is a calendar duration greater than seconds
+        // and the other is not a calendar duration or number, return an empty result.
+        return null;
+      }
+    } else if (otherUnitInSeconds > 1) {
+      // If the first operands is not a calendar duration and the other is a
+      // calendar duration greater than seconds, return an empty result.
+      return null;
+    }
+
+    const thisQ = this.convToUcumUnits(this, thisUnitInSeconds);
+    if (!thisQ) {
+      // If the first operand is not a UCUM quantity or it has a special unit
+      return null;
+    }
+
+    const otherQ = this.convToUcumUnits(otherQuantity, otherUnitInSeconds);
+    if (!otherQ) {
+      // If the second operand is not a UCUM quantity or it has a special unit
+      return null;
+    }
+
+    const resultUnit = otherQ.unit === '1'
+      ? thisQ.unit
+      : `(${thisQ.unit})/(${otherQ.unit})`;
+
+    const convResult = ucumUtils.convertToBaseUnits(resultUnit, thisQ.value / otherQ.value);
+    if (convResult.status !== 'succeeded') {
+      // If the result units are unclear
+      return null;
+    }
+    return new FP_Quantity(
+      convResult.magnitude,
+      `'${Object.keys(convResult.unitToExp).map(key => key+convResult.unitToExp[key]).join('.') || "1"}'`
+    );
+  }
+
+  /**
+   * Converts a quantity to UCUM unit if possible, otherwise returns null.
+   * @param {FP_Quantity} quantity - source quantity.
+   * @param {number|undefined} unitInSeconds - if the source quantity is a
+   *  calendar duration then the value of the quantity unit in seconds,
+   *  otherwise undefined.
+   * @return {{unit: string, value: number} | null}
+   */
+  convToUcumUnits(quantity, unitInSeconds) {
+    if (unitInSeconds) {
+      return {
+        value: unitInSeconds * quantity.value,
+        unit: 's'
+      };
+    } else {
+      const unit = quantity.unit.replace(surroundingApostrophesRegex, '');
+      const convRes = ucumUtils.convertToBaseUnits(unit, quantity.value);
+      if (convRes.status !== 'succeeded' || convRes.fromUnitIsSpecial) {
+        // If it is not a UCUM quantity or it has a special unit
+        return null;
+      }
+      return {
+        value: convRes.magnitude,
+        unit: Object.keys(convRes.unitToExp).map(key => key+convRes.unitToExp[key]).join('.') || "1"
+      };
+    }
   }
 
   /**
@@ -252,10 +502,10 @@ FP_Quantity._yearMonthConversionFactor = {
 };
 
 /**
- *  Defines a map from time units that are supported for arithmetic (including
- *  some UCUM time based units) to FHIRPath time units.
+ *  Defines a map from time units that are supported for date/time arithmetic
+ *  (including some UCUM time based units) to FHIRPath time units.
  */
-FP_Quantity.arithmeticDurationUnits = {
+FP_Quantity.dateTimeArithmeticDurationUnits = {
   'years': "year",
   'months': "month",
   'weeks': "week",
@@ -272,10 +522,6 @@ FP_Quantity.arithmeticDurationUnits = {
   'minute': "minute",
   'second': "second",
   'millisecond': "millisecond",
-  "'wk'": "week",
-  "'d'": "day",
-  "'h'": "hour",
-  "'min'": "minute",
   "'s'": "second",
   "'ms'": "millisecond"
 };
@@ -317,11 +563,11 @@ class FP_TimeBase extends FP_Type {
    */
   plus(timeQuantity) {
     const unit = timeQuantity.unit;
-    let timeUnit = FP_Quantity.arithmeticDurationUnits[unit];
+    let timeUnit = FP_Quantity.dateTimeArithmeticDurationUnits[unit];
     if (!timeUnit) {
       throw new Error('For date/time arithmetic, the unit of the quantity ' +
         'must be one of the following time-based units: ' +
-        Object.keys(FP_Quantity.arithmeticDurationUnits));
+        Object.keys(FP_Quantity.dateTimeArithmeticDurationUnits));
     }
     const cls = this.constructor;
     const unitPrecision = cls._timeUnitToDatePrecision[timeUnit];
@@ -1000,6 +1246,37 @@ FP_Date.isoDate = function(date, precision) {
   return FP_DateTime.isoDateTime(date, precision);
 };
 
+class FP_Instant extends FP_DateTime {
+  /**
+   * Constructs an FP_Instant, assuming instantStr is valid.  If you don't know
+   * whether a string is a valid "instant", use FP_Instant.checkString instead.
+   */
+  constructor(instantStr) {
+    super(instantStr);
+  }
+
+
+  /**
+   * Returns the match data from matching instantRE against the "instant" string.
+   * Also sets this.precision.
+   */
+  _getMatchData() {
+    return FP_TimeBase.prototype._getMatchData.apply(this, [instantRE, 5]);
+  }
+}
+
+
+/**
+ * Tests str to see if it is convertible to an "instant".
+ * @return If str match the "instant" RegExp, returns an FP_Instant;
+ *  otherwise returns null.
+ */
+FP_Instant.checkString = function(str) {
+  let d = new FP_Instant(str);
+  if (!d._getMatchData())
+    d = null;
+  return d;
+};
 
 /**
  *  A class that represents a node in a FHIR resource, with path and possibly type
@@ -1010,22 +1287,27 @@ class ResourceNode {
    *  Constructs a instance for the given node ("data") of a resource.  If the
    *  data is the top-level node of a resouce, the path and type parameters will
    *  be ignored in favor of the resource's resourceType field.
-   * @param data the node's data or value (which might be an object with
+   * @param {*} data the node's data or value (which might be an object with
    *  sub-nodes, an array, or FHIR data type)
-   * @param path the node's path in the resource (e.g. Patient.name).  If the
-   *  data's type can be determined from data, that will take precedence over
-   *  this parameter.
-   * @param _data additional data stored in a property named with "_" prepended,
-   *  see https://www.hl7.org/fhir/element.html#json for details.
+   * @param {string} path the node's path in the resource (e.g. Patient.name).
+   *  If the data's type can be determined from data, that will take precedence
+   *  over this parameter.
+   * @param {*} _data additional data stored in a property named with "_"
+   *  prepended, see https://www.hl7.org/fhir/element.html#json for details.
+   * @param {string} fhirNodeDataType FHIR node data type, if the resource node
+   *  is described in the FHIR model.
    */
-  constructor(data, path, _data) {
+  constructor(data, path, _data, fhirNodeDataType) {
     // If data is a resource (maybe a contained resource) reset the path
     // information to the resource type.
-    if (data?.resourceType)
+    if (data?.resourceType) {
       path = data.resourceType;
+      fhirNodeDataType = data.resourceType;
+    }
     this.path = path;
     this.data = data;
     this._data = _data || {};
+    this.fhirNodeDataType = fhirNodeDataType;
   }
 
   /**
@@ -1033,19 +1315,26 @@ class ResourceNode {
    * @return {TypeInfo}
    */
   getTypeInfo() {
-    const namespace = TypeInfo.FHIR;
+    if (!this.typeInfo) {
+      let typeInfo;
 
-    if (/^System\.(.*)$/.test(this.path)) {
-      return new TypeInfo({namespace: TypeInfo.System, name: RegExp.$1});
-    } else if (this.path.indexOf('.') === -1) {
-      return new TypeInfo({namespace, name: this.path});
+      if (TypeInfo.model) {
+        if (/^System\.(.*)$/.test(this.fhirNodeDataType)) {
+          typeInfo = new TypeInfo({namespace: TypeInfo.System, name: RegExp.$1});
+        } else if (this.fhirNodeDataType) {
+          typeInfo = new TypeInfo({
+            namespace: TypeInfo.FHIR,
+            name: this.fhirNodeDataType
+          });
+        }
+      }
+
+      this.typeInfo = typeInfo
+        // Resource object properties that are not defined in the model now have
+        // System.* data types:
+        || TypeInfo.createByValueInSystemNamespace(this.data);
     }
-
-    if (!TypeInfo.model) {
-      return TypeInfo.createByValueInNamespace({namespace, value: this.data});
-    }
-
-    return new TypeInfo({namespace, name: 'BackboneElement'});
+    return this.typeInfo;
   }
 
   toJSON() {
@@ -1064,27 +1353,27 @@ class ResourceNode {
    * @return {FP_Type|any}
    */
   convertData() {
-    var data = this.data;
-    if (TypeInfo.isType(this.path, 'Quantity')) {
-      if (data?.system === ucumSystemUrl) {
-        if (typeof data.value === 'number' && typeof data.code === 'string') {
-          if (data.comparator !== undefined)
-            throw new Error('Cannot convert a FHIR.Quantity that has a comparator');
-          data = new FP_Quantity(
-            data.value,
-            FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\''
-          );
+    if (!this.convertedData) {
+      var data = this.data;
+      const cls = TypeInfo.typeToClassWithCheckString[this.path];
+      if (cls) {
+        data = cls.checkString(data) || data;
+      } else if (TypeInfo.isType(this.path, 'Quantity')) {
+        if (data?.system === ucumSystemUrl) {
+          if (typeof data.value === 'number' && typeof data.code === 'string') {
+            if (data.comparator !== undefined)
+              throw new Error('Cannot convert a FHIR.Quantity that has a comparator');
+            data = new FP_Quantity(
+              data.value,
+              FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\''
+            );
+          }
         }
       }
-    } else if (this.path === 'date') {
-      data = FP_Date.checkString(data) || data;
-    } else if (this.path === 'dateTime') {
-      data = FP_DateTime.checkString(data) || data;
-    } else if (this.path === 'time') {
-      data = FP_Time.checkString(data) || data;
-    }
 
-    return data;
+      this.convertedData = data;
+    }
+    return this.convertedData;
   }
 
 }
@@ -1095,9 +1384,14 @@ class ResourceNode {
  *  given node is already a ResourceNode.  Takes the same arguments as the
  *  constructor for ResourceNode.
  */
-ResourceNode.makeResNode = function(data, path, _data) {
-  return (data instanceof ResourceNode) ? data : new ResourceNode(data, path, _data);
+ResourceNode.makeResNode = function(data, path, _data, fhirNodeDataType = null) {
+  return (data instanceof ResourceNode) ? data : new ResourceNode(data, path, _data, fhirNodeDataType);
 };
+
+// The set of available data types in the System namespace
+const availableSystemTypes = new Set();
+// IE11 probably doesn't support `new Set(iterable)`
+['Boolean', 'String', 'Integer', 'Decimal', 'Date', 'DateTime', 'Time', 'Quantity'].forEach(i => availableSystemTypes.add(i));
 
 /**
  * Object class defining type information.
@@ -1130,7 +1424,43 @@ class TypeInfo {
     }
     return false;
   }
+
+  /**
+   * Returns the string representation of type info.
+   * @returns {string}
+   */
+  toString() {
+    return (this.namespace ? this.namespace + '.' : '') + this.name;
+  }
+
+  /**
+   * Returns true if type info represents a valid type identifier, false otherwise.
+   * @returns {boolean}
+   */
+  isValid() {
+    let result = false;
+    if (this.namespace === 'System') {
+      result = availableSystemTypes.has(this.name);
+    } else if (this.namespace === 'FHIR') {
+      result = TypeInfo.model?.availableTypes.has(this.name);
+    } else if (!this.namespace) {
+      result = availableSystemTypes.has(this.name)
+        || TypeInfo.model?.availableTypes.has(this.name);
+    }
+    return result;
+  }
 }
+
+/**
+ * Defines a map from a datatype to a datatype class which has a checkString method.
+ * @type {Object.<string, FP_DateTime | FP_Time>}
+ */
+TypeInfo.typeToClassWithCheckString = {
+  date: FP_Date,
+  dateTime: FP_DateTime,
+  instant: FP_Instant,
+  time: FP_Time
+};
 
 /**
  * Checks if the type name or its parent type name is equal to
@@ -1153,12 +1483,11 @@ TypeInfo.System = 'System';
 TypeInfo.FHIR = 'FHIR';
 
 /**
- * Creates new TypeInfo object for specified namespace and value
- * @param {String} namespace
+ * Creates new TypeInfo object for specified value in the System namespace.
  * @param {*} value
  * @return {TypeInfo}
  */
-TypeInfo.createByValueInNamespace = function({namespace, value}) {
+TypeInfo.createByValueInSystemNamespace = function(value) {
   let name = typeof value;
 
   if (Number.isInteger(value)) {
@@ -1175,12 +1504,11 @@ TypeInfo.createByValueInNamespace = function({namespace, value}) {
     name = 'Quantity';
   }
 
-  if (namespace === TypeInfo.System) {
-    name = name.replace(/^\w/, c => c.toUpperCase());
-  }
+  name = name.replace(/^\w/, c => c.toUpperCase());
 
-  // TODO: currently can return name = 'object" or "Object" which is probably wrong
-  return new TypeInfo({namespace, name}) ;
+  // Currently can return name = "Object" which is probably wrong,
+  // but the isValid method allows you to check this.
+  return new TypeInfo({namespace: TypeInfo.System, name}) ;
 };
 
 /**
@@ -1191,7 +1519,7 @@ TypeInfo.createByValueInNamespace = function({namespace, value}) {
 TypeInfo.fromValue = function (value) {
   return value instanceof ResourceNode
     ? value.getTypeInfo()
-    : TypeInfo.createByValueInNamespace({namespace: TypeInfo.System, value});
+    : TypeInfo.createByValueInSystemNamespace(value);
 };
 
 /**
@@ -1249,6 +1577,7 @@ module.exports = {
   FP_TimeBase: FP_TimeBase,
   FP_Date: FP_Date,
   FP_DateTime: FP_DateTime,
+  FP_Instant: FP_Instant,
   FP_Time: FP_Time,
   FP_Quantity: FP_Quantity,
   timeRE: timeRE,

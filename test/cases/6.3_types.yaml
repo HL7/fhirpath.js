@@ -7,11 +7,12 @@ tests:
     result: [true]
 
   - desc: '** values is integer'
-    expression: coll.a is integer
+    expression: coll.a is Integer
     result: [true]
 
   - desc: '** values isnt Patient type'
     expression: coll.all($this is Patient)
+    model: r4
     result: [false]
 
   - desc: '** is Quantity'
@@ -122,7 +123,21 @@ tests:
       - true
     model: r4
 
-  - desc: '** Patient.id is System.String'
+  - desc: '** Extension.url is System.String'
+    inputfile: patient-example.json
+    expression: Patient.contact.name.family.extension('http://hl7.org/fhir/StructureDefinition/humanname-own-prefix').url is System.String
+    result:
+      - true
+    model: r4
+
+  - desc: '** Patient.id is System.String (R5)'
+    inputfile: patient-example.json
+    expression: Patient.id is System.String
+    result:
+      - true
+    model: r5
+
+  - desc: '** Patient.id is System.String (R4)'
     inputfile: patient-example.json
     expression: Patient.id is System.String
     result:
@@ -150,6 +165,26 @@ tests:
       - true
     model: r4
 
+  - desc: '** "is" for the null element of a collection'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[3] is FHIR.string
+    result: [true]
+
+  - desc: '** StructureDefinition.snapshot.element.type is Element'
+    inputfile: structure-definition-example.json
+    expression: StructureDefinition.snapshot.element.type is Element
+    result:
+      - true
+    model: r4
+
+  - desc: '** StructureDefinition.snapshot.element.type.code is uri'
+    inputfile: structure-definition-example.json
+    expression: StructureDefinition.snapshot.element.type.code is uri
+    result:
+      - true
+    model: r4
+
   - desc: '** The type of a valid but missing property is empty'
     inputfile: patient-example.json
     expression: Patient.photo is Attachment
@@ -167,14 +202,20 @@ tests:
     result:
       - true
 
+  - desc: '** is() for the null element of a collection'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[3].is(FHIR.string)
+    result: [true]
+
   - desc: '6.3.3. as type specifier'
 
   - desc: '** more than one item in the input collection for "as"'
-    expression: mixedTypeVals as integer
+    expression: mixedTypeVals as Integer
     error: true
 
   - desc: '** as integer'
-    expression: mixedTypeVals.select($this as integer)
+    expression: mixedTypeVals.select($this as Integer)
     result: [1]
 
   - desc: '** as Quantity'
@@ -194,18 +235,25 @@ tests:
     result:
       - 4
 
+  - desc: '** "as" for the null element of a collection'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: (Patient.name.given[3] as FHIR.string).count() = 1
+    result: [true]
+
   - desc: '** "as FHIR.Quantity" returns the empty collection for the System.Quantity'
     inputfile: patient-example.json
     expression: 1 year as FHIR.Quantity
+    model: r4
     result: []
 
   - desc: '6.3.4. as(type : type specifier)'
   - desc: '** more than one item in the input collection for "as()"'
-    expression: mixedTypeVals.as(integer)
+    expression: mixedTypeVals.as(Integer)
     error: true
 
-  - desc: '** as(integer)'
-    expression: mixedTypeVals.select($this.as(integer))
+  - desc: '** as(Integer)'
+    expression: mixedTypeVals.select($this.as(Integer))
     result: [1]
 
   - desc: '** as(Quantity)'
@@ -220,7 +268,7 @@ tests:
 
   - desc: '** as FHIR.Quantity'
     inputfile: quantity-example.json
-    model: 'r4'
+    model: r4
     expression: QuestionnaireResponse.item.select(answer.value.as(FHIR.Quantity)).count()
     result:
       - 4
@@ -228,7 +276,14 @@ tests:
   - desc: '** "as(FHIR.Quantity)" returns the empty collection for the System.Quantity'
     inputfile: patient-example.json
     expression: 1 year.as(FHIR.Quantity)
+    model: r4
     result: []
+
+  - desc: '** as() for the null element of a collection'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given[3].as(FHIR.string).count() = 1
+    result: [true]
 
   - desc: '** as Coding'
     inputfile: questionnaire-example.json
@@ -247,6 +302,13 @@ tests:
   - desc: '** "as Quantity" found nothing'
     inputfile: questionnaire-example.json
     expression: Questionnaire.children().select(code as Quantity).count() = 0
+    model: 'r4'
+    result:
+      - true
+
+  - desc: '** descendants() returns resource nodes with the correct data types (1)'
+    inputfile: patient-example.json
+    expression: descendants().where($this is Identifier and system = 'urn:oid:1.2.36.146.595.217.0.1').use = 'usual'
     model: 'r4'
     result:
       - true
