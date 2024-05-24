@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.13.3] - 2024-05-24
+### Changed
+- TypeScript definitions.
+
 ## [3.13.2] - 2024-05-15
 ### Fixed
 - an issue with evaluating an expression for a resource passed through an
