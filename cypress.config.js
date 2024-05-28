@@ -7,6 +7,7 @@ module.exports = defineConfig({
   screenshotsFolder: 'test/cypress/screenshots',
   videosFolder: 'test/cypress/videos',
   e2e: {
+    testIsolation: false,
     specPattern: 'test/cypress/e2e/**/*.cy.js',
     supportFile: 'test/cypress/support/e2e.js',
   },

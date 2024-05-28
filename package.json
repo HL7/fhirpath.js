@@ -1,6 +1,6 @@
 {
   "name": "fhirpath",
-  "version": "3.12.0",
+  "version": "3.14.0",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "dependencies": {
@@ -15,10 +15,10 @@
     "@babel/eslint-parser": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
     "babel-loader": "^8.2.3",
-    "benny": "^3.7.1",
+    "benny": "github:caderek/benny#0ad058d3c7ef0b488a8fe9ae3519159fc7f36bb6",
     "bestzip": "^2.2.0",
     "copy-webpack-plugin": "^6.0.3",
-    "cypress": "^10.3.0",
+    "cypress": "^13.7.2",
     "eslint": "^8.10.0",
     "fhir": "^4.10.3",
     "grunt": "^1.5.2",
@@ -41,6 +41,7 @@
     "node": ">=8.9.0"
   },
   "scripts": {
+    "postinstall": "echo \"Building the Benny package based on a pull request which fixes an issue with 'statusShift'... \" && (cd node_modules/benny && npm i && npm run build > /dev/null) || echo \"Building the Benny package is completed.\"",
     "generateParser": "cd src/parser; rimraf ./generated/*; java -Xmx500M -cp \"../../antlr-4.9.3-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o generated -Dlanguage=JavaScript FHIRPath.g4; grunt updateParserRequirements",
     "build": "cd browser-build && webpack && rimraf fhirpath.zip && bestzip fhirpath.zip LICENSE.md fhirpath.min.js fhirpath.r5.min.js fhirpath.r4.min.js fhirpath.stu3.min.js fhirpath.dstu2.min.js && rimraf  LICENSE.md",
     "test:unit": "node --use_strict node_modules/.bin/jest && TZ=America/New_York node --use_strict node_modules/.bin/jest && TZ=Europe/Paris node --use_strict node_modules/.bin/jest",

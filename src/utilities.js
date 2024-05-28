@@ -169,8 +169,11 @@ util.makeChildResNodes = function(parentResNode, childProperty, model) {
     }
   }
 
-  const fhirNodeDataType = model && model.path2Type[childPath] || null;
-  childPath = fhirNodeDataType === 'BackboneElement' || fhirNodeDataType === 'Element' ? childPath : fhirNodeDataType || childPath;
+  let fhirNodeDataType = null;
+  if (model) {
+    fhirNodeDataType = model.path2Type[childPath] || null;
+    childPath = model.path2TypeWithoutElements[childPath] || childPath;
+  }
 
   let result;
   if (util.isSome(toAdd) || util.isSome(_toAdd)) {

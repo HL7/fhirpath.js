@@ -3,10 +3,30 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [3.12.0] - 2024-04-01
+## [3.14.0] - 2024-05-28
 ### Added
 - Support for asynchronous functions: if any function in an expression returns
   a Promise, then the result of evaluating the expression is a Promise.
+
+## [3.13.2] - 2024-05-15
+### Fixed
+- an issue with evaluating an expression for a resource passed through an
+  environment variable.
+- an issue with "statusShift" during performance tests.
+
+## [3.13.1] - 2024-04-25
+### Fixed
+- Added flag 'u' for regular expressions in the specification's `matches` and
+  `replaceMatches` functions to support the use of unicode character class
+  escapes.
+
+## [3.13.0] - 2024-04-10
+### Added
+- Function `defineVariable(name: String [, expr: expression])`.
+
+## [3.12.0] - 2024-04-10
+### Changed
+- Updated Cypress to version 13.
 
 ## [3.11.0] - 2024-03-29
 ### Added
