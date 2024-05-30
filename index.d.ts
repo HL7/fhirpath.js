@@ -2,22 +2,14 @@ declare module "fhirpath" {
   export function compile(
       path: string | Path,
       model?: Model,
-      options?: {
-        resolveInternalTypes?: boolean
-        traceFn?: (value: any, label: string) => void,
-        userInvocationTable?: UserInvocationTable
-      }
+      options?: Options
     ): Compile;
   export function evaluate(
     fhirData: any,
     path: string | Path,
     context?: Context,
     model?: Model,
-    options?: {
-      resolveInternalTypes?: boolean,
-      traceFn?: (value: any, label: string) => void,
-      userInvocationTable?: UserInvocationTable
-    }
+    options?: Options
   ): any[];
   export function resolveInternalTypes(value: any): any;
   export function types(value: any): string[];
@@ -79,6 +71,13 @@ interface Model {
   path2Type: {
     [path: string]: string;
   };
+}
+
+interface Options {
+  resolveInternalTypes?: boolean
+  traceFn?: (value: any, label: string) => void,
+  userInvocationTable?: UserInvocationTable,
+  async: false|true|'always'
 }
 
 type Compile = (resource: any, context?: Context) => any[];

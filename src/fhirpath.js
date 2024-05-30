@@ -46,6 +46,7 @@ let math      = require("./math");
 let strings   = require("./strings");
 let navigation= require("./navigation");
 let datetime  = require("./datetime");
+let additional  = require("./additional");
 let logic  = require("./logic");
 const types = require("./types");
 const {
@@ -62,8 +63,7 @@ let makeResNode = ResourceNode.makeResNode;
 //   calling function if one of params is  empty return empty
 
 engine.invocationTable = {
-  // Example of a function that makes input data asynchronous
-  async:        {fn: (col) => Promise.resolve(col)},
+  memberOf:     {fn: additional.memberOf, arity: { 1: ['String']} },
   empty:        {fn: existence.emptyFn},
   not:          {fn: existence.notFn},
   exists:       {fn: existence.existsMacro, arity: {0: [], 1: ["Expr"]}},
@@ -701,6 +701,10 @@ function parse(path) {
  * @param {function} [options.traceFn] - An optional trace function to call when tracing.
  * @param {object} [options.userInvocationTable] - a user invocation table used
  *  to replace any existing or define new functions.
+ * @param {boolean|string} [options.async] - defines how to support asynchronous functions:
+ *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception,
+ *  true or similar to true - return Promise, only for asynchronous functions,
+ *  "always" - return Promise always.
  */
 function applyParsedPath(resource, parsedPath, context, model, options) {
   constants.reset();
@@ -721,13 +725,15 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   if (options.userInvocationTable) {
     ctx.userInvocationTable = options.userInvocationTable;
   }
+  if (options.async) {
+    ctx.async = options.async;
+  }
   const res = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
-  // if (res instanceof Promise) {
-  //   throw new Error('Unexpected asynchronous function during synchronous expression evaluation');
-  // }
   return res instanceof Promise
     ? res.then(r => prepareEvalResult(r, options))
-    : prepareEvalResult(res, options);
+    : options.async === 'always'
+      ? Promise.resolve(prepareEvalResult(res, options))
+      : prepareEvalResult(res, options);
 }
 
 /**
@@ -812,6 +818,10 @@ function resolveInternalTypes(val) {
  * @param {function} [options.traceFn] - An optional trace function to call when tracing.
  * @param {object} [options.userInvocationTable] - a user invocation table used
  *  to replace any existing or define new functions.
+ * @param {boolean|string} [options.async] - defines how to support asynchronous functions:
+ *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception,
+ *  true or similar to true - return Promise, only for asynchronous functions,
+ *  "always" - return Promise always.
  */
 function evaluate(fhirData, path, context, model, options) {
   return compile(path, model, options)(fhirData, context);
@@ -835,6 +845,10 @@ function evaluate(fhirData, path, context, model, options) {
  * @param {function} [options.traceFn] - An optional trace function to call when tracing.
  * @param {object} [options.userInvocationTable] - a user invocation table used
  *  to replace any existing or define new functions.
+ * @param {boolean|string} [options.async] - defines how to support asynchronous functions:
+ *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception,
+ *  true or similar to true - return Promise, only for asynchronous functions,
+ *  "always" - return Promise always.
  */
 function compile(path, model, options) {
   options = {

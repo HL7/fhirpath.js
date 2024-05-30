@@ -5,8 +5,12 @@ This log documents significant changes for each release.  This project follows
 
 ## [3.14.0] - 2024-05-28
 ### Added
+- option `async`, which allows us to get the result of an expression evaluation
+  asynchronously.
 - Support for asynchronous functions: if any function in an expression returns
-  a Promise, then the result of evaluating the expression is a Promise.
+  a Promise and option `async=true`, then the result of evaluating
+  the expression is a Promise.
+- async function `memberOf`.
 
 ## [3.13.2] - 2024-05-15
 ### Fixed

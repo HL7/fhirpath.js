@@ -153,6 +153,26 @@ let tracefunction = function (x, label) {
 const res = fhirpath.evaluate(contextNode, path, environment, fhirpath_r4_model, { traceFn: tracefunction });
 ```
 
+Some FHIRPath functions may be asynchronous. These functions throw exceptions by default.
+To enable these functions, we need to pass the `async` option to `evaluate` or `compile`.
+`async=true` enables return of a Promise only for expressions containing asynchronous functions.
+`async='always'` enables a Promise to be returned for any expression.
+
+For example, using the `memberOf` function might look like this:
+```js
+fhirpath.evaluate(
+  resource,
+  "Observation.code.coding.where(memberOf('http://hl7.org/fhir/ValueSet/observation-vitalsignresult'))",
+  { terminologies: { validateVS }},
+  model,
+  { async: true }
+)
+```
+
+Please note that for the `memberOf` function to work we must define a general
+%terminologies object. See https://build.fhir.org/fhirpath.html#txapi and example
+in `test/async-functions.test.js`.
+
 ### User-defined functions
 
 You can also replace any existing functions or define new ones. To do this you
