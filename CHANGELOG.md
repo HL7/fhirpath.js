@@ -5,7 +5,8 @@ This log documents significant changes for each release.  This project follows
 
 ## [3.13.3] - 2024-05-24
 ### Changed
-- TypeScript definitions.
+- Added separate TypeScript type definition files for the main file and each
+  supported model.
 
 ## [3.13.2] - 2024-05-15
 ### Fixed
