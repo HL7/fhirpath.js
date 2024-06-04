@@ -3,10 +3,6 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [3.14.1] - 2024-05-21
-### Fixed
-- impossibility to use attribute name that starts with a capital letter.
-
 ## [3.14.0] - 2024-05-09
 ### Added
 - supplementary function `weight()`.
