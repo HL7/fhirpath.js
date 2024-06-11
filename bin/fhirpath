@@ -45,7 +45,10 @@ else {
         throw new Error('FHIR model must be one of '+supportedVersions);
       model = require('../fhir-context/'+options.model);
     }
-    let res = fp.evaluate(resource, base ? {base, expression} : expression, context, model);
+    let res = fp.evaluate(
+      resource, base ? {base, expression} : expression, context, model,
+      { async: true }
+    );
 
     if (res instanceof Promise) {
       res.then((r) => printResult(expression, r))

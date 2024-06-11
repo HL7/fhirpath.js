@@ -54,18 +54,26 @@ engine.repeatMacro = function(parentData, expr, res = [], unique = {}) {
     return Promise.all(newItems).then(items => {
       items = [].concat(...items);
       if (items.length) {
-        return engine.repeatMacro(getUniqItems(items, unique, res), expr, res, unique);
+        return engine.repeatMacro(getNewItems(items, unique, res), expr, res, unique);
       }
       return res;
     });
   } else if (newItems.length) {
-    return engine.repeatMacro(getUniqItems(newItems, unique, res), expr, res, unique);
+    return engine.repeatMacro(getNewItems(newItems, unique, res), expr, res, unique);
   } else {
     return res;
   }
 };
 
-function getUniqItems(items, unique, res) {
+/**
+ * Returns new items from the input array that are not in the hash of existing
+ * unique items and adds them to the result array.
+ * @param {Array<*>} items - inout array.
+ * @param {{[key: string]: *}} unique - hash of existing unique items
+ * @param {Array<*>} res - result array.
+ * @return {Array<*>}
+ */
+function getNewItems(items, unique, res) {
   const newItems = items.filter(item => {
     const key = hashObject(item);
     const isUnique = !unique[key];

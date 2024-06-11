@@ -54,6 +54,7 @@ const {
   FP_Type, ResourceNode, TypeInfo
 } = types;
 let makeResNode = ResourceNode.makeResNode;
+const Terminologies = require('./terminologies');
 
 // * fn: handler
 // * arity: is index map with type signature
@@ -494,9 +495,7 @@ function doInvoke(ctx, fnName, data, rawParams){
     if(!invoc.arity){
       if(!rawParams){
         res = invoc.fn.call(ctx, data);
-        return res instanceof Promise
-          ? res.then(r => util.arraify(r))
-          : util.arraify(res);
+        return util.resolveAndArraify(res);
       } else {
         throw new Error(fnName + " expects no params");
       }
@@ -519,15 +518,11 @@ function doInvoke(ctx, fnName, data, rawParams){
         if (params.some(p => p instanceof Promise)) {
           return Promise.all(params).then(p => {
             res = invoc.fn.apply(ctx, p);
-            return res instanceof Promise
-              ? res.then(r => util.arraify(r))
-              : util.arraify(res);
+            return util.resolveAndArraify(res);
           });
         }
         res = invoc.fn.apply(ctx, params);
-        return res instanceof Promise
-          ? res.then(r => util.arraify(r))
-          : util.arraify(res);
+        return util.resolveAndArraify(res);
       } else {
         console.log(fnName + " wrong arity: got " + paramsNumber );
         return [];
@@ -702,9 +697,10 @@ function parse(path) {
  * @param {object} [options.userInvocationTable] - a user invocation table used
  *  to replace any existing or define new functions.
  * @param {boolean|string} [options.async] - defines how to support asynchronous functions:
- *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception,
- *  true or similar to true - return Promise, only for asynchronous functions,
+ *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception;
+ *  true or similar to true - return Promise only for asynchronous functions;
  *  "always" - return Promise always.
+ *  @param {string} [options.serverUrl] - a URL that points to a FHIR RESTful API.
  */
 function applyParsedPath(resource, parsedPath, context, model, options) {
   constants.reset();
@@ -727,6 +723,9 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   }
   if (options.async) {
     ctx.async = options.async;
+  }
+  if (options.serverUrl) {
+    ctx.terminologies = new Terminologies(options.serverUrl);
   }
   const res = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
   return res instanceof Promise
@@ -822,6 +821,7 @@ function resolveInternalTypes(val) {
  *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception,
  *  true or similar to true - return Promise, only for asynchronous functions,
  *  "always" - return Promise always.
+ * @param {string} [options.serverUrl] - a URL that points to a FHIR RESTful API.
  */
 function evaluate(fhirData, path, context, model, options) {
   return compile(path, model, options)(fhirData, context);
@@ -849,6 +849,7 @@ function evaluate(fhirData, path, context, model, options) {
  *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception,
  *  true or similar to true - return Promise, only for asynchronous functions,
  *  "always" - return Promise always.
+ *  @param {string} [options.serverUrl] - a URL that points to a FHIR RESTful API.
  */
 function compile(path, model, options) {
   options = {

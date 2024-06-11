@@ -27,18 +27,18 @@ engine.existsMacro  = function(coll, expr) {
 };
 
 engine.allMacro = function(coll, expr) {
-  const promisses = [];
+  const promises = [];
   for (let i=0, len=coll.length; i<len; ++i) {
     this.$index = i;
     const exprRes = expr(coll[i]);
     if (exprRes instanceof Promise) {
-      promisses.push(exprRes);
+      promises.push(exprRes);
     } else if(!util.isTrue(exprRes)){
       return [false];
     }
   }
-  if (promisses.length) {
-    return Promise.all(promisses).then(r => r.some(i => !util.isTrue(i)) ? [false] : [true]);
+  if (promises.length) {
+    return Promise.all(promises).then(r => r.some(i => !util.isTrue(i)) ? [false] : [true]);
   }
   return [true];
 };

@@ -6,13 +6,18 @@ let engine = {};
 
 /**
  * Returns true if the code is a member of the given valueset.
- * @param {(string | Coding | CodeableConcept)[]} coll - input collection
+ * @param {(string|Object)[]} coll - input collection with a single Coding,
+ *  CodeableConcept, or code element.
  * @param {string} valueset - value set URL
- * @return {Promise<{[p: string]: PromiseSettledResult<Awaited<*>>, [p: number]: PromiseSettledResult<Awaited<*>>, [p: symbol]: PromiseSettledResult<Awaited<*>>}>}
+ * @return {Promise<boolean>|[]} - promise of a boolean value indicating that
+ *  there is one element in the input collection whose code is a member of the
+ *  specified value set.
  */
 engine.memberOf = function (coll, valueset ) {
   if (!this.async) {
-    throw new Error('The asynchronous function "memberOf" is not allowed. To enable asynchronous functions, use the async=true or async="always" option.');
+    throw new Error('The asynchronous function "memberOf" is not allowed. ' +
+      'To enable asynchronous functions, use the async=true or async="always"' +
+      ' option.');
   }
   // If the input is empty or has more than one value, the return value is empty
   if (coll.length !== 1 || coll[0] == null) {
@@ -20,11 +25,14 @@ engine.memberOf = function (coll, valueset ) {
   }
 
   if (typeof valueset === 'string' && /^https?:\/\/.*/.test(valueset)) {
-    const terminologies = this.vars.terminologies || this.processedVars.terminologies;
-    return terminologies.validateVS(valueset, util.valData(coll[0]), '');
+    return this.terminologies.validateVS(valueset, util.valData(coll[0]), '')
+      .then(params => {
+        return params.parameter.find((p) => p.name === "result").valueBoolean;
+      });
   }
 
-  // If the valueset cannot be resolved as an uri to a value set, the return value is empty.
+  // If the valueset cannot be resolved as an uri to a value set,
+  // the return value is empty.
   return [];
 };
 

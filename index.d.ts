@@ -77,7 +77,8 @@ interface Options {
   resolveInternalTypes?: boolean
   traceFn?: (value: any, label: string) => void,
   userInvocationTable?: UserInvocationTable,
-  async: false|true|'always'
+  async: false|true|'always',
+  serverUrl: string
 }
 
 type Compile = (resource: any, context?: Context) => any[];
