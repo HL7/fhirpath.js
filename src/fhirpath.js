@@ -38,7 +38,7 @@ let engine    = {}; // the object with all FHIRPath functions and operations
 let existence = require("./existence");
 let filtering = require("./filtering");
 let aggregate = require("./aggregate");
-let supplements = require("./supplements");
+let supplements = require("./sdc-ig-supplements");
 let combining = require("./combining");
 let misc      = require("./misc");
 let equality  = require("./equality");
@@ -862,8 +862,8 @@ function typesFn(fhirpathResult) {
   return util.arraify(fhirpathResult).map(value => {
     const ti = TypeInfo.fromValue(
       value?.__path__
-        ? new ResourceNode(value, value.__path__?.parentResNode || null,
-          value.__path__?.path || null, null, value.__path__?.fhirNodeDataType || null)
+        ? new ResourceNode(value, value.__path__?.parentResNode,
+          value.__path__?.path, null, value.__path__?.fhirNodeDataType)
         : value );
     return `${ti.namespace}.${ti.name}`;
   });

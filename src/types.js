@@ -1305,11 +1305,11 @@ class ResourceNode {
       path = data.resourceType;
       fhirNodeDataType = data.resourceType;
     }
-    this.parentResNode = parentResNode;
-    this.path = path;
+    this.parentResNode = parentResNode || null;
+    this.path = path || null;
     this.data = data;
     this._data = _data || {};
-    this.fhirNodeDataType = fhirNodeDataType;
+    this.fhirNodeDataType = fhirNodeDataType || null;
   }
 
   /**

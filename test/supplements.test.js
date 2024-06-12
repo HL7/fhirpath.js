@@ -51,7 +51,7 @@ describe("supplements", () => {
         {
           questionnaire: input.questionnaire
         }, r4_model);
-      expect(res).toThrow('Questionnaire answerOptions with these linkIds were not found: /44250-9-unlinked-item,/44259-0.');
+      expect(res).toThrow('Questionnaire answerOption with this linkId were not found: /44250-9-unlinked-item.');
     });
   });
 
