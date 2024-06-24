@@ -7,7 +7,19 @@
 ## Demo
 Try it out on the [demo page](https://hl7.github.io/fhirpath.js/).
 
-
+## Table of Contents:
+- [Installation:](#installation-)
+  * [Server-side (Node.js)](#server-side--nodejs-)
+  * [Web-browser:](#web-browser-)
+- [API Usage](#api-usage)
+  * [Asynchronous functions](#asynchronous-functions)
+  * [User-defined functions](#user-defined-functions)
+- [fhirpath CLI](#fhirpath-cli)
+- [Implementation Status](#implementation-status)
+- [Development Notes](#development-notes)
+  * [Building the demo page](#building-the-demo-page)
+  * [Updating the FHIR module on a FHIR release](#updating-the-fhir-module-on-a-fhir-release)
+- [Credits](#credits)
 
 ## Installation:
 
@@ -167,13 +179,12 @@ fhirpath.evaluate(
   "Observation.code.coding.where(memberOf('http://hl7.org/fhir/ValueSet/observation-vitalsignresult'))",
   {},
   model,
-  { async: true, serverUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4' }
+  { async: true, terminologyUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4' }
 )
 ```
 
-Please note that for the `memberOf` function to work we must define a serverURL
-option that will be used by the %terminologies.validateVS function.
-(see https://build.fhir.org/fhirpath.html#txapi).
+Please note that for the `memberOf` function to work you must pass in
+a terminologyUrl option.
 
 ### User-defined functions
 
@@ -349,6 +360,9 @@ Completed sections:
 Supported additional functions from FHIR:
 - extension(url : string) : collection
 - hasValue() : Boolean
+
+Supported Terminology Service API (https://build.fhir.org/fhirpath.html#txapi):
+- only %terminologies.validateVS is supported
 
 ## Development Notes
 

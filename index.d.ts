@@ -78,7 +78,7 @@ interface Options {
   traceFn?: (value: any, label: string) => void,
   userInvocationTable?: UserInvocationTable,
   async: false|true|'always',
-  serverUrl: string
+  terminologyUrl: string
 }
 
 type Compile = (resource: any, context?: Context) => any[];

@@ -2,8 +2,8 @@
 // See https://build.fhir.org/fhirpath.html#txapi for details.
 
 class Terminologies {
-  constructor(serverUrl) {
-    this.serverUrl = serverUrl;
+  constructor(terminologyUrl) {
+    this.terminologyUrl = terminologyUrl;
   }
 
   /**
@@ -32,7 +32,7 @@ class Terminologies {
     };
     let myHeaders = new Headers(httpHeaders);
 
-    const requestUrl = `${this.serverUrl}/ValueSet/$validate-code`;
+    const requestUrl = `${this.terminologyUrl}/ValueSet/$validate-code`;
 
     let response;
     if (coded.coding) {

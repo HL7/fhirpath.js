@@ -18,7 +18,7 @@ describe('Async functions', () => {
         "Observation.code.coding.where(memberOf('http://hl7.org/fhir/ValueSet/observation-vitalsignresult'))",
         {},
         model,
-        { async: true, serverUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
       );
       expect(result instanceof Promise).toBe(true);
       result.then((r) => {
@@ -34,7 +34,7 @@ describe('Async functions', () => {
         "Observation.code.memberOf('http://hl7.org/fhir/ValueSet/observation-vitalsignresult')",
         {},
         model,
-        { async: true, serverUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
       );
       expect(result instanceof Promise).toBe(true);
       result.then((r) => {
@@ -45,7 +45,7 @@ describe('Async functions', () => {
 
 /*
     // TODO: This unit test works only with the third-party server
-    //  (see the serverUrl option below). Also I posted a question here:
+    //  (see the terminologyUrl option below). Also I posted a question here:
     //  https://chat.fhir.org/#narrow/stream/179266-fhirpath/topic/Problem.20with.20the.20.22memberOf.22.20function.20and.20R4.20servers
     it('should work with Code when async functions are enabled', (done) => {
 
@@ -54,7 +54,7 @@ describe('Async functions', () => {
         "Observation.code.coding.code[0].memberOf('http://hl7.org/fhir/ValueSet/observation-vitalsignresult')",
         {},
         model,
-        { async: true, serverUrl: "https://r4.ontoserver.csiro.au/fhir" }
+        { async: true, terminologyUrl: "https://r4.ontoserver.csiro.au/fhir" }
       );
       expect(result instanceof Promise).toBe(true);
       result.then((r) => {
@@ -71,7 +71,7 @@ describe('Async functions', () => {
         "Observation.code.coding.where(memberOf('http://hl7.org/fhir/ValueSet/observation-vitalsignresult'))",
         {},
         model,
-        { serverUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+        { terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
       );
       expect(result).toThrow('The asynchronous function "memberOf" is not allowed. To enable asynchronous functions, use the async=true or async="always" option.');
     });

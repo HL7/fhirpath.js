@@ -724,8 +724,8 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   if (options.async) {
     ctx.async = options.async;
   }
-  if (options.serverUrl) {
-    ctx.terminologies = new Terminologies(options.serverUrl);
+  if (options.terminologyUrl) {
+    ctx.terminologies = new Terminologies(options.terminologyUrl);
   }
   const res = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
   return res instanceof Promise
