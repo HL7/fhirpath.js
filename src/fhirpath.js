@@ -85,6 +85,7 @@ engine.invocationTable = {
   max:          {fn: aggregate.maxFn},
   avg:          {fn: aggregate.avgFn},
   weight:       {fn: supplements.weight},
+  ordinal:      {fn: supplements.weight},
   single:       {fn: filtering.singleFn},
   first:        {fn: filtering.firstFn},
   last:         {fn: filtering.lastFn},
@@ -265,15 +266,15 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
     if (Array.isArray(value)) {
       value = value.map(
         i => i?.__path__
-          ? makeResNode(i, i.__path__.parentResNode, i.__path__.path || null, null,
-            i.__path__.fhirNodeDataType || null)
+          ? makeResNode(i, i.__path__.parentResNode, i.__path__.path, null,
+            i.__path__.fhirNodeDataType)
           : i?.resourceType
             ? makeResNode(i, null, null, null)
             : i );
     } else {
       value = value?.__path__
-        ? makeResNode(value, value.__path__.parentResNode, value.__path__.path || null, null,
-          value.__path__.fhirNodeDataType || null)
+        ? makeResNode(value, value.__path__.parentResNode, value.__path__.path, null,
+          value.__path__.fhirNodeDataType)
         : value?.resourceType
           ? makeResNode(value, null, null, null)
           : value;
@@ -382,8 +383,8 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
         .filter((x) => x instanceof ResourceNode && x.path === key);
     } else {
       return parentData.reduce(function(acc, res) {
-        res = makeResNode(res, null, res.__path__?.path || null, null,
-          res.__path__?.fhirNodeDataType || null);
+        res = makeResNode(res, null, res.__path__?.path, null,
+          res.__path__?.fhirNodeDataType);
         util.pushFn(acc, util.makeChildResNodes(res, key, model));
         return acc;
       }, []);
@@ -679,24 +680,34 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   let dataRoot = util.arraify(resource).map(
     i => i?.__path__
       ? makeResNode(i, i.__path__.parentResNode, i.__path__.path, null,
-        i.__path__.fhirNodeDataType || null)
+        i.__path__.fhirNodeDataType)
       : i );
   // doEval takes a "ctx" object, and we store things in that as we parse, so we
   // need to put user-provided variable data in a sub-object, ctx.vars.
   // Set up default standard variables, and allow override from the variables.
   // However, we'll keep our own copy of dataRoot for internal processing.
-  let vars = {
-    context: dataRoot,
-    ucum: 'http://unitsofmeasure.org',
-    scoreExt: 'http://hl7.org/fhir/StructureDefinition/ordinalValue'
+  let ctx = {
+    dataRoot,
+    processedVars: {
+      ucum: 'http://unitsofmeasure.org'
+    },
+    vars: {
+      context: dataRoot,
+      ...context
+    },
+    model
   };
-  let ctx = {dataRoot, processedVars: vars, vars: context || {}, model};
   if (options.traceFn) {
     ctx.customTraceFn = options.traceFn;
   }
   if (options.userInvocationTable) {
     ctx.userInvocationTable = options.userInvocationTable;
   }
+  ctx.defaultScoreExts = [
+    'http://hl7.org/fhir/StructureDefinition/ordinalValue',
+    'http://hl7.org/fhir/StructureDefinition/itemWeight',
+    'http://hl7.org/fhir/StructureDefinition/questionnaire-ordinalValue'
+  ];
   return  engine.doEval(ctx, dataRoot, parsedPath.children[0])
     // engine.doEval returns array of "ResourceNode" and/or "FP_Type" instances.
     // "ResourceNode" or "FP_Type" instances are not created for sub-items.
@@ -833,7 +844,7 @@ function compile(path, model, options) {
     return function (fhirData, context) {
       if (path.base) {
         let basePath = model.pathsDefinedElsewhere[path.base] || path.base;
-        const baseFhirNodeDataType = model && model.path2Type[basePath] || null;
+        const baseFhirNodeDataType = model && model.path2Type[basePath];
         basePath = baseFhirNodeDataType === 'BackboneElement' || baseFhirNodeDataType === 'Element' ? basePath : baseFhirNodeDataType || basePath;
 
         fhirData = makeResNode(fhirData, null, basePath, null, baseFhirNodeDataType);

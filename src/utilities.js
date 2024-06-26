@@ -164,7 +164,7 @@ util.makeChildResNodes = function(parentResNode, childProperty, model) {
 
   let fhirNodeDataType = null;
   if (model) {
-    fhirNodeDataType = model.path2Type[childPath] || null;
+    fhirNodeDataType = model.path2Type[childPath];
     childPath = model.path2TypeWithoutElements[childPath] || childPath;
   }
 

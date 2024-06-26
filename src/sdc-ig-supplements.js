@@ -14,31 +14,52 @@ let engine = {};
 engine.weight = function (coll) {
   if(coll !== false && ! coll) { return []; }
 
-  const scoreExtUrl = this.vars.scoreExt || this.processedVars.scoreExt;
+  const userScoreExtUrl = this.vars.scoreExt || this.processedVars.scoreExt;
+  const checkExtUrl = userScoreExtUrl
+    ? (e) => e.url === userScoreExtUrl
+    : (e) => this.defaultScoreExts.includes(e.url);
   const res = [];
 
   const questionnaire = this.vars.questionnaire || this.processedVars.questionnaire?.data;
   coll.forEach((answer) => {
-    if (answer.data.valueCoding) {
-      const score = answer.data.extension?.find(e => e.url === scoreExtUrl)?.valueDecimal;
+    if (answer?.data) {
+      let value = answer.data.valueCoding;
+      if (!value) {
+        const prop = Object.keys(answer.data).find(p => p.startsWith('value'));
+        // if we found a child value[x] property
+        value = prop
+          // we use it to get a score extension
+          ? answer.data[prop]
+          // otherwise, if the source item has a simple data type
+          : answer._data?.extension
+            // we get the extension from the adjacent property starting with an underscore
+            ? answer._data
+            // otherwise we get the extension from the source item
+            : answer.data;
+      }
+      const score = value?.extension?.find(checkExtUrl)?.valueDecimal;
       if (score !== undefined) {
         // if we have a score extension in the source item, use it.
         res.push(score);
       } else if (questionnaire) {
-        const qItem = getQItemByLinkIds(questionnaire, getLinkIds(answer.parentResNode));
         const valueCoding = answer.data.valueCoding;
-        const answerOption = qItem?.answerOption?.find(o =>
-          o.valueCoding.code === valueCoding.code
-          && o.valueCoding.system === valueCoding.system
-        );
-        if (answerOption) {
-          const score = answerOption.extension?.find(e => e.url === scoreExtUrl)?.valueDecimal;
-          if (score !== undefined) {
-            // if we have a score extension for the answerOption, use it.
-            res.push(score);
+        if (valueCoding) {
+          const qItem = getQItemByLinkIds(
+            questionnaire, getLinkIds(answer.parentResNode)
+          );
+          const answerOption = qItem?.answerOption?.find(o =>
+            o.valueCoding.code === valueCoding.code
+            && o.valueCoding.system === valueCoding.system
+          );
+          if (answerOption) {
+            const score = answerOption.extension?.find(checkExtUrl)?.valueDecimal;
+            if (score !== undefined) {
+              // if we have a score extension for the answerOption, use it.
+              res.push(score);
+            }
+          } else {
+            throw new Error('Questionnaire answerOption with this linkId was not found: ' + answer.parentResNode.data.linkId + '.');
           }
-        } else {
-          throw new Error('Questionnaire answerOption with this linkId were not found: ' + answer.parentResNode.data.linkId + '.');
         }
       } else {
         throw new Error('%questionnaire is needed but not specified.');
@@ -50,7 +71,9 @@ engine.weight = function (coll) {
 };
 
 /**
- * Returns array of linkIds of parent ResourceNodes and source ResourceNode.
+ * Returns array of linkIds of ancestor ResourceNodes and source ResourceNode
+ * starting with the linkId of the given node and ending with the topmost item's
+ * linkId.
  * @param {ResourceNode} node - source ResourceNode.
  * @return {String[]}
  */
@@ -58,7 +81,7 @@ function getLinkIds(node) {
   const res = [];
 
   while (node.data?.linkId) {
-    res.unshift(node.data.linkId);
+    res.push(node.data.linkId);
     node = node.parentResNode;
   }
 
@@ -66,15 +89,17 @@ function getLinkIds(node) {
 }
 
 /**
- * Returns a questionnaire item based on the linkIds array of the parent
- * ResourceNodes and the target ResourceNode.
+ * Returns a questionnaire item based on the linkIds array of the ancestor
+ * ResourceNodes and the target ResourceNode. If the questionnaire item is not
+ * found, it returns null.
  * @param {Object} questionnaire - object with a Questionnaire resource.
- * @param {string[]} linkIds - array of linkIds.
- * @return {Object}
+ * @param {string[]} linkIds - array of linkIds starting with the linkId of the
+ * target node and ending with the topmost item's linkId.
+ * @return {Object | null}
  */
 function getQItemByLinkIds(questionnaire, linkIds) {
   let currentNode = questionnaire;
-  for(let i = 0; i < linkIds.length; ++i) {
+  for(let i = linkIds.length-1; i >= 0; --i) {
     currentNode = currentNode.item?.find(o => o.linkId === linkIds[i]);
     if (!currentNode) {
       return null;

@@ -16,15 +16,15 @@
     {
       "answer": [
         {
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
-              "valueDecimal": 2
-            }
-          ],
           "valueCoding": {
             "code": "LA6569-3",
-            "display": "Several days"
+            "display": "Several days",
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+                "valueDecimal": 2
+              }
+            ]
           }
         }
       ],
@@ -70,15 +70,15 @@
     {
       "answer": [
         {
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
-              "valueDecimal": 3
-            }
-          ],
           "valueCoding": {
             "code": "LA6570-1",
-            "display": "More than half the days"
+            "display": "More than half the days",
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+                "valueDecimal": 3
+              }
+            ]
           }
         }
       ],

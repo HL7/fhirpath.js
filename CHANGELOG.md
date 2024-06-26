@@ -5,7 +5,7 @@ This log documents significant changes for each release.  This project follows
 
 ## [3.14.0] - 2024-05-09
 ### Added
-- supplementary function `weight()`.
+- supplementary function `weight()` with alternative name `ordinal()`.
 
 ## [3.13.1] - 2024-04-24
 ### Fixed
