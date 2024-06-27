@@ -23,26 +23,17 @@ engine.weight = function (coll) {
   const questionnaire = this.vars.questionnaire || this.processedVars.questionnaire?.data;
   coll.forEach((answer) => {
     if (answer?.data) {
-      let value = answer.data.valueCoding;
+      const valueCoding = answer.data.valueCoding;
+      let value = valueCoding;
       if (!value) {
         const prop = Object.keys(answer.data).find(p => p.startsWith('value'));
-        // if we found a child value[x] property
-        value = prop
-          // we use it to get a score extension
-          ? answer.data[prop]
-          // otherwise, if the source item has a simple data type
-          : answer._data?.extension
-            // we get the extension from the adjacent property starting with an underscore
-            ? answer._data
-            // otherwise we get the extension from the source item
-            : answer.data;
+        value = prop ? answer.data[prop] : null;
       }
       const score = value?.extension?.find(checkExtUrl)?.valueDecimal;
       if (score !== undefined) {
         // if we have a score extension in the source item, use it.
         res.push(score);
       } else if (questionnaire) {
-        const valueCoding = answer.data.valueCoding;
         if (valueCoding) {
           const qItem = getQItemByLinkIds(
             questionnaire, getLinkIds(answer.parentResNode)
@@ -58,7 +49,10 @@ engine.weight = function (coll) {
               res.push(score);
             }
           } else {
-            throw new Error('Questionnaire answerOption with this linkId was not found: ' + answer.parentResNode.data.linkId + '.');
+            throw new Error(
+              'Questionnaire answerOption with this linkId was not found: ' +
+              answer.parentResNode.data.linkId +
+              '. Looking upon the underlying CodeSystem is not supported yet.');
           }
         }
       } else {
