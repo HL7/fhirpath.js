@@ -292,6 +292,9 @@ const singletonEvalByType = {
     if (typeof d === "string") {
       return d;
     }
+  },
+  "AnySingletonAtRoot": function (d) {
+    return d;
   }
 };
 

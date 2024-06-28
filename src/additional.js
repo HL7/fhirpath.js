@@ -1,6 +1,7 @@
 // Contains the additional FHIRPath functions.
 // See https://build.fhir.org/fhirpath.html#functions for details.
 const util = require("./utilities");
+const Terminologies = require('./terminologies');
 
 let engine = {};
 
@@ -25,10 +26,12 @@ engine.memberOf = function (coll, valueset ) {
   }
 
   if (typeof valueset === 'string' && /^https?:\/\/.*/.test(valueset)) {
-    return this.terminologies.validateVS(valueset, util.valData(coll[0]), '')
-      .then(params => {
-        return params.parameter.find((p) => p.name === "result").valueBoolean;
-      });
+    const terminologies = this.processedVars.terminologies;
+    return Terminologies.validateVS(
+      [terminologies], valueset, util.valData(coll[0]), ''
+    ).then(params => {
+      return params.parameter.find((p) => p.name === "result").valueBoolean;
+    });
   }
 
   // If the valueset cannot be resolved as an uri to a value set,

@@ -1,16 +1,14 @@
 # fhirpath.js
 
-[![Build Status](https://travis-ci.org/HL7/fhirpath.js.svg?branch=master)](https://travis-ci.org/HL7/fhirpath.js)
-
 [FHIRPath](http://hl7.org/fhirpath/) implementation in JavaScript.
 
 ## Demo
 Try it out on the [demo page](https://hl7.github.io/fhirpath.js/).
 
 ## Table of Contents:
-- [Installation:](#installation-)
+- [Installation](#installation-)
   * [Server-side (Node.js)](#server-side--nodejs-)
-  * [Web-browser:](#web-browser-)
+  * [Web-browser](#web-browser-)
 - [API Usage](#api-usage)
   * [Asynchronous functions](#asynchronous-functions)
   * [User-defined functions](#user-defined-functions)
@@ -59,6 +57,31 @@ Evaluating FHIRPath:
 ```js
 evaluate(resourceObject, fhirPathExpression, environment, model, options);
 ```
+where:
+* resourceObject - FHIR resource, part of a resource (in this case
+  fhirPathExpression.base should be provided), bundle as js object or array
+  of resources.
+* fhirPathExpression - string with FHIRPath expression, sample 'Patient.name.given',
+  or object, if fhirData represents the part of the FHIR resource:
+    * fhirPathExpression.base - base path in resource from which fhirData was extracted
+    * fhirPathExpression.expression - FHIRPath expression relative to path.base
+* environment - a hash of variable name/value pairs.
+* model - the "model" data object specific to a domain, e.g. R4.
+  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
+* options - additional options:
+    * options.resolveInternalTypes - whether values of internal
+      types should be converted to standard JavaScript types (true by default).
+      If false is passed, this conversion can be done later by calling
+      fhirpath.resolveInternalTypes().
+    * options.traceFn - An optional trace function to call when tracing.
+    * options.userInvocationTable - a user invocation table used
+      to replace any existing or define new functions.
+    * options.async - defines how to support asynchronous functions:
+      false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception,
+      true or similar to true - return Promise, only for asynchronous functions,
+      "always" - return Promise always.
+    * options.terminologyUrl - a URL that points to a FHIR RESTful API that is
+      used to create %terminologies that implements the Terminology Service API.
 
 Note:  The resource will be modified by this function to add type information.
 
@@ -360,9 +383,11 @@ Completed sections:
 Supported additional functions from FHIR:
 - extension(url : string) : collection
 - hasValue() : Boolean
+- memberOf(valueset : string) : Boolean
 
-Supported Terminology Service API (https://build.fhir.org/fhirpath.html#txapi):
-- only %terminologies.validateVS is supported
+Supported Terminology Service APIs (https://build.fhir.org/fhirpath.html#txapi):
+- only `%terminologies.validateVS(valueSet, coded, params) : Parameters` is
+  partially supported. `valueSet` can only be a URL.
 
 ## Development Notes
 

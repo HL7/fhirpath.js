@@ -4,13 +4,21 @@
 class Terminologies {
   constructor(terminologyUrl) {
     this.terminologyUrl = terminologyUrl;
+    this.invocationTable = Terminologies.invocationTable;
   }
+
+  // Same as fhirpath.invocationTable, but for %terminologies methods
+  static invocationTable = {
+    validateVS: {fn: Terminologies.validateVS,  arity: { 2: ['String', 'AnySingletonAtRoot'], 3: ['String', 'AnySingletonAtRoot', 'String']} }
+  };
 
   /**
    * This example function calls the Terminology Service $validate-code operation
    * on a value set. See Terminology Service API: https://build.fhir.org/fhirpath.html#txapi
    * The source code of this function is based on this script:
    * https://gist.github.com/brianpos/97e1237470d76835ea9a35bf8e021ca6#file-fhirpath-async-ts
+   * @param {Terminologies[]} self - an array with one element that refers to
+   *  the current Terminology instance.
    * @param {string} valueset - a canonical URL reference to a value set. In the original
    *  specification this could also be an actual ValueSet, but I don't want to
    *  complicate this example.
@@ -22,7 +30,7 @@ class Terminologies {
    *  (https://build.fhir.org/parameters.html) with the results of the validation
    *  operation.
    */
-  validateVS(valueset, coded, params = '') {
+  static validateVS(self, valueset, coded, params = '') {
     const httpHeaders = {
       "Accept": "application/fhir+json; charset=utf-8",
     };
@@ -32,7 +40,7 @@ class Terminologies {
     };
     let myHeaders = new Headers(httpHeaders);
 
-    const requestUrl = `${this.terminologyUrl}/ValueSet/$validate-code`;
+    const requestUrl = `${self[0].terminologyUrl}/ValueSet/$validate-code`;
 
     let response;
     if (coded.coding) {
@@ -78,7 +86,10 @@ class Terminologies {
       }
     }
 
-    return response
+    // In Jest unit tests, a promise returned by 'fetch' is not an instance of
+    // Promise that we have in our application context, so we use Promise.resolve
+    // to do the conversion.
+    return Promise.resolve(response)
       .then(r => r.json())
       .then(resultJson => {
         if (response) {
@@ -100,7 +111,7 @@ class Terminologies {
 }
 
 /**
- * Create an Index Key for the validateVS function
+ * Create and returns an Index Key for the validateVS function
  * The source code of this function was borrowed from this script:
  * https://gist.github.com/brianpos/97e1237470d76835ea9a35bf8e021ca6#file-fhirpath-async-ts
  * @param {Object|string} value - either a Coding, a CodeableConcept, or

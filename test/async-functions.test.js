@@ -2,13 +2,24 @@ const fhirpath = require('../src/fhirpath');
 const model = require('../fhir-context/r4');
 const resource = require('./resources/observation-example.json');
 
-beforeAll(() => {
-  // Emulate the browser's fetch API.
-  global.Headers = require('node-fetch').Headers;
-  global.fetch = require('node-fetch').default;
-});
-
 describe('Async functions', () => {
+
+  describe('%terminologies', () => {
+    it('should support validateVS', (done) => {
+      let result = fhirpath.evaluate(
+        resource,
+        "%terminologies.validateVS('http://hl7.org/fhir/ValueSet/observation-vitalsignresult', Observation.code.coding[0]).parameter.value",
+        {},
+        model,
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([true]);
+        done();
+      })
+    });
+  });
 
   describe('memberOf', () => {
     it('should work with Codings when async functions are enabled', (done) => {

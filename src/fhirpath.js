@@ -467,29 +467,44 @@ function makeParam(ctx, parentData, type, param) {
     return engine.TypeSpecifier(ctx, parentData, param);
   }
 
-  let ctxExpr = { ...ctx };
-  if (ctx.definedVars) {
-    // Each parameter subexpression needs its own set of defined variables
-    // (cloned from the parent context). This way, the changes to the variables
-    // are isolated in the subexpression.
-    ctxExpr.definedVars = {...ctx.definedVars};
-  }
-  let res = engine.doEval(ctxExpr, parentData, param);
-  if(type === "Any") {
-    return res;
-  }
-  if(Array.isArray(type)) {
-    if(res.length === 0) {
-      return [];
-    } else {
-      type = type[0];
+  let res;
+  if(type === 'AnySingletonAtRoot'){
+    const $this = ctx.$this || ctx.dataRoot;
+    let ctxExpr = { ...ctx, $this};
+    if (ctx.definedVars) {
+      // Each parameter subexpression needs its own set of defined variables
+      // (cloned from the parent context). This way, the changes to the variables
+      // are isolated in the subexpression.
+      ctxExpr.definedVars = {...ctx.definedVars};
+    }
+    res = engine.doEval(ctxExpr, $this, param);
+  } else {
+    let ctxExpr = {...ctx};
+    if (ctx.definedVars) {
+      // Each parameter subexpression needs its own set of defined variables
+      // (cloned from the parent context). This way, the changes to the variables
+      // are isolated in the subexpression.
+      ctxExpr.definedVars = {...ctx.definedVars};
+    }
+    res = engine.doEval(ctxExpr, parentData, param);
+    if (type === "Any") {
+      return res;
+    }
+    if (Array.isArray(type)) {
+      if (res.length === 0) {
+        return [];
+      } else {
+        type = type[0];
+      }
     }
   }
   return misc.singleton(res, type);
 }
 
 function doInvoke(ctx, fnName, data, rawParams){
-  var invoc = ctx.userInvocationTable?.[fnName] ?? engine.invocationTable[fnName];
+  var invoc = ctx.userInvocationTable?.[fnName]
+    || engine.invocationTable[fnName]
+    || data.length === 1 && data[0]?.invocationTable[fnName];
   var res;
   if(invoc) {
     if(!invoc.arity){
@@ -700,7 +715,9 @@ function parse(path) {
  *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception;
  *  true or similar to true - return Promise only for asynchronous functions;
  *  "always" - return Promise always.
- *  @param {string} [options.serverUrl] - a URL that points to a FHIR RESTful API.
+ *  @param {string} [options.terminologyUrl] - a URL that points to a FHIR
+ *   RESTful API that is used to create %terminologies that implements
+ *   the Terminology Service API.
  */
 function applyParsedPath(resource, parsedPath, context, model, options) {
   constants.reset();
@@ -725,7 +742,7 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
     ctx.async = options.async;
   }
   if (options.terminologyUrl) {
-    ctx.terminologies = new Terminologies(options.terminologyUrl);
+    ctx.processedVars.terminologies = new Terminologies(options.terminologyUrl);
   }
   const res = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
   return res instanceof Promise
@@ -821,7 +838,9 @@ function resolveInternalTypes(val) {
  *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception,
  *  true or similar to true - return Promise, only for asynchronous functions,
  *  "always" - return Promise always.
- * @param {string} [options.serverUrl] - a URL that points to a FHIR RESTful API.
+ * @param {string} [options.terminologyUrl] - a URL that points to a FHIR
+ *   RESTful API that is used to create %terminologies that implements
+ *   the Terminology Service API.
  */
 function evaluate(fhirData, path, context, model, options) {
   return compile(path, model, options)(fhirData, context);
@@ -849,7 +868,9 @@ function evaluate(fhirData, path, context, model, options) {
  *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception,
  *  true or similar to true - return Promise, only for asynchronous functions,
  *  "always" - return Promise always.
- *  @param {string} [options.serverUrl] - a URL that points to a FHIR RESTful API.
+ *   @param {string} [options.terminologyUrl] - a URL that points to a FHIR
+ *   RESTful API that is used to create %terminologies that implements
+ *   the Terminology Service API.
  */
 function compile(path, model, options) {
   options = {
