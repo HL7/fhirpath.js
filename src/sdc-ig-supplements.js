@@ -21,42 +21,53 @@ engine.weight = function (coll) {
   const res = [];
 
   const questionnaire = this.vars.questionnaire || this.processedVars.questionnaire?.data;
-  coll.forEach((answer) => {
-    if (answer?.data) {
-      const valueCoding = answer.data.valueCoding;
+  coll.forEach((item) => {
+    if (item?.data) {
+      const valueCoding = item.data.valueCoding;
       let value = valueCoding;
       if (!value) {
-        const prop = Object.keys(answer.data).find(p => p.startsWith('value'));
-        value = prop ? answer.data[prop] : null;
+        const prop = Object.keys(item.data).find(p => p.length > 5 && p.startsWith('value'));
+        // if we found a child value[x] property
+        value = prop
+          // we use it to get a score extension
+          ? item.data[prop]
+          // otherwise, if the source item has a simple data type
+          : item._data?.extension
+            // we get the extension from the adjacent property starting with
+            // an underscore
+            ? item._data
+            // otherwise we get the extension from the source item
+            // (e.g. 'item' is a Coding)
+            : item.data;
       }
       const score = value?.extension?.find(checkExtUrl)?.valueDecimal;
       if (score !== undefined) {
         // if we have a score extension in the source item, use it.
         res.push(score);
-      } else if (questionnaire) {
-        if (valueCoding) {
-          const qItem = getQItemByLinkIds(
-            questionnaire, getLinkIds(answer.parentResNode)
-          );
-          const answerOption = qItem?.answerOption?.find(o =>
-            o.valueCoding.code === valueCoding.code
-            && o.valueCoding.system === valueCoding.system
-          );
-          if (answerOption) {
-            const score = answerOption.extension?.find(checkExtUrl)?.valueDecimal;
-            if (score !== undefined) {
-              // if we have a score extension for the answerOption, use it.
-              res.push(score);
+      } else if (valueCoding) {
+        const linkIds = getLinkIds(item.parentResNode);
+        if (linkIds.length) {
+          if (questionnaire) {
+            const qItem = getQItemByLinkIds(questionnaire, linkIds);
+            const answerOption = qItem?.answerOption?.find(o =>
+              o.valueCoding.code === valueCoding.code
+              && o.valueCoding.system === valueCoding.system
+            );
+            if (answerOption) {
+              const score = answerOption.extension?.find(checkExtUrl)?.valueDecimal;
+              if (score !== undefined) {
+                // if we have a score extension for the answerOption, use it.
+                res.push(score);
+              }
+            } else {
+              throw new Error(
+                'Questionnaire answerOption with this linkId was not found: ' +
+                item.parentResNode.data.linkId + '.');
             }
           } else {
-            throw new Error(
-              'Questionnaire answerOption with this linkId was not found: ' +
-              answer.parentResNode.data.linkId +
-              '. Looking upon the underlying CodeSystem is not supported yet.');
+            throw new Error('%questionnaire is needed but not specified.');
           }
         }
-      } else {
-        throw new Error('%questionnaire is needed but not specified.');
       }
     }
   });

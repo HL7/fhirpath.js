@@ -3,7 +3,11 @@ const r4_model = require("../fhir-context/r4");
 const _ = require("lodash");
 
 const input = {
-  get observation() {
+  get observationExample1() {
+    // Clone input file contents to avoid one test affecting another
+    return _.cloneDeep(require("../test/resources/observation-example.json"));
+  },
+  get observationExample2() {
     // Clone input file contents to avoid one test affecting another
     return _.cloneDeep(require("../test/resources/observation-example-2.json"));
   },
@@ -59,12 +63,28 @@ describe("supplements", () => {
         expect(res).toThrow('Questionnaire answerOption with this linkId was not found: /44250-9-unlinked-item.');
       });
 
+      it("should return an empty array when the Observation resource doesn't have a score", () => {
+        const res = fhirpath.evaluate(
+          input.observationExample1, `%context.${fnName}()`,
+          { scoreExt: 'http://someScoreExtension'}, r4_model
+        );
+        expect(res).toStrictEqual([]);
+      });
+
       it("should return the correct result when getting a score from the Observation resource", () => {
         const res = fhirpath.evaluate(
-          input.observation, `%context.${fnName}()`,
+          input.observationExample2, `%context.${fnName}()`,
           { scoreExt: 'http://someScoreExtension'}, r4_model
         );
         expect(res).toStrictEqual([3]);
+      });
+
+      it("should return the correct result when the source item has a score", () => {
+        const res = fhirpath.evaluate(
+          input.observationExample2, `%context.value.${fnName}()`,
+          {}, r4_model
+        );
+        expect(res).toStrictEqual([4]);
       });
     });
   });
