@@ -260,5 +260,16 @@ describe('evaluate type() on a FHIRPath evaluation result', () => {
       'Quantity', 'Quantity', 'Quantity', 'Quantity', 'Date'
     ]);
   });
+
+  it('should not change the context input parameter containing environment variables', () => {
+    const originalVars = {a: 'abc'};
+    const vars = _.cloneDeep(originalVars);
+    expect(fhirpath.evaluate(
+      {},
+      '%a = \'abc\'',
+      vars
+    )).toStrictEqual([true]);
+    expect(originalVars).toStrictEqual(vars);
+  })
 });
 

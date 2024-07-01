@@ -686,7 +686,7 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   // Set up default standard variables, and allow override from the variables.
   // However, we'll keep our own copy of dataRoot for internal processing.
   let vars = {context: dataRoot, ucum: 'http://unitsofmeasure.org'};
-  let ctx = {dataRoot, processedVars: vars, vars: context || {}, model};
+  let ctx = {dataRoot, processedVars: vars, vars: {...context}, model};
   if (options.traceFn) {
     ctx.customTraceFn = options.traceFn;
   }
