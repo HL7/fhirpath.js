@@ -3,6 +3,14 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.14.1] - 2024-07-02
+### Fixed
+- impossibility to use attribute name that starts with a capital letter.
+
+## [3.14.0] - 2024-07-02
+### Added
+- supplementary function `weight()` with alternative name `ordinal()`.
+
 ## [3.13.4] - 2024-06-13
 ### Fixed
 - a bug that could cause the context input parameter containing environment
