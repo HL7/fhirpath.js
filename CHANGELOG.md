@@ -3,19 +3,35 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [3.14.1] - 2024-05-21
+## [3.14.1] - 2024-07-02
 ### Fixed
 - impossibility to use attribute name that starts with a capital letter.
 
-## [3.14.0] - 2024-05-09
+## [3.14.0] - 2024-07-02
 ### Added
 - supplementary function `weight()` with alternative name `ordinal()`.
 
-## [3.13.1] - 2024-04-24
+## [3.13.4] - 2024-06-13
+### Fixed
+- a bug that could cause the context input parameter containing environment
+  variables to change.
+
+## [3.13.3] - 2024-05-24
+### Changed
+- Added separate TypeScript type definition files for the main file and each
+  supported model.
+
+## [3.13.2] - 2024-05-15
 ### Fixed
 - an issue with evaluating an expression for a resource passed through an
   environment variable.
 - an issue with "statusShift" during performance tests.
+
+## [3.13.1] - 2024-04-25
+### Fixed
+- Added flag 'u' for regular expressions in the specification's `matches` and
+  `replaceMatches` functions to support the use of unicode character class
+  escapes.
 
 ## [3.13.0] - 2024-04-10
 ### Added
