@@ -54,18 +54,13 @@ describe('Async functions', () => {
       })
     });
 
-/*
-    // TODO: This unit test works only with the third-party server
-    //  (see the terminologyUrl option below). Also I posted a question here:
-    //  https://chat.fhir.org/#narrow/stream/179266-fhirpath/topic/Problem.20with.20the.20.22memberOf.22.20function.20and.20R4.20servers
     it('should work with Code when async functions are enabled', (done) => {
-
       let result = fhirpath.evaluate(
         resource,
         "Observation.code.coding.code[0].memberOf('http://hl7.org/fhir/ValueSet/observation-vitalsignresult')",
         {},
         model,
-        { async: true, terminologyUrl: "https://r4.ontoserver.csiro.au/fhir" }
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
       );
       expect(result instanceof Promise).toBe(true);
       result.then((r) => {
@@ -73,7 +68,21 @@ describe('Async functions', () => {
         done();
       })
     });
-*/
+
+    it('should return an empty result when the ValueSet cannot be resolved', (done) => {
+      let result = fhirpath.evaluate(
+        resource,
+        "Observation.code.coding.code[0].memberOf('http://unknown-valueset')",
+        {},
+        model,
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([]);
+        done();
+      })
+    });
 
     it('should throw an exception when async functions are disabled', () => {
 

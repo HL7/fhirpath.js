@@ -63,15 +63,36 @@ class Terminologies {
         { method: "POST", headers: myHeaders, body: JSON.stringify(parameters) }
       );
     } else if (typeof coded === "string") {
-      const queryParams = new URLSearchParams({
+      const queryParams1 = new URLSearchParams({
         url: valueset,
-        code: coded,
-        inferSystem: true
       });
+      //  Workaround for the case where we don't have a system. See discussion here:
+      //  https://chat.fhir.org/#narrow/stream/179266-fhirpath/topic/Problem.20with.20the.20.22memberOf.22.20function.20and.20R4.20servers
       response = fetch(
-        `${requestUrl}?${queryParams.toString() + (params ? '&' + params : '')}`,
-        { headers: myHeaders }
-      );
+        `${self[0].terminologyUrl}/ValueSet?${queryParams1.toString() + (params ? '&' + params : '')}`,
+        {headers: myHeaders}
+      )
+        .then(r => r.json())
+        .then((bundle) => {
+          const system = bundle?.entry?.length === 1 && (
+            bundle.entry[0].resource.compose?.include?.length === 1
+            && bundle.entry[0].resource.compose.include[0].system
+            || bundle.entry[0].resource.expansion?.contains?.length === 1
+            && bundle.entry[0].resource.expansion?.contains[0].system);
+          if (system) {
+            const queryParams2 = new URLSearchParams({
+              url: valueset,
+              code: coded,
+              system
+            });
+            return fetch(
+              `${requestUrl}?${queryParams2.toString() + (params ? '&' + params : '')}`,
+              { headers: myHeaders }
+            );
+          } else {
+            throw new Error('The valueset does not have a single code system.');
+          }
+        });
     } else {
       if (coded.code) {
         const queryParams = new URLSearchParams({
@@ -91,17 +112,11 @@ class Terminologies {
     // to do the conversion.
     return Promise.resolve(response)
       .then(r => r.json())
-      .then(resultJson => {
-        if (response) {
-          let params = resultJson;
-          if (params && params.parameter) {
-            return params;
-          }
-          let outcomeResult = resultJson;
-          if (outcomeResult && outcomeResult.issue) {
-            throw outcomeResult;
-          }
+      .then(params => {
+        if (params?.parameter) {
+          return params;
         }
+        throw new Error(params);
       })
       .catch(() => {
         const key = createIndexKeyMemberOf(coded, valueset);

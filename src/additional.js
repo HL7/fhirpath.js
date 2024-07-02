@@ -27,11 +27,14 @@ engine.memberOf = function (coll, valueset ) {
 
   if (typeof valueset === 'string' && /^https?:\/\/.*/.test(valueset)) {
     const terminologies = this.processedVars.terminologies;
+    if (!terminologies) {
+      throw new Error("Option \"termologyUrl\" is not specified.");
+    }
     return Terminologies.validateVS(
       [terminologies], valueset, util.valData(coll[0]), ''
     ).then(params => {
       return params.parameter.find((p) => p.name === "result").valueBoolean;
-    });
+    }, () => []);
   }
 
   // If the valueset cannot be resolved as an uri to a value set,

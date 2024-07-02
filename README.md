@@ -75,13 +75,19 @@ where:
       fhirpath.resolveInternalTypes().
     * options.traceFn - An optional trace function to call when tracing.
     * options.userInvocationTable - a user invocation table used
-      to replace any existing or define new functions.
+      to replace any existing functions or define new ones.
     * options.async - defines how to support asynchronous functions:
-      false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception,
-      true or similar to true - return Promise, only for asynchronous functions,
-      "always" - return Promise always.
+        * false or similar to false, e.g. undefined, null, or 0 (default) - throw
+          an exception,
+        * true or similar to true - return Promise, only for asynchronous functions,
+        * "always" - return Promise always.
     * options.terminologyUrl - a URL that points to a FHIR RESTful API that is
       used to create %terminologies that implements the Terminology Service API.
+    * options.terminologyUrl - a URL that points to a terminology server. This
+      URL is used to initialize %terminologies, as defined in the FHIR FHIRPath
+      [Terminology Service API](https://www.hl7.org/fhir/fhirpath.html#txapi).
+      See the [Implementation Status](#implementation-status) section for the
+      currently supported %terminologies APIs.
 
 Note:  The resource will be modified by this function to add type information.
 
