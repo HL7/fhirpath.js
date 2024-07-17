@@ -31,6 +31,7 @@ class Terminologies {
    *  operation.
    */
   static validateVS(self, valueset, coded, params = '') {
+    checkParams(params);
     const httpHeaders = {
       "Accept": "application/fhir+json; charset=utf-8",
     };
@@ -74,11 +75,11 @@ class Terminologies {
       )
         .then(r => r.json())
         .then((bundle) => {
-          const system = bundle?.entry?.length === 1 && (
-            bundle.entry[0].resource.compose?.include?.length === 1
-            && bundle.entry[0].resource.compose.include[0].system
-            || bundle.entry[0].resource.expansion?.contains?.length === 1
-            && bundle.entry[0].resource.expansion?.contains[0].system);
+          const system = bundle?.entry?.length === 1
+            && getSystemFromArrayItems(
+              bundle.entry[0].resource.expansion?.contains,
+              getSystemFromArrayItems(bundle.entry[0].resource.compose?.include)
+            );
           if (system) {
             const queryParams2 = new URLSearchParams({
               url: valueset,
@@ -146,6 +147,45 @@ function createIndexKeyMemberOf(value, valueset) {
     return value.coding.map((c) => c.system + "|" + c.code).join(",") + " - " + valueset;
   }
   return undefined;
+}
+
+/**
+ * Throws an exception if the params parameter is not empty and is not a valid
+ * URL-encoded string.
+ * @param {string|undefined} params - a URL encoded string with parameters
+ *  (e.g. 'date=2011-03-04&displayLanguage=en').
+ */
+function checkParams(params) {
+  if (params?.split('&').find(
+    p => {
+      const v = p.split('=');
+      return v.length <= 2 && v.find(i => encodeURIComponent(decodeURIComponent(i)) !== i);
+    }
+  )) {
+    throw new Error(`"${params}" should be a valid URL encoded string`);
+  }
+}
+
+/**
+ * Returns the "system" property from an array of items if it is the same for all
+ * items and equal to the initial value if the initial value is defined.
+ * @param {Object[]|undefined} arr - array of items
+ * @param {string|undefined} [system] - optional initial value
+ * @return {string|undefined}
+ */
+function getSystemFromArrayItems(arr, system = undefined) {
+  if (arr) {
+    for (let i = 0; i < arr.length; ++i) {
+      if (!system) {
+        system = arr[i].system;
+      } else if (system !== arr[i].system) {
+        system = undefined;
+        break;
+      }
+    }
+  }
+
+  return system;
 }
 
 module.exports = Terminologies;
