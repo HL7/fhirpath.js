@@ -28,7 +28,7 @@ engine.memberOf = function (coll, valueset ) {
   if (typeof valueset === 'string' && /^https?:\/\/.*/.test(valueset)) {
     const terminologies = this.processedVars.terminologies;
     if (!terminologies) {
-      throw new Error("Option \"termologyUrl\" is not specified.");
+      throw new Error('Option "terminologyUrl" is not specified.');
     }
     return Terminologies.validateVS(
       [terminologies], valueset, util.valData(coll[0]), ''

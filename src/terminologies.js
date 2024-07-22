@@ -75,11 +75,10 @@ class Terminologies {
       )
         .then(r => r.json())
         .then((bundle) => {
-          const system = bundle?.entry?.length === 1
-            && getSystemFromArrayItems(
-              bundle.entry[0].resource.expansion?.contains,
-              getSystemFromArrayItems(bundle.entry[0].resource.compose?.include)
-            );
+          const system = bundle?.entry?.length === 1 && (
+            getSystemFromArrayItems(bundle.entry[0].resource.expansion?.contains)
+            || getSystemFromArrayItems(bundle.entry[0].resource.compose?.include)
+          );
           if (system) {
             const queryParams2 = new URLSearchParams({
               url: valueset,
@@ -159,10 +158,10 @@ function checkParams(params) {
   if (params?.split('&').find(
     p => {
       const v = p.split('=');
-      return v.length <= 2 && v.find(i => encodeURIComponent(decodeURIComponent(i)) !== i);
+      return v.length <= 2 && v.find(x => encodeURIComponent(decodeURIComponent(x)) !== x);
     }
   )) {
-    throw new Error(`"${params}" should be a valid URL encoded string`);
+    throw new Error(`"${params}" should be a valid URL-encoded string`);
   }
 }
 

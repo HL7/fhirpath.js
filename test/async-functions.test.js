@@ -65,7 +65,7 @@ describe('Async functions', () => {
         model,
         { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
       );
-      expect(result).toThrowError('should be a valid URL encoded string');
+      expect(result).toThrowError('should be a valid URL-encoded string');
     });
   });
 
@@ -265,16 +265,6 @@ describe('Async functions', () => {
             {
               "resource": {
                 "resourceType": "ValueSet",
-                "compose": {
-                  "include": [
-                    {
-                      "system": "http://loinc.org",
-                    },
-                    {
-                      "system": "http://loinc.org",
-                    }
-                  ]
-                },
                 "expansion": {
                   "contains": [
                     {
