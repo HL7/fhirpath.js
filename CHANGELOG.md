@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.14.2] - 2024-08-02
+### Fixed
+- Removed the need to run `(cd demo && npm ci)`.
+- Excluded unnecessary files from the npm package.
+
 ## [3.14.1] - 2024-07-02
 ### Fixed
 - impossibility to use attribute name that starts with a capital letter.
