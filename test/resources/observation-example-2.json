@@ -2,6 +2,16 @@
   "resourceType": "Observation",
   "id": "example",
   "valueQuantity": {
+    "extension": [
+      {
+        "url": "http://someScoreExtension",
+        "valueDecimal": 3
+      },
+      {
+        "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+        "valueDecimal": 4
+      }
+    ],
     "value": 185,
     "unit": "months",
     "system": "http://unitsofmeasure.org",

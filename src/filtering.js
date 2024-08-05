@@ -32,7 +32,7 @@ engine.extension = function(parentData, url) {
     if (extensions) {
       return extensions
         .filter(extension => extension.url === url)
-        .map(x => ResourceNode.makeResNode(x, 'Extension', null, 'Extension'));
+        .map(e => ResourceNode.makeResNode(e, x, 'Extension', null, 'Extension'));
     }
     return [];
   }));
@@ -88,9 +88,9 @@ function getNewItems(items, unique, res) {
 
 //TODO: behavior on object?
 engine.singleFn = function(x) {
-  if(x.length == 1){
+  if(x.length === 1){
     return x;
-  } else if (x.length == 0) {
+  } else if (x.length === 0) {
     return [];
   } else {
     throw new Error("Expected single");

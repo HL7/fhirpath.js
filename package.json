@@ -1,8 +1,9 @@
 {
   "name": "fhirpath",
-  "version": "3.14.0",
+  "version": "3.15.0",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
+  "types": "src/fhirpath.d.ts",
   "dependencies": {
     "@lhncbc/ucum-lhc": "^5.0.0",
     "antlr4": "~4.9.3",
