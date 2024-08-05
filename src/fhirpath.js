@@ -47,6 +47,7 @@ let math      = require("./math");
 let strings   = require("./strings");
 let navigation= require("./navigation");
 let datetime  = require("./datetime");
+let additional  = require("./additional");
 let logic  = require("./logic");
 const types = require("./types");
 const {
@@ -54,6 +55,7 @@ const {
   FP_Type, ResourceNode, TypeInfo
 } = types;
 let makeResNode = ResourceNode.makeResNode;
+const Terminologies = require('./terminologies');
 
 // * fn: handler
 // * arity: is index map with type signature
@@ -63,6 +65,7 @@ let makeResNode = ResourceNode.makeResNode;
 //   calling function if one of params is  empty return empty
 
 engine.invocationTable = {
+  memberOf:     {fn: additional.memberOf, arity: { 1: ['String']} },
   empty:        {fn: existence.emptyFn},
   not:          {fn: existence.notFn},
   exists:       {fn: existence.existsMacro, arity: {0: [], 1: ["Expr"]}},
@@ -466,35 +469,50 @@ function makeParam(ctx, parentData, type, param) {
     return engine.TypeSpecifier(ctx, parentData, param);
   }
 
-  let ctxExpr = { ...ctx };
-  if (ctx.definedVars) {
-    // Each parameter subexpression needs its own set of defined variables
-    // (cloned from the parent context). This way, the changes to the variables
-    // are isolated in the subexpression.
-    ctxExpr.definedVars = {...ctx.definedVars};
-  }
-  let res = engine.doEval(ctxExpr, parentData, param);
-  if(type === "Any") {
-    return res;
-  }
-  if(Array.isArray(type)) {
-    if(res.length === 0) {
-      return [];
-    } else {
-      type = type[0];
+  let res;
+  if(type === 'AnySingletonAtRoot'){
+    const $this = ctx.$this || ctx.dataRoot;
+    let ctxExpr = { ...ctx, $this};
+    if (ctx.definedVars) {
+      // Each parameter subexpression needs its own set of defined variables
+      // (cloned from the parent context). This way, the changes to the variables
+      // are isolated in the subexpression.
+      ctxExpr.definedVars = {...ctx.definedVars};
+    }
+    res = engine.doEval(ctxExpr, $this, param);
+  } else {
+    let ctxExpr = {...ctx};
+    if (ctx.definedVars) {
+      // Each parameter subexpression needs its own set of defined variables
+      // (cloned from the parent context). This way, the changes to the variables
+      // are isolated in the subexpression.
+      ctxExpr.definedVars = {...ctx.definedVars};
+    }
+    res = engine.doEval(ctxExpr, parentData, param);
+    if (type === "Any") {
+      return res;
+    }
+    if (Array.isArray(type)) {
+      if (res.length === 0) {
+        return [];
+      } else {
+        type = type[0];
+      }
     }
   }
   return misc.singleton(res, type);
 }
 
 function doInvoke(ctx, fnName, data, rawParams){
-  var invoc = ctx.userInvocationTable?.[fnName] ?? engine.invocationTable[fnName];
+  var invoc = ctx.userInvocationTable?.[fnName]
+    || engine.invocationTable[fnName]
+    || data.length === 1 && data[0]?.invocationTable[fnName];
   var res;
   if(invoc) {
     if(!invoc.arity){
       if(!rawParams){
         res = invoc.fn.call(ctx, data);
-        return util.arraify(res);
+        return util.resolveAndArraify(res);
       } else {
         throw new Error(fnName + " expects no params");
       }
@@ -514,8 +532,14 @@ function doInvoke(ctx, fnName, data, rawParams){
             return [];
           }
         }
+        if (params.some(p => p instanceof Promise)) {
+          return Promise.all(params).then(p => {
+            res = invoc.fn.apply(ctx, p);
+            return util.resolveAndArraify(res);
+          });
+        }
         res = invoc.fn.apply(ctx, params);
-        return util.arraify(res);
+        return util.resolveAndArraify(res);
       } else {
         console.log(fnName + " wrong arity: got " + paramsNumber );
         return [];
@@ -546,6 +570,12 @@ function infixInvoke(ctx, fnName, data, rawParams){
         if(params.some(isNullable)){
           return [];
         }
+      }
+      if (params.some(p => p instanceof Promise)) {
+        return Promise.all(params).then(p => {
+          var res = invoc.fn.apply(ctx, p);
+          return util.arraify(res);
+        });
       }
       var res = invoc.fn.apply(ctx, params);
       return util.arraify(res);
@@ -647,6 +677,14 @@ engine.evalTable = { // not every evaluator is listed if they are defined on eng
 
 
 engine.doEval = function(ctx, parentData, node) {
+  if (parentData instanceof Promise) {
+    return parentData.then(p => engine.doEvalSync(ctx, p, node));
+  } else {
+    return  engine.doEvalSync(ctx, parentData, node);
+  }
+};
+
+engine.doEvalSync = function(ctx, parentData, node) {
   const evaluator = engine.evalTable[node.type] || engine[node.type];
   if(evaluator){
     return evaluator.call(engine, ctx, parentData, node);
@@ -675,6 +713,13 @@ function parse(path) {
  * @param {function} [options.traceFn] - An optional trace function to call when tracing.
  * @param {object} [options.userInvocationTable] - a user invocation table used
  *  to replace any existing or define new functions.
+ * @param {boolean|string} [options.async] - defines how to support asynchronous functions:
+ *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception;
+ *  true or similar to true - return Promise only for asynchronous functions;
+ *  "always" - return Promise always.
+ *  @param {string} [options.terminologyUrl] - a URL that points to a FHIR
+ *   RESTful API that is used to create %terminologies that implements
+ *   the Terminology Service API.
  */
 function applyParsedPath(resource, parsedPath, context, model, options) {
   constants.reset();
@@ -709,13 +754,34 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
     'http://hl7.org/fhir/StructureDefinition/itemWeight',
     'http://hl7.org/fhir/StructureDefinition/questionnaire-ordinalValue'
   ];
-  return  engine.doEval(ctx, dataRoot, parsedPath.children[0])
-    // engine.doEval returns array of "ResourceNode" and/or "FP_Type" instances.
-    // "ResourceNode" or "FP_Type" instances are not created for sub-items.
-    // Resolve any internal "ResourceNode" instances to plain objects and if
-    // options.resolveInternalTypes is true, resolve any internal "FP_Type"
-    // instances to strings.
-    .reduce((acc,n) => {
+  if (options.async) {
+    ctx.async = options.async;
+  }
+  if (options.terminologyUrl) {
+    ctx.processedVars.terminologies = new Terminologies(options.terminologyUrl);
+  }
+  const res = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
+  return res instanceof Promise
+    ? res.then(r => prepareEvalResult(r, options))
+    : options.async === 'always'
+      ? Promise.resolve(prepareEvalResult(res, options))
+      : prepareEvalResult(res, options);
+}
+
+/**
+ * Prepares the result after evaluating an expression.
+ * engine.doEval returns array of "ResourceNode" and/or "FP_Type" instances.
+ * "ResourceNode" or "FP_Type" instances are not created for sub-items.
+ * Resolves any internal "ResourceNode" instances to plain objects and if
+ * options.resolveInternalTypes is true, resolve any internal "FP_Type"
+ * instances to strings.
+ * @param {Array} result - result of expression evaluation.
+ * @param {object} options - additional options (see function "applyParsedPath").
+ * @return {Array}
+ */
+function prepareEvalResult(result, options) {
+  return result
+    .reduce((acc, n) => {
       // Path for the data extracted from the resource.
       let path;
       let fhirNodeDataType;
@@ -786,6 +852,13 @@ function resolveInternalTypes(val) {
  * @param {function} [options.traceFn] - An optional trace function to call when tracing.
  * @param {object} [options.userInvocationTable] - a user invocation table used
  *  to replace any existing or define new functions.
+ * @param {boolean|string} [options.async] - defines how to support asynchronous functions:
+ *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception,
+ *  true or similar to true - return Promise, only for asynchronous functions,
+ *  "always" - return Promise always.
+ * @param {string} [options.terminologyUrl] - a URL that points to a FHIR
+ *   RESTful API that is used to create %terminologies that implements
+ *   the Terminology Service API.
  */
 function evaluate(fhirData, path, context, model, options) {
   return compile(path, model, options)(fhirData, context);
@@ -809,6 +882,13 @@ function evaluate(fhirData, path, context, model, options) {
  * @param {function} [options.traceFn] - An optional trace function to call when tracing.
  * @param {object} [options.userInvocationTable] - a user invocation table used
  *  to replace any existing or define new functions.
+ * @param {boolean|string} [options.async] - defines how to support asynchronous functions:
+ *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception,
+ *  true or similar to true - return Promise, only for asynchronous functions,
+ *  "always" - return Promise always.
+ *   @param {string} [options.terminologyUrl] - a URL that points to a FHIR
+ *   RESTful API that is used to create %terminologies that implements
+ *   the Terminology Service API.
  */
 function compile(path, model, options) {
   options = {

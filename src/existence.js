@@ -16,19 +16,29 @@ engine.notFn = function(coll) {
 };
 
 engine.existsMacro  = function(coll, expr) {
-  var vec = coll;
   if (expr) {
-    return engine.existsMacro(whereMacro.call(this, coll, expr));
+    const exprRes = whereMacro.call(this, coll, expr);
+    if (exprRes instanceof Promise) {
+      return exprRes.then(r => engine.existsMacro(r));
+    }
+    return engine.existsMacro(exprRes);
   }
-  return !util.isEmpty(vec);
+  return !util.isEmpty(coll);
 };
 
 engine.allMacro = function(coll, expr) {
+  const promises = [];
   for (let i=0, len=coll.length; i<len; ++i) {
     this.$index = i;
-    if(!util.isTrue(expr(coll[i]))){
+    const exprRes = expr(coll[i]);
+    if (exprRes instanceof Promise) {
+      promises.push(exprRes);
+    } else if(!util.isTrue(exprRes)){
       return [false];
     }
+  }
+  if (promises.length) {
+    return Promise.all(promises).then(r => r.some(i => !util.isTrue(i)) ? [false] : [true]);
   }
   return [true];
 };

@@ -8,6 +8,9 @@ parserOptions:
   ecmaVersion: 2016
   requireConfigFile: false
   sourceType: module
+globals:
+  Headers: true
+  fetch: true
 rules:
   indent:
     - error

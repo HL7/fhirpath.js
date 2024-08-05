@@ -8,8 +8,16 @@ const util = require('./utilities');
 
 engine.aggregateMacro = function(data, expr, initialValue) {
   return data.reduce((total, x, i) => {
-    this.$index = i;
-    return this.$total = expr(x);
+    if (total instanceof Promise) {
+      return total.then((t) => {
+        this.$index = i;
+        this.$total = t;
+        return this.$total = expr(x);
+      });
+    } else {
+      this.$index = i;
+      return this.$total = expr(x);
+    }
   }, this.$total = initialValue);
 };
 

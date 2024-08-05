@@ -1,11 +1,7 @@
 export function compile(
   path: string | Path,
   model?: Model,
-  options?: {
-    resolveInternalTypes?: boolean
-    traceFn?: (value: any, label: string) => void,
-    userInvocationTable?: UserInvocationTable
-  }
+  options?: Options
 ): Compile;
 
 export function evaluate(
@@ -13,11 +9,7 @@ export function evaluate(
   path: string | Path,
   context?: Context,
   model?: Model,
-  options?: {
-    resolveInternalTypes?: boolean,
-    traceFn?: (value: any, label: string) => void
-    userInvocationTable?: UserInvocationTable
-  }
+  options?: Options
 ): any[];
 
 export function resolveInternalTypes(value: any): any;
@@ -46,6 +38,14 @@ interface Model {
   path2Type: {
     [path: string]: string;
   };
+}
+
+interface Options {
+    resolveInternalTypes?: boolean
+    traceFn?: (value: any, label: string) => void,
+    userInvocationTable?: UserInvocationTable,
+    async: false|true|'always',
+    terminologyUrl: string
 }
 
 type Compile = (resource: any, context?: Context) => any[];
