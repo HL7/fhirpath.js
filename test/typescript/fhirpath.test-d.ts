@@ -1,6 +1,6 @@
 // This file contains unit tests for TypeScript type declarations.
-import * as fhirpath from './fhirpath';
-import * as model from '../fhir-context/r4'
+import * as fhirpath from '../../src/fhirpath';
+import * as model from '../../fhir-context/r4'
 import {expectType} from "tsd";
 
 const fhirData = {};
@@ -22,6 +22,14 @@ expectType<any[]>(
 );
 expectType<any[]>(
     fhirpath.compile(somePath, model, {async: false})(fhirData, envVars)
+);
+
+// If the async parameter is not passed in, the return type should be "any[]".
+expectType<any[]>(
+    fhirpath.evaluate(fhirData, somePath, envVars, model, {})
+);
+expectType<any[]>(
+    fhirpath.compile(somePath, model, {})(fhirData, envVars)
 );
 
 // If the async parameter is true, the return type should be

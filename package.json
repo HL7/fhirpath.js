@@ -42,6 +42,9 @@
   "engines": {
     "node": ">=8.9.0"
   },
+  "tsd": {
+    "directory": "test/typescript"
+  },
   "scripts": {
     "postinstall": "echo \"Building the Benny package based on a pull request which fixes an issue with 'statusShift'... \" && (cd node_modules/benny && npm i && npm run build > /dev/null) || echo \"Building the Benny package is completed.\"",
     "generateParser": "cd src/parser; rimraf ./generated/*; java -Xmx500M -cp \"../../antlr-4.9.3-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o generated -Dlanguage=JavaScript FHIRPath.g4; grunt updateParserRequirements",
