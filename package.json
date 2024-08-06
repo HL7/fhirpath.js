@@ -1,6 +1,6 @@
 {
   "name": "fhirpath",
-  "version": "3.15.0",
+  "version": "3.15.1",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "types": "src/fhirpath.d.ts",
@@ -32,6 +32,7 @@
     "open": "^8.4.0",
     "rimraf": "^3.0.0",
     "tmp": "0.0.33",
+    "tsd": "^0.31.1",
     "webpack": "^5.11.1",
     "webpack-bundle-analyzer": "^4.4.2",
     "webpack-cli": "^4.9.1",
@@ -49,7 +50,8 @@
     "test:unit:debug": "echo 'open chrome chrome://inspect/' && node --inspect node_modules/.bin/jest --runInBand",
     "build:demo": "npm run build && cd demo && npm run build",
     "test:e2e": "npm run build:demo && cypress run",
-    "test": "npm run lint && npm run test:unit && npm run test:e2e && echo \"For tests specific to IE 11, open browser-build/test/index.html in IE 11, and confirm that the tests on that page pass.\"",
+    "test:tsd": "tsd",
+    "test": "npm run lint && npm run test:tsd && npm run test:unit && npm run test:e2e && echo \"For tests specific to IE 11, open browser-build/test/index.html in IE 11, and confirm that the tests on that page pass.\"",
     "lint": "eslint src/parser/index.js src/*.js converter/",
     "compare-performance": "node ./test/benchmark.js"
   },

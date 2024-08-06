@@ -1,16 +1,16 @@
-export function compile(
+export function compile<T extends OptionVariants>(
   path: string | Path,
   model?: Model,
-  options?: Options
-): Compile;
+  options?: T
+): Compile<T>;
 
-export function evaluate(
+export function evaluate<T extends OptionVariants>(
   fhirData: any,
   path: string | Path,
   context?: Context,
   model?: Model,
-  options?: Options
-): any[];
+  options?: T
+): ReturnType<T>;
 
 export function resolveInternalTypes(value: any): any;
 
@@ -44,11 +44,29 @@ interface Options {
     resolveInternalTypes?: boolean
     traceFn?: (value: any, label: string) => void,
     userInvocationTable?: UserInvocationTable,
-    async: false|true|'always',
-    terminologyUrl: string
+    terminologyUrl?: string
 }
 
-type Compile = (resource: any, context?: Context) => any[];
+interface NoAsyncOptions extends Options {
+  async?: false;
+}
+
+interface AsyncOptions extends Options {
+  async: true;
+}
+
+interface AlwaysAsyncOptions extends Options {
+  async: 'always';
+}
+
+type OptionVariants = NoAsyncOptions | AsyncOptions | AlwaysAsyncOptions;
+
+type ReturnType<T> =
+    T extends AlwaysAsyncOptions ? Promise<any[]> :
+    T extends NoAsyncOptions ? any[] :
+    any[] | Promise<any[]>;
+
+type Compile<T> = (resource: any, context?: Context) => ReturnType<T>;
 
 type Context = void | Record<string, any>;
 

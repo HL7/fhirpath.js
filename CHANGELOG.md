@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.15.1] - 2024-08-06
+### Fixed
+- Return data type for `evaluate` and `compile` in TypeScript type declarations.
+  The return data type now depends on the `async` option.
+
 ## [3.15.0] - 2024-08-05
 ### Added
 - option `async`, which allows us to get the result of an expression evaluation
