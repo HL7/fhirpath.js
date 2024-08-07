@@ -1,7 +1,9 @@
 /**
  * This file contains code to run "npm ci" in the demo directory if it exists.
+ * The demo directory has been excluded from the npm package, and the presence
+ * of the demo directory is a signal that we are working with the source code.
  */
-const { spawn, fork } = require('child_process');
+const { spawn } = require('child_process');
 const path = require('path');
 const fs = require("fs"); // Or `import fs from "fs";` with ESM
 
