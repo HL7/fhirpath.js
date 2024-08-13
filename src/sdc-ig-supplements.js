@@ -9,7 +9,7 @@ let engine = {};
  * function here:
  * https://hl7.org/fhir/uv/sdc/expressions.html#fhirpath-supplements
  * @param {Array} coll - questionnaire items
- * @return {number[]}
+ * @return {(number|Promise<number>)[]}
  */
 engine.weight = function (coll) {
   if(coll !== false && ! coll) { return []; }
@@ -21,9 +21,11 @@ engine.weight = function (coll) {
   const res = [];
 
   const questionnaire = this.vars.questionnaire || this.processedVars.questionnaire?.data;
+  let hasPromise = false;
+
   coll.forEach((item) => {
     if (item?.data) {
-      const valueCoding = item.data.valueCoding;
+      const valueCoding = item.fhirNodeDataType === 'Coding' ? item.data : item.data.valueCoding;
       let value = valueCoding;
       if (!value) {
         const prop = Object.keys(item.data).find(p => p.length > 5 && p.startsWith('value'));
@@ -58,22 +60,103 @@ engine.weight = function (coll) {
               if (score !== undefined) {
                 // if we have a score extension for the answerOption, use it.
                 res.push(score);
+              } else if (qItem.answerValueSet || valueCoding.system) {
+                // Otherwise, check corresponding value set and code system
+                hasPromise = true;
+                res.push(getWeightFromTerminologyServer(
+                  this, qItem.answerValueSet, valueCoding.code,
+                  valueCoding.system, checkExtUrl));
               }
+            } else if (qItem?.answerValueSet) {
+              // Otherwise, check corresponding value set and code system
+              hasPromise = true;
+              res.push(getWeightFromTerminologyServer(
+                this, qItem.answerValueSet, valueCoding.code,
+                valueCoding.system, checkExtUrl));
             } else {
               throw new Error(
-                'Questionnaire answerOption with this linkId was not found: ' +
+                'Questionnaire answerOption/answerValueSet with this linkId was not found: ' +
                 item.parentResNode.data.linkId + '.');
             }
           } else {
             throw new Error('%questionnaire is needed but not specified.');
           }
+        } else if (valueCoding.system) {
+          // If there are no questionnaire (no linkId) check corresponding value
+          // set and code system
+          hasPromise = true;
+          res.push(getWeightFromTerminologyServer(
+            this, null, valueCoding.code, valueCoding.system,
+            checkExtUrl));
         }
       }
     }
   });
 
-  return res;
+  return hasPromise ? Promise.all(res) : res;
 };
+
+/**
+ * Returns a promise of score value received from the terminology server.
+ * @param {Object} ctx - object describing the context of expression
+ *  evaluation (see the "applyParsedPath" function).
+ * @param {string} vsURL - value set URL specified in the Questionnaire item.
+ * @param {string} code - symbol in syntax defined by the system.
+ * @param {string} system - code system.
+ * @param {Function} checkExtUrl - function to check if an extension has a URL
+ *  to store a score.
+ * @return {Promise<number|null|undefined>}
+ */
+function getWeightFromTerminologyServer(ctx, vsURL, code, system, checkExtUrl) {
+  if (!ctx.async) {
+    throw new Error('The asynchronous function "weight"/"ordinal" is not allowed. ' +
+      'To enable asynchronous functions, use the async=true or async="always"' +
+      ' option.');
+  }
+
+  const terminologyUrl = ctx.processedVars.terminologies?.terminologyUrl;
+  if (!terminologyUrl) {
+    throw new Error('Option "terminologyUrl" is not specified.');
+  }
+
+  // Searching for value sets by item code is extremely onerous for a server
+  // (see https://www.hl7.org/fhir/valueset.html#search for details); therefore,
+  // we only check the value set whose URL is specified in the Questionnaire item.
+  return (vsURL
+    ? fetch(`${terminologyUrl}/ValueSet?` + new URLSearchParams({
+      url: vsURL
+    }).toString()).then(r => r.json()).then((bundle) => {
+      const vs = bundle?.entry?.[0]?.resource;
+      if (!vs) {
+        return Promise.reject(`Cannot resolve the corresponding value set: ${vsURL}`);
+      }
+      return (
+        vs.compose?.include?.find(c => c.system === system)?.concept
+          .find(c => c.code === code)
+        ||
+        vs.expansion?.contains
+          ?.find(c => c.system === system && c.code === code)
+      )?.extension?.find(checkExtUrl)?.valueDecimal;
+    })
+    : Promise.resolve(null)
+  ).then(weightFromVS => {
+    if (weightFromVS !== null && weightFromVS !== undefined) {
+      return weightFromVS;
+    }
+    return system
+      ? fetch(`${terminologyUrl}/CodeSystem?` + new URLSearchParams({
+        code, system
+      }).toString()).then(r => r.json()).then((bundle) => {
+        const cs = bundle?.entry?.[0]?.resource;
+        if (!cs) {
+          return Promise.reject(`Cannot resolve the corresponding code system: ${system}`);
+        }
+        return cs.concept?.find(c => c.code === code)
+          ?.extension?.find(checkExtUrl)?.valueDecimal;
+      })
+      : Promise.resolve(null);
+  });
+}
 
 /**
  * Returns array of linkIds of ancestor ResourceNodes and source ResourceNode

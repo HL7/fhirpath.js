@@ -1,33 +1,15 @@
 const fhirpath = require('../src/fhirpath');
 const model = require('../fhir-context/r4');
 const resource = require('./resources/observation-example.json');
+const {mockRestore, mockFetchResults} = require('./mock-fetch-results');
 
-let fetchSpy;
 
-/**
- * Mocks fetch requests.
- * @param {Array} results - an array of fetch response descriptions, each item
- *  of which is an array with the RegExp URL as the first item and the response
- *  JSON object as the second.
- */
-function mockFetchResults(results) {
-  fetchSpy = jest.spyOn(global, 'fetch').mockImplementation(
-    (url) => new Promise((resolve, _) => {
-      const mockedResult = results?.find(r => r[0].test(url))?.[1]
-      if(mockedResult) {
-        resolve({ json: () => mockedResult });
-      } else {
-        console.error(`"${url}" is not mocked.`)
-      }
-    })
-  );
-}
 
 describe('Async functions', () => {
 
   describe('%terminologies.validateVS', () => {
     afterEach(() => {
-      fetchSpy?.mockRestore();
+      mockRestore();
     })
 
     it('should work ', (done) => {
