@@ -62,17 +62,21 @@ engine.weight = function (coll) {
                 res.push(score);
               } else if (qItem.answerValueSet || valueCoding.system) {
                 // Otherwise, check corresponding value set and code system
-                hasPromise = true;
-                res.push(getWeightFromTerminologyServer(
-                  this, qItem.answerValueSet, valueCoding.code,
-                  valueCoding.system, checkExtUrl));
+                const score = getWeightFromCorrespondingResources(this, questionnaire,
+                  qItem.answerValueSet, valueCoding.code, valueCoding.system);
+                if (score !== undefined) {
+                  res.push(score);
+                }
+                hasPromise = hasPromise || score instanceof Promise;
               }
             } else if (qItem?.answerValueSet) {
               // Otherwise, check corresponding value set and code system
-              hasPromise = true;
-              res.push(getWeightFromTerminologyServer(
-                this, qItem.answerValueSet, valueCoding.code,
-                valueCoding.system, checkExtUrl));
+              const score = getWeightFromCorrespondingResources(this, questionnaire,
+                qItem.answerValueSet, valueCoding.code, valueCoding.system);
+              if (score !== undefined) {
+                res.push(score);
+              }
+              hasPromise = hasPromise || score instanceof Promise;
             } else {
               throw new Error(
                 'Questionnaire answerOption/answerValueSet with this linkId was not found: ' +
@@ -82,12 +86,13 @@ engine.weight = function (coll) {
             throw new Error('%questionnaire is needed but not specified.');
           }
         } else if (valueCoding.system) {
-          // If there are no questionnaire (no linkId) check corresponding value
-          // set and code system
-          hasPromise = true;
-          res.push(getWeightFromTerminologyServer(
-            this, null, valueCoding.code, valueCoding.system,
-            checkExtUrl));
+          // If there are no questionnaire (no linkId) check corresponding code system
+          const score = getWeightFromCorrespondingResources(this, null,
+            null, valueCoding.code, valueCoding.system);
+          if (score !== undefined) {
+            res.push(score);
+          }
+          hasPromise = hasPromise || score instanceof Promise;
         }
       }
     }
@@ -96,18 +101,148 @@ engine.weight = function (coll) {
   return hasPromise ? Promise.all(res) : res;
 };
 
+
 /**
- * Returns a promise of score value received from the terminology server.
+ * Returns the value of score or its promise received from a corresponding value
+ * set or code system.
  * @param {Object} ctx - object describing the context of expression
  *  evaluation (see the "applyParsedPath" function).
+ * @param {Object} questionnaire - object containing questionnaire resource data
  * @param {string} vsURL - value set URL specified in the Questionnaire item.
  * @param {string} code - symbol in syntax defined by the system.
  * @param {string} system - code system.
- * @param {Function} checkExtUrl - function to check if an extension has a URL
- *  to store a score.
- * @return {Promise<number|null|undefined>}
+ * @return {number|undefined|Promise<number|undefined>}
  */
-function getWeightFromTerminologyServer(ctx, vsURL, code, system, checkExtUrl) {
+function getWeightFromCorrespondingResources(ctx, questionnaire, vsURL, code, system) {
+  let result;
+
+  if (code) {
+    const contextResource = ctx.processedVars.context?.[0].data || ctx.vars.context?.[0];
+
+    if (vsURL) {
+      const vsId = /#(.*)/.test(vsURL) ? RegExp.$1 : null;
+      const isAnswerValueSet = vsId
+        ? (r) => r.id === vsId && r.resourceType === 'ValueSet'
+        : (r) => r.url === vsURL && r.resourceType === 'ValueSet';
+
+      const containedVS = contextResource?.contained?.find(isAnswerValueSet)
+        || questionnaire?.contained?.find(isAnswerValueSet);
+
+      if (containedVS) {
+        if (!containedVS.expansion) {
+          result = fetch(`${getTerminologyUrl(ctx)}/ValueSet/$expand`, {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/fhir+json',
+              'Content-Type': 'application/fhir+json'
+            },
+            body: JSON.stringify({
+              "resourceType": "Parameters",
+              "parameter": [{
+                "name": "valueSet",
+                "resource": containedVS
+              }, {
+                "name": "property",
+                "valueString": "itemWeight"
+              }]
+            })
+          })
+            .then(r => r.ok ? r.json() : Promise.reject(r.json()))
+            .then((terminologyVS) => {
+              return getItemWeightFromProperty(
+                getValueSetItem(terminologyVS.expansion?.contains, code, system)
+              );
+            });
+        } else {
+          result = getItemWeightFromProperty(
+            getValueSetItem(containedVS.expansion.contains, code, system)
+          );
+        }
+      } else {
+        result = fetch(`${getTerminologyUrl(ctx)}/ValueSet?` + new URLSearchParams({
+          url: vsURL
+        }, {
+          headers: {
+            'Accept': 'application/fhir+json'
+          }
+        }).toString())
+          .then(r => r.ok ? r.json() : Promise.reject(r.json()))
+          .then((bundle) => {
+            const terminologyVS = bundle?.entry?.[0]?.resource;
+            if (!terminologyVS) {
+              return Promise.reject(
+                `Cannot resolve the corresponding value set: ${vsURL}`
+              );
+            }
+            return getItemWeightFromProperty(
+              getValueSetItem(terminologyVS?.expansion?.contains, code, system)
+            );
+          });
+      }
+    }
+
+    if (system) {
+      if (result === undefined) {
+        const isCodeSystem = (r) => r.url === system && r.resourceType === 'CodeSystem';
+        const containedCS = contextResource?.contained?.find(isCodeSystem)
+          || questionnaire?.contained?.find(isCodeSystem);
+
+        if (containedCS) {
+          result = getItemWeightFromProperty(
+            getCodeSystemItem(containedCS?.concept, code)
+          );
+        } else {
+          result = getWeightFromTerminologyCodeSet(ctx, code, system);
+        }
+      } else if (result instanceof Promise) {
+        result = result.then(weightFromVS => {
+          if (weightFromVS !== undefined) {
+            return weightFromVS;
+          }
+          return getWeightFromTerminologyCodeSet(ctx, code, system);
+        });
+      }
+    }
+  }
+
+  return result;
+}
+
+
+/**
+ * Returns the promised score value from the code system obtained from the
+ * terminology server.
+ * @param {Object} ctx - object describing the context of expression
+ *  evaluation (see the "applyParsedPath" function).
+ * @param {string} code - symbol in syntax defined by the system.
+ * @param {string} system - code system.
+ * @return {Promise<number|undefined>}
+ */
+function getWeightFromTerminologyCodeSet(ctx, code, system) {
+  return fetch(`${getTerminologyUrl(ctx)}/CodeSystem/$lookup?` + new URLSearchParams({
+    code, system, property: 'itemWeight'
+  }, {
+    headers: {
+      'Accept': 'application/fhir+json'
+    }
+  }).toString())
+    .then(r => r.ok ? r.json() : Promise.reject(r.json()))
+    .then((parameters) => {
+      return parameters.parameter
+        .find(p => p.name === 'property'&& p.part
+          .find(part => part.name === 'code' && part.valueCode === 'itemWeight'))
+        ?.part?.find(p => p.name === 'value')?.valueDecimal;
+    });
+}
+
+
+/**
+ * Returns the URL of the terminology server.
+ * @param {Object} ctx - object describing the context of expression
+ *  evaluation (see the "applyParsedPath" function).
+ * @return {string}
+ */
+function getTerminologyUrl(ctx) {
   if (!ctx.async) {
     throw new Error('The asynchronous function "weight"/"ordinal" is not allowed. ' +
       'To enable asynchronous functions, use the async=true or async="always"' +
@@ -119,44 +254,58 @@ function getWeightFromTerminologyServer(ctx, vsURL, code, system, checkExtUrl) {
     throw new Error('Option "terminologyUrl" is not specified.');
   }
 
-  // Searching for value sets by item code is extremely onerous for a server
-  // (see https://www.hl7.org/fhir/valueset.html#search for details); therefore,
-  // we only check the value set whose URL is specified in the Questionnaire item.
-  return (vsURL
-    ? fetch(`${terminologyUrl}/ValueSet?` + new URLSearchParams({
-      url: vsURL
-    }).toString()).then(r => r.json()).then((bundle) => {
-      const vs = bundle?.entry?.[0]?.resource;
-      if (!vs) {
-        return Promise.reject(`Cannot resolve the corresponding value set: ${vsURL}`);
-      }
-      return (
-        vs.compose?.include?.find(c => c.system === system)?.concept
-          .find(c => c.code === code)
-        ||
-        vs.expansion?.contains
-          ?.find(c => c.system === system && c.code === code)
-      )?.extension?.find(checkExtUrl)?.valueDecimal;
-    })
-    : Promise.resolve(null)
-  ).then(weightFromVS => {
-    if (weightFromVS !== null && weightFromVS !== undefined) {
-      return weightFromVS;
-    }
-    return system
-      ? fetch(`${terminologyUrl}/CodeSystem?` + new URLSearchParams({
-        code, system
-      }).toString()).then(r => r.json()).then((bundle) => {
-        const cs = bundle?.entry?.[0]?.resource;
-        if (!cs) {
-          return Promise.reject(`Cannot resolve the corresponding code system: ${system}`);
-        }
-        return cs.concept?.find(c => c.code === code)
-          ?.extension?.find(checkExtUrl)?.valueDecimal;
-      })
-      : Promise.resolve(null);
-  });
+  return terminologyUrl;
 }
+
+/**
+ * Returns an item from "ValueSet.expansion.contains" that has the specified
+ * code and system.
+ * @param {Array<Object>} contains - value of "ValueSet.expansion.contains".
+ * @param {string} code - symbol in syntax defined by the system.
+ * @param {string} system - code system.
+ * @return {Object| undefined}
+ */
+function getValueSetItem(contains, code, system) {
+  let result;
+  if (contains) {
+    for(let i = 0; i < contains.length && !result; i++) {
+      const item = contains[i];
+      if (item.code === code && item.system === system) {
+        result = item;
+      } else {
+        result = getValueSetItem(item.contains, code, system);
+      }
+    }
+  }
+  return result;
+}
+
+
+/**
+ * Returns an item from "CodeSystem.concept" that has the specified code.
+ * @param {Array<Object>} concept - value of "CodeSystem.concept".
+ * @param {string} code - symbol in syntax defined by the system.
+ * @return {Object| undefined}
+ */
+function getCodeSystemItem(concept, code) {
+  let result;
+  if (concept) {
+    for(let i = 0; i < concept.length && !result; i++) {
+      const item = concept[i];
+      if (item.code === code) {
+        result = item;
+      } else {
+        result = getCodeSystemItem(item.concept, code);
+      }
+    }
+  }
+  return result;
+}
+
+function getItemWeightFromProperty(item) {
+  return item?.property?.find(p => p.code === 'itemWeight')?.valueDecimal;
+}
+
 
 /**
  * Returns array of linkIds of ancestor ResourceNodes and source ResourceNode
@@ -175,6 +324,7 @@ function getLinkIds(node) {
 
   return res;
 }
+
 
 /**
  * Returns a questionnaire item based on the linkIds array of the ancestor
