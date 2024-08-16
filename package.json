@@ -57,6 +57,12 @@
   "bin": {
     "fhirpath": "bin/fhirpath"
   },
+  "files": [
+    "./CHANGELOG.md",
+    "./bin",
+    "./fhir-context",
+    "./src"
+  ],
   "repository": "github:HL7/fhirpath.js",
   "license": "SEE LICENSE in LICENSE.md"
 }
