@@ -64,21 +64,40 @@ util.isCapitalized = function(x){
 };
 
 util.flatten = function(x){
-  return x.reduce(function(acc, x) {
-    if(Array.isArray(x)){
-      // todo replace with array modification
-      acc = acc.concat(x);
-    } else {
-      acc.push(x);
-    }
-    return acc;
-  }, []);
+  if (x.some(i => i instanceof Promise)) {
+    return Promise.all(x).then(arr => flattenSync(arr));
+  }
+  return flattenSync(x);
 };
+
+/**
+ * Creates a shallow copy of the source array and replaces those elements of the
+ * source array that are arrays with their contents.
+ * For example:
+ * [1, [2, 3]] -> [1, 2, 3]
+ * @param {Array} x - source array
+ * @return {Array}
+ */
+function flattenSync(x) {
+  return [].concat(...x);
+}
 
 util.arraify = function(x){
   if(Array.isArray(x)){ return x; }
   if(util.isSome(x)){ return [x]; }
   return [];
+};
+
+/**
+ * If the input parameter is a promise, arraify the result of that promise,
+ * otherwise arraify the input parameter.
+ * @param {*|Promise<*>} x - input parameter
+ * @return {*[]|Promise<*[]>}
+ */
+util.resolveAndArraify = function(x){
+  return x instanceof Promise
+    ? x.then(r => util.arraify(r))
+    : util.arraify(x);
 };
 
 /**

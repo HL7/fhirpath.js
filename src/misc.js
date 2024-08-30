@@ -10,14 +10,26 @@ const { FP_Quantity, TypeInfo } = types;
 var engine = {};
 
 engine.iifMacro = function(data, cond, ok, fail) {
-  if(util.isTrue(cond(data))) {
+  const condition = cond(data);
+  if (condition instanceof Promise) {
+    return condition.then(c => iifMacroSync(data, c, ok, fail));
+  }
+  return iifMacroSync(data, condition, ok, fail);
+};
+
+function iifMacroSync(data, condition, ok, fail) {
+  if(util.isTrue(condition)) {
     return ok(data);
   } else {
     return fail ? fail(data) : [];
   }
-};
+}
 
 engine.traceFn = function (x, label, expr) {
+  const exprRes = expr ? expr(x) : null;
+  if (exprRes instanceof Promise) {
+    return exprRes.then((r) => engine.traceFn(x, label, r));
+  }
   if (this.customTraceFn) {
     if (expr){
       this.customTraceFn(expr(x), label ?? "");
@@ -280,6 +292,9 @@ const singletonEvalByType = {
     if (typeof d === "string") {
       return d;
     }
+  },
+  "AnySingletonAtRoot": function (d) {
+    return d;
   }
 };
 

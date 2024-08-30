@@ -3,10 +3,24 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [3.14.2] - 2024-08-02
+## [3.15.2] - 2024-08-30
 ### Fixed
 - Removed the need to run `(cd demo && npm ci)`.
 - Excluded unnecessary files from the npm package.
+
+## [3.15.1] - 2024-08-06
+### Fixed
+- Return data type for `evaluate` and `compile` in TypeScript type declarations.
+  The return data type now depends on the `async` option.
+
+## [3.15.0] - 2024-08-05
+### Added
+- option `async`, which allows us to get the result of an expression evaluation
+  asynchronously.
+- Support for asynchronous functions: if any function in an expression returns
+  a Promise and option `async=true`, then the result of evaluating
+  the expression is a Promise.
+- async function `memberOf`.
 
 ## [3.14.1] - 2024-07-02
 ### Fixed
