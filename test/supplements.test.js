@@ -135,47 +135,40 @@ describe("supplements", () => {
 
       it("should return the correct result when getting scores from a value set retrieved from the terminology server", (done) => {
         mockFetchResults([
-          ['ValueSet?url=some-value-set',
+          ['ValueSet/$expand?url=some-value-set-1',
             {
-              "resourceType": "Bundle",
-              "type": "searchset",
-              "total": 1,
-              "entry": [{
-                "resource": {
-                  "resourceType": "ValueSet",
-                  "expansion": {
-                    "contains": [{
-                      "code": "some-code-1",
-                      "system": "some-system-1",
-                      "property": [{
-                        "code" : "itemWeight",
-                        "valueDecimal": 1
-                      }]
-                    }, {
-                      "code": "some-code-2",
-                      "system": "some-system-1",
-                      "property": [{
-                        "code" : "itemWeight",
-                        "valueDecimal": 2
-                      }]
-                    }, {
-                      "code": "some-code-1",
-                      "system": "some-system-2",
-                      "property": [{
-                        "code" : "itemWeight",
-                        "valueDecimal": 10
-                      }]
-                    }, {
-                      "code": "some-code-2",
-                      "system": "some-system-2",
-                      "property": [{
-                        "code" : "itemWeight",
-                        "valueDecimal": 20
-                      }]
-                    }]
-                  }
-                }
-              }]
+              "resourceType": "ValueSet",
+              "expansion": {
+                "contains": [{
+                  "code": "some-code-1",
+                  "system": "some-system-1",
+                  "property": [{
+                    "code" : "itemWeight",
+                    "valueDecimal": 1
+                  }]
+                }, {
+                  "code": "some-code-2",
+                  "system": "some-system-1",
+                  "property": [{
+                    "code" : "itemWeight",
+                    "valueDecimal": 2
+                  }]
+                }, {
+                  "code": "some-code-1",
+                  "system": "some-system-2",
+                  "property": [{
+                    "code" : "itemWeight",
+                    "valueDecimal": 10
+                  }]
+                }, {
+                  "code": "some-code-2",
+                  "system": "some-system-2",
+                  "property": [{
+                    "code" : "itemWeight",
+                    "valueDecimal": 20
+                  }]
+                }]
+              }
             }
           ]
         ]);
@@ -231,11 +224,11 @@ describe("supplements", () => {
                       "item": [{
                         "linkId": "link-1.1.1",
                         "type": "choice",
-                        "answerValueSet": "some-value-set",
+                        "answerValueSet": "some-value-set-1",
                       },{
                         "linkId": "link-1.1.2",
                         "type": "choice",
-                        "answerValueSet": "some-value-set",
+                        "answerValueSet": "some-value-set-1",
                       }]
                     }
                   ]
@@ -254,43 +247,36 @@ describe("supplements", () => {
 
       it("should return the correct result when getting scores from a value set and a code system retrieved from terminology server", (done) => {
         mockFetchResults([
-          ['ValueSet?url=some-value-set',
+          ['ValueSet/$expand?url=some-value-set-2',
             {
-              "resourceType": "Bundle",
-              "type": "searchset",
-              "total": 1,
-              "entry": [{
-                "resource": {
-                  "resourceType": "ValueSet",
-                  "expansion": {
-                    "contains": [{
-                      "code": "some-code-1",
-                      "system": "some-system-1",
-                      "property": [{
-                        "code" : "itemWeight",
-                        "valueDecimal": 1
-                      }]
-                    }, {
-                      "code": "some-code-2",
-                      "system": "some-system-1",
-                      "property": [{
-                        "code" : "itemWeight",
-                        "valueDecimal": 2
-                      }]
-                    }, {
-                      "code": "some-code-1",
-                      "system": "some-system-2",
-                      "property": [{
-                        "code" : "itemWeight",
-                        "valueDecimal": 10
-                      }]
-                    }, {
-                      "code": "some-code-2",
-                      "system": "some-system-2"
-                    }]
-                  }
-                }
-              } ]
+              "resourceType": "ValueSet",
+              "expansion": {
+                "contains": [{
+                  "code": "some-code-1",
+                  "system": "some-system-1",
+                  "property": [{
+                    "code" : "itemWeight",
+                    "valueDecimal": 1
+                  }]
+                }, {
+                  "code": "some-code-2",
+                  "system": "some-system-1",
+                  "property": [{
+                    "code" : "itemWeight",
+                    "valueDecimal": 2
+                  }]
+                }, {
+                  "code": "some-code-1",
+                  "system": "some-system-2",
+                  "property": [{
+                    "code" : "itemWeight",
+                    "valueDecimal": 10
+                  }]
+                }, {
+                  "code": "some-code-2",
+                  "system": "some-system-2"
+                }]
+              }
             }],
           ['/CodeSystem/$lookup?code=some-code-2&system=some-system-2&property=itemWeight',
             {
@@ -359,11 +345,11 @@ describe("supplements", () => {
                       "item": [{
                         "linkId": "link-1.1.1",
                         "type": "choice",
-                        "answerValueSet": "some-value-set",
+                        "answerValueSet": "some-value-set-2",
                       },{
                         "linkId": "link-1.1.2",
                         "type": "choice",
-                        "answerValueSet": "some-value-set",
+                        "answerValueSet": "some-value-set-2",
                       }]
                     }
                   ]
@@ -382,12 +368,15 @@ describe("supplements", () => {
 
       it("should cause an expression to fail if a corresponding value set cannot be resolved", (done) => {
         mockFetchResults([
-          ['ValueSet?url=some-value-set',
+          ['ValueSet/$expand?url=some-value-set-3',
+            null,
             {
-              "resourceType": "Bundle",
-              "type": "searchset",
-              "total": 0,
-              "entry": []
+              "resourceType": "OperationOutcome",
+              "issue": [{
+                "severity": "error",
+                "code": "processing",
+                "diagnostics": "Unable to expand ValueSet"
+              }]
             }]
         ]);
         const terminologyUrl = 'https://lforms-fhir.nlm.nih.gov/baseR4';
@@ -442,11 +431,11 @@ describe("supplements", () => {
                       "item": [{
                         "linkId": "link-1.1.1",
                         "type": "choice",
-                        "answerValueSet": "some-value-set",
+                        "answerValueSet": "some-value-set-3",
                       },{
                         "linkId": "link-1.1.2",
                         "type": "choice",
-                        "answerValueSet": "some-value-set",
+                        "answerValueSet": "some-value-set-3",
                       }]
                     }
                   ]
@@ -458,7 +447,7 @@ describe("supplements", () => {
         res.then(() => {
           done('The expression must fail if the corresponding value set cannot be resolved.');
         }, (err) => {
-          if (err === 'Cannot resolve the corresponding value set: some-value-set') {
+          if (err?.issue?.[0]?.diagnostics === 'Unable to expand ValueSet') {
             done();
           } else {
             done(err);
@@ -468,43 +457,36 @@ describe("supplements", () => {
 
       it("should cause an expression to fail if a corresponding code system cannot be resolved", (done) => {
         mockFetchResults([
-          ['ValueSet?url=some-value-set',
+          ['ValueSet/$expand?url=some-value-set-4',
             {
-              "resourceType": "Bundle",
-              "type": "searchset",
-              "total": 1,
-              "entry": [{
-                "resource": {
-                  "resourceType": "ValueSet",
-                  "expansion": {
-                    "contains": [{
-                      "code": "some-code-1",
-                      "system": "some-system-1",
-                      "property": [{
-                        "code" : "itemWeight",
-                        "valueDecimal": 1
-                      }]
-                    }, {
-                      "code": "some-code-2",
-                      "system": "some-system-1",
-                      "property": [{
-                        "code" : "itemWeight",
-                        "valueDecimal": 2
-                      }]
-                    }, {
-                      "code": "some-code-1",
-                      "system": "some-system-2",
-                      "property": [{
-                        "code" : "itemWeight",
-                        "valueDecimal": 10
-                      }]
-                    }, {
-                      "code": "some-code-2",
-                      "system": "some-system-2"
-                    }]
-                  }
-                }
-              }]
+              "resourceType": "ValueSet",
+              "expansion": {
+                "contains": [{
+                  "code": "some-code-1",
+                  "system": "some-system-1",
+                  "property": [{
+                    "code" : "itemWeight",
+                    "valueDecimal": 1
+                  }]
+                }, {
+                  "code": "some-code-2",
+                  "system": "some-system-1",
+                  "property": [{
+                    "code" : "itemWeight",
+                    "valueDecimal": 2
+                  }]
+                }, {
+                  "code": "some-code-1",
+                  "system": "some-system-2",
+                  "property": [{
+                    "code" : "itemWeight",
+                    "valueDecimal": 10
+                  }]
+                }, {
+                  "code": "some-code-2",
+                  "system": "some-system-2"
+                }]
+              }
             }],
           ['/CodeSystem/$lookup?code=some-code-2&system=some-system-2&property=itemWeight',
             null,
@@ -569,11 +551,11 @@ describe("supplements", () => {
                       "item": [{
                         "linkId": "link-1.1.1",
                         "type": "choice",
-                        "answerValueSet": "some-value-set",
+                        "answerValueSet": "some-value-set-4",
                       },{
                         "linkId": "link-1.1.2",
                         "type": "choice",
-                        "answerValueSet": "some-value-set",
+                        "answerValueSet": "some-value-set-4",
                       }]
                     }
                   ]
@@ -638,8 +620,8 @@ describe("supplements", () => {
               "contained": [
                 {
                   "resourceType": "ValueSet",
-                  "id": "some-value-set-id",
-                  "url": "some-value-set-url",
+                  "id": "some-value-set-id-5",
+                  "url": "some-value-set-url-5",
                   "expansion": {
                     "contains": [{
                       "code": "some-code-1",
@@ -686,11 +668,11 @@ describe("supplements", () => {
                       "item": [{
                         "linkId": "link-1.1.1",
                         "type": "choice",
-                        "answerValueSet": "#some-value-set-id",
+                        "answerValueSet": "#some-value-set-id-5",
                       },{
                         "linkId": "link-1.1.2",
                         "type": "choice",
-                        "answerValueSet": "some-value-set-url",
+                        "answerValueSet": "some-value-set-url-5",
                       }]
                     }
                   ]
@@ -707,8 +689,8 @@ describe("supplements", () => {
           ['https://lforms-fhir.nlm.nih.gov/baseR4/ValueSet/$expand',
             {
               "resourceType": "ValueSet",
-              "id": "some-value-set-id",
-              "url": "some-value-set-url",
+              "id": "some-value-set-id-6",
+              "url": "some-value-set-url-6",
               "expansion": {
                 "contains": [{
                   "code": "some-code-1",
@@ -788,8 +770,8 @@ describe("supplements", () => {
               "contained": [
                 {
                   "resourceType": "ValueSet",
-                  "id": "some-value-set-id",
-                  "url": "some-value-set-url"
+                  "id": "some-value-set-id-6",
+                  "url": "some-value-set-url-6"
                 }
               ],
               "item": [
@@ -803,11 +785,11 @@ describe("supplements", () => {
                       "item": [{
                         "linkId": "link-1.1.1",
                         "type": "choice",
-                        "answerValueSet": "#some-value-set-id",
+                        "answerValueSet": "#some-value-set-id-6",
                       },{
                         "linkId": "link-1.1.2",
                         "type": "choice",
-                        "answerValueSet": "some-value-set-url",
+                        "answerValueSet": "some-value-set-url-6",
                       }]
                     }
                   ]
@@ -823,115 +805,6 @@ describe("supplements", () => {
         }, (err) => {
           done(err)
         });
-      });
-
-      it("should return the correct result when getting scores from a value set contained in the questionnaire response", () => {
-        const terminologyUrl = 'https://lforms-fhir.nlm.nih.gov/baseR4';
-        const res = fhirpath.evaluate(
-          {
-            "resourceType": "QuestionnaireResponse",
-            "contained": [
-              {
-                "resourceType": "ValueSet",
-                "id": "some-value-set-id",
-                "url": "some-value-set-url",
-                "expansion": {
-                  "contains": [{
-                    "code": "some-code-1",
-                    "system": "some-system-2",
-                    "property": [{
-                      "code" : "itemWeight",
-                      "valueDecimal": 10
-                    }],
-                    "contains": [{
-                      "code": "some-code-1",
-                      "system": "some-system-1",
-                      "property": [{
-                        "code" : "itemWeight",
-                        "valueDecimal": 1
-                      }]
-                    }]
-                  }, {
-                    "code": "some-code-2",
-                    "system": "some-system-2",
-                    "property": [{
-                      "code" : "itemWeight",
-                      "valueDecimal": 20
-                    }],
-                    "contains": [{
-                      "code": "some-code-2",
-                      "system": "some-system-1",
-                      "property": [{
-                        "code" : "itemWeight",
-                        "valueDecimal": 2
-                      }]
-                    }]
-                  }]
-                }
-              }
-            ],
-            "item": [
-              {
-                "linkId": "link-1",
-                "item": [
-                  {
-                    "linkId": "link-1.1",
-                    "item": [
-                      {
-                        "linkId": "link-1.1.1",
-                        "answer": [
-                          {
-                            "valueCoding": {
-                              "code": "some-code-1",
-                              "system": "some-system-1"
-                            }
-                          }
-                        ]
-                      },{
-                        "linkId": "link-1.1.2",
-                        "answer": [
-                          {
-                            "valueCoding": {
-                              "code": "some-code-2",
-                              "system": "some-system-2"
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }, `%context.repeat(item).answer.${fnName}().sum()`,
-          {
-            questionnaire: {
-              "resourceType": "Questionnaire",
-              "item": [
-                {
-                  "linkId": "link-1",
-                  "type": "group",
-                  "item": [
-                    {
-                      "linkId": "link-1.1",
-                      "type": "group",
-                      "item": [{
-                        "linkId": "link-1.1.1",
-                        "type": "choice",
-                        "answerValueSet": "#some-value-set-id",
-                      },{
-                        "linkId": "link-1.1.2",
-                        "type": "choice",
-                        "answerValueSet": "some-value-set-url",
-                      }]
-                    }
-                  ]
-                }
-              ]
-            }
-          }, r4_model, { async: true, terminologyUrl }
-        );
-        expect(res).toStrictEqual([21]);
       });
 
       it("should return the correct result when getting scores from a contained value set and a code system from terminology server", (done) => {
@@ -995,8 +868,8 @@ describe("supplements", () => {
               "contained": [
                 {
                   "resourceType": "ValueSet",
-                  "id": "some-value-set-id",
-                  "url": "some-value-set-url",
+                  "id": "some-value-set-id-7",
+                  "url": "some-value-set-url-7",
                   "expansion": {
                     "contains": [{
                       "code": "some-code-1",
@@ -1039,11 +912,11 @@ describe("supplements", () => {
                       "item": [{
                         "linkId": "link-1.1.1",
                         "type": "choice",
-                        "answerValueSet": "#some-value-set-id",
+                        "answerValueSet": "#some-value-set-id-7",
                       },{
                         "linkId": "link-1.1.2",
                         "type": "choice",
-                        "answerValueSet": "some-value-set-url",
+                        "answerValueSet": "some-value-set-url-7",
                       }]
                     }
                   ]

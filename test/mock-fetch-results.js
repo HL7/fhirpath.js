@@ -3,8 +3,9 @@ let fetchSpy;
 /**
  * Mocks fetch requests.
  * @param {Array} results - an array of fetch response descriptions, each item
- *  of which is an array with the RegExp URL as the first item and the response
- *  JSON object as the second.
+ * of which is an array with a RegExp URL or URL substring as the first item and
+ * a JSON object of the successful response as the second item or, if the second
+ * item is null, a JSON object of the unsuccessful response as the third item.
  */
 function mockFetchResults(results) {
   fetchSpy = jest.spyOn(global, 'fetch').mockImplementation(

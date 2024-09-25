@@ -23,31 +23,31 @@ engine.weight = function (coll) {
   const questionnaire = this.vars.questionnaire || this.processedVars.questionnaire?.data;
   let hasPromise = false;
 
-  coll.forEach((item) => {
-    if (item?.data) {
-      const valueCoding = item.fhirNodeDataType === 'Coding' ? item.data : item.data.valueCoding;
+  coll.forEach((elem) => {
+    if (elem?.data) {
+      const valueCoding = elem.fhirNodeDataType === 'Coding' ? elem.data : elem.data.valueCoding;
       let value = valueCoding;
       if (!value) {
-        const prop = Object.keys(item.data).find(p => p.length > 5 && p.startsWith('value'));
+        const prop = Object.keys(elem.data).find(p => p.length > 5 && p.startsWith('value'));
         // if we found a child value[x] property
-        value = prop
+        value = prop ?
           // we use it to get a score extension
-          ? item.data[prop]
+          elem.data[prop]
           // otherwise, if the source item has a simple data type
-          : item._data?.extension
+          : elem._data?.extension ?
             // we get the extension from the adjacent property starting with
             // an underscore
-            ? item._data
+            elem._data
             // otherwise we get the extension from the source item
             // (e.g. 'item' is a Coding)
-            : item.data;
+            : elem.data;
       }
       const score = value?.extension?.find(checkExtUrl)?.valueDecimal;
       if (score !== undefined) {
         // if we have a score extension in the source item, use it.
         res.push(score);
       } else if (valueCoding) {
-        const linkIds = getLinkIds(item.parentResNode);
+        const linkIds = getLinkIds(elem.parentResNode);
         if (linkIds.length) {
           if (questionnaire) {
             const qItem = getQItemByLinkIds(questionnaire, linkIds);
@@ -62,37 +62,25 @@ engine.weight = function (coll) {
                 res.push(score);
               } else if (qItem.answerValueSet || valueCoding.system) {
                 // Otherwise, check corresponding value set and code system
-                const score = getWeightFromCorrespondingResources(this, questionnaire,
-                  qItem.answerValueSet, valueCoding.code, valueCoding.system);
-                if (score !== undefined) {
-                  res.push(score);
-                }
-                hasPromise = hasPromise || score instanceof Promise;
+                hasPromise = addWeightFromCorrespondingResourcesToResult(res, this, questionnaire,
+                  qItem.answerValueSet, valueCoding.code, valueCoding.system) || hasPromise;
               }
             } else if (qItem?.answerValueSet) {
               // Otherwise, check corresponding value set and code system
-              const score = getWeightFromCorrespondingResources(this, questionnaire,
-                qItem.answerValueSet, valueCoding.code, valueCoding.system);
-              if (score !== undefined) {
-                res.push(score);
-              }
-              hasPromise = hasPromise || score instanceof Promise;
+              hasPromise = addWeightFromCorrespondingResourcesToResult(res, this, questionnaire,
+                qItem.answerValueSet, valueCoding.code, valueCoding.system) || hasPromise;
             } else {
               throw new Error(
                 'Questionnaire answerOption/answerValueSet with this linkId was not found: ' +
-                item.parentResNode.data.linkId + '.');
+                elem.parentResNode.data.linkId + '.');
             }
           } else {
             throw new Error('%questionnaire is needed but not specified.');
           }
         } else if (valueCoding.system) {
           // If there are no questionnaire (no linkId) check corresponding code system
-          const score = getWeightFromCorrespondingResources(this, null,
-            null, valueCoding.code, valueCoding.system);
-          if (score !== undefined) {
-            res.push(score);
-          }
-          hasPromise = hasPromise || score instanceof Promise;
+          hasPromise = addWeightFromCorrespondingResourcesToResult(res, this, null,
+            null, valueCoding.code, valueCoding.system) || hasPromise;
         }
       }
     }
@@ -101,111 +89,120 @@ engine.weight = function (coll) {
   return hasPromise ? Promise.all(res) : res;
 };
 
+const weightCache = {};
 
 /**
- * Returns the value of score or its promise received from a corresponding value
- * set or code system.
+ * Adds the value of score or its promise received from a corresponding value
+ * set or code system to the result array.
+ * @param {Array} res - result array.
  * @param {Object} ctx - object describing the context of expression
  *  evaluation (see the "applyParsedPath" function).
  * @param {Object} questionnaire - object containing questionnaire resource data
  * @param {string} vsURL - value set URL specified in the Questionnaire item.
  * @param {string} code - symbol in syntax defined by the system.
  * @param {string} system - code system.
- * @return {number|undefined|Promise<number|undefined>}
+ * @return {boolean} a flag indicating that a promise has been added to the
+ *  resulting array.
  */
-function getWeightFromCorrespondingResources(ctx, questionnaire, vsURL, code, system) {
-  let result;
+function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire, vsURL, code, system) {
+  let score;
+  const cacheKey = [
+    questionnaire?.url || questionnaire?.id, vsURL, code, system
+  ].join('|');
 
-  if (code) {
-    const contextResource = ctx.processedVars.context?.[0].data || ctx.vars.context?.[0];
+  if (Object.prototype.hasOwnProperty.call(weightCache, cacheKey)) {
+    score =  weightCache[cacheKey];
+  } else {
+    if (code) {
+      if (vsURL) {
+        const vsId = /^#(.*)/.test(vsURL) ? RegExp.$1 : null;
+        const isAnswerValueSet = vsId
+          ? (r) => r.id === vsId && r.resourceType === 'ValueSet'
+          : (r) => r.url === vsURL && r.resourceType === 'ValueSet';
 
-    if (vsURL) {
-      const vsId = /#(.*)/.test(vsURL) ? RegExp.$1 : null;
-      const isAnswerValueSet = vsId
-        ? (r) => r.id === vsId && r.resourceType === 'ValueSet'
-        : (r) => r.url === vsURL && r.resourceType === 'ValueSet';
+        const containedVS = questionnaire?.contained?.find(isAnswerValueSet);
 
-      const containedVS = contextResource?.contained?.find(isAnswerValueSet)
-        || questionnaire?.contained?.find(isAnswerValueSet);
-
-      if (containedVS) {
-        if (!containedVS.expansion) {
-          result = fetch(`${getTerminologyUrl(ctx)}/ValueSet/$expand`, {
-            method: 'POST',
-            headers: {
-              'Accept': 'application/fhir+json',
-              'Content-Type': 'application/fhir+json'
-            },
-            body: JSON.stringify({
-              "resourceType": "Parameters",
-              "parameter": [{
-                "name": "valueSet",
-                "resource": containedVS
-              }, {
-                "name": "property",
-                "valueString": "itemWeight"
-              }]
+        if (containedVS) {
+          if (!containedVS.expansion) {
+            score = fetch(`${getTerminologyUrl(ctx)}/ValueSet/$expand`, {
+              method: 'POST',
+              headers: {
+                'Accept': 'application/fhir+json',
+                'Content-Type': 'application/fhir+json'
+              },
+              body: JSON.stringify({
+                "resourceType": "Parameters",
+                "parameter": [{
+                  "name": "valueSet",
+                  "resource": containedVS
+                }, {
+                  "name": "property",
+                  "valueString": "itemWeight"
+                }]
+              })
             })
-          })
+              .then(r => r.ok ? r.json() : Promise.reject(r.json()))
+              .then((terminologyVS) => {
+                return getItemWeightFromProperty(
+                  getValueSetItem(terminologyVS.expansion?.contains, code, system)
+                );
+              });
+          } else {
+            score = getItemWeightFromProperty(
+              getValueSetItem(containedVS.expansion.contains, code, system)
+            );
+          }
+        } else {
+          score = fetch(`${getTerminologyUrl(ctx)}/ValueSet/$expand?` + new URLSearchParams({
+            url: vsURL,
+            property: 'itemWeight'
+          }, {
+            headers: {
+              'Accept': 'application/fhir+json'
+            }
+          }).toString())
             .then(r => r.ok ? r.json() : Promise.reject(r.json()))
             .then((terminologyVS) => {
               return getItemWeightFromProperty(
-                getValueSetItem(terminologyVS.expansion?.contains, code, system)
+                getValueSetItem(terminologyVS?.expansion?.contains, code, system)
               );
             });
-        } else {
-          result = getItemWeightFromProperty(
-            getValueSetItem(containedVS.expansion.contains, code, system)
-          );
         }
-      } else {
-        result = fetch(`${getTerminologyUrl(ctx)}/ValueSet?` + new URLSearchParams({
-          url: vsURL
-        }, {
-          headers: {
-            'Accept': 'application/fhir+json'
-          }
-        }).toString())
-          .then(r => r.ok ? r.json() : Promise.reject(r.json()))
-          .then((bundle) => {
-            const terminologyVS = bundle?.entry?.[0]?.resource;
-            if (!terminologyVS) {
-              return Promise.reject(
-                `Cannot resolve the corresponding value set: ${vsURL}`
-              );
-            }
-            return getItemWeightFromProperty(
-              getValueSetItem(terminologyVS?.expansion?.contains, code, system)
+      } // end if (vsURL)
+
+      if (system) {
+        if (score === undefined) {
+          const contextResource = ctx.processedVars.context?.[0].data || ctx.vars.context?.[0];
+          const isCodeSystem = (r) => r.url === system && r.resourceType === 'CodeSystem';
+          const containedCS = contextResource?.contained?.find(isCodeSystem)
+            || questionnaire?.contained?.find(isCodeSystem);
+
+          if (containedCS) {
+            score = getItemWeightFromProperty(
+              getCodeSystemItem(containedCS?.concept, code)
             );
-          });
-      }
-    }
-
-    if (system) {
-      if (result === undefined) {
-        const isCodeSystem = (r) => r.url === system && r.resourceType === 'CodeSystem';
-        const containedCS = contextResource?.contained?.find(isCodeSystem)
-          || questionnaire?.contained?.find(isCodeSystem);
-
-        if (containedCS) {
-          result = getItemWeightFromProperty(
-            getCodeSystemItem(containedCS?.concept, code)
-          );
-        } else {
-          result = getWeightFromTerminologyCodeSet(ctx, code, system);
-        }
-      } else if (result instanceof Promise) {
-        result = result.then(weightFromVS => {
-          if (weightFromVS !== undefined) {
-            return weightFromVS;
+          } else {
+            score = getWeightFromTerminologyCodeSet(ctx, code, system);
           }
-          return getWeightFromTerminologyCodeSet(ctx, code, system);
-        });
+        } else if (score instanceof Promise) {
+          score = score.then(weightFromVS => {
+            if (weightFromVS !== undefined) {
+              return weightFromVS;
+            }
+            return getWeightFromTerminologyCodeSet(ctx, code, system);
+          });
+        }
       }
     }
+
+    weightCache[cacheKey] = score;
   }
 
-  return result;
+  if (score !== undefined) {
+    res.push(score);
+  }
+
+  return score instanceof Promise;
 }
 
 
@@ -294,7 +291,7 @@ function getCodeSystemItem(concept, code) {
       const item = concept[i];
       if (item.code === code) {
         result = item;
-      } else {
+      } else if (item.concept) {
         result = getCodeSystemItem(item.concept, code);
       }
     }
@@ -302,6 +299,11 @@ function getCodeSystemItem(concept, code) {
   return result;
 }
 
+/**
+ * Returns the value of the itemWeight property from a value set item.
+ * @param {Object} item - a value set item.
+ * @return {number | undefined}
+ */
 function getItemWeightFromProperty(item) {
   return item?.property?.find(p => p.code === 'itemWeight')?.valueDecimal;
 }
