@@ -3,10 +3,15 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [3.15.2] - 2024-08-13
+## [3.15.3] - 2024-10-10
 ### Fixed
 - The weight()/ordinal() function can now search for item weight in value set
   and code system.
+
+## [3.15.2] - 2024-08-30
+### Fixed
+- Removed the need to run `(cd demo && npm ci)`.
+- Excluded unnecessary files from the npm package.
 
 ## [3.15.1] - 2024-08-06
 ### Fixed
