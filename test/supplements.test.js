@@ -484,11 +484,11 @@ describe("supplements", () => {
                   }]
                 }, {
                   "code": "some-code-2",
-                  "system": "some-system-2"
+                  "system": "some-system-10"
                 }]
               }
             }],
-          ['/CodeSystem/$lookup?code=some-code-2&system=some-system-2&property=itemWeight',
+          ['/CodeSystem/$lookup?code=some-code-2&system=some-system-10&property=itemWeight',
             null,
             {
               "resourceType": "OperationOutcome",
@@ -526,7 +526,7 @@ describe("supplements", () => {
                           {
                             "valueCoding": {
                               "code": "some-code-2",
-                              "system": "some-system-2"
+                              "system": "some-system-10"
                             }
                           }
                         ]
@@ -809,7 +809,7 @@ describe("supplements", () => {
 
       it("should return the correct result when getting scores from a contained value set and a code system from terminology server", (done) => {
         mockFetchResults([
-          ['/CodeSystem/$lookup?code=some-code-2&system=some-system-2&property=itemWeight',
+          ['/CodeSystem/$lookup?code=some-code-2&system=some-system-20&property=itemWeight',
             {
               "resourceType": "Parameters",
               "parameter": [ {
@@ -851,7 +851,7 @@ describe("supplements", () => {
                           {
                             "valueCoding": {
                               "code": "some-code-2",
-                              "system": "some-system-2"
+                              "system": "some-system-20"
                             }
                           }
                         ]
@@ -888,7 +888,7 @@ describe("supplements", () => {
                       }]
                     }, {
                       "code": "some-code-2",
-                      "system": "some-system-2",
+                      "system": "some-system-20",
                       "contains": [{
                         "code": "some-code-2",
                         "system": "some-system-1",

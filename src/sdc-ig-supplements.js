@@ -89,7 +89,72 @@ engine.weight = function (coll) {
   return hasPromise ? Promise.all(res) : res;
 };
 
+// Object for storing received scores
 const weightCache = {};
+// Object for storing fetch promises.
+const requestCache = {};
+// Duration of data storage in cache.
+const cacheStorageTime = 3600000; // 1 hour = 60 * 60 * 1000
+
+/**
+ * Caches score.
+ * @param {string} key - key to store score in cache.
+ * @param {number|Promise} value - value of score or promise of value.
+ */
+function putScoreToCache(key, value) {
+  weightCache[key] = {
+    timestamp: Date.now(),
+    value
+  };
+}
+
+/**
+ * Checks if there is an unexpired score in the cache.
+ * @param {string} key - key to store score in cache.
+ * @return {boolean|undefined}
+ */
+function hasScoreInCache(key) {
+  return weightCache[key] && Date.now() - weightCache[key].timestamp < cacheStorageTime;
+}
+
+/**
+ * Returns a score or promise of score from the cache.
+ * @param {string} key - key to store score in cache.
+ * @return {number | Promise}
+ */
+function getScoreFromCache(key) {
+  return weightCache[key].value;
+}
+
+/**
+ * fetch() wrapper for caching server responses.
+ * @param {string} url - a URL of the resource you want to fetch.
+ * @param {object} [options] - optional object containing any custom settings
+ *  that you want to apply to the request.
+ * @return {Promise}
+ */
+function fetchWithCache(url, options) {
+  const requestKey = [
+    url + (options ? JSON.stringify(options) : '')
+  ].join('|');
+
+  const timestamp = Date.now();
+  for (const key in requestCache) {
+    if (timestamp - requestCache[key].timestamp > cacheStorageTime) {
+      // Remove responses older than an hour
+      delete requestCache[key];
+    }
+  }
+
+  if (!requestCache[requestKey]) {
+    requestCache[requestKey] = {
+      timestamp,
+      promise: options ? fetch(url, options) : fetch(url)
+    };
+  }
+
+  return requestCache[requestKey].promise;
+}
 
 /**
  * Adds the value of score or its promise received from a corresponding value
@@ -110,8 +175,8 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire, vs
     questionnaire?.url || questionnaire?.id, vsURL, code, system
   ].join('|');
 
-  if (Object.prototype.hasOwnProperty.call(weightCache, cacheKey)) {
-    score =  weightCache[cacheKey];
+  if (hasScoreInCache(cacheKey)) {
+    score =  getScoreFromCache(cacheKey);
   } else {
     if (code) {
       if (vsURL) {
@@ -124,7 +189,7 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire, vs
 
         if (containedVS) {
           if (!containedVS.expansion) {
-            score = fetch(`${getTerminologyUrl(ctx)}/ValueSet/$expand`, {
+            score = fetchWithCache(`${getTerminologyUrl(ctx)}/ValueSet/$expand`, {
               method: 'POST',
               headers: {
                 'Accept': 'application/fhir+json',
@@ -153,7 +218,7 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire, vs
             );
           }
         } else {
-          score = fetch(`${getTerminologyUrl(ctx)}/ValueSet/$expand?` + new URLSearchParams({
+          score = fetchWithCache(`${getTerminologyUrl(ctx)}/ValueSet/$expand?` + new URLSearchParams({
             url: vsURL,
             property: 'itemWeight'
           }, {
@@ -195,7 +260,7 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire, vs
       }
     }
 
-    weightCache[cacheKey] = score;
+    putScoreToCache(cacheKey, score);
   }
 
   if (score !== undefined) {
@@ -216,7 +281,7 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire, vs
  * @return {Promise<number|undefined>}
  */
 function getWeightFromTerminologyCodeSet(ctx, code, system) {
-  return fetch(`${getTerminologyUrl(ctx)}/CodeSystem/$lookup?` + new URLSearchParams({
+  return fetchWithCache(`${getTerminologyUrl(ctx)}/CodeSystem/$lookup?` + new URLSearchParams({
     code, system, property: 'itemWeight'
   }, {
     headers: {
