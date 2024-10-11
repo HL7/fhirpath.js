@@ -10,10 +10,8 @@ const FP_DateTime = require('../src/types').FP_DateTime;
 const items = fs.readdirSync(__dirname + '/cases/');
 
 // Set "focus" to true to turn on focus option
-// const focus = false;
-// const focusFile = /.*.yaml/;
-const focus = true;
-const focusFile = /factory\.yaml/;
+const focus = false;
+const focusFile = /.*.yaml/;
 
 
 const endWith = (s, postfix) => {
