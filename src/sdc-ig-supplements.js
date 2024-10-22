@@ -118,7 +118,9 @@ function hasScoreInCache(key) {
 }
 
 /**
- * Returns a score or promise of score from the cache.
+ * Returns a score or promise of score from the cache. Does not check the
+ * expiration time. {@link hasScoreInCache} should be called before this
+ * function.
  * @param {string} key - key to store score in cache.
  * @return {number | Promise}
  */
@@ -172,14 +174,16 @@ function fetchWithCache(url, options) {
 function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire, vsURL, code, system) {
   let score;
   const cacheKey = [
-    questionnaire?.url || questionnaire?.id, vsURL, code, system
+    ctx.model?.version,
+    questionnaire?.url || questionnaire?.id,
+    vsURL, code, system
   ].join('|');
 
   if (hasScoreInCache(cacheKey)) {
     score =  getScoreFromCache(cacheKey);
   } else {
     if (code) {
-      if (vsURL) {
+      if (ctx.model?.version === 'r5' && vsURL) {
         const vsId = /^#(.*)/.test(vsURL) ? RegExp.$1 : null;
         const isAnswerValueSet = vsId
           ? (r) => r.id === vsId && r.resourceType === 'ValueSet'
@@ -208,11 +212,13 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire, vs
             })
               .then(r => r.ok ? r.json() : Promise.reject(r.json()))
               .then((terminologyVS) => {
-                return getItemWeightFromProperty(
-                  getValueSetItem(terminologyVS.expansion?.contains, code, system)
-                );
+                if (checkIfItemWeightExists(terminologyVS.expansion?.property)) {
+                  return getItemWeightFromProperty(
+                    getValueSetItem(terminologyVS.expansion?.contains, code, system)
+                  );
+                }
               });
-          } else {
+          } else if (checkIfItemWeightExists(containedVS.expansion.property)) {
             score = getItemWeightFromProperty(
               getValueSetItem(containedVS.expansion.contains, code, system)
             );
@@ -221,19 +227,21 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire, vs
           score = fetchWithCache(`${getTerminologyUrl(ctx)}/ValueSet/$expand?` + new URLSearchParams({
             url: vsURL,
             property: 'itemWeight'
-          }, {
+          }).toString(), {
             headers: {
               'Accept': 'application/fhir+json'
             }
-          }).toString())
+          })
             .then(r => r.ok ? r.json() : Promise.reject(r.json()))
             .then((terminologyVS) => {
-              return getItemWeightFromProperty(
-                getValueSetItem(terminologyVS?.expansion?.contains, code, system)
-              );
+              if (checkIfItemWeightExists(terminologyVS?.expansion?.property)) {
+                return getItemWeightFromProperty(
+                  getValueSetItem(terminologyVS?.expansion?.contains, code, system)
+                );
+              }
             });
         }
-      } // end if (vsURL)
+      } // end if (ctx.model?.version === 'r5' && vsURL)
 
       if (system) {
         if (score === undefined) {
@@ -243,9 +251,11 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire, vs
             || questionnaire?.contained?.find(isCodeSystem);
 
           if (containedCS) {
-            score = getItemWeightFromProperty(
-              getCodeSystemItem(containedCS?.concept, code)
-            );
+            if (checkIfItemWeightExists(containedCS?.property)) {
+              score = getItemWeightFromProperty(
+                getCodeSystemItem(containedCS?.concept, code)
+              );
+            }
           } else {
             score = getWeightFromTerminologyCodeSet(ctx, code, system);
           }
@@ -281,19 +291,33 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire, vs
  * @return {Promise<number|undefined>}
  */
 function getWeightFromTerminologyCodeSet(ctx, code, system) {
-  return fetchWithCache(`${getTerminologyUrl(ctx)}/CodeSystem/$lookup?` + new URLSearchParams({
-    code, system, property: 'itemWeight'
-  }, {
+  const terminologyUrl = getTerminologyUrl(ctx);
+  return fetchWithCache(`${terminologyUrl}/CodeSystem?` + new URLSearchParams({
+    url: system,
+    _elements: 'property'
+  }).toString(), {
     headers: {
       'Accept': 'application/fhir+json'
     }
-  }).toString())
+  })
     .then(r => r.ok ? r.json() : Promise.reject(r.json()))
-    .then((parameters) => {
-      return parameters.parameter
-        .find(p => p.name === 'property'&& p.part
-          .find(part => part.name === 'code' && part.valueCode === 'itemWeight'))
-        ?.part?.find(p => p.name === 'value')?.valueDecimal;
+    .then(bundle => {
+      if (checkIfItemWeightExists(bundle?.entry?.[0]?.resource?.property)) {
+        return fetchWithCache(`${terminologyUrl}/CodeSystem/$lookup?` + new URLSearchParams({
+          code, system, property: 'itemWeight'
+        }).toString(), {
+          headers: {
+            'Accept': 'application/fhir+json'
+          }
+        })
+          .then(r => r.ok ? r.json() : Promise.reject(r.json()))
+          .then((parameters) => {
+            return parameters.parameter
+              .find(p => p.name === 'property'&& p.part
+                .find(part => part.name === 'code' && part.valueCode === 'itemWeight'))
+              ?.part?.find(p => p.name === 'value')?.valueDecimal;
+          });
+      }
     });
 }
 
@@ -365,8 +389,22 @@ function getCodeSystemItem(concept, code) {
 }
 
 /**
+ * Checks if the itemWeight property from the set of common concept properties
+ * (http://hl7.org/fhir/concept-properties) exists in the additional information
+ * supplied about each concept.
+ * @param {Object} properties - ValueSet.expansion.property or
+ *  CodeSystem.property.
+ * @return {boolean}
+ */
+function checkIfItemWeightExists(properties) {
+  return properties?.find(p => p.code === 'itemWeight')?.uri ===
+    'http://hl7.org/fhir/concept-properties';
+}
+
+/**
  * Returns the value of the itemWeight property from a value set item.
- * @param {Object} item - a value set item.
+ * @param {Object} item - an item from a ValueSet.expansion.contains or
+ *  CodeSystem.concept.
  * @return {number | undefined}
  */
 function getItemWeightFromProperty(item) {
@@ -399,16 +437,29 @@ function getLinkIds(node) {
  * found, it returns null.
  * @param {Object} questionnaire - object with a Questionnaire resource.
  * @param {string[]} linkIds - array of linkIds starting with the linkId of the
- * target node and ending with the topmost item's linkId.
+ * target node and ending with the topmost known item's linkId.
  * @return {Object | null}
  */
 function getQItemByLinkIds(questionnaire, linkIds) {
-  let currentNode = questionnaire;
-  for(let i = linkIds.length-1; i >= 0; --i) {
-    currentNode = currentNode.item?.find(o => o.linkId === linkIds[i]);
-    if (!currentNode) {
-      return null;
+  let currentNode;
+  let collection = questionnaire.item;
+
+  // Find the questionnaire item that matches the linkId of the topmost known
+  // item.
+  const topLinkId = linkIds[linkIds.length-1];
+  while (collection?.length > 0) {
+    currentNode = collection.find(o => o.linkId === topLinkId);
+    if (currentNode) {
+      break;
+    } else {
+      collection = [].concat(...collection.map(i => i.item || []));
     }
+  }
+
+  // Getting a questionnaire item relative to the topmost known item using
+  // subsequent linkIds.
+  for(let i = linkIds.length-2; i >= 0 && currentNode; --i) {
+    currentNode = currentNode.item?.find(o => o.linkId === linkIds[i]);
   }
   return currentNode;
 }

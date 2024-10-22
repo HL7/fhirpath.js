@@ -1,5 +1,6 @@
 const fhirpath = require("../src/fhirpath");
 const r4_model = require("../fhir-context/r4");
+const r5_model = require("../fhir-context/r5");
 const _ = require("lodash");
 const {mockRestore, mockFetchResults} = require('./mock-fetch-results');
 
@@ -95,6 +96,18 @@ describe("supplements", () => {
 
       it("should return the correct result when getting a score from a code system", (done) => {
         mockFetchResults([
+          ['/CodeSystem?url=some-system&_elements=property',
+            {
+              "resourceType": "Bundle",
+              "entry": [{
+                "resource": {
+                  "property": [{
+                    "code" : "itemWeight",
+                    "uri": "http://hl7.org/fhir/concept-properties"
+                  }],
+                }
+              }]
+            }],
           ['/CodeSystem/$lookup?code=some-code-2&system=some-system&property=itemWeight',
             {
               "resourceType": "Parameters",
@@ -139,6 +152,10 @@ describe("supplements", () => {
             {
               "resourceType": "ValueSet",
               "expansion": {
+                "property": [{
+                  "code" : "itemWeight",
+                  "uri": "http://hl7.org/fhir/concept-properties"
+                }],
                 "contains": [{
                   "code": "some-code-1",
                   "system": "some-system-1",
@@ -235,7 +252,7 @@ describe("supplements", () => {
                 }
               ]
             }
-          }, r4_model, { async: true, terminologyUrl }
+          }, r5_model, { async: true, terminologyUrl }
         );
         res.then(r => {
           expect(r).toStrictEqual([21]);
@@ -251,6 +268,10 @@ describe("supplements", () => {
             {
               "resourceType": "ValueSet",
               "expansion": {
+                "property": [{
+                  "code" : "itemWeight",
+                  "uri": "http://hl7.org/fhir/concept-properties"
+                }],
                 "contains": [{
                   "code": "some-code-1",
                   "system": "some-system-1",
@@ -277,6 +298,18 @@ describe("supplements", () => {
                   "system": "some-system-2"
                 }]
               }
+            }],
+          ['/CodeSystem?url=some-system-2&_elements=property',
+            {
+              "resourceType": "Bundle",
+              "entry": [{
+                "resource": {
+                  "property": [{
+                    "code" : "itemWeight",
+                    "uri": "http://hl7.org/fhir/concept-properties"
+                  }],
+                }
+              }]
             }],
           ['/CodeSystem/$lookup?code=some-code-2&system=some-system-2&property=itemWeight',
             {
@@ -356,7 +389,7 @@ describe("supplements", () => {
                 }
               ]
             }
-          }, r4_model, { async: true, terminologyUrl }
+          }, r5_model, { async: true, terminologyUrl }
         );
         res.then(r => {
           expect(r).toStrictEqual([31]);
@@ -442,7 +475,7 @@ describe("supplements", () => {
                 }
               ]
             }
-          }, r4_model, { async: true, terminologyUrl }
+          }, r5_model, { async: true, terminologyUrl }
         );
         res.then(() => {
           done('The expression must fail if the corresponding value set cannot be resolved.');
@@ -488,6 +521,40 @@ describe("supplements", () => {
                 }]
               }
             }],
+          ['/CodeSystem?url=some-system-1&_elements=property',
+            {
+              "resourceType": "Bundle",
+              "entry": [{
+                "resource": {
+                  "property": [{
+                    "code" : "itemWeight",
+                    "uri": "http://hl7.org/fhir/concept-properties"
+                  }],
+                }
+              }]
+            }],
+          ['/CodeSystem/$lookup?code=some-code-1&system=some-system-1&property=itemWeight',
+            null,
+            {
+              "resourceType": "OperationOutcome",
+              "issue": [{
+                "severity": "error",
+                "code": "processing",
+                "diagnostics": "Unable to find some-code-1 in system[some-system-1]"
+              }]
+            }],
+          ['/CodeSystem?url=some-system-10&_elements=property',
+            {
+              "resourceType": "Bundle",
+              "entry": [{
+                "resource": {
+                  "property": [{
+                    "code" : "itemWeight",
+                    "uri": "http://hl7.org/fhir/concept-properties"
+                  }],
+                }
+              }]
+            }],
           ['/CodeSystem/$lookup?code=some-code-2&system=some-system-10&property=itemWeight',
             null,
             {
@@ -495,7 +562,7 @@ describe("supplements", () => {
               "issue": [{
                 "severity": "error",
                 "code": "processing",
-                "diagnostics": "Unable to find some-code-2 in system[some-system-2]"
+                "diagnostics": "Unable to find some-code-2 in system[some-system-10]"
               }]
             }]
         ]);
@@ -567,7 +634,7 @@ describe("supplements", () => {
         res.then(() => {
           done('The expression must fail if the corresponding value set cannot be resolved.');
         }, (err) => {
-          if (err.issue?.[0]?.diagnostics === 'Unable to find some-code-2 in system[some-system-2]') {
+          if (err.issue?.[0]?.diagnostics === 'Unable to find some-code-1 in system[some-system-1]') {
             done();
           } else {
             done(err);
@@ -623,6 +690,10 @@ describe("supplements", () => {
                   "id": "some-value-set-id-5",
                   "url": "some-value-set-url-5",
                   "expansion": {
+                    "property": [{
+                      "code" : "itemWeight",
+                      "uri": "http://hl7.org/fhir/concept-properties"
+                    }],
                     "contains": [{
                       "code": "some-code-1",
                       "system": "some-system-2",
@@ -679,7 +750,7 @@ describe("supplements", () => {
                 }
               ]
             }
-          }, r4_model, { async: true, terminologyUrl }
+          }, r5_model, { async: true, terminologyUrl }
         );
         expect(res).toStrictEqual([21]);
       });
@@ -692,6 +763,10 @@ describe("supplements", () => {
               "id": "some-value-set-id-6",
               "url": "some-value-set-url-6",
               "expansion": {
+                "property": [{
+                  "code" : "itemWeight",
+                  "uri": "http://hl7.org/fhir/concept-properties"
+                }],
                 "contains": [{
                   "code": "some-code-1",
                   "system": "some-system-2",
@@ -796,7 +871,7 @@ describe("supplements", () => {
                 }
               ]
             }
-          }, r4_model, { async: true, terminologyUrl }
+          }, r5_model, { async: true, terminologyUrl }
         );
 
         res.then(r => {
@@ -809,6 +884,18 @@ describe("supplements", () => {
 
       it("should return the correct result when getting scores from a contained value set and a code system from terminology server", (done) => {
         mockFetchResults([
+          ['/CodeSystem?url=some-system-20&_elements=property',
+            {
+              "resourceType": "Bundle",
+              "entry": [{
+                "resource": {
+                  "property": [{
+                    "code" : "itemWeight",
+                    "uri": "http://hl7.org/fhir/concept-properties"
+                  }],
+                }
+              }]
+            }],
           ['/CodeSystem/$lookup?code=some-code-2&system=some-system-20&property=itemWeight',
             {
               "resourceType": "Parameters",
@@ -871,6 +958,10 @@ describe("supplements", () => {
                   "id": "some-value-set-id-7",
                   "url": "some-value-set-url-7",
                   "expansion": {
+                    "property": [{
+                      "code" : "itemWeight",
+                      "uri": "http://hl7.org/fhir/concept-properties"
+                    }],
                     "contains": [{
                       "code": "some-code-1",
                       "system": "some-system-2",
@@ -923,7 +1014,7 @@ describe("supplements", () => {
                 }
               ]
             }
-          }, r4_model, { async: true, terminologyUrl }
+          }, r5_model, { async: true, terminologyUrl }
         );
         res.then(r => {
           expect(r).toStrictEqual([31]);
