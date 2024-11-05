@@ -407,7 +407,7 @@ tests:
         result:
           - '/something'
 
-      - desc: '** create a uri with an extension'
+      - desc: '** create a url with an extension'
         model: r4
         expression: >-
           %factory.url('', %factory.Extension('someExt', 'someString'))
@@ -494,9 +494,18 @@ tests:
           result:
             - true
 
+        - desc: '** creating an Identifier may throw an exception'
+          model: r4
+          expression: >-
+            %factory.Identifier(1, 'someValue', 'someUse', %factory
+            .create(CodeableConcept)).where($this.system.empty() and
+            $this.value = 'someValue' and $this.use = 'someUse' and $this.type
+            is CodeableConcept) is Identifier
+          error: true
+
     - 'group: HumanName':
 
-        - desc: '** created an HumanName'
+        - desc: '** created a HumanName'
           model: r4
           expression: >-
             %factory.HumanName('Smith', 'Julia' | 'A', {}, {}, 'Julia Smith').where(
@@ -506,9 +515,18 @@ tests:
           result:
             - true
 
+        - desc: '** creating a HumanName may throw an exception'
+          model: r4
+          expression: >-
+            %factory.HumanName(1, 'Julia' | 'A', {}, {}, 'Julia Smith').where(
+            family = 'Smith' and given = ('Julia' | 'A') and prefix.empty() and
+            suffix.empty() and text = 'Julia Smith' and use.empty()
+            ) is HumanName
+          error: true
+
     - 'group: ContactPoint':
 
-        - desc: '** created an ContactPoint'
+        - desc: '** created a ContactPoint'
           model: r4
           expression: >-
             %factory.ContactPoint('email', 'coyote@acme.com', 'work').where(
@@ -516,6 +534,14 @@ tests:
             ) is ContactPoint
           result:
             - true
+
+        - desc: '** creating a ContactPoint may throw an exception'
+          model: r4
+          expression: >-
+            %factory.ContactPoint(1, 'coyote@acme.com', 'work').where(
+            system = 'email' and value = 'coyote@acme.com' and use = 'work'
+            ) is ContactPoint
+          error: true
 
     - 'group: Address':
 
@@ -529,6 +555,16 @@ tests:
             is Address
           result:
             - true
+
+        - desc: '** creating an Address may throw an exception'
+          model: r4
+          expression: >-
+            %factory.Address(1 | 'second line', 'SomeCity', 'EW',
+            '0000', {}, 'home', 'physical').where(line = ('5 Nowhere Road' |
+            'second line') and city = 'SomeCity' and state = 'EW' and postalCode
+            = '0000' and country.empty() and use = 'home' and type = 'physical')
+            is Address
+          error: true
 
     - 'group: Quantity':
 
@@ -557,6 +593,13 @@ tests:
           result:
             - true
 
+        - desc: '** creating a Quantity may throw an exception'
+          model: r4
+          expression: >-
+            %factory.Quantity(1, 'mg/dL', 5.03, 'mg/dL').where(system.empty())
+             is Quantity
+          error: true
+
     - 'group: Coding':
 
         - desc: '** created a Coding'
@@ -568,6 +611,14 @@ tests:
           result:
             - true
 
+        - desc: '** creating a Coding may throw an exception'
+          model: r4
+          expression: >-
+            %factory.Coding(1, '1234-5', 'An example test',
+            '1.02').where(system = 'http://loinc.org' and code = '1234-5' and
+            display = 'An example test' and version = '1.02') is Coding
+          error: true
+
     - 'group: CodeableConcept':
 
         - desc: '** created a CodeableConcept'
@@ -578,6 +629,14 @@ tests:
             '2' and text = 'Example Test') is CodeableConcept
           result:
             - true
+
+        - desc: '** creating a CodeableConcept may throw an exception'
+          model: r4
+          expression: >-
+            %factory.CodeableConcept(1 | %factory
+             .Coding('system2', '2'), 'Example Test').where(coding.code = '1' |
+             '2' and text = 'Example Test') is CodeableConcept
+          error: true
 
     - 'group: create':
 
@@ -596,6 +655,14 @@ tests:
             %factory.withExtension(%factory.integer(134, %factory.Extension(
             'someExt1', 'someString')), 'someExt2', 1).extension.value =
             'someString' | 1
+          result:
+            - true
+
+        - desc: '** create an instance with no data and add an extension later'
+          model: r4
+          expression: >-
+            %factory.withExtension(%factory.integer({}), 'someExt', 1).extension(
+            'someExt').value = 1
           result:
             - true
 

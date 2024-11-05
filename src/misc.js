@@ -293,7 +293,7 @@ const singletonEvalByType = {
       return d;
     }
   },
-  "String or Number": function(d){
+  "StringOrNumber": function(d){
     if (typeof d === "string" || typeof d === "number") {
       return d;
     }

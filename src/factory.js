@@ -52,8 +52,8 @@ class Factory {
       arity: {
         1: ['String'],
         2: ['String', 'String'],
-        3: ['String', 'String', 'String or Number'],
-        4: ['String', 'String', 'String or Number', 'String']
+        3: ['String', 'String', 'StringOrNumber'],
+        4: ['String', 'String', 'StringOrNumber', 'String']
       }
     },
     Coding: {
