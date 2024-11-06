@@ -498,9 +498,7 @@ tests:
           model: r4
           expression: >-
             %factory.Identifier(1, 'someValue', 'someUse', %factory
-            .create(CodeableConcept)).where($this.system.empty() and
-            $this.value = 'someValue' and $this.use = 'someUse' and $this.type
-            is CodeableConcept) is Identifier
+            .create(CodeableConcept))
           error: true
 
     - 'group: HumanName':
@@ -518,10 +516,7 @@ tests:
         - desc: '** creating a HumanName may throw an exception'
           model: r4
           expression: >-
-            %factory.HumanName(1, 'Julia' | 'A', {}, {}, 'Julia Smith').where(
-            family = 'Smith' and given = ('Julia' | 'A') and prefix.empty() and
-            suffix.empty() and text = 'Julia Smith' and use.empty()
-            ) is HumanName
+            %factory.HumanName(1, 'Julia' | 'A', {}, {}, 'Julia Smith')
           error: true
 
     - 'group: ContactPoint':
@@ -538,9 +533,7 @@ tests:
         - desc: '** creating a ContactPoint may throw an exception'
           model: r4
           expression: >-
-            %factory.ContactPoint(1, 'coyote@acme.com', 'work').where(
-            system = 'email' and value = 'coyote@acme.com' and use = 'work'
-            ) is ContactPoint
+            %factory.ContactPoint(1, 'coyote@acme.com', 'work')
           error: true
 
     - 'group: Address':
@@ -559,11 +552,8 @@ tests:
         - desc: '** creating an Address may throw an exception'
           model: r4
           expression: >-
-            %factory.Address(1 | 'second line', 'SomeCity', 'EW',
-            '0000', {}, 'home', 'physical').where(line = ('5 Nowhere Road' |
-            'second line') and city = 'SomeCity' and state = 'EW' and postalCode
-            = '0000' and country.empty() and use = 'home' and type = 'physical')
-            is Address
+            %factory.Address(1 | 'second line', 'SomeCity', 'EW', '0000', {},
+            'home', 'physical')
           error: true
 
     - 'group: Quantity':
@@ -596,8 +586,7 @@ tests:
         - desc: '** creating a Quantity may throw an exception'
           model: r4
           expression: >-
-            %factory.Quantity(1, 'mg/dL', 5.03, 'mg/dL').where(system.empty())
-             is Quantity
+            %factory.Quantity(1, 'mg/dL', 5.03, 'mg/dL')
           error: true
 
     - 'group: Coding':
@@ -614,9 +603,7 @@ tests:
         - desc: '** creating a Coding may throw an exception'
           model: r4
           expression: >-
-            %factory.Coding(1, '1234-5', 'An example test',
-            '1.02').where(system = 'http://loinc.org' and code = '1234-5' and
-            display = 'An example test' and version = '1.02') is Coding
+            %factory.Coding(1, '1234-5', 'An example test', '1.02')
           error: true
 
     - 'group: CodeableConcept':
@@ -633,9 +620,8 @@ tests:
         - desc: '** creating a CodeableConcept may throw an exception'
           model: r4
           expression: >-
-            %factory.CodeableConcept(1 | %factory
-             .Coding('system2', '2'), 'Example Test').where(coding.code = '1' |
-             '2' and text = 'Example Test') is CodeableConcept
+            %factory.CodeableConcept(1 | %factory.Coding('system2', '2'),
+            'Example Test')
           error: true
 
     - 'group: create':
