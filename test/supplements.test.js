@@ -889,6 +889,7 @@ describe("supplements", () => {
               "resourceType": "Bundle",
               "entry": [{
                 "resource": {
+                  "resourceType": "CodeSystem",
                   "property": [{
                     "code" : "itemWeight",
                     "uri": "http://hl7.org/fhir/concept-properties"

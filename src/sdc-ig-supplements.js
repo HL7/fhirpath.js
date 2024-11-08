@@ -63,12 +63,12 @@ engine.weight = function (coll) {
               } else if (qItem.answerValueSet || valueCoding.system) {
                 // Otherwise, check corresponding value set and code system
                 hasPromise = addWeightFromCorrespondingResourcesToResult(res, this, questionnaire,
-                  qItem.answerValueSet, valueCoding.code, valueCoding.system) || hasPromise;
+                  qItem.answerValueSet, valueCoding.code, valueCoding.system, elem) || hasPromise;
               }
             } else if (qItem?.answerValueSet) {
               // Otherwise, check corresponding value set and code system
               hasPromise = addWeightFromCorrespondingResourcesToResult(res, this, questionnaire,
-                qItem.answerValueSet, valueCoding.code, valueCoding.system) || hasPromise;
+                qItem.answerValueSet, valueCoding.code, valueCoding.system, elem) || hasPromise;
             } else {
               throw new Error(
                 'Questionnaire answerOption/answerValueSet with this linkId was not found: ' +
@@ -80,7 +80,7 @@ engine.weight = function (coll) {
         } else if (valueCoding.system) {
           // If there are no questionnaire (no linkId) check corresponding code system
           hasPromise = addWeightFromCorrespondingResourcesToResult(res, this, null,
-            null, valueCoding.code, valueCoding.system) || hasPromise;
+            null, valueCoding.code, valueCoding.system, elem) || hasPromise;
         }
       }
     }
@@ -168,10 +168,12 @@ function fetchWithCache(url, options) {
  * @param {string} vsURL - value set URL specified in the Questionnaire item.
  * @param {string} code - symbol in syntax defined by the system.
  * @param {string} system - code system.
+ * @param {ResourceNode|any} elem - source collection item for which we obtain
+ *  the score value.
  * @return {boolean} a flag indicating that a promise has been added to the
  *  resulting array.
  */
-function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire, vsURL, code, system) {
+function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire, vsURL, code, system, elem) {
   let score;
   const cacheKey = [
     ctx.model?.version,
@@ -245,9 +247,8 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire, vs
 
       if (system) {
         if (score === undefined) {
-          const contextResource = ctx.processedVars.context?.[0].data || ctx.vars.context?.[0];
           const isCodeSystem = (r) => r.url === system && r.resourceType === 'CodeSystem';
-          const containedCS = contextResource?.contained?.find(isCodeSystem)
+          const containedCS = getContainedResources(elem)?.find(isCodeSystem)
             || questionnaire?.contained?.find(isCodeSystem);
 
           if (containedCS) {
@@ -428,6 +429,23 @@ function getLinkIds(node) {
   }
 
   return res;
+}
+
+
+/**
+ * Returns the "contained" property of the resource to which the ResourceNode
+ * belongs, or an undefined value if not a ResourceNode was passed or if there
+ * is no contained property.
+ * @param {ResourceNode|any} node - source ResourceNode or something else.
+ * @return {Object[]|undefined}
+ */
+function getContainedResources(node) {
+  while (node) {
+    if (node.data?.resourceType && node.data?.contained) {
+      return node.data?.contained;
+    }
+    node = node.parentResNode;
+  }
 }
 
 
