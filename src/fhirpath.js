@@ -752,7 +752,8 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   ctx.defaultScoreExts = [
     'http://hl7.org/fhir/StructureDefinition/ordinalValue',
     'http://hl7.org/fhir/StructureDefinition/itemWeight',
-    'http://hl7.org/fhir/StructureDefinition/questionnaire-ordinalValue'
+    'http://hl7.org/fhir/StructureDefinition/questionnaire-ordinalValue',
+    'http://hl7.org/fhir/StructureDefinition/valueset-ordinalValue'
   ];
   if (options.async) {
     ctx.async = options.async;

@@ -51,27 +51,40 @@ engine.weight = function (coll) {
         if (linkIds.length) {
           if (questionnaire) {
             const qItem = getQItemByLinkIds(questionnaire, linkIds);
+            // There are different formats of answer options in the R5/R4/STU3/DSTU2
+            // questionnaires.
             const answerOption = qItem?.answerOption?.find(o =>
-              o.valueCoding.code === valueCoding.code
-              && o.valueCoding.system === valueCoding.system
+              // R4 && R5
+              o.valueCoding?.code === valueCoding.code
+              && o.valueCoding?.system === valueCoding.system
+            ) || qItem?.option?.find(o =>
+              // STU3
+              o.valueCoding?.code === valueCoding.code
+              && o.valueCoding?.system === valueCoding.system
+              // DSTU2
+              || o.code === valueCoding.code
+                 && o.system === valueCoding.system
             );
+            // There are different formats of URLs for answer value sets in the
+            // R5/R4/STU3/DSTU2 questionnaires.
+            const itemValueSet = qItem?.answerValueSet || qItem?.options?.reference;
             if (answerOption) {
               const score = answerOption.extension?.find(checkExtUrl)?.valueDecimal;
               if (score !== undefined) {
                 // if we have a score extension for the answerOption, use it.
                 res.push(score);
-              } else if (qItem.answerValueSet || valueCoding.system) {
+              } else if (itemValueSet || valueCoding.system) {
                 // Otherwise, check corresponding value set and code system
                 hasPromise = addWeightFromCorrespondingResourcesToResult(res, this, questionnaire,
-                  qItem.answerValueSet, valueCoding.code, valueCoding.system, elem) || hasPromise;
+                  itemValueSet, valueCoding.code, valueCoding.system, elem, checkExtUrl) || hasPromise;
               }
-            } else if (qItem?.answerValueSet) {
+            } else if (itemValueSet) {
               // Otherwise, check corresponding value set and code system
               hasPromise = addWeightFromCorrespondingResourcesToResult(res, this, questionnaire,
-                qItem.answerValueSet, valueCoding.code, valueCoding.system, elem) || hasPromise;
+                itemValueSet, valueCoding.code, valueCoding.system, elem, checkExtUrl) || hasPromise;
             } else {
               throw new Error(
-                'Questionnaire answerOption/answerValueSet with this linkId was not found: ' +
+                'Questionnaire answer options (or value set) with this linkId were not found: ' +
                 elem.parentResNode.data.linkId + '.');
             }
           } else {
@@ -80,7 +93,7 @@ engine.weight = function (coll) {
         } else if (valueCoding.system) {
           // If there are no questionnaire (no linkId) check corresponding code system
           hasPromise = addWeightFromCorrespondingResourcesToResult(res, this, null,
-            null, valueCoding.code, valueCoding.system, elem) || hasPromise;
+            null, valueCoding.code, valueCoding.system, elem, checkExtUrl) || hasPromise;
         }
       }
     }
@@ -170,10 +183,13 @@ function fetchWithCache(url, options) {
  * @param {string} system - code system.
  * @param {ResourceNode|any} elem - source collection item for which we obtain
  *  the score value.
+ * @param {Function} checkExtUrl - function to check if the extension passed as
+ *  a parameter has a score URL.
  * @return {boolean} a flag indicating that a promise has been added to the
  *  resulting array.
  */
-function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire, vsURL, code, system, elem) {
+function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire,
+  vsURL, code, system, elem, checkExtUrl) {
   let score;
   const cacheKey = [
     ctx.model?.version,
@@ -185,7 +201,7 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire, vs
     score =  getScoreFromCache(cacheKey);
   } else {
     if (code) {
-      if (ctx.model?.version === 'r5' && vsURL) {
+      if (vsURL) {
         const vsId = /^#(.*)/.test(vsURL) ? RegExp.$1 : null;
         const isAnswerValueSet = vsId
           ? (r) => r.id === vsId && r.resourceType === 'ValueSet'
@@ -195,6 +211,16 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire, vs
 
         if (containedVS) {
           if (!containedVS.expansion) {
+            const parameters = [{
+              "name": "valueSet",
+              "resource": containedVS
+            }];
+            if (ctx.model?.version === 'r5') {
+              parameters.push({
+                "name": "property",
+                "valueString": "itemWeight"
+              });
+            }
             score = fetchWithCache(`${getTerminologyUrl(ctx)}/ValueSet/$expand`, {
               method: 'POST',
               headers: {
@@ -203,49 +229,39 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire, vs
               },
               body: JSON.stringify({
                 "resourceType": "Parameters",
-                "parameter": [{
-                  "name": "valueSet",
-                  "resource": containedVS
-                }, {
-                  "name": "property",
-                  "valueString": "itemWeight"
-                }]
+                "parameter": parameters
               })
             })
               .then(r => r.ok ? r.json() : Promise.reject(r.json()))
               .then((terminologyVS) => {
-                if (checkIfItemWeightExists(terminologyVS.expansion?.property)) {
-                  return getItemWeightFromProperty(
-                    getValueSetItem(terminologyVS.expansion?.contains, code, system)
-                  );
-                }
+                return getScoreFromVS(ctx.model?.version, terminologyVS,
+                  checkExtUrl, code, system);
               });
-          } else if (checkIfItemWeightExists(containedVS.expansion.property)) {
-            score = getItemWeightFromProperty(
-              getValueSetItem(containedVS.expansion.contains, code, system)
-            );
+          } else {
+            score = getScoreFromVS(ctx.model?.version, containedVS, checkExtUrl,
+              code, system);
           }
         } else {
-          score = fetchWithCache(`${getTerminologyUrl(ctx)}/ValueSet/$expand?` + new URLSearchParams({
-            url: vsURL,
-            property: 'itemWeight'
-          }).toString(), {
+          const parameters = ctx.model?.version === 'dstu2' ?
+            {identifier: vsURL} : { url: vsURL };
+          if (ctx.model?.version === 'r5') {
+            parameters.property = 'itemWeight';
+          }
+          score = fetchWithCache(`${getTerminologyUrl(ctx)}/ValueSet/$expand?` +
+            new URLSearchParams(parameters).toString(), {
             headers: {
               'Accept': 'application/fhir+json'
             }
           })
             .then(r => r.ok ? r.json() : Promise.reject(r.json()))
             .then((terminologyVS) => {
-              if (checkIfItemWeightExists(terminologyVS?.expansion?.property)) {
-                return getItemWeightFromProperty(
-                  getValueSetItem(terminologyVS?.expansion?.contains, code, system)
-                );
-              }
+              return getScoreFromVS(ctx.model?.version, terminologyVS,
+                checkExtUrl, code, system);
             });
         }
-      } // end if (ctx.model?.version === 'r5' && vsURL)
+      } // end if (vsURL)
 
-      if (system) {
+      if (system && ctx.model?.version !== 'dstu2') {
         if (score === undefined) {
           const isCodeSystem = (r) => r.url === system && r.resourceType === 'CodeSystem';
           const containedCS = getContainedResources(elem)?.find(isCodeSystem)
@@ -412,6 +428,27 @@ function getItemWeightFromProperty(item) {
   return item?.property?.find(p => p.code === 'itemWeight')?.valueDecimal;
 }
 
+/**
+ * Returns the value of the itemWeight property or score extension for the
+ * specified system and code from a value set.
+ * @param {string} modelVersion - model version, e.g. 'r5', 'r4', 'stu3', or 'dstu2'.
+ * @param {Object} vs - ValueSet.
+ * @param {Function} checkExtUrl - function to check if the extension passed as
+ *  a parameter has a score URL.
+ * @param {string} code - symbol in syntax defined by the system.
+ * @param {string} system - code system.
+ * @return {number|undefined}
+ */
+function getScoreFromVS(modelVersion, vs, checkExtUrl, code, system) {
+  const item = getValueSetItem(vs.expansion?.contains, code, system);
+
+  return item && (
+    modelVersion === 'r5' && checkIfItemWeightExists(vs.expansion?.property) &&
+    getItemWeightFromProperty(item) ||
+    item?.extension?.find(checkExtUrl)?.valueDecimal
+  );
+}
+
 
 /**
  * Returns array of linkIds of ancestor ResourceNodes and source ResourceNode
@@ -460,24 +497,50 @@ function getContainedResources(node) {
  */
 function getQItemByLinkIds(questionnaire, linkIds) {
   let currentNode;
-  let collection = questionnaire.item;
-
-  // Find the questionnaire item that matches the linkId of the topmost known
-  // item.
   const topLinkId = linkIds[linkIds.length-1];
-  while (collection?.length > 0) {
-    currentNode = collection.find(o => o.linkId === topLinkId);
-    if (currentNode) {
-      break;
-    } else {
-      collection = [].concat(...collection.map(i => i.item || []));
-    }
-  }
 
-  // Getting a questionnaire item relative to the topmost known item using
-  // subsequent linkIds.
-  for(let i = linkIds.length-2; i >= 0 && currentNode; --i) {
-    currentNode = currentNode.item?.find(o => o.linkId === linkIds[i]);
+  if (questionnaire.group) {
+    // Search for an item in a questionnaire specified in DSTU2 format
+    let collection = questionnaire.group;
+
+    // Find the questionnaire item that matches the linkId of the topmost known
+    // item.
+    while (collection?.length > 0) {
+      currentNode = collection.find(o => o.linkId === topLinkId);
+      if (currentNode) {
+        break;
+      } else {
+        collection = [].concat(...collection.map(i => [].concat(i.item || [], i.group || [])));
+      }
+    }
+
+    // Getting a questionnaire item relative to the topmost known item using
+    // subsequent linkIds.
+    for(let i = linkIds.length-2; i >= 0 && currentNode; --i) {
+      currentNode = currentNode.question?.find(o => o.linkId === linkIds[i]) ||
+        currentNode.group?.find(o => o.linkId === linkIds[i]);
+    }
+
+  } else {
+    // Search for an item in a questionnaire specified in STU3, R4 or R5 format
+    let collection = questionnaire.item;
+
+    // Find the questionnaire item that matches the linkId of the topmost known
+    // item.
+    while (collection?.length > 0) {
+      currentNode = collection.find(o => o.linkId === topLinkId);
+      if (currentNode) {
+        break;
+      } else {
+        collection = [].concat(...collection.map(i => i.item || []));
+      }
+    }
+
+    // Getting a questionnaire item relative to the topmost known item using
+    // subsequent linkIds.
+    for(let i = linkIds.length-2; i >= 0 && currentNode; --i) {
+      currentNode = currentNode.item?.find(o => o.linkId === linkIds[i]);
+    }
   }
   return currentNode;
 }
