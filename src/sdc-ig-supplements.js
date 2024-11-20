@@ -150,7 +150,7 @@ function getScoreFromCache(key) {
  */
 function fetchWithCache(url, options) {
   const requestKey = [
-    url + (options ? JSON.stringify(options) : '')
+    url, options ? JSON.stringify(options) : ''
   ].join('|');
 
   const timestamp = Date.now();
