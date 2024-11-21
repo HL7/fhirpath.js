@@ -472,6 +472,14 @@ tests:
         result:
           - true
 
+      - desc: '** create an extension of the code data type'
+        model: r4
+        expression: >-
+          %factory.Extension('someExt', %factory.code('some code')).where($this is Extension
+          and $this.valueCode is code).value = 'some code'
+        result:
+          - true
+
     - 'group: Identifier':
 
         - desc: '** created an Identifier'

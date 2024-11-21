@@ -216,7 +216,7 @@ class Factory {
               .test(v)) {
             return v;
           }
-          throw new Error(`"${v}" is not a dateTime.` );
+          throw new Error(`"${v}" is not a base64Binary.` );
         }
       },
       {
@@ -224,7 +224,7 @@ class Factory {
         getValue(v) {
           const n = Number(v);
           if (Number.isNaN(n)) {
-            throw new Error(`"${v}" is not an integer.` );
+            throw new Error(`"${v}" is not an decimal.` );
           }
           return n;
         }
