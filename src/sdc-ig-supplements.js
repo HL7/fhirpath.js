@@ -485,6 +485,12 @@ function getContainedResources(node) {
   }
 }
 
+/**
+ * Mapping questionnaires to "linkIds" keys mapped to questionnaire items.
+ * It is used to cache the result in the getQItemByLinkIds function.
+ * @type {WeakMap<WeakKey, Object>}
+ */
+const questionnaire2linkIds = new WeakMap();
 
 /**
  * Returns a questionnaire item based on the linkIds array of the ancestor
@@ -497,51 +503,73 @@ function getContainedResources(node) {
  */
 function getQItemByLinkIds(questionnaire, linkIds) {
   let currentNode;
-  const topLinkId = linkIds[linkIds.length-1];
+  // Mapping "linkIds" keys to questionnaire items.
+  let linkIds2items;
+  // "linkIds" key.
+  const linkIdsKey = linkIds.join('|');
 
-  if (questionnaire.group) {
-    // Search for an item in a questionnaire specified in DSTU2 format
-    let collection = questionnaire.group;
-
-    // Find the questionnaire item that matches the linkId of the topmost known
-    // item.
-    while (collection?.length > 0) {
-      currentNode = collection.find(o => o.linkId === topLinkId);
-      if (currentNode) {
-        break;
-      } else {
-        collection = [].concat(...collection.map(i => [].concat(i.item || [], i.group || [])));
-      }
-    }
-
-    // Getting a questionnaire item relative to the topmost known item using
-    // subsequent linkIds.
-    for(let i = linkIds.length-2; i >= 0 && currentNode; --i) {
-      currentNode = currentNode.question?.find(o => o.linkId === linkIds[i]) ||
-        currentNode.group?.find(o => o.linkId === linkIds[i]);
-    }
-
+  // Get the mapping of "linkIds" keys to questionnaire items for the current
+  // questionnaire, or create it if it doesn't exist.
+  if (questionnaire2linkIds.has(questionnaire)) {
+    linkIds2items = questionnaire2linkIds.get(questionnaire);
+    currentNode =  linkIds2items[linkIdsKey];
   } else {
-    // Search for an item in a questionnaire specified in STU3, R4 or R5 format
-    let collection = questionnaire.item;
+    linkIds2items = {};
+    questionnaire2linkIds.set(questionnaire, linkIds2items);
+  }
 
-    // Find the questionnaire item that matches the linkId of the topmost known
-    // item.
-    while (collection?.length > 0) {
-      currentNode = collection.find(o => o.linkId === topLinkId);
-      if (currentNode) {
-        break;
-      } else {
-        collection = [].concat(...collection.map(i => i.item || []));
+  if (!Object.prototype.hasOwnProperty.call(linkIds2items, linkIdsKey)) {
+    // If the result is not cached yet, we search for the questionnaire item.
+    const topLinkId = linkIds[linkIds.length - 1];
+
+    if (questionnaire.group) {
+      // Search for an item in a questionnaire specified in DSTU2 format.
+      let collection = questionnaire.group;
+
+      // Find the questionnaire item that matches the linkId of the topmost
+      // known item.
+      while (collection?.length > 0) {
+        currentNode = collection.find(o => o.linkId === topLinkId);
+        if (currentNode) {
+          break;
+        } else {
+          collection = [].concat(...collection.map(i => [].concat(i.item || [], i.group || [])));
+        }
+      }
+
+      // Getting a questionnaire item relative to the topmost known item using
+      // subsequent linkIds.
+      for (let i = linkIds.length - 2; i >= 0 && currentNode; --i) {
+        currentNode = currentNode.question?.find(o => o.linkId === linkIds[i]) ||
+          currentNode.group?.find(o => o.linkId === linkIds[i]);
+      }
+
+    } else {
+      // Search for an item in a questionnaire specified in STU3, R4 or R5
+      // format.
+      let collection = questionnaire.item;
+
+      // Find the questionnaire item that matches the linkId of the topmost
+      // known item.
+      while (collection?.length > 0) {
+        currentNode = collection.find(o => o.linkId === topLinkId);
+        if (currentNode) {
+          break;
+        } else {
+          collection = [].concat(...collection.map(i => i.item || []));
+        }
+      }
+
+      // Getting a questionnaire item relative to the topmost known item using
+      // subsequent linkIds.
+      for (let i = linkIds.length - 2; i >= 0 && currentNode; --i) {
+        currentNode = currentNode.item?.find(o => o.linkId === linkIds[i]);
       }
     }
 
-    // Getting a questionnaire item relative to the topmost known item using
-    // subsequent linkIds.
-    for(let i = linkIds.length-2; i >= 0 && currentNode; --i) {
-      currentNode = currentNode.item?.find(o => o.linkId === linkIds[i]);
-    }
+    questionnaire2linkIds.get(questionnaire)[linkIdsKey] = currentNode;
   }
+
   return currentNode;
 }
 
