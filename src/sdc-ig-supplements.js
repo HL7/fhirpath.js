@@ -4,6 +4,12 @@
 let engine = {};
 
 /**
+ * Maximum number of codes to load when loading a paginated value set.
+ * @type {number}
+ */
+const MAX_VS_CODES = 500;
+
+/**
  * Returns numeric values from the score extension associated with the input
  * collection of Questionnaire items. See the description of the ordinal()
  * function here:
@@ -211,77 +217,28 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire,
 
         if (containedVS) {
           if (!containedVS.expansion) {
-            const parameters = [{
-              "name": "valueSet",
-              "resource": containedVS
-            }];
-            if (ctx.model?.version === 'r5') {
-              parameters.push({
-                "name": "property",
-                "valueString": "itemWeight"
-              });
-            }
-            score = fetchWithCache(`${getTerminologyUrl(ctx)}/ValueSet/$expand`, {
-              method: 'POST',
-              headers: {
-                'Accept': 'application/fhir+json',
-                'Content-Type': 'application/fhir+json'
-              },
-              body: JSON.stringify({
-                "resourceType": "Parameters",
-                "parameter": parameters
-              })
-            })
-              .then(r => r.ok ? r.json() : Promise.reject(r.json()))
-              .then((terminologyVS) => {
-                return getScoreFromVS(ctx.model?.version, terminologyVS,
-                  checkExtUrl, code, system);
-              });
+            score = getWeightFromContainedVS(ctx, containedVS, checkExtUrl, code, system);
           } else {
-            score = getScoreFromVS(ctx.model?.version, containedVS, checkExtUrl,
+            score = getWeightFromVS(ctx.model?.version, containedVS, checkExtUrl,
               code, system);
           }
+        } else if (vsId) {
+          throw new Error(
+            `Cannot find a contained value set with id: ` + vsId + '.');
         } else {
-          const parameters = ctx.model?.version === 'dstu2' ?
-            {identifier: vsURL} : { url: vsURL };
-          if (ctx.model?.version === 'r5') {
-            parameters.property = 'itemWeight';
-          }
-          score = fetchWithCache(`${getTerminologyUrl(ctx)}/ValueSet/$expand?` +
-            new URLSearchParams(parameters).toString(), {
-            headers: {
-              'Accept': 'application/fhir+json'
-            }
-          })
-            .then(r => r.ok ? r.json() : Promise.reject(r.json()))
-            .then((terminologyVS) => {
-              return getScoreFromVS(ctx.model?.version, terminologyVS,
-                checkExtUrl, code, system);
-            });
+          score = getWeightFromTerminologyVS(ctx, vsURL, checkExtUrl, code, system);
         }
       } // end if (vsURL)
 
       if (system && ctx.model?.version !== 'dstu2') {
-        if (score === undefined) {
-          const isCodeSystem = (r) => r.url === system && r.resourceType === 'CodeSystem';
-          const containedCS = getContainedResources(elem)?.find(isCodeSystem)
-            || questionnaire?.contained?.find(isCodeSystem);
-
-          if (containedCS) {
-            if (checkIfItemWeightExists(containedCS?.property)) {
-              score = getItemWeightFromProperty(
-                getCodeSystemItem(containedCS?.concept, code)
-              );
-            }
-          } else {
-            score = getWeightFromTerminologyCodeSet(ctx, code, system);
-          }
+        if (score === undefined || score === null) {
+          score = getWeightFromCS(ctx, questionnaire, elem, checkExtUrl, code, system);
         } else if (score instanceof Promise) {
           score = score.then(weightFromVS => {
             if (weightFromVS !== undefined) {
               return weightFromVS;
             }
-            return getWeightFromTerminologyCodeSet(ctx, code, system);
+            return getWeightFromCS(ctx, questionnaire, elem, checkExtUrl, code, system);
           });
         }
       }
@@ -297,6 +254,153 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire,
   return score instanceof Promise;
 }
 
+/**
+ * Returns the promised score value from the expanded contained value set
+ * obtained from the terminology server.
+ * @param {Object} ctx - object describing the context of expression
+ *  evaluation (see the "applyParsedPath" function).
+ * @param {string} containedVS - contained value set.
+ * @param {Function} checkExtUrl - function to check if the extension passed as
+ *  a parameter has a score URL.
+ * @param {string} code - symbol in syntax defined by the system.
+ * @param {string} system - code system.
+ * @param {number} offset - Paging support - where to start if a subset is
+ *  desired (default = 0). Offset is number of records (not number of pages).
+ *  Paging only applies to flat expansions - servers ignore paging if the
+ *  expansion is not flat (I think if the server doesn't return the
+ *  "ValueSet.expansion.offset" field, it means there is no paging for the
+ *  ValueSet).
+ * @returns {Promise<number|undefined>}
+ */
+function getWeightFromContainedVS(ctx, containedVS, checkExtUrl, code, system, offset = 0) {
+  const parameters = [{
+    "name": "valueSet",
+    "resource": containedVS
+  }];
+  if (offset) {
+    parameters.push({
+      "name": "offset",
+      "valueInteger": offset
+    });
+  }
+  if (ctx.model?.version === 'r5') {
+    parameters.push({
+      "name": "property",
+      "valueString": "itemWeight"
+    });
+  }
+  return  fetchWithCache(`${getTerminologyUrl(ctx)}/ValueSet/$expand`, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/fhir+json',
+      'Content-Type': 'application/fhir+json'
+    },
+    body: JSON.stringify({
+      "resourceType": "Parameters",
+      "parameter": parameters
+    })
+  })
+    .then(r => r.ok ? r.json() : Promise.reject(r.json()))
+    .then((terminologyVS) => {
+      let score = getWeightFromVS(ctx.model?.version, terminologyVS,
+        checkExtUrl, code, system);
+      if (score === null) {
+        if (terminologyVS?.expansion?.offset === offset) {
+          const newOffset = terminologyVS?.expansion?.offset +
+            terminologyVS?.expansion?.contains?.length;
+          if (newOffset < MAX_VS_CODES) {
+            return getWeightFromContainedVS(ctx, containedVS, checkExtUrl, code, system, newOffset);
+          }
+        }
+        score = undefined;
+      }
+      return score;
+    });
+}
+
+/**
+ * Returns the promised score value from the expanded value set obtained from the
+ * terminology server.
+ * @param {Object} ctx - object describing the context of expression
+ *  evaluation (see the "applyParsedPath" function).
+ * @param {string} vsURL - value set URL specified in the Questionnaire item.
+ * @param {Function} checkExtUrl - function to check if the extension passed as
+ *  a parameter has a score URL.
+ * @param {string} code - symbol in syntax defined by the system.
+ * @param {string} system - code system.
+ * @param {number} offset - Paging support - where to start if a subset is
+ *  desired (default = 0). Offset is number of records (not number of pages).
+ *  Paging only applies to flat expansions - servers ignore paging if the
+ *  expansion is not flat (I think if the server doesn't return the
+ *  "ValueSet.expansion.offset" field, it means there is no paging for the
+ *  ValueSet).
+ * @returns {Promise<number|undefined>}
+ */
+function getWeightFromTerminologyVS(ctx, vsURL, checkExtUrl, code, system, offset = 0) {
+  const parameters = ctx.model?.version === 'dstu2' ?
+    {identifier: vsURL} : { url: vsURL };
+  if (offset) {
+    parameters.offset = offset;
+  }
+  if (ctx.model?.version === 'r5') {
+    parameters.property = 'itemWeight';
+  }
+  return fetchWithCache(`${getTerminologyUrl(ctx)}/ValueSet/$expand?` +
+    new URLSearchParams(parameters).toString(), {
+    headers: {
+      'Accept': 'application/fhir+json'
+    }
+  })
+    .then(r => r.ok ? r.json() : Promise.reject(r.json()))
+    .then((terminologyVS) => {
+      const score = getWeightFromVS(ctx.model?.version, terminologyVS,
+        checkExtUrl, code, system);
+      if (score === null) {
+        if (terminologyVS?.expansion?.offset === offset) {
+          const newOffset = terminologyVS?.expansion?.offset +
+            terminologyVS?.expansion?.contains?.length;
+          if (newOffset < MAX_VS_CODES) {
+            return getWeightFromTerminologyVS(ctx, vsURL, checkExtUrl, code, system, newOffset);
+          }
+        }
+        return undefined;
+      }
+      return score;
+    });
+}
+
+/**
+ * Returns the value (or its promise) of the itemWeight property or score
+ * extension for the specified system and code from a CodeSystem.
+ * @param {Object} ctx - object describing the context of expression
+ *  evaluation (see the "applyParsedPath" function). * @param ctx
+ * @param {Object} questionnaire - object containing questionnaire resource data
+ * @param {ResourceNode|any} elem - source collection item for which we obtain
+ *  the score value.
+ * @param {Function} checkExtUrl - function to check if the extension passed as
+ *  a parameter has a score URL.
+ * @param {string} code - symbol in syntax defined by the system.
+ * @param {string} system - code system.
+ * @return {number|undefined|Promise<number|undefined>}
+ */
+function getWeightFromCS(ctx, questionnaire, elem, checkExtUrl, code, system) {
+  const isCodeSystem = (r) => r.url === system && r.resourceType === 'CodeSystem';
+  const containedCS = getContainedResources(elem)?.find(isCodeSystem)
+    || questionnaire?.contained?.find(isCodeSystem);
+  let score;
+
+  if (containedCS) {
+    const item = getCodeSystemItem(containedCS?.concept, code);
+    score = ctx.model?.version === 'r5' &&
+      checkIfItemWeightExists(containedCS?.property) &&
+      getItemWeightFromProperty(item) ||
+      item?.extension?.find(checkExtUrl)?.valueDecimal;
+  } else {
+    score = getWeightFromTerminologyCodeSet(ctx, code, system);
+  }
+
+  return score;
+}
 
 /**
  * Returns the promised score value from the code system obtained from the
@@ -415,7 +519,7 @@ function getCodeSystemItem(concept, code) {
  */
 function checkIfItemWeightExists(properties) {
   return properties?.find(p => p.code === 'itemWeight')?.uri ===
-    'http://hl7.org/fhir/concept-properties';
+    'http://hl7.org/fhir/concept-properties#itemWeight';
 }
 
 /**
@@ -430,23 +534,27 @@ function getItemWeightFromProperty(item) {
 
 /**
  * Returns the value of the itemWeight property or score extension for the
- * specified system and code from a value set.
+ * specified system and code from a value set. If the item in the value set has
+ * no score, undefined is returned. If the item does not exist, null is returned.
+ * The difference between null and undefined values used in paging.
  * @param {string} modelVersion - model version, e.g. 'r5', 'r4', 'stu3', or 'dstu2'.
  * @param {Object} vs - ValueSet.
  * @param {Function} checkExtUrl - function to check if the extension passed as
  *  a parameter has a score URL.
  * @param {string} code - symbol in syntax defined by the system.
  * @param {string} system - code system.
- * @return {number|undefined}
+ * @return {number|undefined|null}
  */
-function getScoreFromVS(modelVersion, vs, checkExtUrl, code, system) {
+function getWeightFromVS(modelVersion, vs, checkExtUrl, code, system) {
   const item = getValueSetItem(vs.expansion?.contains, code, system);
 
-  return item && (
+  const score = item ? (
     modelVersion === 'r5' && checkIfItemWeightExists(vs.expansion?.property) &&
     getItemWeightFromProperty(item) ||
     item?.extension?.find(checkExtUrl)?.valueDecimal
-  );
+  ) : null;
+
+  return score;
 }
 
 
@@ -567,7 +675,7 @@ function getQItemByLinkIds(questionnaire, linkIds) {
       }
     }
 
-    questionnaire2linkIds.get(questionnaire)[linkIdsKey] = currentNode;
+    linkIds2items[linkIdsKey] = currentNode;
   }
 
   return currentNode;

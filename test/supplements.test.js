@@ -399,7 +399,7 @@ describe("supplements", () => {
                 "resource": {
                   "property": [{
                     "code" : "itemWeight",
-                    "uri": "http://hl7.org/fhir/concept-properties"
+                    "uri": "http://hl7.org/fhir/concept-properties#itemWeight"
                   }],
                 }
               }]
@@ -450,7 +450,7 @@ describe("supplements", () => {
               "expansion": {
                 "property": [{
                   "code" : "itemWeight",
-                  "uri": "http://hl7.org/fhir/concept-properties"
+                  "uri": "http://hl7.org/fhir/concept-properties#itemWeight"
                 }],
                 "contains": [{
                   "code": "some-code-1",
@@ -686,7 +686,7 @@ describe("supplements", () => {
               "expansion": {
                 "property": [{
                   "code" : "itemWeight",
-                  "uri": "http://hl7.org/fhir/concept-properties"
+                  "uri": "http://hl7.org/fhir/concept-properties#itemWeight"
                 }],
                 "contains": [{
                   "code": "some-code-1",
@@ -722,7 +722,7 @@ describe("supplements", () => {
                 "resource": {
                   "property": [{
                     "code" : "itemWeight",
-                    "uri": "http://hl7.org/fhir/concept-properties"
+                    "uri": "http://hl7.org/fhir/concept-properties#itemWeight"
                   }],
                 }
               }]
@@ -944,7 +944,7 @@ describe("supplements", () => {
                 "resource": {
                   "property": [{
                     "code" : "itemWeight",
-                    "uri": "http://hl7.org/fhir/concept-properties"
+                    "uri": "http://hl7.org/fhir/concept-properties#itemWeight"
                   }],
                 }
               }]
@@ -966,7 +966,7 @@ describe("supplements", () => {
                 "resource": {
                   "property": [{
                     "code" : "itemWeight",
-                    "uri": "http://hl7.org/fhir/concept-properties"
+                    "uri": "http://hl7.org/fhir/concept-properties#itemWeight"
                   }],
                 }
               }]
@@ -1107,7 +1107,7 @@ describe("supplements", () => {
                   "expansion": {
                     "property": [{
                       "code" : "itemWeight",
-                      "uri": "http://hl7.org/fhir/concept-properties"
+                      "uri": "http://hl7.org/fhir/concept-properties#itemWeight"
                     }],
                     "contains": [{
                       "code": "some-code-1",
@@ -1289,7 +1289,7 @@ describe("supplements", () => {
       it("should return the correct result when getting scores from an expanded value set using the itemWeight property", (done) => {
         const terminologyUrl = 'https://lforms-fhir.nlm.nih.gov/baseR5';
         mockFetchResults([
-          [`${terminologyUrl}/ValueSet/$expand`,
+          [ { url: `${terminologyUrl}/ValueSet/$expand`, body: '{"name":"property","valueString":"itemWeight"}'},
             {
               "resourceType": "ValueSet",
               "id": "some-value-set-id-6",
@@ -1297,7 +1297,7 @@ describe("supplements", () => {
               "expansion": {
                 "property": [{
                   "code" : "itemWeight",
-                  "uri": "http://hl7.org/fhir/concept-properties"
+                  "uri": "http://hl7.org/fhir/concept-properties#itemWeight"
                 }],
                 "contains": [{
                   "code": "some-code-1",
@@ -1419,8 +1419,8 @@ describe("supplements", () => {
           [`${terminologyUrl}/ValueSet/$expand`,
             {
               "resourceType": "ValueSet",
-              "id": "some-value-set-id-6",
-              "url": "some-value-set-url-6",
+              "id": "some-value-set-id-8",
+              "url": "some-value-set-url-8",
               "expansion": {
                 "contains": [{
                   "code": "some-code-1",
@@ -1507,8 +1507,8 @@ describe("supplements", () => {
               "contained": [
                 {
                   "resourceType": "ValueSet",
-                  "id": "some-value-set-id-6",
-                  "url": "some-value-set-url-6"
+                  "id": "some-value-set-id-8",
+                  "url": "some-value-set-url-8"
                 }
               ],
               "item": [
@@ -1522,11 +1522,11 @@ describe("supplements", () => {
                       "item": [{
                         "linkId": "link-1.1.1",
                         "type": "choice",
-                        "answerValueSet": "#some-value-set-id-6",
+                        "answerValueSet": "#some-value-set-id-8",
                       },{
                         "linkId": "link-1.1.2",
                         "type": "choice",
-                        "answerValueSet": "some-value-set-url-6",
+                        "answerValueSet": "some-value-set-url-8",
                       }]
                     }
                   ]
@@ -1544,6 +1544,279 @@ describe("supplements", () => {
         });
       });
 
+      it("should return the correct result when getting scores from an expanded contained value set with paging", (done) => {
+        const terminologyUrl = 'https://lforms-fhir.nlm.nih.gov/baseR5';
+        mockFetchResults([
+          [{url: `${terminologyUrl}/ValueSet/$expand`, body: /^((?!offset)[\s\S])*$/},
+            {
+              "resourceType": "ValueSet",
+              "id": "some-value-set-id-9",
+              "url": "some-value-set-url-9",
+              "expansion": {
+                "property": [{
+                  "code" : "itemWeight",
+                  "uri": "http://hl7.org/fhir/concept-properties#itemWeight"
+                }],
+                "offset": 0,
+                "contains": [{
+                  "code": "some-code-1",
+                  "system": "some-system-2",
+                  "property": [{
+                    "code" : "itemWeight",
+                    "valueDecimal": 10
+                  }]
+                }, {
+                  "code": "some-code-1",
+                  "system": "some-system-1",
+                  "property": [{
+                    "code" : "itemWeight",
+                    "valueDecimal": 1
+                  }]
+                }]
+              }
+            }],
+          [{url: `${terminologyUrl}/ValueSet/$expand`, body: '{"name":"offset","valueInteger":2}'},
+            {
+              "resourceType": "ValueSet",
+              "id": "some-value-set-id-9",
+              "url": "some-value-set-url-9",
+              "expansion": {
+                "property": [{
+                  "code" : "itemWeight",
+                  "uri": "http://hl7.org/fhir/concept-properties#itemWeight"
+                }],
+                "offset": 2,
+                "contains": [{
+                  "code": "some-code-2",
+                  "system": "some-system-2",
+                  "property": [{
+                    "code" : "itemWeight",
+                    "valueDecimal": 20
+                  }]
+                }, {
+                  "code": "some-code-2",
+                  "system": "some-system-1",
+                  "property": [{
+                    "code" : "itemWeight",
+                    "valueDecimal": 2
+                  }]
+                }]
+              }
+            }]
+        ]);
+        const res = fhirpath.evaluate(
+          {
+            "resourceType": "QuestionnaireResponse",
+            "item": [
+              {
+                "linkId": "link-1",
+                "item": [
+                  {
+                    "linkId": "link-1.1",
+                    "item": [
+                      {
+                        "linkId": "link-1.1.1",
+                        "answer": [
+                          {
+                            "valueCoding": {
+                              "code": "some-code-1",
+                              "system": "some-system-1"
+                            }
+                          }
+                        ]
+                      },{
+                        "linkId": "link-1.1.2",
+                        "answer": [
+                          {
+                            "valueCoding": {
+                              "code": "some-code-2",
+                              "system": "some-system-2"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }, `%context.repeat(item).answer.${fnName}().sum()`,
+          {
+            questionnaire: {
+              "resourceType": "Questionnaire",
+              "contained": [
+                {
+                  "resourceType": "ValueSet",
+                  "id": "some-value-set-id-9",
+                  "url": "some-value-set-url-9"
+                }
+              ],
+              "item": [
+                {
+                  "linkId": "link-1",
+                  "type": "group",
+                  "item": [
+                    {
+                      "linkId": "link-1.1",
+                      "type": "group",
+                      "item": [{
+                        "linkId": "link-1.1.1",
+                        "type": "choice",
+                        "answerValueSet": "#some-value-set-id-9",
+                      },{
+                        "linkId": "link-1.1.2",
+                        "type": "choice",
+                        "answerValueSet": "some-value-set-url-9",
+                      }]
+                    }
+                  ]
+                }
+              ]
+            }
+          }, r5_model, { async: true, terminologyUrl }
+        );
+
+        res.then(r => {
+          expect(r).toStrictEqual([21]);
+          done();
+        }, (err) => {
+          done(err)
+        });
+      });
+
+      it("should return the correct result when getting scores from an expanded value set with paging", (done) => {
+        const terminologyUrl = 'https://lforms-fhir.nlm.nih.gov/baseR5';
+        mockFetchResults([
+          [/\/ValueSet\/\$expand\?url=some-value-set-url-10((?!offset)[\s\S])*$/,
+            {
+              "resourceType": "ValueSet",
+              "id": "some-value-set-id-10",
+              "url": "some-value-set-url-10",
+              "expansion": {
+                "property": [{
+                  "code" : "itemWeight",
+                  "uri": "http://hl7.org/fhir/concept-properties#itemWeight"
+                }],
+                "offset": 0,
+                "contains": [{
+                  "code": "some-code-1",
+                  "system": "some-system-2",
+                  "property": [{
+                    "code" : "itemWeight",
+                    "valueDecimal": 10
+                  }]
+                }, {
+                  "code": "some-code-1",
+                  "system": "some-system-1",
+                  "property": [{
+                    "code" : "itemWeight",
+                    "valueDecimal": 1
+                  }]
+                }]
+              }
+            }],
+          [`${terminologyUrl}/ValueSet/$expand?url=some-value-set-url-10&offset=2`,
+            {
+              "resourceType": "ValueSet",
+              "id": "some-value-set-id-10",
+              "url": "some-value-set-url-10",
+              "expansion": {
+                "property": [{
+                  "code" : "itemWeight",
+                  "uri": "http://hl7.org/fhir/concept-properties#itemWeight"
+                }],
+                "offset": 2,
+                "contains": [{
+                  "code": "some-code-2",
+                  "system": "some-system-2",
+                  "property": [{
+                    "code" : "itemWeight",
+                    "valueDecimal": 20
+                  }]
+                }, {
+                  "code": "some-code-2",
+                  "system": "some-system-1",
+                  "property": [{
+                    "code" : "itemWeight",
+                    "valueDecimal": 2
+                  }]
+                }]
+              }
+            }]
+        ]);
+        const res = fhirpath.evaluate(
+          {
+            "resourceType": "QuestionnaireResponse",
+            "item": [
+              {
+                "linkId": "link-1",
+                "item": [
+                  {
+                    "linkId": "link-1.1",
+                    "item": [
+                      {
+                        "linkId": "link-1.1.1",
+                        "answer": [
+                          {
+                            "valueCoding": {
+                              "code": "some-code-1",
+                              "system": "some-system-1"
+                            }
+                          }
+                        ]
+                      },{
+                        "linkId": "link-1.1.2",
+                        "answer": [
+                          {
+                            "valueCoding": {
+                              "code": "some-code-2",
+                              "system": "some-system-2"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }, `%context.repeat(item).answer.${fnName}().sum()`,
+          {
+            questionnaire: {
+              "resourceType": "Questionnaire",
+              "item": [
+                {
+                  "linkId": "link-1",
+                  "type": "group",
+                  "item": [
+                    {
+                      "linkId": "link-1.1",
+                      "type": "group",
+                      "item": [{
+                        "linkId": "link-1.1.1",
+                        "type": "choice",
+                        "answerValueSet": "some-value-set-url-10",
+                      },{
+                        "linkId": "link-1.1.2",
+                        "type": "choice",
+                        "answerValueSet": "some-value-set-url-10",
+                      }]
+                    }
+                  ]
+                }
+              ]
+            }
+          }, r5_model, { async: true, terminologyUrl }
+        );
+
+        res.then(r => {
+          expect(r).toStrictEqual([21]);
+          done();
+        }, (err) => {
+          done(err)
+        });
+      });
+
       it("should return the correct result when getting scores from a contained value set and a code system from terminology server", (done) => {
         mockFetchResults([
           ['/CodeSystem?url=some-system-20&_elements=property',
@@ -1554,7 +1827,7 @@ describe("supplements", () => {
                   "resourceType": "CodeSystem",
                   "property": [{
                     "code" : "itemWeight",
-                    "uri": "http://hl7.org/fhir/concept-properties"
+                    "uri": "http://hl7.org/fhir/concept-properties#itemWeight"
                   }],
                 }
               }]
@@ -1623,7 +1896,7 @@ describe("supplements", () => {
                   "expansion": {
                     "property": [{
                       "code" : "itemWeight",
-                      "uri": "http://hl7.org/fhir/concept-properties"
+                      "uri": "http://hl7.org/fhir/concept-properties#itemWeight"
                     }],
                     "contains": [{
                       "code": "some-code-1",
@@ -1827,6 +2100,77 @@ describe("supplements", () => {
           }, stu3_model, { async: true }
         );
         expect(res).toStrictEqual([12]);
+      });
+
+      it("should throw an error when questionnatire item has link to a non-existing contained value set", () => {
+        const terminologyUrl = 'https://lforms-fhir.nlm.nih.gov/baseR4';
+
+        const res = () => fhirpath.evaluate(
+          {
+            "resourceType": "QuestionnaireResponse",
+            "item": [
+              {
+                "linkId": "link-1",
+                "item": [
+                  {
+                    "linkId": "link-1.1",
+                    "item": [
+                      {
+                        "linkId": "link-1.1.1",
+                        "answer": [
+                          {
+                            "valueCoding": {
+                              "code": "some-code-2",
+                              "system": "some-system-1"
+                            }
+                          }
+                        ]
+                      },{
+                        "linkId": "link-1.1.2",
+                        "answer": [
+                          {
+                            "valueCoding": {
+                              "code": "some-code-1",
+                              "system": "some-system-1"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }, `%context.repeat(item).answer.${fnName}().sum()`,
+          {
+            questionnaire: {
+              "resourceType": "Questionnaire",
+              "item": [
+                {
+                  "linkId": "link-1",
+                  "type": "group",
+                  "item": [
+                    {
+                      "linkId": "link-1.1",
+                      "type": "group",
+                      "item": [{
+                        "linkId": "link-1.1.1",
+                        "type": "choice",
+                        "answerValueSet": "#some-value-set-id-11",
+                      },{
+                        "linkId": "link-1.1.2",
+                        "type": "choice",
+                        "answerValueSet": "#some-value-set-id-11",
+                      }]
+                    }
+                  ]
+                }
+              ]
+            }
+          }, r4_model, { async: true, terminologyUrl }
+        );
+
+        expect(res).toThrow('Cannot find a contained value set with id: some-value-set-id-11.');
       });
 
     });
