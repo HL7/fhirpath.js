@@ -721,7 +721,7 @@ function parse(path) {
  *   RESTful API that is used to create %terminologies that implements
  *   the Terminology Service API.
  */
-function applyParsedPath(resource, parsedPath, context, model, options) {
+function applyParsedPath(resource, parsedPath, vars, model, options) {
   constants.reset();
   let dataRoot = util.arraify(resource).map(
     i => i?.__path__
@@ -735,12 +735,10 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   let ctx = {
     dataRoot,
     processedVars: {
-      ucum: 'http://unitsofmeasure.org'
+      ucum: 'http://unitsofmeasure.org',
+      context: dataRoot
     },
-    vars: {
-      context: dataRoot,
-      ...context
-    },
+    vars: vars || {},
     model
   };
   if (options.traceFn) {
