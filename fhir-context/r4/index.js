@@ -6,6 +6,24 @@ const updateWithGeneratedData = require('../general-additions');
  */
 const modelInfo = {
   version: 'r4',
+  score: {
+    // See
+    // https://www.hl7.org/fhir/R4/extension-ordinalvalue.html
+    extension: {
+      // Context of use:
+      // - Coding
+      coding: 'http://hl7.org/fhir/StructureDefinition/ordinalValue',
+      // Context of use:
+      // - Questionnaire.item.answerOption
+      questionnaire: 'http://hl7.org/fhir/StructureDefinition/ordinalValue',
+      // Context of use:
+      // - ValueSet.compose.include.concept
+      valueSetInclude: 'http://hl7.org/fhir/StructureDefinition/ordinalValue',
+      // Context of use:
+      // - CodeSystem.concept
+      codeSystem: 'http://hl7.org/fhir/StructureDefinition/ordinalValue'
+    }
+  },
   /**
    *  A hash of resource element paths (e.g. Observation.value) that are known
    *  to point to fiels that are choice types.

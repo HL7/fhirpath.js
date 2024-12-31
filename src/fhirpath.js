@@ -296,7 +296,7 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
       "Attempting to access an undefined environment variable: " + varName
     );
   }
-  // For convenience, we all variable values to be passed in without their array
+  // For convenience, all variable values could be passed in without their array
   // wrapper.  However, when evaluating, we need to put the array back in.
   return value === undefined || value === null
     ? []
@@ -749,12 +749,6 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   if (options.userInvocationTable) {
     ctx.userInvocationTable = options.userInvocationTable;
   }
-  ctx.defaultScoreExts = [
-    'http://hl7.org/fhir/StructureDefinition/ordinalValue',
-    'http://hl7.org/fhir/StructureDefinition/itemWeight',
-    'http://hl7.org/fhir/StructureDefinition/questionnaire-ordinalValue',
-    'http://hl7.org/fhir/StructureDefinition/valueset-ordinalValue'
-  ];
   if (options.async) {
     ctx.async = options.async;
   }

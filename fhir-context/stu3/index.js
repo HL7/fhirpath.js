@@ -5,6 +5,25 @@ const updateWithGeneratedData = require('../general-additions');
  */
 const modelInfo = {
   version: 'stu3',
+  score: {
+    // See:
+    // - https://hl7.org/fhir/STU3/extension-iso21090-co-value.html
+    // - https://www.hl7.org/fhir/stu3/extension-questionnaire-ordinalvalue.html
+    // - https://hl7.org/fhir/STU3/extension-valueset-ordinalvalue.html
+    extension: {
+      // Context of use:
+      // - Coding
+      coding: 'http://hl7.org/fhir/StructureDefinition/iso21090-CO-value',
+      // Context of use:
+      // - Questionnaire.item.option.valueCoding
+      questionnaire: 'http://hl7.org/fhir/StructureDefinition/questionnaire-ordinalValue',
+      // Context of use:
+      // - ValueSet.expansion.contains
+      // - ValueSet.compose.include.concept
+      valueSetExpansion: 'http://hl7.org/fhir/StructureDefinition/valueset-ordinalValue',
+      valueSetInclude: 'http://hl7.org/fhir/StructureDefinition/valueset-ordinalValue'
+    }
+  },
   /**
    *  A hash of resource element paths (e.g. Observation.value) that are known
    *  to point to fiels that are choice types.

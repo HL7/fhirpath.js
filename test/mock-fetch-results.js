@@ -1,5 +1,6 @@
 let fetchSpy;
 
+
 /**
  * Checks whether a string (in the first parameter) matches a regular expression
  * or substring (in the second parameter).
@@ -17,6 +18,8 @@ function checkString(str, condition) {
     return str && (str.indexOf(condition) !== -1)
   }
 }
+
+
 /**
  * Mocks fetch requests.
  * @param {Array} results - an array of fetch response descriptions, each item
@@ -31,7 +34,7 @@ function checkString(str, condition) {
  */
 function mockFetchResults(results) {
   fetchSpy = jest.spyOn(global, 'fetch').mockImplementation(
-    (url, options) => new Promise((resolve, reject) => {
+    (url, options) => new Promise((resolve) => {
       const mockedItem = results?.find(
         (r) => {
           if (typeof r[0] === 'string' || r[0] instanceof RegExp) {
@@ -54,6 +57,7 @@ function mockFetchResults(results) {
     })
   );
 }
+
 
 /**
  * Restore the spy created with mockFetchResults.

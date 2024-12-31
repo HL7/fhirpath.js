@@ -65,7 +65,11 @@ where:
   or object, if fhirData represents the part of the FHIR resource:
     * fhirPathExpression.base - base path in resource from which fhirData was extracted
     * fhirPathExpression.expression - FHIRPath expression relative to path.base
-* environment - a hash of variable name/value pairs.
+* environment - a hash of variable name/value pairs. It is not recommended to 
+  modify the internal fields of a variable after passing it to the evaluation
+  function, since these changes may not be taken into account in further
+  evaluations due to caching of the evaluation results.
+  We currently cache `%questionnaire` scores for the `weight()` function.
 * model - the "model" data object specific to a domain, e.g. R4.
   For example, you could pass in the result of require("fhirpath/fhir-context/r4");
 * options - additional options:
