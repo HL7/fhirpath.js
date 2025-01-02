@@ -274,7 +274,7 @@ describe('evaluate type() on a FHIRPath evaluation result', () => {
 });
 
 describe('evaluate environment variables', () => {
-  it('variables can be immutable', () => {
+  it('context can be immutable', () => {
     const vars = Object.freeze({a: 'abc', b: 'def'});
     expect(fhirpath.evaluate(
       {},
@@ -283,7 +283,7 @@ describe('evaluate environment variables', () => {
     )).toStrictEqual([true]);
   })
 
-  it('variables can be immutable when new variables are defined', () => {
+  it('context can be immutable when new variables are defined', () => {
     const vars = Object.freeze({a: 'abc'});
     expect(fhirpath.evaluate(
       {},
