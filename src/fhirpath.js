@@ -261,7 +261,8 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
   // Check the user-defined environment variables first as the user can override
   // the "context" variable like we do in unit tests. In this case, the user
   // environment variable can replace the system environment variable in "processedVars".
-  if (varName in ctx.vars) {
+  // If the user-defined environment variable has been processed, we don't need to process it again.
+  if (varName in ctx.vars && !ctx.processedUserVarNames.has(varName)) {
     // Restore the ResourceNodes for the top-level objects of the environment
     // variables. The nested objects will be converted to ResourceNodes
     // in the MemberInvocation method.
@@ -283,7 +284,7 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
           : value;
     }
     ctx.processedVars[varName] = value;
-    delete ctx.vars[varName];
+    ctx.processedUserVarNames.add(varName);
   } else if (varName in ctx.processedVars) {
     // "processedVars" are variables with ready-to-use values that have already
     // been converted to ResourceNodes if necessary.
@@ -721,13 +722,15 @@ function parse(path) {
  *   RESTful API that is used to create %terminologies that implements
  *   the Terminology Service API.
  */
-function applyParsedPath(resource, parsedPath, context, model, options) {
+function applyParsedPath(resource, parsedPath, vars, model, options) {
   constants.reset();
   let dataRoot = util.arraify(resource).map(
     i => i?.__path__
       ? makeResNode(i, i.__path__.parentResNode, i.__path__.path, null,
         i.__path__.fhirNodeDataType)
-      : i );
+      : i?.resourceType
+        ? makeResNode(i, null, null, null)
+        : i);
   // doEval takes a "ctx" object, and we store things in that as we parse, so we
   // need to put user-provided variable data in a sub-object, ctx.vars.
   // Set up default standard variables, and allow override from the variables.
@@ -735,12 +738,11 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   let ctx = {
     dataRoot,
     processedVars: {
-      ucum: 'http://unitsofmeasure.org'
+      ucum: 'http://unitsofmeasure.org',
+      context: dataRoot
     },
-    vars: {
-      context: dataRoot,
-      ...context
-    },
+    processedUserVarNames: new Set(),
+    vars: vars || {},
     model
   };
   if (options.traceFn) {

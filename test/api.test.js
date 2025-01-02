@@ -273,3 +273,33 @@ describe('evaluate type() on a FHIRPath evaluation result', () => {
   })
 });
 
+describe('evaluate environment variables', () => {
+  it('variables can be immutable', () => {
+    const vars = Object.freeze({a: 'abc', b: 'def'});
+    expect(fhirpath.evaluate(
+      {},
+      '%a = \'abc\'',
+      vars
+    )).toStrictEqual([true]);
+  })
+
+  it('variables can be immutable when new variables are defined', () => {
+    const vars = Object.freeze({a: 'abc'});
+    expect(fhirpath.evaluate(
+      {},
+      "defineVariable('b', '%a')",
+      vars
+    )).toStrictEqual
+  });
+  it('variables are only read when needed', () => {
+    const vars = {
+      get a() { return 'abc'; },
+      get b() { throw new Error('b should not be read'); }
+    };
+    expect(fhirpath.evaluate(
+      {},
+      '%a = \'abc\'',
+      vars
+    )).toStrictEqual([true]);
+  })
+});
