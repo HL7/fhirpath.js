@@ -728,7 +728,9 @@ function applyParsedPath(resource, parsedPath, vars, model, options) {
     i => i?.__path__
       ? makeResNode(i, i.__path__.parentResNode, i.__path__.path, null,
         i.__path__.fhirNodeDataType)
-      : i );
+      : i?.resourceType
+        ? makeResNode(i, null, null, null)
+        : i);
   // doEval takes a "ctx" object, and we store things in that as we parse, so we
   // need to put user-provided variable data in a sub-object, ctx.vars.
   // Set up default standard variables, and allow override from the variables.
