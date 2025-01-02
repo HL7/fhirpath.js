@@ -261,7 +261,8 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
   // Check the user-defined environment variables first as the user can override
   // the "context" variable like we do in unit tests. In this case, the user
   // environment variable can replace the system environment variable in "processedVars".
-  if (varName in ctx.vars) {
+  // If the user-defined environment variable has been processed, we don't need to process it again.
+  if (varName in ctx.vars && !ctx.processedUserVarNames.has(varName)) {
     // Restore the ResourceNodes for the top-level objects of the environment
     // variables. The nested objects will be converted to ResourceNodes
     // in the MemberInvocation method.
@@ -283,7 +284,7 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
           : value;
     }
     ctx.processedVars[varName] = value;
-    delete ctx.vars[varName];
+    ctx.processedUserVarNames.add(varName);
   } else if (varName in ctx.processedVars) {
     // "processedVars" are variables with ready-to-use values that have already
     // been converted to ResourceNodes if necessary.
@@ -738,6 +739,7 @@ function applyParsedPath(resource, parsedPath, vars, model, options) {
       ucum: 'http://unitsofmeasure.org',
       context: dataRoot
     },
+    processedUserVarNames: new Set(),
     vars: vars || {},
     model
   };
