@@ -287,9 +287,9 @@ describe('evaluate environment variables', () => {
     const vars = Object.freeze({a: 'abc'});
     expect(fhirpath.evaluate(
       {},
-      "defineVariable('b', '%a')",
+      "%a.defineVariable('b')",
       vars
-    )).toStrictEqual
+    )).toStrictEqual(['abc']);
   });
   it('variables are only read when needed', () => {
     const vars = {
