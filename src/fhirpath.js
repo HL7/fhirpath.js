@@ -705,7 +705,7 @@ function parse(path) {
  * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
  *  This resource will be modified by this function to add type information.
  * @param {object} parsedPath - a special object created by the parser that describes the structure of a fhirpath expression.
- * @param {object} context - a hash of variable name/value pairs.
+ * @param {object} envVars - a hash of variable name/value pairs.
  * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} options - additional options:
@@ -722,7 +722,7 @@ function parse(path) {
  *   RESTful API that is used to create %terminologies that implements
  *   the Terminology Service API.
  */
-function applyParsedPath(resource, parsedPath, vars, model, options) {
+function applyParsedPath(resource, parsedPath, envVars, model, options) {
   constants.reset();
   let dataRoot = util.arraify(resource).map(
     i => i?.__path__
@@ -742,7 +742,7 @@ function applyParsedPath(resource, parsedPath, vars, model, options) {
       context: dataRoot
     },
     processedUserVarNames: new Set(),
-    vars: vars || {},
+    vars: envVars || {},
     model
   };
   if (options.traceFn) {
@@ -843,7 +843,7 @@ function resolveInternalTypes(val) {
  *  or object, if fhirData represents the part of the FHIR resource:
  * @param {string} path.base - base path in resource from which fhirData was extracted
  * @param {string} path.expression - FHIRPath expression relative to path.base
- * @param {object} [context] - a hash of variable name/value pairs.
+ * @param {object} [envVars] - a hash of variable name/value pairs.
  * @param {object} [model] - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} [options] - additional options:
@@ -862,8 +862,8 @@ function resolveInternalTypes(val) {
  *   RESTful API that is used to create %terminologies that implements
  *   the Terminology Service API.
  */
-function evaluate(fhirData, path, context, model, options) {
-  return compile(path, model, options)(fhirData, context);
+function evaluate(fhirData, path, envVars, model, options) {
+  return compile(path, model, options)(fhirData, envVars);
 }
 
 /**
@@ -924,7 +924,7 @@ function compile(path, model, options) {
 
   if (typeof path === 'object') {
     const node = parse(path.expression);
-    return function (fhirData, context) {
+    return function (fhirData, envVars) {
       if (path.base) {
         let basePath = model.pathsDefinedElsewhere[path.base] || path.base;
         const baseFhirNodeDataType = model && model.path2Type[basePath];
@@ -934,14 +934,14 @@ function compile(path, model, options) {
       }
       // Globally set model before applying parsed FHIRPath expression
       TypeInfo.model = model;
-      return applyParsedPath(fhirData, node, context, model, options);
+      return applyParsedPath(fhirData, node, envVars, model, options);
     };
   } else {
     const node = parse(path);
-    return function (fhirData, context) {
+    return function (fhirData, envVars) {
       // Globally set model before applying parsed FHIRPath expression
       TypeInfo.model = model;
-      return applyParsedPath(fhirData, node, context, model, options);
+      return applyParsedPath(fhirData, node, envVars, model, options);
     };
   }
 }

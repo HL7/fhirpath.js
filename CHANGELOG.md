@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.15.3] - 2025-01-09
+### Fixed
+- Read environment variables only when they are used in an expression, avoiding
+  unnecessary getter calls when working with libraries like Jotai.
+
 ## [3.15.2] - 2024-08-30
 ### Fixed
 - Removed the need to run `(cd demo && npm ci)`.
