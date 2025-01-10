@@ -1525,6 +1525,49 @@ TypeInfo.fromValue = function (value) {
 };
 
 /**
+ * Set of primitive data type names.
+ */
+const primitives = new Set();
+// IE11 probably doesn't support `new Set(iterable)`
+[
+  "instant",
+  "time",
+  "date",
+  "dateTime",
+  "base64Binary",
+  "decimal",
+  "integer64",
+  "boolean",
+  "string",
+  "code",
+  "markdown",
+  "id",
+  "integer",
+  "unsignedInt",
+  "positiveInt",
+  "uri",
+  "oid",
+  "uuid",
+  "canonical",
+  "url",
+  "Integer",
+  "Decimal",
+  "String",
+  "Date",
+  "DateTime",
+  "Time"
+].forEach(i => primitives.add(i));
+
+/**
+ * Checks whether the specified type information contains a primitive data type.
+ * @param {TypeInfo} typeInfo
+ * @return {boolean}
+ */
+TypeInfo.isPrimitive = function(typeInfo) {
+  return primitives.has(typeInfo.name);
+};
+
+/**
  * Basic "type()" function implementation
  * (see http://hl7.org/fhirpath/#reflection)
  * @param {Array<*>} coll - input collection
@@ -1575,17 +1618,19 @@ function asFn(coll, typeInfo) {
 }
 
 module.exports = {
-  FP_Type: FP_Type,
-  FP_TimeBase: FP_TimeBase,
-  FP_Date: FP_Date,
-  FP_DateTime: FP_DateTime,
-  FP_Instant: FP_Instant,
-  FP_Time: FP_Time,
-  FP_Quantity: FP_Quantity,
-  timeRE: timeRE,
-  dateTimeRE: dateTimeRE,
-  ResourceNode: ResourceNode,
-  TypeInfo: TypeInfo,
+  FP_Type,
+  FP_TimeBase,
+  FP_Date,
+  FP_DateTime,
+  FP_Instant,
+  FP_Time,
+  FP_Quantity,
+  timeRE,
+  dateTimeRE,
+  dateRE,
+  instantRE,
+  ResourceNode,
+  TypeInfo,
   typeFn,
   isFn,
   asFn

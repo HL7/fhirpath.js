@@ -1,0 +1,672 @@
+tests:
+  # https://hl7.org/fhir/fhirpath.html#factory
+  - 'group: Type Factory API (%factory)':
+    - 'group: primitives':
+
+      - desc: '** create a base64Binary without an extension'
+        model: r4
+        expression: >-
+          %factory.base64Binary('ZHNmZHNm').where($this is base64Binary)
+          .decode('base64')
+        result:
+          - 'dsfdsf'
+
+      - desc: '** create a base64Binary with an extension'
+        model: r4
+        expression: >-
+          %factory.base64Binary('ZHNmZHNm', %factory.Extension('someExt',
+          'someString')).extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating a base64Binary may throw an exception'
+        model: r4
+        expression: >-
+          %factory.base64Binary('dsfdsf')
+        error: true
+
+      - desc: '** create a boolean without an extension'
+        model: r4
+        expression: >-
+          %factory.boolean(true).where($this is boolean)
+        result:
+          - true
+
+      - desc: '** create a boolean with an extension'
+        model: r4
+        expression: >-
+          %factory.boolean('false', %factory.Extension('someExt',
+          'someString')).where($this is boolean and $this = false)
+          .extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating a boolean may throw an exception'
+        model: r4
+        expression: >-
+          %factory.boolean('dsfdsf')
+        error: true
+
+      - desc: '** create a canonical without an extension'
+        model: r4
+        expression: >-
+          %factory.canonical('someUrl').where($this is canonical)
+        result:
+          - 'someUrl'
+
+      - desc: '** create a canonical with an extension'
+        model: r4
+        expression: >-
+          %factory.canonical('someUrl', %factory.Extension('someExt',
+          'someString')).where($this is canonical and $this = 'someUrl')
+          .extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating a canonical may throw an exception'
+        model: r4
+        expression: >-
+          %factory.canonical('some Url')
+        error: true
+
+      - desc: '** create a code without an extension'
+        model: r4
+        expression: >-
+          %factory.code('some code').where($this is code)
+        result:
+          - 'some code'
+
+      - desc: '** create a code with an extension'
+        model: r4
+        expression: >-
+          %factory.code('some code', %factory.Extension('someExt',
+          'someString')).where($this is code and $this = 'some code')
+          .extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating a code may throw an exception'
+        model: r4
+        expression: >-
+          %factory.code('some code ')
+        error: true
+
+      - desc: '** create a date without an extension'
+        model: r4
+        expression: >-
+          %factory.date('2024-01-01').where($this is date) = @2024-01-01
+        result:
+          - true
+
+      - desc: '** create a date with an extension'
+        model: r4
+        expression: >-
+          %factory.date('2024-01-01', %factory.Extension('someExt',
+          'someString')).where($this is date and $this = @2024-01-01)
+          .extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating a date may throw an exception'
+        model: r4
+        expression: >-
+          %factory.date('something')
+        error: true
+
+      - desc: '** create a dateTime without an extension'
+        model: r4
+        expression: >-
+          %factory.dateTime('2024-01-01T01:01:01').where($this is dateTime) =
+          @2024-01-01T01:01:01
+        result:
+          - true
+
+      - desc: '** create a dateTime with an extension'
+        model: r4
+        expression: >-
+          %factory.dateTime('2024-01-01T01:01:01', %factory.Extension('someExt',
+          'someString')).where($this is dateTime and $this = @2024-01-01T01:01:01)
+          .extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating a dateTime may throw an exception'
+        model: r4
+        expression: >-
+          %factory.dateTime('something')
+        error: true
+
+      - desc: '** create a decimal without an extension'
+        model: r4
+        expression: >-
+          %factory.decimal(1.1).where($this is decimal)
+        result:
+          - 1.1
+
+      - desc: '** create a decimal with an extension'
+        model: r4
+        expression: >-
+          %factory.decimal('1.1', %factory.Extension('someExt', 'someString'))
+          .where($this is decimal and $this = 1.1).extension('someExt').value
+          = 'someString'
+        result:
+          - true
+
+      - desc: '** creating a decimal may throw an exception'
+        model: r4
+        expression: >-
+          %factory.decimal('sdfds')
+        error: true
+
+      - desc: '** create an id without an extension'
+        model: r4
+        expression: >-
+          %factory.id('someId-123').where($this is id) = 'someId-123'
+        result:
+          - true
+
+      - desc: '** create an id with an extension'
+        model: r4
+        expression: >-
+          %factory.id('someId-123', %factory.Extension('someExt',
+          'someString')).where($this is id and $this = 'someId-123')
+          .extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating an id may throw an exception'
+        model: r4
+        expression: >-
+          %factory.id('someId 123')
+        error: true
+
+      - desc: '** create an instant without an extension'
+        model: r4
+        expression: >-
+          %factory.instant('2024-01-01T01:01:01+01:00').where($this is instant) =
+          @2024-01-01T01:01:01+01:00
+        result:
+          - true
+
+      - desc: '** create an instant with an extension'
+        model: r4
+        expression: >-
+          %factory.instant('2024-01-01T01:01:01+01:00', %factory.Extension('someExt',
+          'someString')).where($this is instant and $this = @2024-01-01T01:01:01+01:00)
+          .extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating an instant may throw an exception'
+        model: r4
+        expression: >-
+          %factory.instant('something')
+        error: true
+
+      - desc: '** create an integer without an extension'
+        model: r4
+        expression: >-
+          %factory.integer(134).where($this is integer)
+        result:
+          - 134
+
+      - desc: '** create an integer with an extension'
+        model: r4
+        expression: >-
+          %factory.integer(-134, %factory.Extension('someExt', 'someString'))
+          .where($this is integer and $this = -134)
+          .extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating an integer may throw an exception'
+        model: r4
+        expression: >-
+          %factory.integer(1.1)
+        error: true
+
+      - desc: '** create an integer64 without an extension'
+        model: r5
+        expression: >-
+          %factory.integer64(134).where($this is integer64)
+        result:
+          - 134
+
+      - desc: '** create an integer64 with an extension'
+        model: r5
+        expression: >-
+          %factory.integer64(134, %factory.Extension('someExt', 'someString'))
+          .extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating an integer64 may throw an exception'
+        model: r5
+        expression: >-
+          %factory.integer64(1.1)
+        error: true
+
+      - desc: '** create a markdown without an extension'
+        model: r4
+        expression: >-
+          %factory.markdown(' md md ').where($this is markdown)
+        result:
+          - ' md md '
+
+      - desc: '** create a markdown with an extension'
+        model: r4
+        expression: >-
+          %factory.markdown(' md md ', %factory.Extension('someExt', 'someString'))
+          .where($this is markdown and $this = ' md md ')
+          .extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating an markdown may throw an exception'
+        model: r4
+        expression: >-
+          %factory.markdown('')
+        error: true
+
+      - desc: '** create an oid without an extension'
+        model: r4
+        expression: >-
+          %factory.oid('urn:oid:1.2.3').where($this is oid)
+        result:
+          - 'urn:oid:1.2.3'
+
+      - desc: '** create an oid with an extension'
+        model: r4
+        expression: >-
+          %factory.oid('urn:oid:1.2.3', %factory.Extension('someExt', 'someString'))
+          .where($this is oid and $this = 'urn:oid:1.2.3')
+          .extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating an oid may throw an exception'
+        model: r4
+        expression: >-
+          %factory.oid('urn:oid:3.2.3')
+        error: true
+
+      - desc: '** create a string without an extension'
+        model: r4
+        expression: >-
+          %factory.string('some string').where($this is string)
+        result:
+          - 'some string'
+
+      - desc: '** create a string with an extension'
+        model: r4
+        expression: >-
+          %factory.string('some string', %factory.Extension('someExt', 'someString'))
+          .where($this is string and $this = 'some string')
+          .extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating a string may throw an exception'
+        model: r4
+        expression: >-
+          %factory.string('')
+        error: true
+
+      - desc: '** create a positiveInt without an extension'
+        model: r4
+        expression: >-
+          %factory.positiveInt(134).where($this is positiveInt)
+        result:
+          - 134
+
+      - desc: '** create a positiveInt with an extension'
+        model: r4
+        expression: >-
+          %factory.positiveInt(134, %factory.Extension('someExt', 'someString'))
+          .where($this is positiveInt and $this = 134)
+          .extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating a positiveInt may throw an exception'
+        model: r4
+        expression: >-
+          %factory.positiveInt(0)
+        error: true
+
+      - desc: '** create a time without an extension'
+        model: r4
+        expression: >-
+          %factory.time('10:00').where($this is time) =  @T10:00
+        result:
+          - true
+
+      - desc: '** create a time with an extension'
+        model: r4
+        expression: >-
+          %factory.time('10:00', %factory.Extension('someExt', 'someString'))
+          .where($this is time and $this = @T10:00)
+          .extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating a time may throw an exception'
+        model: r4
+        expression: >-
+          %factory.time('something')
+        error: true
+
+      - desc: '** create a unsignedInt without an extension'
+        model: r4
+        expression: >-
+          %factory.unsignedInt(134).where($this is unsignedInt)
+        result:
+          - 134
+
+      - desc: '** create a unsignedInt with an extension'
+        model: r4
+        expression: >-
+          %factory.unsignedInt(0, %factory.Extension('someExt', 'someString'))
+          .where($this is unsignedInt and $this = 0)
+          .extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating a unsignedInt may throw an exception'
+        model: r4
+        expression: >-
+          %factory.unsignedInt(-1)
+        error: true
+
+      - desc: '** create a uri without an extension'
+        model: r4
+        expression: >-
+          %factory.uri('/something').where($this is uri)
+        result:
+          - '/something'
+
+      - desc: '** create a uri with an extension'
+        model: r4
+        expression: >-
+          %factory.uri('', %factory.Extension('someExt', 'someString'))
+          .where($this is uri and $this = '')
+          .extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating a uri may throw an exception'
+        model: r4
+        expression: >-
+          %factory.uri(123)
+        error: true
+
+      - desc: '** create a url without an extension'
+        model: r4
+        expression: >-
+          %factory.url('/something').where($this is url)
+        result:
+          - '/something'
+
+      - desc: '** create a url with an extension'
+        model: r4
+        expression: >-
+          %factory.url('', %factory.Extension('someExt', 'someString'))
+          .where($this is url and $this = '')
+          .extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating a url may throw an exception'
+        model: r4
+        expression: >-
+          %factory.url(123)
+        error: true
+
+      - desc: '** create a uuid without an extension'
+        model: r4
+        expression: >-
+          %factory.uuid('urn:uuid:c757873d-ec9a-4326-a141-556f43239520')
+          .where($this is uuid)
+        result:
+          - 'urn:uuid:c757873d-ec9a-4326-a141-556f43239520'
+
+      - desc: '** create a uuid with an extension'
+        model: r4
+        expression: >-
+          %factory.uuid('urn:uuid:c757873d-ec9a-4326-a141-556f43239520',
+          %factory.Extension('someExt', 'someString')).where($this is uuid and
+          $this = 'urn:uuid:c757873d-ec9a-4326-a141-556f43239520')
+          .extension('someExt').value = 'someString'
+        result:
+          - true
+
+      - desc: '** creating a uuid may throw an exception'
+        model: r4
+        expression: >-
+          %factory.uuid('something')
+        error: true
+
+    - 'group: Extension':
+
+      - desc: '** create an extension of the string data type'
+        model: r4
+        expression: >-
+          %factory.Extension('someExt', 'someString').where($this is Extension
+          and $this.valueString is string).value = 'someString'
+        result:
+          - true
+
+      - desc: '** create an extension of the integer data type'
+        model: r4
+        expression: >-
+          %factory.Extension('someExt', 11).where($this is Extension
+          and $this.valueInteger is integer).value = 11
+        result:
+          - true
+
+      - desc: '** create an extension of the decimal data type'
+        model: r4
+        expression: >-
+          %factory.Extension('someExt', 11.1).where($this is Extension
+          and $this.valueDecimal is decimal).value = 11.1
+        result:
+          - true
+
+      - desc: '** create an extension of the code data type'
+        model: r4
+        expression: >-
+          %factory.Extension('someExt', %factory.code('some code')).where($this is Extension
+          and $this.valueCode is code).value = 'some code'
+        result:
+          - true
+
+    - 'group: Identifier':
+
+        - desc: '** created an Identifier'
+          model: r4
+          expression: >-
+            %factory.Identifier('someSystem', 'someValue', 'someUse', %factory
+            .create(CodeableConcept)).where($this.system = 'someSystem' and
+            $this.value = 'someValue' and $this.use = 'someUse' and $this.type
+            is CodeableConcept) is Identifier
+          result:
+            - true
+
+        - desc: '** created an Identifier without system'
+          model: r4
+          expression: >-
+            %factory.Identifier({}, 'someValue', 'someUse', %factory
+            .create(CodeableConcept)).where($this.system.empty() and
+            $this.value = 'someValue' and $this.use = 'someUse' and $this.type
+            is CodeableConcept) is Identifier
+          result:
+            - true
+
+        - desc: '** creating an Identifier may throw an exception'
+          model: r4
+          expression: >-
+            %factory.Identifier(1, 'someValue', 'someUse', %factory
+            .create(CodeableConcept))
+          error: true
+
+    - 'group: HumanName':
+
+        - desc: '** created a HumanName'
+          model: r4
+          expression: >-
+            %factory.HumanName('Smith', 'Julia' | 'A', {}, {}, 'Julia Smith').where(
+            family = 'Smith' and given = ('Julia' | 'A') and prefix.empty() and
+            suffix.empty() and text = 'Julia Smith' and use.empty()
+            ) is HumanName
+          result:
+            - true
+
+        - desc: '** creating a HumanName may throw an exception'
+          model: r4
+          expression: >-
+            %factory.HumanName(1, 'Julia' | 'A', {}, {}, 'Julia Smith')
+          error: true
+
+    - 'group: ContactPoint':
+
+        - desc: '** created a ContactPoint'
+          model: r4
+          expression: >-
+            %factory.ContactPoint('email', 'coyote@acme.com', 'work').where(
+            system = 'email' and value = 'coyote@acme.com' and use = 'work'
+            ) is ContactPoint
+          result:
+            - true
+
+        - desc: '** creating a ContactPoint may throw an exception'
+          model: r4
+          expression: >-
+            %factory.ContactPoint(1, 'coyote@acme.com', 'work')
+          error: true
+
+    - 'group: Address':
+
+        - desc: '** created an Address'
+          model: r4
+          expression: >-
+            %factory.Address('5 Nowhere Road' | 'second line', 'SomeCity', 'EW',
+            '0000', {}, 'home', 'physical').where(line = ('5 Nowhere Road' |
+            'second line') and city = 'SomeCity' and state = 'EW' and postalCode
+            = '0000' and country.empty() and use = 'home' and type = 'physical')
+            is Address
+          result:
+            - true
+
+        - desc: '** creating an Address may throw an exception'
+          model: r4
+          expression: >-
+            %factory.Address(1 | 'second line', 'SomeCity', 'EW', '0000', {},
+            'home', 'physical')
+          error: true
+
+    - 'group: Quantity':
+
+        - desc: '** created a Quantity using a string value'
+          model: r4
+          expression: >-
+            %factory.Quantity('http://unitsofmeasure.org', 'mg/dL', '5.03',
+            'mg/dL').where(system = 'http://unitsofmeasure.org' and code =
+            'mg/dL') = 5.03 'mg/dL'
+          result:
+            - true
+
+        - desc: '** created a Quantity using a number value'
+          model: r4
+          expression: >-
+            %factory.Quantity('http://unitsofmeasure.org', 'mg/dL', 5.03,
+            'mg/dL') = 5.03 'mg/dL'
+          result:
+            - true
+
+        - desc: '** created a Quantity without system'
+          model: r4
+          expression: >-
+            %factory.Quantity({}, 'mg/dL', 5.03, 'mg/dL').where(system.empty())
+            is Quantity
+          result:
+            - true
+
+        - desc: '** creating a Quantity may throw an exception'
+          model: r4
+          expression: >-
+            %factory.Quantity(1, 'mg/dL', 5.03, 'mg/dL')
+          error: true
+
+    - 'group: Coding':
+
+        - desc: '** created a Coding'
+          model: r4
+          expression: >-
+            %factory.Coding('http://loinc.org', '1234-5', 'An example test',
+            '1.02').where(system = 'http://loinc.org' and code = '1234-5' and
+            display = 'An example test' and version = '1.02') is Coding
+          result:
+            - true
+
+        - desc: '** creating a Coding may throw an exception'
+          model: r4
+          expression: >-
+            %factory.Coding(1, '1234-5', 'An example test', '1.02')
+          error: true
+
+    - 'group: CodeableConcept':
+
+        - desc: '** created a CodeableConcept'
+          model: r4
+          expression: >-
+            %factory.CodeableConcept(%factory.Coding('system1', '1') | %factory
+            .Coding('system2', '2'), 'Example Test').where(coding.code = '1' |
+            '2' and text = 'Example Test') is CodeableConcept
+          result:
+            - true
+
+        - desc: '** creating a CodeableConcept may throw an exception'
+          model: r4
+          expression: >-
+            %factory.CodeableConcept(1 | %factory.Coding('system2', '2'),
+            'Example Test')
+          error: true
+
+    - 'group: create':
+
+        - desc: '** the created instance has the correct data type'
+          model: r4
+          expression: >-
+            %factory.create(integer) is FHIR.integer
+          result:
+            - true
+
+    - 'group: withExtension':
+
+        - desc: '** adding an extension to an existing list of extensions'
+          model: r4
+          expression: >-
+            %factory.withExtension(%factory.integer(134, %factory.Extension(
+            'someExt1', 'someString')), 'someExt2', 1).extension.value =
+            'someString' | 1
+          result:
+            - true
+
+        - desc: '** create an instance with no data and add an extension later'
+          model: r4
+          expression: >-
+            %factory.withExtension(%factory.integer({}), 'someExt', 1).extension(
+            'someExt').value = 1
+          result:
+            - true
+
+    - 'group: withProperty':
+
+        - desc: '** adding a property to an instance'
+          model: r4
+          expression: >-
+            %factory.withProperty(%factory.integer(134, %factory.Extension(
+            'someExt1', 'someString')), 'id', 'someId').where(extension.value =
+            'someString').id = 'someId'
+          result:
+            - true
