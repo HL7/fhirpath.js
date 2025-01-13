@@ -56,6 +56,7 @@ const {
 } = types;
 let makeResNode = ResourceNode.makeResNode;
 const Terminologies = require('./terminologies');
+const Factory = require('./factory');
 
 // * fn: handler
 // * arity: is index map with type signature
@@ -762,6 +763,7 @@ function applyParsedPath(resource, parsedPath, envVars, model, options) {
   if (options.terminologyUrl) {
     ctx.processedVars.terminologies = new Terminologies(options.terminologyUrl);
   }
+  ctx.processedVars.factory = Factory;
   const res = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
   return res instanceof Promise
     ? res.then(r => prepareEvalResult(r, options))
