@@ -13,21 +13,45 @@ const MAX_VS_CODES = 500;
 
 /**
  * Returns numeric values from the score extension associated with the input
- * collection of Questionnaire items. See the description of the ordinal()
- * function here:
- *  https://hl7.org/fhir/uv/sdc/expressions.html#fhirpath-supplements
- * See also:
- *  https://www.hl7.org/fhir/extensions/StructureDefinition-itemWeight.html
- *  https://build.fhir.org/ig/HL7/fhir-extensions/StructureDefinition-itemWeight.html
- *  https://www.hl7.org/fhir/codesystem-concept-properties.html
- *  https://www.hl7.org/fhir/R4/extension-ordinalvalue.html
- *  https://www.hl7.org/fhir/stu3/extension-questionnaire-ordinalvalue.html
- *  https://www.hl7.org/fhir/stu3/extension-valueset-ordinalvalue.html
- *  https://hl7.org/fhir/STU3/extension-iso21090-co-value.html
- *  https://hl7.org/fhir/DSTU2/questionnaire.html#4.26.5.9
- *  https://hl7.org/fhir/DSTU2/extension-iso21090-co-value.html
- *  https://hl7.org/fhir/DSTU2/extension-valueset-ordinalvalue.html
- * @param {Array} coll - questionnaire items
+ * collection of resource nodes (e.g. QuestionnaireResponse items).
+ *
+ * Currently, when searching for a score extension, we respect the "Context of
+ * Use" for each possible extension used to store a score:
+ *   * https://www.hl7.org/fhir/extensions/StructureDefinition-itemWeight.html
+ *   * https://build.fhir.org/ig/HL7/fhir-extensions/StructureDefinition-itemWeight.html
+ *   * https://www.hl7.org/fhir/codesystem-concept-properties.html
+ *   * https://www.hl7.org/fhir/R4/extension-ordinalvalue.html
+ *   * https://www.hl7.org/fhir/stu3/extension-questionnaire-ordinalvalue.html
+ *   * https://www.hl7.org/fhir/stu3/extension-valueset-ordinalvalue.html
+ *   * https://hl7.org/fhir/STU3/extension-iso21090-co-value.html
+ *   * https://hl7.org/fhir/DSTU2/questionnaire.html#4.26.5.9
+ *   * https://hl7.org/fhir/DSTU2/extension-iso21090-co-value.html
+ *   * https://hl7.org/fhir/DSTU2/extension-valueset-ordinalvalue.html
+ *
+ * Also, according to this spec
+ * https://hl7.org/fhir/uv/sdc/expressions.html#fhirpath-supplements, we expect
+ * a score extension for "code or Coding" (we don't support scores for all
+ * possible [x] in value[x]).
+ *
+ * We search for the first score extension for each source node to add its value
+ * to the result in the following order:
+ * 1. Check the source node for a score extension.
+ * 2. If the source node is an answer from a `QuestionnaireResponse`, check the
+ *    `valueCoding` child element for a score extension.
+ * 3. If the source node is an answer from a `QuestionnaireResponse` or its
+ *    `valueCoding`:
+ *     - Check the corresponding `Questionnaire` answer option for a score
+ *       extension.
+ *     - If the `Questionnaire` answer option references a contained `ValueSet`,
+ *       check the corresponding element there for a score extension.
+ *     - For STU3 and DSTU2, look for the score extension in the `ValueSet`
+ *       loaded from the terminology server.
+ * 4. If the source resource (to which the source node belongs, e.g.
+ *    `QuestionnaireResponse`) or `Questionnaire` contains a corresponding
+ *    `CodeSystem`, check for a score extension there.
+ * 5. Look for a score extension in the corresponding 'CodeSystem` loaded from
+ *    the terminology server.
+ * @param {Array} coll - resource nodes
  * @return {(number|Promise<number>)[]}
  */
 engine.weight = function (coll) {
@@ -128,7 +152,11 @@ function getResourceNodeInfo(ctx, rNode) {
     case 'Questionnaire.item.answerOption':
       result = {
         score:
-          getScoreExtensionValue(rNode.data, ctx.model.score.extension.questionnaire) ||
+          getScoreExtensionValue(
+            ctx.model.version === 'stu3' ?
+              rNode.data?.valueCoding : rNode.data,
+            ctx.model.score.extension.questionnaire
+          ) ||
           getScoreExtensionValue(rNode.data?.valueCoding, ctx.model.score.extension.coding),
         valueCoding: rNode.data?.valueCoding
       };

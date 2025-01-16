@@ -35,7 +35,7 @@ interface Model {
     // It is used for getting scores from CodeSystem/ValueSet in R5.
     // We can use the property for already expanded contained ValueSets.
     // Expanding ValueSet to get the property for the CodeSystem concept is not
-    // practical. It is better to lockup for the concept in CodeSystem and get
+    // practical. It is better to look up for the concept in CodeSystem and get
     // the property there.
     property: {
       // Formal identifier for the weight property.
@@ -97,6 +97,7 @@ interface Model {
       codeSystem: string
     }
   },
+
   /**
    *  A hash of resource element paths (e.g. Observation.value) that are known
    *  to point to fiels that are choice types.
@@ -104,6 +105,7 @@ interface Model {
   choiceTypePaths: {
     [path: string]: string[];
   };
+
   /**
    *  A hash from paths to the path for which their content is defined, e.g.
    *  Questionnaire.item.item -> Questionnaire.item.
@@ -111,12 +113,14 @@ interface Model {
   pathsDefinedElsewhere: {
     [path: string]: string;
   };
+
   /**
    * Mapping data types to parent data types.
    */
   type2Parent: {
     [path: string]: string;
   };
+
   /**
    * Mapping paths to data types.
    */
