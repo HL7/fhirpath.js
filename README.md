@@ -1,13 +1,23 @@
 # fhirpath.js
 
-[![Build Status](https://travis-ci.org/HL7/fhirpath.js.svg?branch=master)](https://travis-ci.org/HL7/fhirpath.js)
-
 [FHIRPath](http://hl7.org/fhirpath/) implementation in JavaScript.
 
 ## Demo
 Try it out on the [demo page](https://hl7.github.io/fhirpath.js/).
 
-
+## Table of Contents:
+- [Installation](#installation-)
+  * [Server-side (Node.js)](#server-side--nodejs-)
+  * [Web-browser](#web-browser-)
+- [API Usage](#api-usage)
+  * [Asynchronous functions](#asynchronous-functions)
+  * [User-defined functions](#user-defined-functions)
+- [fhirpath CLI](#fhirpath-cli)
+- [Implementation Status](#implementation-status)
+- [Development Notes](#development-notes)
+  * [Building the demo page](#building-the-demo-page)
+  * [Updating the FHIR module on a FHIR release](#updating-the-fhir-module-on-a-fhir-release)
+- [Credits](#credits)
 
 ## Installation:
 
@@ -45,8 +55,39 @@ These will define additional global variables like "fhirpath_dstu2_model",
 Evaluating FHIRPath:
 
 ```js
-evaluate(resourceObject, fhirPathExpression, environment, model, options);
+evaluate(resourceObject, fhirPathExpression, envVars, model, options);
 ```
+where:
+* resourceObject - FHIR resource, part of a resource (in this case
+  fhirPathExpression.base should be provided), bundle as js object or array
+  of resources.
+* fhirPathExpression - string with FHIRPath expression, sample 'Patient.name.given',
+  or object, if fhirData represents the part of the FHIR resource:
+    * fhirPathExpression.base - base path in resource from which fhirData was extracted
+    * fhirPathExpression.expression - FHIRPath expression relative to path.base
+* envVars - a hash of variable name/value pairs.
+* model - the "model" data object specific to a domain, e.g. R4.
+  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
+* options - additional options:
+    * options.resolveInternalTypes - whether values of internal
+      types should be converted to standard JavaScript types (true by default).
+      If false is passed, this conversion can be done later by calling
+      fhirpath.resolveInternalTypes().
+    * options.traceFn - An optional trace function to call when tracing.
+    * options.userInvocationTable - a user invocation table used
+      to replace any existing functions or define new ones.
+    * options.async - defines how to support asynchronous functions:
+        * false or similar to false, e.g. undefined, null, or 0 (default) - throw
+          an exception,
+        * true or similar to true - return Promise, only for asynchronous functions,
+        * "always" - return Promise always.
+    * options.terminologyUrl - a URL that points to a FHIR RESTful API that is
+      used to create %terminologies that implements the Terminology Service API.
+    * options.terminologyUrl - a URL that points to a terminology server. This
+      URL is used to initialize %terminologies, as defined in the FHIR FHIRPath
+      [Terminology Service API](https://www.hl7.org/fhir/fhirpath.html#txapi).
+      See the [Implementation Status](#implementation-status) section for the
+      currently supported %terminologies APIs.
 
 Note:  The resource will be modified by this function to add type information.
 
@@ -113,7 +154,7 @@ the option "resolveInternalTypes" = false:
 
 ```js
 const contextVariable = fhirpath.evaluate(
-  resource, expression, context, model, {resolveInternalTypes: false}
+  resource, expression, envVars, model, {resolveInternalTypes: false}
 );
 ```
 
@@ -140,7 +181,7 @@ In the next example, `res` will have a value like this:
 
 ```js
 const res = fhirpath.types(
-  fhirpath.evaluate(resource, expression, context, model, {resolveInternalTypes: false})
+  fhirpath.evaluate(resource, expression, envVars, model, {resolveInternalTypes: false})
 );
 ```
 
@@ -150,8 +191,29 @@ let tracefunction = function (x, label) {
   console.log("Trace output [" + label + "]: ", x);
 };
 
-const res = fhirpath.evaluate(contextNode, path, environment, fhirpath_r4_model, { traceFn: tracefunction });
+const res = fhirpath.evaluate(contextNode, path, envVars, fhirpath_r4_model, { traceFn: tracefunction });
 ```
+
+### Asynchronous functions
+
+Some FHIRPath functions may be asynchronous. These functions throw exceptions by default.
+To enable these functions, we need to pass the `async` option to `evaluate` or `compile`.
+`async=true` enables return of a Promise only for expressions containing asynchronous functions.
+`async='always'` enables a Promise to be returned for any expression.
+
+For example, using the `memberOf` function might look like this:
+```js
+fhirpath.evaluate(
+  resource,
+  "Observation.code.coding.where(memberOf('http://hl7.org/fhir/ValueSet/observation-vitalsignresult'))",
+  {},
+  model,
+  { async: true, terminologyUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4' }
+)
+```
+
+Please note that for the `memberOf` function to work you must pass in
+a terminologyUrl option.
 
 ### User-defined functions
 
@@ -327,6 +389,11 @@ Completed sections:
 Supported additional functions from FHIR:
 - extension(url : string) : collection
 - hasValue() : Boolean
+- memberOf(valueset : string) : Boolean
+
+Supported Terminology Service APIs (https://build.fhir.org/fhirpath.html#txapi):
+- only `%terminologies.validateVS(valueSet, coded, params) : Parameters` is
+  partially supported. `valueSet` can only be a URL.
 
 ## Development Notes
 

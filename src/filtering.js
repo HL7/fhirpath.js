@@ -13,9 +13,13 @@ var engine = {};
 engine.whereMacro = function(parentData, expr) {
   if(parentData !== false && ! parentData) { return []; }
 
-  return util.flatten(parentData.filter((x, i) => {
+  return util.flatten(parentData.map((x, i) => {
     this.$index = i;
-    return expr(x)[0];
+    const condition = expr(x);
+    if (condition instanceof Promise) {
+      return condition.then(c => c[0] ? x : []);
+    }
+    return condition[0] ? x : [];
   }));
 };
 
@@ -28,7 +32,7 @@ engine.extension = function(parentData, url) {
     if (extensions) {
       return extensions
         .filter(extension => extension.url === url)
-        .map(x => ResourceNode.makeResNode(x, 'Extension', null, 'Extension'));
+        .map(e => ResourceNode.makeResNode(e, x, 'Extension', null, 'Extension'));
     }
     return [];
   }));
@@ -42,34 +46,51 @@ engine.selectMacro = function(data, expr) {
   }));
 };
 
-engine.repeatMacro = function(parentData, expr) {
+engine.repeatMacro = function(parentData, expr, res = [], unique = {}) {
   if(parentData !== false && ! parentData) { return []; }
 
-  let res = [];
-  const unique = {};
-  const length = parentData.length;
-  for(let i = 0; i < length; ++i) {
-    let newItems = parentData[i];
-    do {
-      newItems = expr(newItems)
-        .filter(item => {
-          const key = hashObject(item);
-          const isUnique = !unique[key];
-          if (isUnique) {
-            unique[key] = true;
-          }
-          return isUnique;
-        });
-    } while (res.length < res.push.apply(res, newItems));
+  let newItems = [].concat(...parentData.map(i => expr(i)));
+  if (newItems.some(i => i instanceof Promise)) {
+    return Promise.all(newItems).then(items => {
+      items = [].concat(...items);
+      if (items.length) {
+        return engine.repeatMacro(getNewItems(items, unique, res), expr, res, unique);
+      }
+      return res;
+    });
+  } else if (newItems.length) {
+    return engine.repeatMacro(getNewItems(newItems, unique, res), expr, res, unique);
+  } else {
+    return res;
   }
-  return res;
 };
+
+/**
+ * Returns new items from the input array that are not in the hash of existing
+ * unique items and adds them to the result array.
+ * @param {Array<*>} items - inout array.
+ * @param {{[key: string]: *}} unique - hash of existing unique items
+ * @param {Array<*>} res - result array.
+ * @return {Array<*>}
+ */
+function getNewItems(items, unique, res) {
+  const newItems = items.filter(item => {
+    const key = hashObject(item);
+    const isUnique = !unique[key];
+    if (isUnique) {
+      unique[key] = true;
+    }
+    return isUnique;
+  });
+  res.push.apply(res, newItems);
+  return newItems;
+}
 
 //TODO: behavior on object?
 engine.singleFn = function(x) {
-  if(x.length == 1){
+  if(x.length === 1){
     return x;
-  } else if (x.length == 0) {
+  } else if (x.length === 0) {
     return [];
   } else {
     throw new Error("Expected single");

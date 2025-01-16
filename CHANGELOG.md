@@ -3,6 +3,52 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.16.1] - 2025-01-09
+### Fixed
+- Read environment variables only when they are used in an expression, avoiding
+  unnecessary getter calls when working with libraries like Jotai.
+
+## [3.16.0] - 2024-10-10
+### Added
+- Support for type factory API (%factory).
+
+## [3.15.2] - 2024-08-30
+### Fixed
+- Removed the need to run `(cd demo && npm ci)`.
+- Excluded unnecessary files from the npm package.
+
+## [3.15.1] - 2024-08-06
+### Fixed
+- Return data type for `evaluate` and `compile` in TypeScript type declarations.
+  The return data type now depends on the `async` option.
+
+## [3.15.0] - 2024-08-05
+### Added
+- option `async`, which allows us to get the result of an expression evaluation
+  asynchronously.
+- Support for asynchronous functions: if any function in an expression returns
+  a Promise and option `async=true`, then the result of evaluating
+  the expression is a Promise.
+- async function `memberOf`.
+
+## [3.14.1] - 2024-07-02
+### Fixed
+- impossibility to use attribute name that starts with a capital letter.
+
+## [3.14.0] - 2024-07-02
+### Added
+- supplementary function `weight()` with alternative name `ordinal()`.
+
+## [3.13.4] - 2024-06-13
+### Fixed
+- a bug that could cause the context input parameter containing environment
+  variables to change.
+
+## [3.13.3] - 2024-05-24
+### Changed
+- Added separate TypeScript type definition files for the main file and each
+  supported model.
+
 ## [3.13.2] - 2024-05-15
 ### Fixed
 - an issue with evaluating an expression for a resource passed through an

@@ -47,7 +47,7 @@ util.assertType = function(data, types, errorMsgPrefix) {
 };
 
 util.isEmpty = function(x){
-  return Array.isArray(x) && x.length == 0;
+  return Array.isArray(x) && x.length === 0;
 };
 
 util.isSome = function(x){
@@ -56,7 +56,7 @@ util.isSome = function(x){
 
 util.isTrue = function(x){
   // We use util.valData because we can use a boolean node as a criterion
-  return x !== null && x !== undefined && (x === true || (x.length == 1 && util.valData(x[0]) === true));
+  return x !== null && x !== undefined && (x === true || (x.length === 1 && util.valData(x[0]) === true));
 };
 
 util.isCapitalized = function(x){
@@ -64,21 +64,40 @@ util.isCapitalized = function(x){
 };
 
 util.flatten = function(x){
-  return x.reduce(function(acc, x) {
-    if(Array.isArray(x)){
-      // todo replace with array modification
-      acc = acc.concat(x);
-    } else {
-      acc.push(x);
-    }
-    return acc;
-  }, []);
+  if (x.some(i => i instanceof Promise)) {
+    return Promise.all(x).then(arr => flattenSync(arr));
+  }
+  return flattenSync(x);
 };
+
+/**
+ * Creates a shallow copy of the source array and replaces those elements of the
+ * source array that are arrays with their contents.
+ * For example:
+ * [1, [2, 3]] -> [1, 2, 3]
+ * @param {Array} x - source array
+ * @return {Array}
+ */
+function flattenSync(x) {
+  return [].concat(...x);
+}
 
 util.arraify = function(x){
   if(Array.isArray(x)){ return x; }
   if(util.isSome(x)){ return [x]; }
   return [];
+};
+
+/**
+ * If the input parameter is a promise, arraify the result of that promise,
+ * otherwise arraify the input parameter.
+ * @param {*|Promise<*>} x - input parameter
+ * @return {*[]|Promise<*[]>}
+ */
+util.resolveAndArraify = function(x){
+  return x instanceof Promise
+    ? x.then(r => util.arraify(r))
+    : util.arraify(x);
 };
 
 /**
@@ -164,7 +183,7 @@ util.makeChildResNodes = function(parentResNode, childProperty, model) {
 
   let fhirNodeDataType = null;
   if (model) {
-    fhirNodeDataType = model.path2Type[childPath] || null;
+    fhirNodeDataType = model.path2Type[childPath];
     childPath = model.path2TypeWithoutElements[childPath] || childPath;
   }
 
@@ -172,20 +191,20 @@ util.makeChildResNodes = function(parentResNode, childProperty, model) {
   if (util.isSome(toAdd) || util.isSome(_toAdd)) {
     if(Array.isArray(toAdd)) {
       result = toAdd.map((x, i)=>
-        ResourceNode.makeResNode(x, childPath, _toAdd && _toAdd[i], fhirNodeDataType));
+        ResourceNode.makeResNode(x, parentResNode, childPath, _toAdd && _toAdd[i], fhirNodeDataType));
       // Add items to the end of the ResourceNode list that have no value
       // but have associated data, such as extensions or ids.
       const _toAddLength = _toAdd?.length || 0;
       for (let i = toAdd.length; i < _toAddLength; ++i) {
-        result.push(ResourceNode.makeResNode(null, childPath, _toAdd[i], fhirNodeDataType));
+        result.push(ResourceNode.makeResNode(null, parentResNode, childPath, _toAdd[i], fhirNodeDataType));
       }
     } else if (toAdd == null && Array.isArray(_toAdd)) {
       // Add items to the end of the ResourceNode list when there are no
       // values at all, but there is a list of associated data, such as
       // extensions or ids.
-      result = _toAdd.map((x) => ResourceNode.makeResNode(null, childPath, x, fhirNodeDataType));
+      result = _toAdd.map((x) => ResourceNode.makeResNode(null, parentResNode, childPath, x, fhirNodeDataType));
     } else {
-      result = [ResourceNode.makeResNode(toAdd, childPath, _toAdd, fhirNodeDataType)];
+      result = [ResourceNode.makeResNode(toAdd, parentResNode, childPath, _toAdd, fhirNodeDataType)];
     }
   } else {
     result = [];

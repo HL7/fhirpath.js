@@ -99,9 +99,18 @@ tests:
       model: 'stu3'
       result: ['Green']
 
+    - desc: "Access a custom field starting with a capital letter (1)"
+      expression: CustomField = 'test'
+      result: [true]
+
+    - desc: "Access a custom field starting with a capital letter (2)"
+      expression: Observation.CustomField = 'test'
+      result: [true]
+
 
 subject:
   resourceType: Observation
+  CustomField: "test"
   valueString: "high"
   contained:
     - resourceType: Observation

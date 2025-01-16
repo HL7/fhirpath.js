@@ -260,5 +260,46 @@ describe('evaluate type() on a FHIRPath evaluation result', () => {
       'Quantity', 'Quantity', 'Quantity', 'Quantity', 'Date'
     ]);
   });
+
+  it('should not change the context input parameter containing environment variables', () => {
+    const originalVars = {a: 'abc'};
+    const vars = _.cloneDeep(originalVars);
+    expect(fhirpath.evaluate(
+      {},
+      '%a = \'abc\'',
+      vars
+    )).toStrictEqual([true]);
+    expect(originalVars).toStrictEqual(vars);
+  })
 });
 
+describe('evaluate environment variables', () => {
+  it('context can be immutable', () => {
+    const vars = Object.freeze({a: 'abc', b: 'def'});
+    expect(fhirpath.evaluate(
+      {},
+      '%a = \'abc\'',
+      vars
+    )).toStrictEqual([true]);
+  })
+
+  it('context can be immutable when new variables are defined', () => {
+    const vars = Object.freeze({a: 'abc'});
+    expect(fhirpath.evaluate(
+      {},
+      "%a.defineVariable('b')",
+      vars
+    )).toStrictEqual(['abc']);
+  });
+  it('variables are only read when needed', () => {
+    const vars = {
+      get a() { return 'abc'; },
+      get b() { throw new Error('b should not be read'); }
+    };
+    expect(fhirpath.evaluate(
+      {},
+      '%a = \'abc\'',
+      vars
+    )).toStrictEqual([true]);
+  })
+});

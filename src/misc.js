@@ -10,14 +10,26 @@ const { FP_Quantity, TypeInfo } = types;
 var engine = {};
 
 engine.iifMacro = function(data, cond, ok, fail) {
-  if(util.isTrue(cond(data))) {
+  const condition = cond(data);
+  if (condition instanceof Promise) {
+    return condition.then(c => iifMacroSync(data, c, ok, fail));
+  }
+  return iifMacroSync(data, condition, ok, fail);
+};
+
+function iifMacroSync(data, condition, ok, fail) {
+  if(util.isTrue(condition)) {
     return ok(data);
   } else {
     return fail ? fail(data) : [];
   }
-};
+}
 
 engine.traceFn = function (x, label, expr) {
+  const exprRes = expr ? expr(x) : null;
+  if (exprRes instanceof Promise) {
+    return exprRes.then((r) => engine.traceFn(x, label, r));
+  }
   if (this.customTraceFn) {
     if (expr){
       this.customTraceFn(expr(x), label ?? "");
@@ -280,6 +292,14 @@ const singletonEvalByType = {
     if (typeof d === "string") {
       return d;
     }
+  },
+  "StringOrNumber": function(d){
+    if (typeof d === "string" || typeof d === "number") {
+      return d;
+    }
+  },
+  "AnySingletonAtRoot": function (d) {
+    return d;
   }
 };
 
@@ -315,43 +335,9 @@ engine.singleton = function (coll, type) {
   throw new Error('Not supported type ' + type);
 };
 
-/**
- * Checks whether a primitve value is present
- */
-const primitives = new Set();
-// IE11 probably doesn't support `new Set(iterable)`
-[
-  "instant",
-  "time",
-  "date",
-  "dateTime",
-  "base64Binary",
-  "decimal",
-  "integer64",
-  "boolean",
-  "string",
-  "code",
-  "markdown",
-  "id",
-  "integer",
-  "unsignedInt",
-  "positiveInt",
-  "uri",
-  "oid",
-  "uuid",
-  "canonical",
-  "url",
-  "Integer",
-  "Decimal",
-  "String",
-  "Date",
-  "DateTime",
-  "Time"
-].forEach(i => primitives.add(i));
-
 engine.hasValueFn = function(coll) {
   return coll.length === 1 && util.valData(coll[0]) != null
-    && primitives.has(TypeInfo.fromValue(coll[0]).name);
+    && TypeInfo.isPrimitive(TypeInfo.fromValue(coll[0]));
 };
 
 module.exports = engine;
