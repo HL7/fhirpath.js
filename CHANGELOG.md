@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.16.2] - 2025-01-16
+### Fixed
+- Bug with toString when userInvocationTable passed.
+
 ## [3.16.1] - 2025-01-09
 ### Fixed
 - Read environment variables only when they are used in an expression, avoiding
