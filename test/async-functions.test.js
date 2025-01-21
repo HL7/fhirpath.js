@@ -24,12 +24,11 @@ function mockFetchResults(results) {
 }
 
 describe('Async functions', () => {
+  afterEach(() => {
+    fetchSpy?.mockRestore();
+  })
 
   describe('%terminologies.validateVS', () => {
-    afterEach(() => {
-      fetchSpy?.mockRestore();
-    })
-
     it('should work ', (done) => {
       mockFetchResults([
         [/code=29463-7/, {
@@ -305,6 +304,33 @@ describe('Async functions', () => {
       );
       expect(result).toThrow('The asynchronous function "memberOf" is not allowed. To enable asynchronous functions, use the async=true or async="always" option.');
     });
+
+    it('should correctly process an async result in a boolean expression (when it is a singleton parameter)', (done) => {
+      mockFetchResults([
+        [/ValueSet\/\$validate-code/, {
+          "resourceType": "Parameters",
+          "parameter": [
+            {
+              "name": "result",
+              "valueBoolean": true
+            }
+          ]
+        }]
+      ]);
+      let result = fhirpath.evaluate(
+        resource,
+        "Observation.code.memberOf('http://hl7.org/fhir/ValueSet/observation-vitalsignresult') or false",
+        {},
+        model,
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([true]);
+        done();
+      })
+    });
+
   });
 
   it('should be a conversion of the result to a Promise when option async is set to "always"', (done) => {
