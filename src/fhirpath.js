@@ -502,7 +502,10 @@ function makeParam(ctx, parentData, type, param) {
       }
     }
   }
-  return misc.singleton(res, type);
+
+  return res instanceof Promise ?
+    res.then(r => misc.singleton(r, type)) :
+    misc.singleton(res, type);
 }
 
 function doInvoke(ctx, fnName, data, rawParams){
