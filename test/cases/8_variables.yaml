@@ -37,7 +37,7 @@ tests:
         "a.b() - 1": 5
       result: [3]
     - desc: 'Single-quoted variable name'
-      expression: '%''a.b() - 1'' - 3'
+      expression: "%'a.b() - 1' - 3"
       variables:
         "a.b() - 1": 5
       result: [2]
