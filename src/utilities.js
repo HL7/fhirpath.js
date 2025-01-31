@@ -63,6 +63,10 @@ util.isCapitalized = function(x){
   return x && (x[0] === x[0].toUpperCase());
 };
 
+util.capitalize = function(x){
+  return x[0].toUpperCase() + x.substring(1);
+};
+
 util.flatten = function(x){
   if (x.some(i => i instanceof Promise)) {
     return Promise.all(x).then(arr => flattenSync(arr));

@@ -9,24 +9,11 @@ const modelInfo = {
     // See
     // - https://hl7.org/fhir/R5/codesystem.html#defined-props
     // - https://hl7.org/fhir/codesystem-concept-properties.html
-    property: {
-      uri: 'http://hl7.org/fhir/concept-properties#itemWeight',
-    },
+    propertyURI: 'http://hl7.org/fhir/concept-properties#itemWeight',
     // See
     // - https://www.hl7.org/fhir/extensions/StructureDefinition-itemWeight.html
-    // - https://build.fhir.org/ig/HL7/fhir-extensions/branches/__default/StructureDefinition-itemWeight.html
-    extension: {
-      // Context of use:
-      // - Coding
-      coding: 'http://hl7.org/fhir/StructureDefinition/itemWeight',
-      // Context of use:
-      // - Questionnaire.item.answerOption
-      questionnaire: 'http://hl7.org/fhir/StructureDefinition/itemWeight',
-      // Context of use:
-      // - QuestionnaireResponse.item.answer
-      // - QuestionnaireResponse.item.answer.value (valueCoding covered by Coding)
-      questionnaireResponse:'http://hl7.org/fhir/StructureDefinition/itemWeight',
-    }
+    // - https://build.fhir.org/ig/HL7/fhir-extensions/StructureDefinition-itemWeight.html
+    extensionURI: 'http://hl7.org/fhir/StructureDefinition/itemWeight'
   },
   /**
    *  A hash of resource element paths (e.g. Observation.value) that are known
