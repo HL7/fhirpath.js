@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.16.4] - 2025-01-24
+### Fixed
+- Bug where single-quoted variable names were not supported.
+
 ## [3.16.3] - 2025-01-21
 ### Fixed
 - Bug with async boolean expressions (when an operator takes an async value as

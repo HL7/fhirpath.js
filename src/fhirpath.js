@@ -254,11 +254,19 @@ engine.TypeSpecifier = function(ctx, parentData, node) {
 };
 
 engine.ExternalConstantTerm = function(ctx, parentData, node) {
-  var extConstant = node.children[0];
-  var identifier = extConstant.children[0];
-  var varName = engine.Identifier(ctx, parentData, identifier)[0];
+  let varName;
+  const extConstant = node.children[0];
+  // externalConstant(variable name) is defined in the grammar as:
+  // '%' ( identifier | STRING )
+  if (extConstant.terminalNodeText.length === 2) {
+    // if the variable name is a STRING
+    varName = getStringLiteralVal(extConstant.terminalNodeText[1]);
+  } else {
+    // otherwise, it is an identifier
+    varName = getIdentifierVal(extConstant.children[0].text);
+  }
 
-  var value;
+  let value;
   // Check the user-defined environment variables first as the user can override
   // the "context" variable like we do in unit tests. In this case, the user
   // environment variable can replace the system environment variable in "processedVars".
@@ -315,27 +323,35 @@ engine.LiteralTerm = function(ctx, parentData, node) {
 };
 
 engine.StringLiteral = function(ctx, parentData, node) {
-  // Remove the beginning and ending quotes.
-  var rtn = node.text.replace(/(^'|'$)/g, "");
-  rtn = rtn.replace(/\\(u\d{4}|.)/g, function(match, submatch) {
-    switch(match) {
-      case '\\r':
-        return '\r';
-      case '\\n':
-        return "\n";
-      case '\\t':
-        return '\t';
-      case '\\f':
-        return '\f';
-      default:
-        if (submatch.length > 1)
-          return String.fromCharCode('0x'+submatch.slice(1));
-        else
-          return submatch;
-    }
-  });
-  return [rtn];
+  return [getStringLiteralVal(node.text)];
 };
+
+/**
+ * Removes the beginning and ending single-quotes and replaces string escape
+ * sequences.
+ * @param {string} str - string literal
+ * @return {string}
+ */
+function getStringLiteralVal(str) {
+  return str.replace(/(^'|'$)/g, "")
+    .replace(/\\(u\d{4}|.)/g, function(match, submatch) {
+      switch(match) {
+        case '\\r':
+          return '\r';
+        case '\\n':
+          return "\n";
+        case '\\t':
+          return '\t';
+        case '\\f':
+          return '\f';
+        default:
+          if (submatch.length > 1)
+            return String.fromCharCode('0x'+submatch.slice(1));
+          else
+            return submatch;
+      }
+    });
+}
 
 engine.BooleanLiteral = function(ctx, parentData, node) {
   if(node.text  === "true") {
@@ -372,8 +388,17 @@ engine.NumberLiteral = function(ctx, parentData, node) {
 };
 
 engine.Identifier = function(ctx, parentData, node) {
-  return [node.text.replace(/(^`|`$)/g, "")];
+  return [getIdentifierVal(node.text)];
 };
+
+/**
+ * Removes the beginning and ending back-quotes.
+ * @param {string} str - identifier string
+ * @return {string}
+ */
+function getIdentifierVal(str) {
+  return str.replace(/(^`|`$)/g, "");
+}
 
 engine.InvocationTerm = function(ctx, parentData, node) {
   return engine.doEval(ctx,parentData, node.children[0]);
