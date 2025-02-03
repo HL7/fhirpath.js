@@ -340,4 +340,24 @@ engine.hasValueFn = function(coll) {
     && TypeInfo.isPrimitive(TypeInfo.fromValue(coll[0]));
 };
 
+/**
+ * Returns the underlying system value for the FHIR primitive if the input
+ * collection contains a single value which is a FHIR primitive, and it has a
+ * primitive value. Otherwise, the return value is empty (i.e. []).
+ *
+ * See: https://hl7.org/fhir/fhirpath.html#functions
+ * @param {Array<*>} coll - input collection
+ * @returns {*|[]}
+ */
+engine.getValueFn = function(coll) {
+  if (coll.length === 1) {
+    const node = coll[0];
+    const v = util.valData(node);
+    if (v != null && TypeInfo.isPrimitive(TypeInfo.fromValue(node))) {
+      return v;
+    }
+  }
+  return [];
+};
+
 module.exports = engine;
