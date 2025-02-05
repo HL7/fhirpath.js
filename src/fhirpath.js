@@ -115,8 +115,8 @@ engine.invocationTable = {
   toTime:       {fn: misc.toTime},
   toBoolean:    {fn: misc.toBoolean},
   toQuantity:   {fn: misc.toQuantity, arity: {0: [], 1: ["String"]}},
-  // TODO: The hasValue function should be taken into account in a separate request
   hasValue:     {fn: misc.hasValueFn},
+  getValue:     {fn: misc.getValueFn},
   convertsToBoolean:    {fn: misc.createConvertsToFn(misc.toBoolean, 'boolean')},
   convertsToInteger:    {fn: misc.createConvertsToFn(misc.toInteger, 'number')},
   convertsToDecimal:    {fn: misc.createConvertsToFn(misc.toDecimal, 'number')},

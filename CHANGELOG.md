@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.17.0] - 2025-02-03
+### Added
+- getValue() function.
+
 ## [3.16.4] - 2025-01-24
 ### Fixed
 - Bug where single-quoted variable names were not supported.
