@@ -14,6 +14,8 @@ This log documents significant changes for each release.  This project follows
 ### Fixed
 - The `weight()`/`ordinal()` function can now search for item weight in value
   set and code system.
+- Removed creation of global `TypeInfo.model` value to allow asynchronous
+  evaluations using different models.
 
 ## [3.15.2] - 2024-08-30
 ### Fixed

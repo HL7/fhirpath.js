@@ -200,7 +200,7 @@ engine.TermExpression = function(ctx, parentData, node) {
   if (parentData) {
     parentData = parentData.map((x) => {
       if (x instanceof Object && x.resourceType) {
-        return makeResNode(x, null, x.resourceType, null, x.resourceType);
+        return makeResNode(x, null, null, null, null, ctx.model);
       }
       return x;
     });
@@ -246,7 +246,7 @@ engine.TypeSpecifier = function(ctx, parentData, node) {
   }
 
   const typeInfo =  new TypeInfo({ namespace, name });
-  if (!typeInfo.isValid()) {
+  if (!typeInfo.isValid(ctx.model)) {
     throw new Error('"' + typeInfo + '" cannot be resolved to a valid type identifier');
   }
   return typeInfo;
@@ -270,16 +270,16 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
       value = value.map(
         i => i?.__path__
           ? makeResNode(i, i.__path__.parentResNode, i.__path__.path, null,
-            i.__path__.fhirNodeDataType)
+            i.__path__.fhirNodeDataType, i.__path__.model)
           : i?.resourceType
-            ? makeResNode(i, null, null, null)
+            ? makeResNode(i, null, null, null, null, ctx.model)
             : i );
     } else {
       value = value?.__path__
         ? makeResNode(value, value.__path__.parentResNode, value.__path__.path, null,
-          value.__path__.fhirNodeDataType)
+          value.__path__.fhirNodeDataType, value.__path__.model)
         : value?.resourceType
-          ? makeResNode(value, null, null, null)
+          ? makeResNode(value, null, null, null, null, ctx.model)
           : value;
     }
     ctx.processedVars[varName] = value;
@@ -385,7 +385,7 @@ engine.MemberInvocation = function(ctx, parentData, node ) {
   if (parentData) {
     return parentData.reduce(function(acc, res) {
       res = makeResNode(res, null, res.__path__?.path, null,
-        res.__path__?.fhirNodeDataType);
+        res.__path__?.fhirNodeDataType, model);
       if (res.data?.resourceType === key) {
         acc.push(res);
       } else {
@@ -728,7 +728,7 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   let dataRoot = util.arraify(resource).map(
     i => i?.__path__
       ? makeResNode(i, i.__path__.parentResNode, i.__path__.path, null,
-        i.__path__.fhirNodeDataType)
+        i.__path__.fhirNodeDataType, model)
       : i );
   // doEval takes a "ctx" object, and we store things in that as we parse, so we
   // need to put user-provided variable data in a sub-object, ctx.vars.
@@ -775,12 +775,12 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
         return Promise.reject(new DOMException(
           'Evaluation of the expression was aborted.', 'AbortError'));
       } else {
-        return prepareEvalResult(r, options);
+        return prepareEvalResult(r, model, options);
       }
     })
     : options.async === 'always'
-      ? Promise.resolve(prepareEvalResult(res, options))
-      : prepareEvalResult(res, options);
+      ? Promise.resolve(prepareEvalResult(res, model, options))
+      : prepareEvalResult(res, model, options);
 }
 
 /**
@@ -791,10 +791,11 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
  * options.resolveInternalTypes is true, resolve any internal "FP_Type"
  * instances to strings.
  * @param {Array} result - result of expression evaluation.
+ * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  * @param {object} options - additional options (see function "applyParsedPath").
  * @return {Array}
  */
-function prepareEvalResult(result, options) {
+function prepareEvalResult(result, model, options) {
   return result
     .reduce((acc, n) => {
       // Path for the data extracted from the resource.
@@ -817,7 +818,7 @@ function prepareEvalResult(result, options) {
         // Add a hidden (non-enumerable) property with the path to the data extracted
         // from the resource.
         if (path && typeof n === 'object' && !n.__path__) {
-          Object.defineProperty(n, '__path__', { value: {path, fhirNodeDataType, parentResNode} });
+          Object.defineProperty(n, '__path__', { value: {path, fhirNodeDataType, parentResNode, model} });
         }
         acc.push(n);
       }
@@ -949,10 +950,8 @@ function compile(path, model, options) {
         const baseFhirNodeDataType = model && model.path2Type[basePath];
         basePath = baseFhirNodeDataType === 'BackboneElement' || baseFhirNodeDataType === 'Element' ? basePath : baseFhirNodeDataType || basePath;
 
-        fhirData = makeResNode(fhirData, null, basePath, null, baseFhirNodeDataType);
+        fhirData = makeResNode(fhirData, null, basePath, null, baseFhirNodeDataType, model);
       }
-      // Globally set model before applying parsed FHIRPath expression
-      TypeInfo.model = model;
       const actualOptions = additionalOptions ?
         {...options, ...additionalOptions} : options;
       return applyParsedPath(fhirData, node, context, model, actualOptions);
@@ -960,8 +959,6 @@ function compile(path, model, options) {
   } else {
     const node = parse(path);
     return function (fhirData, context, additionalOptions) {
-      // Globally set model before applying parsed FHIRPath expression
-      TypeInfo.model = model;
       const actualOptions = additionalOptions ?
         {...options, ...additionalOptions} : options;
       return applyParsedPath(fhirData, node, context, model, actualOptions);
@@ -980,7 +977,7 @@ function typesFn(fhirpathResult) {
     const ti = TypeInfo.fromValue(
       value?.__path__
         ? new ResourceNode(value, value.__path__?.parentResNode,
-          value.__path__?.path, null, value.__path__?.fhirNodeDataType)
+          value.__path__?.path, null, value.__path__?.fhirNodeDataType, value.__path__.model)
         : value );
     return `${ti.namespace}.${ti.name}`;
   });
