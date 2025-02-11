@@ -3,19 +3,22 @@ describe('Demo page', () => {
     cy.visit('demo/build/index.html');
   });
 
-  context('JSON entry mode', function() {
-    it('should be enabled by clicking on the JSON radio button', function() {
+  context('Input format', function() {
+    it('should be JSON by default', function() {
       cy.get('input[value=json]').should('exist');
       cy.window()
         .then((win) => win.eval('cm.getValue()'))
-        .should('contain', 'resourceType: Patient'); // yaml
-      cy.get('#output').should('have.text', '- Jim\n')
-      cy.get('input[value=json]').click();
-      cy.window()
-        .then((win) => win.eval('cm.getValue()'))
-        .should('contain', '"resourceType": "Patient"'); // json
+        .should('contain', '"resourceType": "Patient"'); // yaml
       cy.get('#output').should('have.text', '- Jim\n')
     });
+    it('should be able to be changed to YAML by clicking the YAML radio button', function() {
+      cy.get('input[value=yaml]').should('exist');
+      cy.get('input[value=yaml]').click();
+      cy.window()
+        .then((win) => win.eval('cm.getValue()'))
+        .should('contain', 'resourceType: Patient'); // json
+      cy.get('#output').should('have.text', '- Jim\n')
+    })
   });
 
   context('minified FHIRPath', function() {

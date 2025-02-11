@@ -83,7 +83,8 @@ interface Options {
     resolveInternalTypes?: boolean
     traceFn?: (value: any, label: string) => void,
     userInvocationTable?: UserInvocationTable,
-    terminologyUrl?: string
+    terminologyUrl?: string,
+    signal?: AbortSignal
 }
 
 interface NoAsyncOptions extends Options {
@@ -105,7 +106,7 @@ type ReturnType<T> =
     T extends NoAsyncOptions ? any[] :
     any[] | Promise<any[]>;
 
-type Compile<T> = (resource: any, context?: Context) => ReturnType<T>;
+type Compile<T> = (resource: any, context?: Context, additionalOptions?: Options) => ReturnType<T>;
 
 type Context = void | Record<string, any>;
 

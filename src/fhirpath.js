@@ -717,9 +717,11 @@ function parse(path) {
  *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception;
  *  true or similar to true - return Promise only for asynchronous functions;
  *  "always" - return Promise always.
- *  @param {string} [options.terminologyUrl] - a URL that points to a FHIR
+ * @param {string} [options.terminologyUrl] - a URL that points to a FHIR
  *   RESTful API that is used to create %terminologies that implements
  *   the Terminology Service API.
+ * @param {AbortSignal} [options.signal] - an AbortSignal object that allows you
+ *   to abort the asynchronous FHIRPath expression evaluation.
  */
 function applyParsedPath(resource, parsedPath, context, model, options) {
   constants.reset();
@@ -755,9 +757,27 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   if (options.terminologyUrl) {
     ctx.processedVars.terminologies = new Terminologies(options.terminologyUrl);
   }
+  if (options.signal) {
+    ctx.signal = options.signal;
+    if (!ctx.async) {
+      throw new Error(
+        'The "signal" option is only supported for asynchronous functions.');
+    }
+    if (ctx.signal.aborted) {
+      throw new Error(
+        'Evaluation of the expression was aborted before it started.');
+    }
+  }
   const res = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
   return res instanceof Promise
-    ? res.then(r => prepareEvalResult(r, options))
+    ? res.then(r => {
+      if (ctx.signal?.aborted) {
+        return Promise.reject(new DOMException(
+          'Evaluation of the expression was aborted.', 'AbortError'));
+      } else {
+        return prepareEvalResult(r, options);
+      }
+    })
     : options.async === 'always'
       ? Promise.resolve(prepareEvalResult(res, options))
       : prepareEvalResult(res, options);
@@ -854,6 +874,8 @@ function resolveInternalTypes(val) {
  * @param {string} [options.terminologyUrl] - a URL that points to a FHIR
  *   RESTful API that is used to create %terminologies that implements
  *   the Terminology Service API.
+ * @param {AbortSignal} [options.signal] - an AbortSignal object that allows you
+ *   to abort the asynchronous FHIRPath expression evaluation.
  */
 function evaluate(fhirData, path, context, model, options) {
   return compile(path, model, options)(fhirData, context);
@@ -881,9 +903,13 @@ function evaluate(fhirData, path, context, model, options) {
  *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception,
  *  true or similar to true - return Promise, only for asynchronous functions,
  *  "always" - return Promise always.
- *   @param {string} [options.terminologyUrl] - a URL that points to a FHIR
+ * @param {string} [options.terminologyUrl] - a URL that points to a FHIR
  *   RESTful API that is used to create %terminologies that implements
  *   the Terminology Service API.
+ * @param {AbortSignal} [options.signal] - an AbortSignal object that allows you
+ *   to abort the asynchronous FHIRPath expression evaluation. Passing a signal
+ *   to compile() whose result is used more than once will cause abortion
+ *   problems.
  */
 function compile(path, model, options) {
   options = {
@@ -917,7 +943,7 @@ function compile(path, model, options) {
 
   if (typeof path === 'object') {
     const node = parse(path.expression);
-    return function (fhirData, context) {
+    return function (fhirData, context, additionalOptions) {
       if (path.base) {
         let basePath = model.pathsDefinedElsewhere[path.base] || path.base;
         const baseFhirNodeDataType = model && model.path2Type[basePath];
@@ -927,14 +953,18 @@ function compile(path, model, options) {
       }
       // Globally set model before applying parsed FHIRPath expression
       TypeInfo.model = model;
-      return applyParsedPath(fhirData, node, context, model, options);
+      const actualOptions = additionalOptions ?
+        {...options, ...additionalOptions} : options;
+      return applyParsedPath(fhirData, node, context, model, actualOptions);
     };
   } else {
     const node = parse(path);
-    return function (fhirData, context) {
+    return function (fhirData, context, additionalOptions) {
       // Globally set model before applying parsed FHIRPath expression
       TypeInfo.model = model;
-      return applyParsedPath(fhirData, node, context, model, options);
+      const actualOptions = additionalOptions ?
+        {...options, ...additionalOptions} : options;
+      return applyParsedPath(fhirData, node, context, model, actualOptions);
     };
   }
 }

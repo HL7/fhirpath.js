@@ -3,10 +3,17 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [3.15.3] - 2024-10-10
+## [3.18.0] - 2024-02-10
+### Added
+- The `signal` option to the `evaluate()` function and the function that is the
+  result of executing the `compile()` function to allow the user to cancel the
+  evaluation of an asynchronous expression.
+### Changed
+- The demo application now allows you to select a model, terminology server,
+  environment variables and can evaluate asynchronous expressions.
 ### Fixed
-- The weight()/ordinal() function can now search for item weight in value set
-  and code system.
+- The `weight()`/`ordinal()` function can now search for item weight in value
+  set and code system.
 
 ## [3.15.2] - 2024-08-30
 ### Fixed

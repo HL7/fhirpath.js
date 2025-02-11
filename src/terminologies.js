@@ -31,6 +31,12 @@ class Terminologies {
    *  operation.
    */
   static validateVS(self, valueset, coded, params = '') {
+    const ctx = this;
+    if (!ctx.async) {
+      throw new Error('The asynchronous function "validateVS" is not allowed. ' +
+        'To enable asynchronous functions, use the async=true or async="always"' +
+        ' option.');
+    }
     checkParams(params);
     const httpHeaders = {
       "Accept": "application/fhir+json; charset=utf-8",
@@ -60,8 +66,10 @@ class Terminologies {
       };
       myHeaders = new Headers(httpPostHeaders);
       response = fetch(
-        requestUrl + (params ? '?' + params : ''),
-        { method: "POST", headers: myHeaders, body: JSON.stringify(parameters) }
+        requestUrl + (params ? '?' + params : ''), {
+          method: "POST", headers: myHeaders, body: JSON.stringify(parameters),
+          ...(ctx.signal ? {signal: ctx.signal} : {})
+        }
       );
     } else if (typeof coded === "string") {
       const queryParams1 = new URLSearchParams({
@@ -71,7 +79,7 @@ class Terminologies {
       //  https://chat.fhir.org/#narrow/stream/179266-fhirpath/topic/Problem.20with.20the.20.22memberOf.22.20function.20and.20R4.20servers
       response = fetch(
         `${self[0].terminologyUrl}/ValueSet?${queryParams1.toString() + (params ? '&' + params : '')}`,
-        {headers: myHeaders}
+        {headers: myHeaders, ...(ctx.signal ? {signal: ctx.signal} : {})}
       )
         .then(r => r.json())
         .then((bundle) => {
@@ -87,7 +95,7 @@ class Terminologies {
             });
             return fetch(
               `${requestUrl}?${queryParams2.toString() + (params ? '&' + params : '')}`,
-              { headers: myHeaders }
+              { headers: myHeaders, ...(ctx.signal ? {signal: ctx.signal} : {}) }
             );
           } else {
             throw new Error('The valueset does not have a single code system.');
@@ -102,7 +110,7 @@ class Terminologies {
         });
         response = fetch(
           `${requestUrl}?${queryParams.toString() + (params ? '&' + params : '')}`,
-          { headers: myHeaders }
+          { headers: myHeaders, ...(ctx.signal ? {signal: ctx.signal} : {}) }
         );
       }
     }

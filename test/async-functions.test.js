@@ -12,6 +12,7 @@ describe('Async functions', () => {
       mockRestore();
     })
 
+
     it('should work ', (done) => {
       mockFetchResults([
         [/code=29463-7/, {
@@ -39,6 +40,41 @@ describe('Async functions', () => {
       })
     });
 
+
+    it('should be cancelable ', (done) => {
+      mockFetchResults([
+        [/code=29463-7/, {
+          "resourceType": "Parameters",
+          "parameter": [
+            {
+              "name": "result",
+              "valueBoolean": true
+            }
+          ]
+        }]
+      ], {timeout: 1000});
+
+      const abortController = new AbortController();
+
+      let result = fhirpath.evaluate(
+        resource,
+        "%terminologies.validateVS('http://hl7.org/fhir/ValueSet/observation-vitalsignresult', Observation.code.coding[0]).parameter.value",
+        {},
+        model,
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4",
+          signal: abortController.signal }
+      );
+      expect(result instanceof Promise).toBe(true);
+      setTimeout(() => {
+        abortController.abort();
+      }, 100);
+      result.catch((e) => {
+        expect(e.name).toEqual('AbortError');
+        done();
+      })
+    });
+
+
     it('should throw an error if the params parameter is not a valid URL encoded string', () => {
       let result = () => fhirpath.evaluate(
         resource,
@@ -48,6 +84,18 @@ describe('Async functions', () => {
         { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
       );
       expect(result).toThrowError('should be a valid URL-encoded string');
+    });
+
+
+    it('should throw an error when the async function is not allowed', () => {
+      let result = () => fhirpath.evaluate(
+        resource,
+        "%terminologies.validateVS('http://hl7.org/fhir/ValueSet/observation-vitalsignresult', Observation.code.coding[0]).parameter.value",
+        {},
+        model,
+        { async: false, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+      );
+      expect(result).toThrow('The asynchronous function "validateVS" is not allowed.');
     });
   });
 
@@ -92,6 +140,7 @@ describe('Async functions', () => {
       })
     });
 
+
     it('should work with CodeableConcept when async functions are enabled', (done) => {
 
       mockFetchResults([
@@ -118,6 +167,7 @@ describe('Async functions', () => {
         done();
       })
     });
+
 
     it('should work with "code" when async functions are enabled', (done) => {
       mockFetchResults([
@@ -162,6 +212,7 @@ describe('Async functions', () => {
       })
     });
 
+
     it('should return an empty result when the ValueSet cannot be resolved', (done) => {
       mockFetchResults([
         [/ValueSet\?url=http%3A%2F%2Funknown-valueset/, {
@@ -182,6 +233,7 @@ describe('Async functions', () => {
         done();
       })
     });
+
 
     it('should work with "code" when there is more than one identical coding system in the ValueSet', (done) => {
       mockFetchResults([
@@ -239,6 +291,7 @@ describe('Async functions', () => {
       })
     });
 
+
     it('should return an empty result when there is more than one different coding system in the ValueSet', (done) => {
       mockFetchResults([
         [/ValueSet\?url=http%3A%2F%2Fhl7\.org%2Ffhir%2FValueSet%2Fobservation-vitalsignresult/, {
@@ -276,6 +329,7 @@ describe('Async functions', () => {
       })
     });
 
+
     it('should throw an exception when async functions are disabled', () => {
 
       let result = () => fhirpath.evaluate(
@@ -288,6 +342,7 @@ describe('Async functions', () => {
       expect(result).toThrow('The asynchronous function "memberOf" is not allowed. To enable asynchronous functions, use the async=true or async="always" option.');
     });
   });
+
 
   it('should be a conversion of the result to a Promise when option async is set to "always"', (done) => {
     let result = fhirpath.evaluate(
@@ -304,6 +359,7 @@ describe('Async functions', () => {
     })
   });
 
+
   it('should not be a conversion of the result to a Promise by default', () => {
     let result = fhirpath.evaluate(
       resource,
@@ -314,6 +370,37 @@ describe('Async functions', () => {
     );
     expect(result instanceof Promise).toBe(false);
     expect(result).toEqual([{"code": "29463-7", "display": "Body Weight", "system": "http://loinc.org"}]);
+  });
+
+
+  it('throws error if signal is provided but async is not enabled', () => {
+    const abortController = new AbortController();
+    const options = { signal: abortController.signal, async: false };
+    expect(() => fhirpath.evaluate(
+      resource,
+      "Observation.code.coding[0]",
+      {},
+      model,
+      options
+    )).toThrow(
+      'The "signal" option is only supported for asynchronous functions.'
+    );
+  });
+
+
+  it('throws error if signal is already aborted before evaluation starts', () => {
+    const abortController = new AbortController();
+    abortController.abort();
+    const options = { signal: abortController.signal, async: true };
+    expect(() => fhirpath.evaluate(
+      resource,
+      "Observation.code.coding[0]",
+      {},
+      model,
+      options
+    )).toThrow(
+      'Evaluation of the expression was aborted before it started.'
+    );
   });
 });
 

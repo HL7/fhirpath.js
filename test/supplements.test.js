@@ -638,43 +638,6 @@ describe("supplements", () => {
         });
 
 
-        it('should throw an error when getting scores for answers that doesn\'t exists in the Questionnaire', () => {
-          const questionnaireResponse = {
-            "resourceType": "QuestionnaireResponse",
-            "item": [{
-              "linkId": "some-group-id",
-              "item": [{
-                "linkId": "a-questionnaire-link-id",
-                "answer": [{
-                  "valueCoding": {
-                    "system": "some-system-1",
-                    "code": "some-code-1",
-                  }
-                }]
-              }]
-            }]
-          };
-
-          const questionnaire = {
-            "resourceType": "Questionnaire",
-            "item": [{
-              "linkId": "some-group-id",
-              "type": "group",
-              "item": [{
-                "linkId": "a-questionnaire-link-id",
-                "type": "choice"
-              }]
-            }]
-          };
-
-          const res = () => calcQuestionnaireResponseWeightSum({
-            basePath: '%context.repeat(item).answer',
-            modelName, model, questionnaireResponse, questionnaire
-          });
-          expect(res).toThrow('Questionnaire answer options (or value set) with this linkId were not found: a-questionnaire-link-id.');
-        });
-
-
         it( 'should throw an error when questionnaire item has link to a non-existing contained value set', () => {
           const questionnaireResponse = {
             "resourceType": "QuestionnaireResponse",

@@ -31,8 +31,10 @@ function checkString(str, condition) {
  * {url: string|Regexp, body: string|RegExp},
  * where "url" is a RegExp for a URL or a URL substring,
  * "body" is a RegExp for the body content or a substring of the body content.
+ * @param {Object} options - options for the mock.
+ * @param {number} [options.timeout=0] - timeout for the mock response.
  */
-function mockFetchResults(results) {
+function mockFetchResults(results, {timeout = 0} = {}) {
   fetchSpy = jest.spyOn(global, 'fetch').mockImplementation(
     (url, options) => new Promise((resolve) => {
       const mockedItem = results?.find(
@@ -47,13 +49,15 @@ function mockFetchResults(results) {
       const okResult = mockedItem?.[1];
       const badResult = mockedItem?.[2];
 
-      if(okResult) {
-        resolve({ json: () => okResult, ok: true });
-      } else if(badResult) {
-        resolve({ json: () => badResult, ok: false });
-      } else {
-        console.error(`"${url}" is not mocked.`)
-      }
+      setTimeout(() => {
+        if(okResult) {
+          resolve({ json: () => okResult, ok: true });
+        } else if(badResult) {
+          resolve({ json: () => badResult, ok: false });
+        } else {
+          console.error(`"${url}" is not mocked.`)
+        }
+      }, timeout);
     })
   );
 }

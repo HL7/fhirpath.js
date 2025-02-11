@@ -22,17 +22,79 @@ body {
 #pane {
   display: flex;
   flex-direction: row;
+  width: 100%;
+  max-height: calc(100vh - 140px);
 }
 #inputWrapper {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  overflow: auto;
+}
+#inputWrapper > div {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-height: 26px
+}
+#inputWrapper > div > input {
+  margin-left: 6px;
+}
+#terminologyUrl {
   flex: 1;
 }
-#input {
+#inputWrapper #variables {
+  display: flex;
+  flex-direction: column;
+  min-height: 26px;
+  max-height: 114px;
+  height: max(26px, min(120px, 100%));
+  align-items: flex-start;
+  overflow-y: auto;
+  flex: 1 0 fit-content;
+}
+#inputWrapper #variables ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0 6px 6px 6px;
+}
+#inputWrapper #variables li {
+  margin-left: 25px;
+}
+#addVariable {
+  margin-left: 45px;
+}
+#inputWrapper #variables li input:not([readonly]) {
+  margin-right: 6px;
+}
+#inputWrapper #variables label {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+#inputWrapper #variables label.selected li {
+  list-style-type: disc;
+}
+#inputWrapper #variables label:not(.selected) li {
+  list-style-type: circle;
+}
+#inputWrapper #variables label.selected li input{
+  background-color: lightyellow;
+}
+#inputWrapper > #input {
   margin-top: 3px;
+  overflow: auto;
+  display: block;
+  flex: 1 1 auto;
 }
 
 #input .CodeMirror {
   border: 1px solid #ddd;
   height: auto;
+  width: max-content;
+  min-width: calc(100% - 2px);
 }
 #path {
   font-size: 20px;
@@ -41,9 +103,12 @@ body {
   margin-bottom: 10px;
 }
 #output {
-  flex: 0.3;
+  flex: 1;
   padding: 20px;
   background: #f9f9f9;
+  min-width: 400px;
+  max-width: 400px;
+  overflow: auto;
 }
 
 h1 {

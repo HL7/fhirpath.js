@@ -6,7 +6,8 @@ module.exports = {
     chunkFormat: 'commonjs'
   },
   devServer: {
-    static: './build'
+    static: './build',
+    allowedHosts: 'all'
   },
   target: "es5",
   devtool: 'source-map',

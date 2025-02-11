@@ -84,10 +84,6 @@ engine.weight = function (coll) {
               hasPromise = addWeightFromCorrespondingResourcesToResult(res, ctx,
                 questionnaire, qItemInfo.answerValueSet, value.code,
                 value.system, elem) || hasPromise;
-            } else {
-              throw new Error(
-                'Questionnaire answer options (or value set) with this linkId were not found: ' +
-                elem.parentResNode.data.linkId + '.');
             }
           } else {
             throw new Error(
@@ -457,14 +453,16 @@ function getWeightFromTerminologyCodeSet(ctx, code, system) {
   const codeSystemExt = ctx.model?.score.extensionURI;
 
   const terminologyUrl = getTerminologyUrl(ctx);
+  const fetchOptions = {
+    headers: {
+      'Accept': 'application/fhir+json'
+    },
+    ...(ctx.signal ? {signal: ctx.signal} : {})
+  };
   return fetchWithCache(`${terminologyUrl}/CodeSystem?` + new URLSearchParams({
     url: system,
     ...(scorePropertyUri ? {_elements: 'property'}: {})
-  }).toString(), {
-    headers: {
-      'Accept': 'application/fhir+json'
-    }
-  })
+  }).toString(), fetchOptions)
     .then(r => r.ok ? r.json() : Promise.reject(r.json()))
     .then(bundle => {
       if (scorePropertyUri) {
@@ -472,11 +470,7 @@ function getWeightFromTerminologyCodeSet(ctx, code, system) {
         if (scorePropertyCode) {
           return fetchWithCache(`${terminologyUrl}/CodeSystem/$lookup?` + new URLSearchParams({
             code, system, property: scorePropertyCode
-          }).toString(), {
-            headers: {
-              'Accept': 'application/fhir+json'
-            }
-          })
+          }).toString(), fetchOptions)
             .then(r => r.ok ? r.json() : Promise.reject(r.json()))
             .then((parameters) => {
               return parameters.parameter
