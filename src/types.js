@@ -1357,18 +1357,20 @@ class ResourceNode {
   convertData() {
     if (!this.convertedData) {
       var data = this.data;
-      const cls = TypeInfo.typeToClassWithCheckString[this.path];
-      if (cls) {
-        data = cls.checkString(data) || data;
-      } else if (TypeInfo.isType(this.path, 'Quantity')) {
-        if (data?.system === ucumSystemUrl) {
-          if (typeof data.value === 'number' && typeof data.code === 'string') {
-            if (data.comparator !== undefined)
-              throw new Error('Cannot convert a FHIR.Quantity that has a comparator');
-            data = new FP_Quantity(
-              data.value,
-              FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\''
-            );
+      if (data != null) {
+        const cls = TypeInfo.typeToClassWithCheckString[this.path];
+        if (cls) {
+          data = cls.checkString(data) || data;
+        } else if (TypeInfo.isType(this.path, 'Quantity')) {
+          if (data?.system === ucumSystemUrl) {
+            if (typeof data.value === 'number' && typeof data.code === 'string') {
+              if (data.comparator !== undefined)
+                throw new Error('Cannot convert a FHIR.Quantity that has a comparator');
+              data = new FP_Quantity(
+                data.value,
+                FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\''
+              );
+            }
           }
         }
       }
