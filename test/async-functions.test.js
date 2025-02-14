@@ -203,7 +203,7 @@ describe('Async functions', () => {
         "Observation.code.coding.code[0].memberOf('http://hl7.org/fhir/ValueSet/observation-vitalsignresult')",
         {},
         model,
-        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4-1" }
       );
       expect(result instanceof Promise).toBe(true);
       result.then((r) => {
@@ -282,7 +282,7 @@ describe('Async functions', () => {
         "Observation.code.coding.code[0].memberOf('http://hl7.org/fhir/ValueSet/observation-vitalsignresult')",
         {},
         model,
-        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4-2" }
       );
       expect(result instanceof Promise).toBe(true);
       result.then((r) => {
@@ -320,7 +320,7 @@ describe('Async functions', () => {
         "Observation.code.coding.code[0].memberOf('http://hl7.org/fhir/ValueSet/observation-vitalsignresult')",
         {},
         model,
-        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4-3" }
       );
       expect(result instanceof Promise).toBe(true);
       result.then((r) => {

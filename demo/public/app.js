@@ -100,7 +100,7 @@ let inputTypeBeforeChange = document.querySelector(
 const cm = codeMirror(document.getElementById("input"), {
   value: '',
   lineNumbers: true,
-  mode:  inputTypeBeforeChange
+  mode: {name: 'javascript', json: true}
 });
 window.cm = cm; // for testing purposes
 
@@ -265,6 +265,34 @@ document.getElementById("addVariable").addEventListener("click", () => {
   });
   document.querySelector("#variables ul").appendChild(newItem);
   setTimeout(() => newItem.querySelector("input").focus());
+});
+
+/**
+ * Adds an event listener to the "Load from file" button to trigger a click
+ * event on the hidden file input element.
+ */
+document.getElementById('loadFileButton').addEventListener('click', () => {
+  document.getElementById('fileInput').click();
+});
+
+/**
+ * Adds an event listener to the file input element to handle file selection
+ * and reading. When a file is selected, it reads the file content and sets it
+ * as the value of the CodeMirror editor.
+ * @param {Event} event - The change event triggered when a file is selected.
+ */
+document.getElementById('fileInput').addEventListener('change', (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target.result;
+      cm.setValue(content);
+    };
+    reader.readAsText(file);
+  }
+  // Reset the file input value to allow reloading the same file if needed
+  event.target.value = '';
 });
 
 evaluate();

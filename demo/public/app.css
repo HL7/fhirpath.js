@@ -29,7 +29,7 @@ body {
   flex: 3;
   display: flex;
   flex-direction: column;
-  min-width: 200px;
+  min-width: 400px;
   overflow: auto;
 }
 #inputWrapper > div {
@@ -85,30 +85,47 @@ body {
 }
 #inputWrapper > #input {
   margin-top: 3px;
-  overflow: auto;
   display: block;
   flex: 1 1 auto;
 }
 
 #input .CodeMirror {
   border: 1px solid #ddd;
-  height: auto;
-  width: max-content;
-  min-width: calc(100% - 2px);
+  height: calc(100% - 2px);
+  width: calc(100% - 2px);
 }
+
 #path {
   font-size: 20px;
   padding: 6px 8px;
   margin: 0;
   margin-bottom: 10px;
 }
+.outputWrapper {
+  flex:1;
+  min-width: 400px;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+#outputTitle {
+  margin: 0;
+  margin-left: 10px;
+  text-decoration: underline;
+}
+
 #output {
   flex: 1;
-  padding: 20px;
-  background: #f9f9f9;
-  min-width: 400px;
-  max-width: 400px;
+  margin: 10px 0 0 10px;
+  background: #ffffff;
   overflow: auto;
+  border: 1px solid #ddd;
+}
+
+#output pre {
+  margin: 0;
 }
 
 h1 {

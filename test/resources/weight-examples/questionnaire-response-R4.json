@@ -1,0 +1,82 @@
+{
+  "resourceType": "QuestionnaireResponse",
+  "item": [{
+    "linkId": "link-1",
+    "item": [{
+      "linkId": "link-1.1",
+      "item": [{
+        "linkId": "link-1.1.1",
+        "answer": [{
+          "valueCoding": {
+            "code": "some-code-1",
+            "system": "some-system-1",
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+                "valueDecimal": 1
+              }
+            ]
+          }
+        }]
+      }, {
+        "linkId": "link-1.1.2",
+        "answer": [{
+          "valueCoding": {
+            "code": "some-code-2",
+            "system": "some-system-1"
+          }
+        }]
+      }, {
+        "linkId": "link-1.1.3",
+        "answer": [{
+          "valueCoding": {
+            "code": "some-code-1",
+            "system": "some-system-2"
+          }
+        }]
+      }, {
+        "linkId": "link-1.1.4",
+        "answer": [{
+          "valueCoding": {
+            "code": "some-code-1",
+            "system": "some-system-3"
+          }
+        }]
+      }, {
+        "linkId": "link-1.1.5",
+        "answer": [{
+          "valueCoding": {
+            "code": "some-code-1",
+            "system": "some-system-4"
+          }
+        }]
+      }, {
+        "linkId": "link-1.1.6",
+        "answer": [{
+          "valueCoding": {
+            "code": "some-code-1",
+            "system": "some-system-5"
+          }
+        }]
+      }, {
+        "linkId": "link-1.1.7",
+        "answer": [{
+          "valueInteger": 1,
+          "_valueInteger": {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+                "valueDecimal": 60000000
+              }
+            ]
+          }
+        }]
+      }, {
+        "linkId": "link-1.1.8",
+        "answer": [{
+          "valueInteger": 2
+        }]
+      }]
+    }]
+  }]
+}

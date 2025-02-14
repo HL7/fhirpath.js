@@ -59,10 +59,18 @@
           </div>
           <div>
             <label id="inputTitle" style="text-decoration: underline;">-</label>:
+            <div style="flex: 1 1"></div>
+            <button id="loadFileButton">Load from file</button>
+            <input type="file" id="fileInput" style="display: none;" />
           </div>
           <div id="input"></div>
         </div>
-        <div id="output">...</div>
+        <div class="outputWrapper">
+          <div>
+            <label id="outputTitle">Result:</label>:
+          </div>
+          <div id="output">...</div>
+        </div>
       </div>
     </div>
     <div id="footer">

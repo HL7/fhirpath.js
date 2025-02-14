@@ -51,9 +51,21 @@ function mockFetchResults(results, {timeout = 0} = {}) {
 
       setTimeout(() => {
         if(okResult) {
-          resolve({ json: () => okResult, ok: true });
+          resolve({
+            json: () => Promise.resolve(okResult),
+            headers: {
+              get: (name) => name === 'Content-Type' ? 'application/fhir+json' : undefined
+            },
+            ok: true
+          });
         } else if(badResult) {
-          resolve({ json: () => badResult, ok: false });
+          resolve({
+            json: () => Promise.resolve(badResult),
+            headers: {
+              get: (name) => name === 'Content-Type' ? 'application/json' : undefined
+            },
+            ok: false
+          });
         } else {
           console.error(`"${url}" is not mocked.`)
         }

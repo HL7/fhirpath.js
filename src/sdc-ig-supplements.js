@@ -253,8 +253,6 @@ function getQuestionnaireItemInfo(ctx, qItem, value, valueType) {
 
 // Object for storing received scores
 const weightCache = {};
-// Object for storing fetch promises.
-const requestCache = {};
 // Duration of data storage in cache.
 const cacheStorageTime = 3600000; // 1 hour = 60 * 60 * 1000
 
@@ -295,40 +293,6 @@ function getScoreFromCache(key) {
 
 
 /**
- * fetch() wrapper for caching server responses.
- * @param {string} url - a URL of the resource you want to fetch.
- * @param {object} [options] - optional object containing any custom settings
- *  that you want to apply to the request.
- * @return {Promise}
- */
-function fetchWithCache(url, options) {
-  const requestKey = [
-    url, options ? JSON.stringify(options) : ''
-  ].join('|');
-
-  const timestamp = Date.now();
-  for (const key in requestCache) {
-    if (timestamp - requestCache[key].timestamp > cacheStorageTime) {
-      // Remove responses older than an hour
-      delete requestCache[key];
-    }
-  }
-
-  if (!requestCache[requestKey]) {
-    requestCache[requestKey] = {
-      timestamp,
-      // In Jest unit tests, a promise returned by 'fetch' is not an instance of
-      // Promise that we have in our application context, so we use Promise.resolve
-      // to do the conversion.
-      promise: Promise.resolve(options ? fetch(url, options) : fetch(url))
-    };
-  }
-
-  return requestCache[requestKey].promise;
-}
-
-
-/**
  * Adds the value of score or its promise received from a corresponding value
  * set or code system to the result array.
  * @param {Array} res - result array.
@@ -350,6 +314,7 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire,
   const cacheKey = [
     modelVersion,
     questionnaire?.url || questionnaire?.id,
+    getTerminologyUrl(ctx),
     vsURL, code, system
   ].join('|');
 
@@ -459,19 +424,17 @@ function getWeightFromTerminologyCodeSet(ctx, code, system) {
     },
     ...(ctx.signal ? {signal: ctx.signal} : {})
   };
-  return fetchWithCache(`${terminologyUrl}/CodeSystem?` + new URLSearchParams({
+  return util.fetchWithCache(`${terminologyUrl}/CodeSystem?` + new URLSearchParams({
     url: system,
     ...(scorePropertyUri ? {_elements: 'property'}: {})
   }).toString(), fetchOptions)
-    .then(r => r.ok ? r.json() : Promise.reject(r.json()))
     .then(bundle => {
       if (scorePropertyUri) {
         const scorePropertyCode = getPropertyCode(bundle?.entry?.[0]?.resource?.property, scorePropertyUri);
         if (scorePropertyCode) {
-          return fetchWithCache(`${terminologyUrl}/CodeSystem/$lookup?` + new URLSearchParams({
+          return util.fetchWithCache(`${terminologyUrl}/CodeSystem/$lookup?` + new URLSearchParams({
             code, system, property: scorePropertyCode
           }).toString(), fetchOptions)
-            .then(r => r.ok ? r.json() : Promise.reject(r.json()))
             .then((parameters) => {
               return parameters.parameter
                 .find(p => p.name === 'property' && p.part

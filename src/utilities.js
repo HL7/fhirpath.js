@@ -216,4 +216,59 @@ util.makeChildResNodes = function(parentResNode, childProperty, model) {
   return result;
 };
 
+
+// Object for storing fetch promises.
+const requestCache = {};
+// Duration of data storage in cache.
+const requestCacheStorageTime = 3600000; // 1 hour = 60 * 60 * 1000
+
+
+/**
+ * fetch() wrapper for caching server responses.
+ * @param {string} url - a URL of the resource you want to fetch.
+ * @param {object} [options] - optional object containing any custom settings
+ *  that you want to apply to the request.
+ * @return {Promise}
+ */
+util.fetchWithCache = function(url, options) {
+  const requestKey = [
+    url, options ? JSON.stringify(options) : ''
+  ].join('|');
+
+  const timestamp = Date.now();
+  for (const key in requestCache) {
+    if (timestamp - requestCache[key].timestamp > requestCacheStorageTime) {
+      // Remove responses older than an hour
+      delete requestCache[key];
+    }
+  }
+
+  if (!requestCache[requestKey]) {
+    requestCache[requestKey] = {
+      timestamp,
+      // In Jest unit tests, a promise returned by 'fetch' is not an instance of
+      // Promise that we have in our application context, so we use Promise.resolve
+      // to do the conversion.
+      promise: Promise.resolve(options ? fetch(url, options) : fetch(url))
+        .then(r => {
+          const contentType = r.headers.get('Content-Type');
+          const isJson = contentType.includes('application/json') ||
+            contentType.includes('application/fhir+json');
+          try {
+            if (isJson) {
+              return r.json().then((json) => r.ok ? json : Promise.reject(json));
+            } else {
+              return r.text().then((text) => Promise.reject(text));
+            }
+          } catch (e) {
+            return Promise.reject(new Error(e));
+          }
+        })
+    };
+  }
+
+  return requestCache[requestKey].promise;
+};
+
+
 module.exports = util;
