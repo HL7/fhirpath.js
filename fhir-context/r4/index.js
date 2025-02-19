@@ -7,8 +7,14 @@ const updateWithGeneratedData = require('../general-additions');
 const modelInfo = {
   version: 'r4',
   score: {
-    // See https://www.hl7.org/fhir/R4/extension-ordinalvalue.html
-    extensionURI: 'http://hl7.org/fhir/StructureDefinition/ordinalValue'
+    // See
+    // - https://www.hl7.org/fhir/R4/extension-ordinalvalue.html
+    // - https://www.hl7.org/fhir/extensions/StructureDefinition-itemWeight.html
+    // - https://build.fhir.org/ig/HL7/fhir-extensions/StructureDefinition-itemWeight.html
+    extensionURI: [
+      'http://hl7.org/fhir/StructureDefinition/ordinalValue',
+      'http://hl7.org/fhir/StructureDefinition/itemWeight'
+    ]
   },
   /**
    *  A hash of resource element paths (e.g. Observation.value) that are known

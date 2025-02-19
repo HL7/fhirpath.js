@@ -13,7 +13,7 @@ const modelInfo = {
     // See
     // - https://www.hl7.org/fhir/extensions/StructureDefinition-itemWeight.html
     // - https://build.fhir.org/ig/HL7/fhir-extensions/StructureDefinition-itemWeight.html
-    extensionURI: 'http://hl7.org/fhir/StructureDefinition/itemWeight'
+    extensionURI: ['http://hl7.org/fhir/StructureDefinition/itemWeight']
   },
   /**
    *  A hash of resource element paths (e.g. Observation.value) that are known

@@ -30,7 +30,7 @@ interface Model {
   version: 'r5' | 'r4' | 'stu3' | 'dstu2',
 
   // This section contains setting for the `weight()` function.
-  score: {
+  score?: {
     // Formal identifier for the weight property (the item weight property URI).
     // It is used for getting scores from CodeSystem/ValueSet in R5.
     // Use this URI to get property code from "CodeSystem.property.code"
@@ -42,10 +42,10 @@ interface Model {
     // Expanding ValueSet to get the property for the CodeSystem concept is not
     // practical. It is better to look up for the concept in CodeSystem and get
     // the property there.
-    propertyURI: string,
+    propertyURI?: string,
 
     // The item weight extension URI used in R5/R4
-    extensionURI: string,
+    extensionURI: string[],
   },
 
   /**

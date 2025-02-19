@@ -90,7 +90,7 @@ describe("supplements", () => {
                     "code": "some-code-1",
                     "extension": [
                       {
-                        "url": model.score.extensionURI,
+                        "url": model.score.extensionURI[model.score.extensionURI.length - 1],
                         "valueDecimal": 3
                       }
                     ]
@@ -128,7 +128,7 @@ describe("supplements", () => {
                     "code": "some-code-1",
                     "extension": [
                       {
-                        "url": model.score.extensionURI,
+                        "url": model.score.extensionURI[0],
                         "valueDecimal": 400000
                       }
                     ]
@@ -185,7 +185,7 @@ describe("supplements", () => {
                       "system": "some-system-1",
                       "extension": [
                         {
-                          "url": model.score.extensionURI,
+                          "url": model.score.extensionURI[0],
                           "valueDecimal": 1
                         }
                       ]
@@ -238,7 +238,7 @@ describe("supplements", () => {
                     "_valueInteger": {
                       "extension": [
                         {
-                          "url": model.score.extensionURI,
+                          "url": model.score.extensionURI[0],
                           "valueDecimal": 60000000
                         }
                       ]
@@ -294,7 +294,7 @@ describe("supplements", () => {
                       "code": "some-code-1",
                       "extension": [
                         {
-                          "url": model.score.extensionURI,
+                          "url": model.score.extensionURI[0],
                           "valueDecimal": 2
                         }
                       ]
@@ -302,7 +302,7 @@ describe("supplements", () => {
                       "code": "some-code-2",
                       "extension": [
                         {
-                          "url": model.score.extensionURI,
+                          "url": model.score.extensionURI[0],
                           "valueDecimal": 10
                         }
                       ]
@@ -329,7 +329,7 @@ describe("supplements", () => {
                 "concept": [{
                   "code": "some-code-1",
                   "extension": [{
-                    "url": model.score.extensionURI,
+                    "url": model.score.extensionURI[0],
                     "valueDecimal": 30000
                   }]
                 }]
@@ -358,7 +358,7 @@ describe("supplements", () => {
                       "code": "some-code-1",
                       "extension": [
                         {
-                          "url": model.score.extensionURI,
+                          "url": model.score.extensionURI[0],
                           "valueDecimal": 200
                         }
                       ],
@@ -373,7 +373,7 @@ describe("supplements", () => {
                       "code": "some-code-1",
                       "extension": [
                         {
-                          "url": model.score.extensionURI,
+                          "url": model.score.extensionURI[0],
                           "valueDecimal": 2000
                         }
                       ]
@@ -395,7 +395,7 @@ describe("supplements", () => {
                     "_valueInteger": {
                       "extension": [
                         {
-                          "url": model.score.extensionURI,
+                          "url": model.score.extensionURI[0],
                           "valueDecimal": 70000000
                         }
                       ]
@@ -409,7 +409,7 @@ describe("supplements", () => {
                     "_valueInteger": {
                       "extension": [
                         {
-                          "url": model.score.extensionURI,
+                          "url": model.score.extensionURI[0],
                           "valueDecimal": 5000000
                         }
                       ]
@@ -480,7 +480,7 @@ describe("supplements", () => {
                     "code": "some-code-20",
                     "extension": [
                       {
-                        "url": model.score.extensionURI,
+                        "url": model.score.extensionURI[0],
                         "valueDecimal": 10
                       }
                     ]
@@ -522,7 +522,7 @@ describe("supplements", () => {
                   "code": "some-code-10",
                   "extension": [
                     {
-                      "url": model.score.extensionURI,
+                      "url": model.score.extensionURI[0],
                       "valueDecimal": 2
                     }
                   ]
@@ -579,7 +579,7 @@ describe("supplements", () => {
               "code": "some-code-1",
               "extension": [
                 {
-                  "url": model.score.extensionURI,
+                  "url": model.score.extensionURI[0],
                   "valueDecimal": 3
                 }
               ]
@@ -587,7 +587,7 @@ describe("supplements", () => {
               "code": "some-code-2",
               "extension": [
                 {
-                  "url": model.score.extensionURI,
+                  "url": model.score.extensionURI[0],
                   "valueDecimal": 5
                 }
               ]

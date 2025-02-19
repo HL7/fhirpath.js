@@ -199,12 +199,12 @@ function getResourceNodeInfo(ctx, rNode) {
 /**
  * Returns the value of the score extension from the specified node data.
  * @param {Object|undefined} nodeData - node data.
- * @param {string|undefined} extensionURI - score extension URI.
+ * @param {string[]|undefined} extensionURI - score extension URI.
  * @returns {number|undefined}
  */
 function getScoreExtensionValue(nodeData, extensionURI) {
   return extensionURI && nodeData?.extension?.find(
-    (i) => i.url === extensionURI
+    (i) => extensionURI.indexOf(i.url) !== -1
   )?.valueDecimal;
 }
 
