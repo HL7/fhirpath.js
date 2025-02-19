@@ -1,15 +1,35 @@
 {
   "resourceType": "QuestionnaireResponse",
+  "status": "draft",
+  "contained": [
+    {
+      "resourceType": "CodeSystem",
+      "id": "some-system-id-5",
+      "url": "http://some-system-5",
+      "status": "draft",
+      "content": "example",
+      "concept": [{
+        "code": "some-code-1",
+        "extension": [
+          {
+            "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+            "valueDecimal": 400000
+          }
+        ]
+      }]
+    }
+  ],
   "item": [{
     "linkId": "link-1",
     "item": [{
       "linkId": "link-1.1",
       "item": [{
         "linkId": "link-1.1.1",
+        "text": "we use the embedded score and ignore the score for this item in the value set contained in the questionnaire",
         "answer": [{
           "valueCoding": {
             "code": "some-code-1",
-            "system": "some-system-1",
+            "system": "http://some-system-1",
             "extension": [
               {
                 "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
@@ -20,46 +40,49 @@
         }]
       }, {
         "linkId": "link-1.1.2",
+        "text": "we get the score for this item from the value set contained in the questionnaire",
         "answer": [{
           "valueCoding": {
             "code": "some-code-2",
-            "system": "some-system-1"
+            "system": "http://some-system-1"
           }
         }]
       }, {
         "linkId": "link-1.1.3",
+        "text": "we get the score for this item from the coding answerOption in the questionnaire",
         "answer": [{
           "valueCoding": {
             "code": "some-code-1",
-            "system": "some-system-2"
+            "system": "http://some-system-2"
           }
         }]
       }, {
         "linkId": "link-1.1.4",
+        "text": "we get the score for this item from the string answerOption in the questionnaire",
         "answer": [{
-          "valueCoding": {
-            "code": "some-code-1",
-            "system": "some-system-3"
-          }
+          "valueString": "string-1"
         }]
       }, {
         "linkId": "link-1.1.5",
+        "text": "we get the score for this item from the corresponding CodeSystem.concept contained in the questionnaire",
         "answer": [{
           "valueCoding": {
             "code": "some-code-1",
-            "system": "some-system-4"
+            "system": "http://some-system-4"
           }
         }]
       }, {
         "linkId": "link-1.1.6",
+        "text": "we get the score for this item from the corresponding CodeSystem.concept contained in the questionnaire response",
         "answer": [{
           "valueCoding": {
             "code": "some-code-1",
-            "system": "some-system-5"
+            "system": "http://some-system-5"
           }
         }]
       }, {
         "linkId": "link-1.1.7",
+        "text": "we use the embedded score and ignore the score for this item in the integer answerOption in the questionnaire",
         "answer": [{
           "valueInteger": 1,
           "_valueInteger": {
@@ -73,6 +96,7 @@
         }]
       }, {
         "linkId": "link-1.1.8",
+        "text": "we get the score for this item from the integer answerOption in the questionnaire",
         "answer": [{
           "valueInteger": 2
         }]

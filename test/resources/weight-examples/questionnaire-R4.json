@@ -1,13 +1,16 @@
 {
   "resourceType": "Questionnaire",
+  "name": "Questionnaire_with_itemWeight",
+  "status": "draft",
   "contained": [
     {
       "resourceType": "ValueSet",
       "id": "some-value-set-id-1",
-      "url": "some-value-set-url-1",
+      "url": "http://some-value-set-url-1",
+      "status": "draft",
       "compose": {
         "include": [{
-          "system": "some-system-1",
+          "system": "http://some-system-1",
           "concept": [{
             "code": "some-code-1",
             "extension": [
@@ -29,25 +32,16 @@
       }
     }, {
       "resourceType": "CodeSystem",
-      "url": "some-system-4",
+      "id": "some-system-id-4",
+      "url": "http://some-system-4",
+      "status": "draft",
+      "content": "example",
       "concept": [{
         "code": "some-code-1",
         "extension": [{
           "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
           "valueDecimal": 30000
         }]
-      }]
-    }, {
-      "resourceType": "CodeSystem",
-      "url": "some-system-5",
-      "concept": [{
-        "code": "some-code-1",
-        "extension": [
-          {
-            "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
-            "valueDecimal": 400000
-          }
-        ]
       }]
     }
   ],
@@ -70,7 +64,7 @@
         "type": "choice",
         "answerOption": [{
           "valueCoding": {
-            "system": "some-system-2",
+            "system": "http://some-system-2",
             "code": "some-code-1",
             "extension": [
               {
@@ -84,9 +78,8 @@
         "linkId": "link-1.1.4",
         "type": "choice",
         "answerOption": [{
-          "valueCoding": {
-            "system": "some-system-3",
-            "code": "some-code-1",
+          "valueString": "string-1",
+          "_valueString": {
             "extension": [
               {
                 "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
@@ -98,11 +91,11 @@
       }, {
         "linkId": "link-1.1.5",
         "type": "choice",
-        "answerValueSet": "some-value-set-url-3"
+        "answerValueSet": "http://some-value-set-url-3"
       }, {
         "linkId": "link-1.1.6",
         "type": "choice",
-        "answerValueSet": "some-value-set-url-4"
+        "answerValueSet": "http://some-value-set-url-4"
       }, {
         "linkId": "link-1.1.7",
         "type": "choice",
