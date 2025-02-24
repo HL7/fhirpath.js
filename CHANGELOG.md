@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.17.1] - 2025-02-12
+### Fixed
+- exception in `toString()` for node of type `date`, `dateTime`, `instant` or
+  `time` without value but with extension and/or id.
+
 ## [3.17.0] - 2025-02-03
 ### Added
 - getValue() function.
