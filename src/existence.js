@@ -6,6 +6,7 @@ const {whereMacro, distinctFn} = require("./filtering");
 const misc = require("./misc");
 const hashObject = require('./hash-object');
 const { deepEqual, maxCollSizeForDeepEqual } = require('./deep-equal');
+const {TypeInfo} = require('./types');
 
 const engine = {};
 engine.emptyFn = util.isEmpty;
@@ -88,7 +89,9 @@ function subsetOf(coll1, coll2) {
   const coll2Length = coll2.length;
   let rtn = coll1Length <= coll2Length;
   if (rtn) {
-    if (coll1Length + coll2Length > maxCollSizeForDeepEqual) {
+    const hasPrimitive = coll1.some(i => TypeInfo.isPrimitiveValue(i)) ||
+      coll2.some(i => TypeInfo.isPrimitiveValue(i));
+    if (!hasPrimitive && coll1Length + coll2Length > maxCollSizeForDeepEqual) {
       // When we have more than maxCollSizeForDeepEqual items in input collections,
       // we use a hash table (on JSON strings) for efficiency.
       const c2Hash = coll2.reduce((hash, item) => {

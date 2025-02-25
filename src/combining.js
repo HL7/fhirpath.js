@@ -4,6 +4,7 @@ const combineFns = {};
 const { distinctFn } = require('./filtering');
 const hashObject = require('./hash-object');
 const { deepEqual, maxCollSizeForDeepEqual } = require('./deep-equal');
+const { TypeInfo } = require("./types");
 
 combineFns.union = function(coll1, coll2){
   return distinctFn(coll1.concat(coll2));
@@ -19,7 +20,9 @@ combineFns.intersect = function(coll1, coll2) {
   let uncheckedLength = coll2.length;
 
   if (coll1Length && uncheckedLength) {
-    if (coll1Length + uncheckedLength > maxCollSizeForDeepEqual) {
+    const hasPrimitive = coll1.some(i => TypeInfo.isPrimitiveValue(i)) ||
+      coll2.some(i => TypeInfo.isPrimitiveValue(i));
+    if (!hasPrimitive && coll1Length + uncheckedLength > maxCollSizeForDeepEqual) {
       // When we have more than maxCollSizeForDeepEqual items in input collections,
       // we use a hash table (on JSON strings) for efficiency.
       let coll2hash = {};
@@ -43,7 +46,7 @@ combineFns.intersect = function(coll1, coll2) {
       }
     } else {
       // Otherwise, it is more efficient to perform a deep comparison.
-      result = distinctFn(coll1).filter(
+      result = distinctFn(coll1, hasPrimitive).filter(
         obj1 => coll2.some(obj2 => deepEqual(obj1, obj2))
       );
     }
@@ -63,7 +66,10 @@ combineFns.exclude = function(coll1, coll2) {
     return coll1;
   }
   if (coll1Length) {
-    if (coll1Length + coll2Length > maxCollSizeForDeepEqual) {
+    const hasPrimitive = coll1.some(i => TypeInfo.isPrimitiveValue(i)) ||
+      coll2.some(i => TypeInfo.isPrimitiveValue(i));
+
+    if (!hasPrimitive && coll1Length + coll2Length > maxCollSizeForDeepEqual) {
       // When we have more than maxCollSizeForDeepEqual items in input collections,
       // we use a hash table (on JSON strings) for efficiency.
       let coll2hash = {};
