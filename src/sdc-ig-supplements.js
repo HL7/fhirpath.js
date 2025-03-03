@@ -30,15 +30,15 @@ const util = require("./utilities");
  *
  * Also, according to the resolution of this JIRA issue
  * https://jira.hl7.org/browse/FHIR-49329, we support
- * a score extension for all possible [x] in value[x] in questionnaire answers.
+ * a score extension for all possible [x] in value[x] in QuestionnaireResponse
+ * answers.
  *
  * We search for the first score extension for each source node to add its value
  * to the result in the following order:
  * 1. Check the source node for a score extension.
- * 2. If the source node is an answer from a `QuestionnaireResponse`, check the
- *    `value[x]` child element for a score extension.
- * 3. If the source node is an answer from a `QuestionnaireResponse` or its
+ * 2. If the source node is an answer from a `QuestionnaireResponse` or its
  *    `value[x]`:
+ *     - Check the `value[x]` element for a score extension.
  *     - Check the corresponding `Questionnaire` answer option for a score
  *       extension.
  *     - If the `Questionnaire` answer option references a contained `ValueSet`,
@@ -138,10 +138,14 @@ function getResourceNodeInfo(ctx, rNode) {
       value = rNode.data;
       valueType = 'Coding';
       break;
+    case 'Questionnaire.item.answerOption':
+      score = getScoreExtensionValue(rNode.data, scoreExtensionUri);
+      value = rNode.data;
+      // No need to return value and valueType, because there is no further search;
+      break;
     case 'QuestionnaireResponse.item.answer':
       isQuestionnaireResponse = true;
       // eslint-disable-next-line no-fallthrough
-    case 'Questionnaire.item.answerOption':
       valueProp = rNode.data && Object.keys(rNode.data).find(
         p => p.length > 5 && p.startsWith('value')
       );
@@ -185,8 +189,7 @@ function getResourceNodeInfo(ctx, rNode) {
       break;
     default:
       isQuestionnaireResponse = rNode.parentResNode?.path === 'QuestionnaireResponse.item.answer';
-      if (isQuestionnaireResponse
-        || rNode.parentResNode?.path === 'Questionnaire.item.answerOption') {
+      if (isQuestionnaireResponse) {
         score = getScoreExtensionValue(rNode._data || rNode.data, scoreExtensionUri);
         value = rNode.data;
         valueType = util.capitalize(rNode.fhirNodeDataType);
@@ -245,7 +248,7 @@ function getQuestionnaireItemInfo(ctx, qItem, value, valueType) {
   }
   const answerOption = qItem?.answerOption?.find(compareFn);
   const score =
-    getScoreExtensionValue(answerOption?.['_' + valuePropName] || answerOption?.[valuePropName], ctx.model.score.extensionURI);
+    getScoreExtensionValue(answerOption, ctx.model.score.extensionURI);
   const answerValueSet = qItem?.answerValueSet;
   return {score, answerOption, answerValueSet};
 }

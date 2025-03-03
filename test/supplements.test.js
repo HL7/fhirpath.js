@@ -355,14 +355,14 @@ describe("supplements", () => {
                   "answerOption": [{
                     "valueCoding": {
                       "system": "some-system-2",
-                      "code": "some-code-1",
-                      "extension": [
-                        {
-                          "url": model.score.extensionURI[0],
-                          "valueDecimal": 200
-                        }
-                      ],
-                    }
+                      "code": "some-code-1"
+                    },
+                    "extension": [
+                      {
+                        "url": model.score.extensionURI[0],
+                        "valueDecimal": 200
+                      }
+                    ]
                   }]
                 }, {
                   "linkId": "link-1.1.4",
@@ -370,14 +370,14 @@ describe("supplements", () => {
                   "answerOption": [{
                     "valueCoding": {
                       "system": "some-system-3",
-                      "code": "some-code-1",
-                      "extension": [
-                        {
-                          "url": model.score.extensionURI[0],
-                          "valueDecimal": 2000
-                        }
-                      ]
-                    }
+                      "code": "some-code-1"
+                    },
+                    "extension": [
+                      {
+                        "url": model.score.extensionURI[0],
+                        "valueDecimal": 2000
+                      }
+                    ]
                   }]
                 }, {
                   "linkId": "link-1.1.5",
@@ -392,28 +392,24 @@ describe("supplements", () => {
                   "type": "choice",
                   "answerOption": [{
                     "valueInteger": 1,
-                    "_valueInteger": {
-                      "extension": [
-                        {
-                          "url": model.score.extensionURI[0],
-                          "valueDecimal": 70000000
-                        }
-                      ]
-                    }
+                    "extension": [
+                      {
+                        "url": model.score.extensionURI[0],
+                        "valueDecimal": 70000000
+                      }
+                    ]
                   }]
                 }, {
                   "linkId": "link-1.1.8",
                   "type": "choice",
                   "answerOption": [{
                     "valueInteger": 2,
-                    "_valueInteger": {
-                      "extension": [
-                        {
-                          "url": model.score.extensionURI[0],
-                          "valueDecimal": 5000000
-                        }
-                      ]
-                    }
+                    "extension": [
+                      {
+                        "url": model.score.extensionURI[0],
+                        "valueDecimal": 5000000
+                      }
+                    ]
                   }]
                 }]
               }]

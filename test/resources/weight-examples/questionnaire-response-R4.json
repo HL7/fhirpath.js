@@ -1,6 +1,14 @@
 {
   "resourceType": "QuestionnaireResponse",
   "status": "draft",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-referencesContained",
+      "valueReference": {
+        "reference": "#some-system-id-5"
+      }
+    }
+  ],
   "contained": [
     {
       "resourceType": "CodeSystem",
@@ -25,7 +33,6 @@
       "linkId": "link-1.1",
       "item": [{
         "linkId": "link-1.1.1",
-        "text": "we use the embedded score and ignore the score for this item in the value set contained in the questionnaire",
         "answer": [{
           "valueCoding": {
             "code": "some-code-1",
@@ -40,7 +47,6 @@
         }]
       }, {
         "linkId": "link-1.1.2",
-        "text": "we get the score for this item from the value set contained in the questionnaire",
         "answer": [{
           "valueCoding": {
             "code": "some-code-2",
@@ -49,7 +55,6 @@
         }]
       }, {
         "linkId": "link-1.1.3",
-        "text": "we get the score for this item from the coding answerOption in the questionnaire",
         "answer": [{
           "valueCoding": {
             "code": "some-code-1",
@@ -58,13 +63,11 @@
         }]
       }, {
         "linkId": "link-1.1.4",
-        "text": "we get the score for this item from the string answerOption in the questionnaire",
         "answer": [{
           "valueString": "string-1"
         }]
       }, {
         "linkId": "link-1.1.5",
-        "text": "we get the score for this item from the corresponding CodeSystem.concept contained in the questionnaire",
         "answer": [{
           "valueCoding": {
             "code": "some-code-1",
@@ -73,7 +76,6 @@
         }]
       }, {
         "linkId": "link-1.1.6",
-        "text": "we get the score for this item from the corresponding CodeSystem.concept contained in the questionnaire response",
         "answer": [{
           "valueCoding": {
             "code": "some-code-1",
@@ -82,7 +84,6 @@
         }]
       }, {
         "linkId": "link-1.1.7",
-        "text": "we use the embedded score and ignore the score for this item in the integer answerOption in the questionnaire",
         "answer": [{
           "valueInteger": 1,
           "_valueInteger": {
@@ -96,7 +97,6 @@
         }]
       }, {
         "linkId": "link-1.1.8",
-        "text": "we get the score for this item from the integer answerOption in the questionnaire",
         "answer": [{
           "valueInteger": 2
         }]
