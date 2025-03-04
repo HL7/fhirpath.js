@@ -539,7 +539,7 @@ function doInvoke(ctx, fnName, data, rawParams){
     && Object.prototype.hasOwnProperty.call(ctx.userInvocationTable, fnName)
     && ctx.userInvocationTable?.[fnName]
     || engine.invocationTable[fnName]
-    || data.length === 1 && data[0]?.invocationTable[fnName];
+    || data.length === 1 && data[0]?.invocationTable?.[fnName];
   var res;
   if(invoc) {
     if(!invoc.arity){
