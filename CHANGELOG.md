@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.17.2] - 2025-02-25
+### Changed
+- Adjusted equality operation to take into account "id" and "extension"
+  properties for primitive types.
+
 ## [3.17.1] - 2025-02-12
 ### Fixed
 - exception in `toString()` for node of type `date`, `dateTime`, `instant` or

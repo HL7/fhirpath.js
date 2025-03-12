@@ -69,6 +69,15 @@ tests:
       expression: '0.1 + 0.1 + 0.1 = 0.3'
       result: [true]
 
+    - desc: 'should take into account extensions for decimal values'
+      model: r4
+      expression: >-
+        (%factory.decimal(0.3, %factory.Extension('someExt', 'someString')) =
+         %factory.decimal(0.30000000000000004, %factory.Extension('someExt', 'someString'))) |
+        (%factory.decimal(0.3, %factory.Extension('someExt', 'someString1')) =
+         %factory.decimal(0.30000000000000004, %factory.Extension('someExt', 'someString2')))
+      result: [true, false]
+
     - desc: '* boolean: values must be the same'
 
     - desc: '** equal'
@@ -91,7 +100,7 @@ tests:
       # Patient.name.given[3].empty() = false
       # So, these are not empty collections and the result should not be empty.
       expression: Patient.name.given[0] = Patient.name.given[3]
-      result: [true]
+      result: [false]
 
     - 'group: Quantity Equality':
       - expression: 1 year != 1 'a'
@@ -365,13 +374,30 @@ tests:
         expression: '@T12 = time1.toTime()'
         result: []
 
-      - desc: '** should not ignore null properties in arrays'
-        inputfile: patient-bundle.json
+      - desc: 'should take into account extensions for date values'
         model: r4
         expression: >-
-          Bundle.entry[1] != Bundle.entry[2]
-        result:
-          - true
+          (%factory.date('2024-01-01', %factory.Extension('someExt', 'someString')) =
+           %factory.date('2024-01-01', %factory.Extension('someExt', 'someString'))) |
+          (%factory.date('2024-01-01', %factory.Extension('someExt', 'someString1')) =
+           %factory.date('2024-01-01', %factory.Extension('someExt', 'someString2')))
+        result: [true, false]
+
+    - desc: '** should not ignore null properties in arrays'
+      inputfile: patient-bundle.json
+      model: r4
+      expression: >-
+        Bundle.entry[1] != Bundle.entry[2]
+      result:
+        - true
+
+    - desc: '** should take into account extension for primitives'
+      inputfile: patient-bundle.json
+      model: r4
+      expression: >-
+        Bundle.entry[1].resource.name.given[0] = Bundle.entry[2].resource.name.given[0]
+      result:
+        - false
 
 
   - 'group: 6.1.2. ~ (Equivalent)':
@@ -609,7 +635,7 @@ tests:
       # Patient.name.given[3].empty() = false
       # So, these are not empty collections and the result should not be empty.
       expression: Patient.name.given[0] != Patient.name.given[3]
-      result: [false]
+      result: [true]
 
     - 'group: Dates & Times':
       - desc:  'DateTime literal compared with DateTime'
@@ -747,6 +773,14 @@ tests:
       model: r4
       expression: Patient.name.given[0] !~ Patient.name.given[3]
       result: [false]
+
+    - desc: '** should not take into account extension for primitives'
+      inputfile: patient-bundle.json
+      model: r4
+      expression: >-
+        Bundle.entry[1].resource.name.given[0] ~ Bundle.entry[2].resource.name.given[0]
+      result:
+        - true
 
   # If both operands are collections with a single item:
 

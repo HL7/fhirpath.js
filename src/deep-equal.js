@@ -2,13 +2,12 @@
 // (https://github.com/substack/node-deep-equal), with modifications.
 // For the license for node-deep-equal, see the bottom of this file.
 
-const {FP_Type, FP_Quantity} = require('./types');
-var util = require('./utilities');
+const {FP_Type, FP_Quantity, ResourceNode} = require('./types');
 var numbers = require('./numbers');
 var pSlice = Array.prototype.slice;
 var objectKeys = Object.keys;
 var isArguments = function (object) {
-  return Object.prototype.toString.call(object) == '[object Arguments]';
+  return Object.prototype.toString.call(object) === '[object Arguments]';
 };
 
 function isString(myVar) {
@@ -27,8 +26,8 @@ function normalizeStr(x) {
  * Performs a deep comparison between two values to determine if they are equal.
  * When you need to compare many objects, you can use hashObject instead for
  * optimization (if changes are needed here, they are likely also needed there).
- * @param {any} actual - one of the comparing objects
- * @param {any} expected - one of the comparing objects
+ * @param {any} v1 - one of the comparing objects
+ * @param {any} v2 - one of the comparing objects
  * @param {Object} [opts] - comparison options
  * @param {boolean} [opts.fuzzy] - false (by default), if comparing objects for
  *   equality (see https://hl7.org/fhirpath/#equals).
@@ -36,19 +35,22 @@ function normalizeStr(x) {
  *   (see https://hl7.org/fhirpath/#equivalent).
  * @return {boolean}
  */
-function deepEqual(actual, expected, opts) {
-  actual = util.valDataConverted(actual);
-  expected = util.valDataConverted(expected);
+function deepEqual(v1, v2, opts) {
+  const v1IsResourceNode = v1 instanceof ResourceNode;
+  const v2IsResourceNode = v2 instanceof ResourceNode;
+  let actual = v1IsResourceNode ? v1.convertData() : v1;
+  let expected =  v2IsResourceNode ? v2.convertData() : v2;
   if (!opts) opts = {};
 
   // 7.1. All identical values are equivalent, as determined by ===.
   if (actual === expected) {
-    return true;
+    return opts.fuzzy || !v1IsResourceNode || !v2IsResourceNode ||
+      deepEqual(v1._data, v2._data);
   }
 
   if (opts.fuzzy) {
     if(isString(actual) && isString(expected)) {
-      return normalizeStr(actual) == normalizeStr(expected);
+      return normalizeStr(actual) === normalizeStr(expected);
     }
     if(isNumber(actual) && isNumber(expected)) {
       return numbers.isEquivalent(actual, expected);
@@ -59,21 +61,43 @@ function deepEqual(actual, expected, opts) {
     // precision to remove floating point arithmetic errors (e.g. 0.1+0.1+0.1 should
     // equal 0.3) before comparing.
     if (typeof actual === 'number' && typeof expected === 'number') {
-      return numbers.isEqual(actual, expected);
+      if(numbers.isEqual(actual, expected)) {
+        return v1IsResourceNode && v2IsResourceNode ?
+          deepEqual(v1._data, v2._data, opts) : true;
+      } else {
+        return false;
+      }
     }
   }
 
   if (actual instanceof Date && expected instanceof Date) {
-    return actual.getTime() === expected.getTime();
+    return (actual.getTime() === expected.getTime()) && (
+      opts.fuzzy || !v1IsResourceNode || !v2IsResourceNode ||
+      deepEqual(v1._data, v2._data)
+    );
   } else if (!actual || !expected || typeof actual != 'object' && typeof expected != 'object') {
-    return actual === expected;
+    return (actual === expected) && (
+      opts.fuzzy || !v1IsResourceNode || !v2IsResourceNode ||
+      deepEqual(v1._data, v2._data)
+    );
   }
   else {
     var actualIsFPT = actual instanceof FP_Type;
     var expectedIsFPT = expected instanceof FP_Type;
     if (actualIsFPT && expectedIsFPT) { // if both are FP_Type
-      return opts.fuzzy ? actual.equivalentTo(expected) :
-        actual.equals(expected); // May return undefined
+      if (opts.fuzzy) {
+        return actual.equivalentTo(expected);
+      } else {
+        let result = actual.equals(expected); // May return undefined
+        if (result) {
+          return !v1IsResourceNode || !v2IsResourceNode ||
+            deepEqual(v1._data, v2._data) &&
+            deepEqual(v1.data?.id, v2.data?.id) &&
+            deepEqual(v1.data?.extension, v2.data?.extension);
+        } else {
+          return result;
+        }
+      }
     }
     else if (actualIsFPT || expectedIsFPT) { // if only one is an FP_Type
       let anotherIsNumber = false;

@@ -44,13 +44,13 @@ tests:
     inputfile: patient-example-2.json
     expression: (Patient.name.given[0] | Patient.name.given[3]).count()
     result:
-      - 1
+      - 2
 
   - desc: '** union of coll with nodes that have null values (2)'
     inputfile: patient-example-2.json
     expression: Patient.name.given[0].union(Patient.name.given[3]).count()
     result:
-      - 1
+      - 2
 
   - desc: '5.4.2. combine(other : collection) : collection'
 # Merge the input and other collections into a single collection without eliminating duplicate values. Combining an empty collection with a non-empty collection will return the non-empty collection. There is no expectation of order in the resulting collection.
