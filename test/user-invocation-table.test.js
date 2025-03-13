@@ -95,3 +95,31 @@ describe("toString", () => {
     expect(result).toEqual(["0"]);
   });
 });
+
+describe("Not implemented exception", () => {
+    it("Fires exception without userInvocationTable", () => {
+        try {
+            fhirpath.evaluate({ index: 0 }, "index.missing()");
+        } catch(e){
+            expect(e.message).toEqual('Not implemented: missing');
+        };
+    });
+    it("Fires exception with userInvocationTable", () => {
+        const options = {
+            userInvocationTable: {},
+        };
+
+        try {
+            fhirpath.evaluate(
+                { index: 0 },
+                "index.missing()",
+                null,
+                null,
+                options
+
+            );
+        } catch (e) {
+            expect(e.message).toEqual('Not implemented: missing');
+        };
+    });
+});
