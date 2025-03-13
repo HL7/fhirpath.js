@@ -1570,6 +1570,22 @@ TypeInfo.isPrimitive = function(typeInfo) {
 };
 
 /**
+ * Checks whether the specified value is of a primitive data type.
+ * @param {*} value - The value to check.
+ * @returns {boolean} - Returns true if the value is a primitive data type,
+ *  otherwise false.
+ */
+
+TypeInfo.isPrimitiveValue = function(value) {
+  if (value instanceof ResourceNode) {
+    return primitives.has(value.getTypeInfo().name);
+  } else {
+    // Simplified check for primitive data types:
+    return typeof value !== 'object' || value instanceof FP_Type;
+  }
+};
+
+/**
  * Basic "type()" function implementation
  * (see http://hl7.org/fhirpath/#reflection)
  * @param {Array<*>} coll - input collection

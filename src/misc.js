@@ -337,7 +337,7 @@ engine.singleton = function (coll, type) {
 
 engine.hasValueFn = function(coll) {
   return coll.length === 1 && util.valData(coll[0]) != null
-    && TypeInfo.isPrimitive(TypeInfo.fromValue(coll[0]));
+    && TypeInfo.isPrimitiveValue(coll[0]);
 };
 
 /**
@@ -353,7 +353,7 @@ engine.getValueFn = function(coll) {
   if (coll.length === 1) {
     const node = coll[0];
     const v = util.valData(node);
-    if (v != null && TypeInfo.isPrimitive(TypeInfo.fromValue(node))) {
+    if (v != null && TypeInfo.isPrimitiveValue(node)) {
       return v;
     }
   }
