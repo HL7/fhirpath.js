@@ -39,15 +39,16 @@ const util = require("./utilities");
  * 2. If the source node is an answer from a `QuestionnaireResponse` or its
  *    `value[x]`:
  *     - Check the `value[x]` element for a score extension.
- *     - Check the corresponding `Questionnaire` answer option for a score
- *       extension.
- *     - If the `Questionnaire` answer option references a contained `ValueSet`,
+ *     - Check the corresponding answer option (if any) of the corresponding
+ *       `Questionnaire` item for a score extension.
+ *     - Otherwise, if the `Questionnaire` item references a contained `ValueSet`,
  *       check the corresponding element there for a score extension.
  * 4. If the source resource (to which the source node belongs, e.g.
  *    `QuestionnaireResponse`) or `Questionnaire` contains a corresponding
- *    `CodeSystem`, check for a score extension there.
- * 5. Look for a score extension in the corresponding 'CodeSystem` loaded from
- *    the terminology server.
+ *    `CodeSystem`, check for a score extension (for R4) or property (for R5)
+ *    there.
+ * 5. Look for a score extension (for R4) or property (for R5) in the
+ *    corresponding `CodeSystem` loaded from the terminology server.
  * @param {Array} coll - resource nodes
  * @return {(number|Promise<number>)[]}
  */
