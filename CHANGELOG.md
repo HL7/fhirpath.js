@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.17.3] - 2025-03-13
+### Fixed
+- an issue where the "not implemented" exception was not raised when it should
+  have been raised.
+
 ## [3.17.2] - 2025-02-25
 ### Changed
 - Adjusted equality operation to take into account "id" and "extension"
