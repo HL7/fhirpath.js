@@ -47,7 +47,7 @@ engine.selectMacro = function(data, expr) {
   }));
 };
 
-engine.repeatMacro = function(parentData, expr, res = [], unique = {}) {
+engine.repeatMacro = function(parentData, expr, state = { res: [], unique: {}, hasPrimitive: false }) {
   if(parentData !== false && ! parentData) { return []; }
 
   let newItems = [].concat(...parentData.map(i => expr(i)));
@@ -55,14 +55,14 @@ engine.repeatMacro = function(parentData, expr, res = [], unique = {}) {
     return Promise.all(newItems).then(items => {
       items = [].concat(...items);
       if (items.length) {
-        return engine.repeatMacro(getNewItems(items, unique, res), expr, res, unique);
+        return engine.repeatMacro(getNewItems(items, state), expr, state);
       }
-      return res;
+      return state.res;
     });
   } else if (newItems.length) {
-    return engine.repeatMacro(getNewItems(newItems, unique, res), expr, res, unique);
+    return engine.repeatMacro(getNewItems(newItems, state), expr, state);
   } else {
-    return res;
+    return state.res;
   }
 };
 
@@ -70,20 +70,35 @@ engine.repeatMacro = function(parentData, expr, res = [], unique = {}) {
  * Returns new items from the input array that are not in the hash of existing
  * unique items and adds them to the result array.
  * @param {Array<*>} items - inout array.
- * @param {{[key: string]: *}} unique - hash of existing unique items
- * @param {Array<*>} res - result array.
+ * @param {Object} state - current state object.
+ * @param {{[key: string]: *}} state.unique - hash of existing unique items.
+ * @param {Array<*>} state.res - result array.
+ * @param {boolean} state.hasPrimitive - flag indicating if the result array has
+ *  primitives.
  * @return {Array<*>}
  */
-function getNewItems(items, unique, res) {
-  const newItems = items.filter(item => {
-    const key = hashObject(item);
-    const isUnique = !unique[key];
-    if (isUnique) {
-      unique[key] = true;
-    }
-    return isUnique;
-  });
-  res.push.apply(res, newItems);
+function getNewItems(items, state) {
+  let newItems;
+  state.hasPrimitive = state.hasPrimitive || items.some(i => TypeInfo.isPrimitiveValue(i));
+  if (!state.hasPrimitive && items.length + state.res.length > maxCollSizeForDeepEqual) {
+    newItems = items.filter(item => {
+      const key = hashObject(item);
+      const isUnique = !state.unique[key];
+      if (isUnique) {
+        state.unique[key] = true;
+      }
+      return isUnique;
+    });
+    state.res.push.apply(state.res, newItems);
+  } else {
+    newItems = items.filter(item => {
+      const isUnique = !state.res.some(i => deepEqual(i, item));
+      if (isUnique) {
+        state.res.push(item);
+      }
+      return isUnique;
+    });
+  }
   return newItems;
 }
 
@@ -126,10 +141,11 @@ engine.ofTypeFn = function(coll, typeInfo) {
   });
 };
 
-engine.distinctFn = function(x) {
+engine.distinctFn = function(x, hasPrimitive = undefined) {
   let unique = [];
   if (x.length > 0) {
-    if (x.length > maxCollSizeForDeepEqual) {
+    hasPrimitive = hasPrimitive ?? x.some(i => TypeInfo.isPrimitiveValue(i));
+    if (!hasPrimitive && x.length > maxCollSizeForDeepEqual) {
       // When we have more than maxCollSizeForDeepEqual items in input collection,
       // we use a hash table (on JSON strings) for efficiency.
       let uniqueHash = {};

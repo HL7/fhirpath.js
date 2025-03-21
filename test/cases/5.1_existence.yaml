@@ -378,7 +378,7 @@ tests:
     inputfile: patient-example-2.json
     expression: (Patient.name.given[0]).combine(Patient.name.given[3]).isDistinct()
     result:
-      - false
+      - true
 
 
   - desc: '5.1.12. distinct() : collection'
@@ -437,7 +437,7 @@ tests:
     inputfile: patient-example-2.json
     expression: Patient.name.given.distinct().count()
     result:
-      - 3
+      - 4
 
   - desc: '5.1.13. count() : integer'
 # Returns a collection with a single value which is

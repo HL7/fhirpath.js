@@ -239,8 +239,7 @@ tests:
 
   - desc: '** intersect for collection with null values'
     expression: Functions.collWithNullsAndTrue[0].intersect(Functions.collWithNullsAndTrue[2]).id
-    result:
-      - nullId
+    result: []
 
   - desc: '5.3.9. exclude(other: collection) : collection'
   - desc: '** with large collection 1'

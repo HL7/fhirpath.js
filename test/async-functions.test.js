@@ -7,11 +7,11 @@ const {mockRestore, mockFetchResults} = require('./mock-fetch-results');
 
 describe('Async functions', () => {
 
-  describe('%terminologies.validateVS', () => {
-    afterEach(() => {
-      mockRestore();
-    })
+  afterEach(() => {
+    mockRestore();
+  })
 
+  describe('%terminologies.validateVS', () => {
 
     it('should work ', (done) => {
       mockFetchResults([
@@ -97,9 +97,12 @@ describe('Async functions', () => {
       );
       expect(result).toThrow('The asynchronous function "validateVS" is not allowed.');
     });
+
   });
 
+
   describe('memberOf', () => {
+
     it('should work with Codings when async functions are enabled', (done) => {
       mockFetchResults([
         [/code=29463-7/, {
@@ -341,6 +344,34 @@ describe('Async functions', () => {
       );
       expect(result).toThrow('The asynchronous function "memberOf" is not allowed. To enable asynchronous functions, use the async=true or async="always" option.');
     });
+
+
+    it('should correctly process an async result in a boolean expression (when it is a singleton parameter)', (done) => {
+      mockFetchResults([
+        [/ValueSet\/\$validate-code/, {
+          "resourceType": "Parameters",
+          "parameter": [
+            {
+              "name": "result",
+              "valueBoolean": true
+            }
+          ]
+        }]
+      ]);
+      let result = fhirpath.evaluate(
+        resource,
+        "Observation.code.memberOf('http://hl7.org/fhir/ValueSet/observation-vitalsignresult') or false",
+        {},
+        model,
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([true]);
+        done();
+      })
+    });
+
   });
 
 
@@ -402,6 +433,7 @@ describe('Async functions', () => {
       'Evaluation of the expression was aborted before it started.'
     );
   });
+
 });
 
 

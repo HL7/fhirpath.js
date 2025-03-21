@@ -55,7 +55,7 @@ These will define additional global variables like "fhirpath_dstu2_model",
 Evaluating FHIRPath:
 
 ```js
-evaluate(resourceObject, fhirPathExpression, environment, model, options);
+evaluate(resourceObject, fhirPathExpression, envVars, model, options);
 ```
 where:
 * resourceObject - FHIR resource, part of a resource (in this case
@@ -65,7 +65,7 @@ where:
   or object, if fhirData represents the part of the FHIR resource:
     * fhirPathExpression.base - base path in resource from which fhirData was extracted
     * fhirPathExpression.expression - FHIRPath expression relative to path.base
-* environment - a hash of variable name/value pairs. It is not recommended to 
+* envVars - a hash of variable name/value pairs. It is not recommended to 
   modify the internal fields of a variable after passing it to the evaluation
   function, since these changes may not be taken into account in further
   evaluations due to caching of the evaluation results.
@@ -160,7 +160,7 @@ the option "resolveInternalTypes" = false:
 
 ```js
 const contextVariable = fhirpath.evaluate(
-  resource, expression, context, model, {resolveInternalTypes: false}
+  resource, expression, envVars, model, {resolveInternalTypes: false}
 );
 ```
 
@@ -203,7 +203,7 @@ In the next example, `res` will have a value like this:
 
 ```js
 const res = fhirpath.types(
-  fhirpath.evaluate(resource, expression, context, model, {resolveInternalTypes: false})
+  fhirpath.evaluate(resource, expression, envVars, model, {resolveInternalTypes: false})
 );
 ```
 
@@ -213,7 +213,7 @@ let tracefunction = function (x, label) {
   console.log("Trace output [" + label + "]: ", x);
 };
 
-const res = fhirpath.evaluate(contextNode, path, environment, fhirpath_r4_model, { traceFn: tracefunction });
+const res = fhirpath.evaluate(contextNode, path, envVars, fhirpath_r4_model, { traceFn: tracefunction });
 ```
 
 ### Asynchronous functions

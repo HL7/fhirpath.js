@@ -1359,18 +1359,20 @@ class ResourceNode {
   convertData() {
     if (!this.convertedData) {
       var data = this.data;
-      const cls = TypeInfo.typeToClassWithCheckString[this.path];
-      if (cls) {
-        data = cls.checkString(data) || data;
-      } else if (TypeInfo.isType(this.path, 'Quantity', this.model)) {
-        if (data?.system === ucumSystemUrl) {
-          if (typeof data.value === 'number' && typeof data.code === 'string') {
-            if (data.comparator !== undefined)
-              throw new Error('Cannot convert a FHIR.Quantity that has a comparator');
-            data = new FP_Quantity(
-              data.value,
-              FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\''
-            );
+      if (data != null) {
+        const cls = TypeInfo.typeToClassWithCheckString[this.path];
+        if (cls) {
+          data = cls.checkString(data) || data;
+        } else if (TypeInfo.isType(this.path, 'Quantity', this.model)) {
+          if (data?.system === ucumSystemUrl) {
+            if (typeof data.value === 'number' && typeof data.code === 'string') {
+              if (data.comparator !== undefined)
+                throw new Error('Cannot convert a FHIR.Quantity that has a comparator');
+              data = new FP_Quantity(
+                data.value,
+                FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\''
+              );
+            }
           }
         }
       }
@@ -1530,6 +1532,65 @@ TypeInfo.fromValue = function (value) {
 };
 
 /**
+ * Set of primitive data type names.
+ */
+const primitives = new Set();
+// IE11 probably doesn't support `new Set(iterable)`
+[
+  "instant",
+  "time",
+  "date",
+  "dateTime",
+  "base64Binary",
+  "decimal",
+  "integer64",
+  "boolean",
+  "string",
+  "code",
+  "markdown",
+  "id",
+  "integer",
+  "unsignedInt",
+  "positiveInt",
+  "uri",
+  "oid",
+  "uuid",
+  "canonical",
+  "url",
+  "Integer",
+  "Decimal",
+  "String",
+  "Date",
+  "DateTime",
+  "Time"
+].forEach(i => primitives.add(i));
+
+/**
+ * Checks whether the specified type information contains a primitive data type.
+ * @param {TypeInfo} typeInfo
+ * @return {boolean}
+ */
+TypeInfo.isPrimitive = function(typeInfo) {
+  return primitives.has(typeInfo.name);
+};
+
+/**
+ * Checks whether the specified value is of a primitive data type.
+ * @param {*} value - The value to check.
+ * @returns {boolean} - Returns true if the value is a primitive data type,
+ *  otherwise false.
+ */
+
+TypeInfo.isPrimitiveValue = function(value) {
+  if (value instanceof ResourceNode) {
+    return primitives.has(value.getTypeInfo().name);
+  } else {
+    // Simplified check for primitive data types:
+    return typeof value !== 'object' || value instanceof FP_Type;
+  }
+};
+
+/**
  * Basic "type()" function implementation
  * (see http://hl7.org/fhirpath/#reflection)
  * @param {Array<*>} coll - input collection
@@ -1583,17 +1644,19 @@ function asFn(coll, typeInfo) {
 }
 
 module.exports = {
-  FP_Type: FP_Type,
-  FP_TimeBase: FP_TimeBase,
-  FP_Date: FP_Date,
-  FP_DateTime: FP_DateTime,
-  FP_Instant: FP_Instant,
-  FP_Time: FP_Time,
-  FP_Quantity: FP_Quantity,
-  timeRE: timeRE,
-  dateTimeRE: dateTimeRE,
-  ResourceNode: ResourceNode,
-  TypeInfo: TypeInfo,
+  FP_Type,
+  FP_TimeBase,
+  FP_Date,
+  FP_DateTime,
+  FP_Instant,
+  FP_Time,
+  FP_Quantity,
+  timeRE,
+  dateTimeRE,
+  dateRE,
+  instantRE,
+  ResourceNode,
+  TypeInfo,
   typeFn,
   isFn,
   asFn

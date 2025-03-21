@@ -56,6 +56,7 @@ const {
 } = types;
 let makeResNode = ResourceNode.makeResNode;
 const Terminologies = require('./terminologies');
+const Factory = require('./factory');
 
 // * fn: handler
 // * arity: is index map with type signature
@@ -114,8 +115,8 @@ engine.invocationTable = {
   toTime:       {fn: misc.toTime},
   toBoolean:    {fn: misc.toBoolean},
   toQuantity:   {fn: misc.toQuantity, arity: {0: [], 1: ["String"]}},
-  // TODO: The hasValue function should be taken into account in a separate request
   hasValue:     {fn: misc.hasValueFn},
+  getValue:     {fn: misc.getValueFn},
   convertsToBoolean:    {fn: misc.createConvertsToFn(misc.toBoolean, 'boolean')},
   convertsToInteger:    {fn: misc.createConvertsToFn(misc.toInteger, 'number')},
   convertsToDecimal:    {fn: misc.createConvertsToFn(misc.toDecimal, 'number')},
@@ -253,15 +254,24 @@ engine.TypeSpecifier = function(ctx, parentData, node) {
 };
 
 engine.ExternalConstantTerm = function(ctx, parentData, node) {
-  var extConstant = node.children[0];
-  var identifier = extConstant.children[0];
-  var varName = engine.Identifier(ctx, parentData, identifier)[0];
+  let varName;
+  const extConstant = node.children[0];
+  // externalConstant(variable name) is defined in the grammar as:
+  // '%' ( identifier | STRING )
+  if (extConstant.terminalNodeText.length === 2) {
+    // if the variable name is a STRING
+    varName = getStringLiteralVal(extConstant.terminalNodeText[1]);
+  } else {
+    // otherwise, it is an identifier
+    varName = getIdentifierVal(extConstant.children[0].text);
+  }
 
-  var value;
+  let value;
   // Check the user-defined environment variables first as the user can override
   // the "context" variable like we do in unit tests. In this case, the user
   // environment variable can replace the system environment variable in "processedVars".
-  if (varName in ctx.vars) {
+  // If the user-defined environment variable has been processed, we don't need to process it again.
+  if (varName in ctx.vars && !ctx.processedUserVarNames.has(varName)) {
     // Restore the ResourceNodes for the top-level objects of the environment
     // variables. The nested objects will be converted to ResourceNodes
     // in the MemberInvocation method.
@@ -283,7 +293,7 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
           : value;
     }
     ctx.processedVars[varName] = value;
-    delete ctx.vars[varName];
+    ctx.processedUserVarNames.add(varName);
   } else if (varName in ctx.processedVars) {
     // "processedVars" are variables with ready-to-use values that have already
     // been converted to ResourceNodes if necessary.
@@ -313,27 +323,35 @@ engine.LiteralTerm = function(ctx, parentData, node) {
 };
 
 engine.StringLiteral = function(ctx, parentData, node) {
-  // Remove the beginning and ending quotes.
-  var rtn = node.text.replace(/(^'|'$)/g, "");
-  rtn = rtn.replace(/\\(u\d{4}|.)/g, function(match, submatch) {
-    switch(match) {
-      case '\\r':
-        return '\r';
-      case '\\n':
-        return "\n";
-      case '\\t':
-        return '\t';
-      case '\\f':
-        return '\f';
-      default:
-        if (submatch.length > 1)
-          return String.fromCharCode('0x'+submatch.slice(1));
-        else
-          return submatch;
-    }
-  });
-  return [rtn];
+  return [getStringLiteralVal(node.text)];
 };
+
+/**
+ * Removes the beginning and ending single-quotes and replaces string escape
+ * sequences.
+ * @param {string} str - string literal
+ * @return {string}
+ */
+function getStringLiteralVal(str) {
+  return str.replace(/(^'|'$)/g, "")
+    .replace(/\\(u\d{4}|.)/g, function(match, submatch) {
+      switch(match) {
+        case '\\r':
+          return '\r';
+        case '\\n':
+          return "\n";
+        case '\\t':
+          return '\t';
+        case '\\f':
+          return '\f';
+        default:
+          if (submatch.length > 1)
+            return String.fromCharCode('0x'+submatch.slice(1));
+          else
+            return submatch;
+      }
+    });
+}
 
 engine.BooleanLiteral = function(ctx, parentData, node) {
   if(node.text  === "true") {
@@ -370,8 +388,17 @@ engine.NumberLiteral = function(ctx, parentData, node) {
 };
 
 engine.Identifier = function(ctx, parentData, node) {
-  return [node.text.replace(/(^`|`$)/g, "")];
+  return [getIdentifierVal(node.text)];
 };
+
+/**
+ * Removes the beginning and ending back-quotes.
+ * @param {string} str - identifier string
+ * @return {string}
+ */
+function getIdentifierVal(str) {
+  return str.replace(/(^`|`$)/g, "");
+}
 
 engine.InvocationTerm = function(ctx, parentData, node) {
   return engine.doEval(ctx,parentData, node.children[0]);
@@ -500,13 +527,19 @@ function makeParam(ctx, parentData, type, param) {
       }
     }
   }
-  return misc.singleton(res, type);
+
+  return res instanceof Promise ?
+    res.then(r => misc.singleton(r, type)) :
+    misc.singleton(res, type);
 }
 
 function doInvoke(ctx, fnName, data, rawParams){
-  var invoc = ctx.userInvocationTable?.[fnName]
+  var invoc =
+    ctx.userInvocationTable
+    && Object.prototype.hasOwnProperty.call(ctx.userInvocationTable, fnName)
+    && ctx.userInvocationTable?.[fnName]
     || engine.invocationTable[fnName]
-    || data.length === 1 && data[0]?.invocationTable[fnName];
+    || data.length === 1 && data[0]?.invocationTable?.[fnName];
   var res;
   if(invoc) {
     if(!invoc.arity){
@@ -704,7 +737,7 @@ function parse(path) {
  * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
  *  This resource will be modified by this function to add type information.
  * @param {object} parsedPath - a special object created by the parser that describes the structure of a fhirpath expression.
- * @param {object} context - a hash of variable name/value pairs.
+ * @param {object} envVars - a hash of variable name/value pairs.
  * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} options - additional options:
@@ -723,13 +756,15 @@ function parse(path) {
  * @param {AbortSignal} [options.signal] - an AbortSignal object that allows you
  *   to abort the asynchronous FHIRPath expression evaluation.
  */
-function applyParsedPath(resource, parsedPath, context, model, options) {
+function applyParsedPath(resource, parsedPath, envVars, model, options) {
   constants.reset();
   let dataRoot = util.arraify(resource).map(
     i => i?.__path__
       ? makeResNode(i, i.__path__.parentResNode, i.__path__.path, null,
         i.__path__.fhirNodeDataType, model)
-      : i );
+      : i?.resourceType
+        ? makeResNode(i, null, null, null, null, model)
+        : i);
   // doEval takes a "ctx" object, and we store things in that as we parse, so we
   // need to put user-provided variable data in a sub-object, ctx.vars.
   // Set up default standard variables, and allow override from the variables.
@@ -737,12 +772,11 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   let ctx = {
     dataRoot,
     processedVars: {
-      ucum: 'http://unitsofmeasure.org'
+      ucum: 'http://unitsofmeasure.org',
+      context: dataRoot
     },
-    vars: {
-      context: dataRoot,
-      ...context
-    },
+    processedUserVarNames: new Set(),
+    vars: envVars || {},
     model
   };
   if (options.traceFn) {
@@ -757,6 +791,7 @@ function applyParsedPath(resource, parsedPath, context, model, options) {
   if (options.terminologyUrl) {
     ctx.processedVars.terminologies = new Terminologies(options.terminologyUrl);
   }
+  ctx.processedVars.factory = Factory;
   if (options.signal) {
     ctx.signal = options.signal;
     if (!ctx.async) {
@@ -857,7 +892,7 @@ function resolveInternalTypes(val) {
  *  or object, if fhirData represents the part of the FHIR resource:
  * @param {string} path.base - base path in resource from which fhirData was extracted
  * @param {string} path.expression - FHIRPath expression relative to path.base
- * @param {object} [context] - a hash of variable name/value pairs.
+ * @param {object} [envVars] - a hash of variable name/value pairs.
  * @param {object} [model] - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} [options] - additional options:
@@ -878,8 +913,8 @@ function resolveInternalTypes(val) {
  * @param {AbortSignal} [options.signal] - an AbortSignal object that allows you
  *   to abort the asynchronous FHIRPath expression evaluation.
  */
-function evaluate(fhirData, path, context, model, options) {
-  return compile(path, model, options)(fhirData, context);
+function evaluate(fhirData, path, envVars, model, options) {
+  return compile(path, model, options)(fhirData, envVars);
 }
 
 /**
@@ -944,7 +979,7 @@ function compile(path, model, options) {
 
   if (typeof path === 'object') {
     const node = parse(path.expression);
-    return function (fhirData, context, additionalOptions) {
+    return function (fhirData, envVars, additionalOptions) {
       if (path.base) {
         let basePath = model.pathsDefinedElsewhere[path.base] || path.base;
         const baseFhirNodeDataType = model && model.path2Type[basePath];
@@ -954,14 +989,14 @@ function compile(path, model, options) {
       }
       const actualOptions = additionalOptions ?
         {...options, ...additionalOptions} : options;
-      return applyParsedPath(fhirData, node, context, model, actualOptions);
+      return applyParsedPath(fhirData, node, envVars, model, actualOptions);
     };
   } else {
     const node = parse(path);
-    return function (fhirData, context, additionalOptions) {
+    return function (fhirData, envVars, additionalOptions) {
       const actualOptions = additionalOptions ?
         {...options, ...additionalOptions} : options;
-      return applyParsedPath(fhirData, node, context, model, actualOptions);
+      return applyParsedPath(fhirData, node, envVars, model, actualOptions);
     };
   }
 }

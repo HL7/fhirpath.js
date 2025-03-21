@@ -93,18 +93,23 @@ tests:
         error: true
         model: r4
         disable: true
-      - desc: '** testPolymorphismIsA'
+      - desc: '** testPolymorphismIsA1'
         inputfile: observation-example.json
         expression: Observation.value.is(Quantity)
         result:
           - true
         model: r4
-      - desc: '** testPolymorphismIsA'
+      - desc: '** testPolymorphismIsA2'
         inputfile: observation-example.json
         expression: Observation.value is Quantity
         result:
           - true
         model: r4
+      - desc: '** testPolymorphismIsA3'
+        inputfile: observation-example.json
+        expression: Observation.issued is instant
+        model: r4
+        result: []
       - desc: '** testPolymorphismIsB'
         inputfile: observation-example.json
         expression: Observation.value.is(Period).not()
@@ -1231,9 +1236,34 @@ tests:
         inputfile: patient-example.json
         expression: 1 week.toString()
         result:
-          - '1 ''{week}'''
+          - 1 'week'
         model: r4
         disable: true
+  - 'group: testExists':
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: Patient.name.exists()
+        result:
+          - true
+        model: r4
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: Patient.name.exists(use = 'nickname')
+        result:
+          - false
+        model: r4
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: Patient.name.exists(use = 'official')
+        result:
+          - true
+        model: r4
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: "Patient.maritalStatus.coding.exists(code = 'P' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus')\r\n\t\t\tor Patient.maritalStatus.coding.exists(code = 'A' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus')"
+        result:
+          - false
+        model: r4
   - 'group: testAll':
       - desc: '** testAllTrue1'
         inputfile: patient-example.json
@@ -2009,6 +2039,120 @@ tests:
         result:
           - true
         model: r4
+  - 'group: testEncodeDecode':
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''test''.encode(''base64'')'
+        result:
+          - dGVzdA==
+        model: r4
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''test''.encode(''hex'')'
+        result:
+          - '74657374'
+        model: r4
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''subjects?_d''.encode(''base64'')'
+        result:
+          - c3ViamVjdHM/X2Q=
+        model: r4
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''subjects?_d''.encode(''urlbase64'')'
+        result:
+          - c3ViamVjdHM_X2Q=
+        model: r4
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''dGVzdA==''.decode(''base64'')'
+        result:
+          - test
+        model: r4
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''74657374''.decode(''hex'')'
+        result:
+          - test
+        model: r4
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''c3ViamVjdHM/X2Q=''.decode(''base64'')'
+        result:
+          - subjects?_d
+        model: r4
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''c3ViamVjdHM_X2Q=''.decode(''urlbase64'')'
+        result:
+          - subjects?_d
+        model: r4
+  - 'group: testExcapeUnescape':
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''"1<2"''.escape(''html'')'
+        result:
+          - '&quot;1&lt;2&quot;'
+        model: r4
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''"1<2"''.escape(''json'')'
+        result:
+          - \"1<2\"
+        model: r4
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''&quot;1&lt;2&quot;''.unescape(''html'')'
+        result:
+          - '"1<2"'
+        model: r4
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''\"1<2\"''.unescape(''json'')'
+        result:
+          - '"1<2"'
+        model: r4
+    disable: true
+  - 'group: testTrim':
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''123456''.trim().length() = 6'
+        result:
+          - true
+        model: r4
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''123 456''.trim().length() = 7'
+        result:
+          - true
+        model: r4
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: ''' 123456 ''.trim().length() = 6'
+        result:
+          - true
+        model: r4
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''  ''.trim().length() = 0'
+        result:
+          - true
+        model: r4
+  - 'group: testSplit':
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: '''Peter,James,Jim,Peter,James''.split('','').count() = 5'
+        result:
+          - true
+        model: r4
+  - 'group: testJoin':
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: 'name.given.join('','')'
+        result:
+          - 'Peter,James,Jim,Peter,James'
+        model: r4
   - 'group: testTrace':
       - desc: '** testTrace1'
         inputfile: patient-example.json
@@ -2610,9 +2754,8 @@ tests:
         inputfile: patient-example.json
         expression: name !~ name
         result:
-          - true
+          - false
         model: r4
-        disable: true
       - desc: '** testNotEquivalent20'
         inputfile: patient-example.json
         expression: >-
@@ -3721,19 +3864,19 @@ tests:
   - 'group: testMultiply':
       - desc: '** testMultiply1'
         inputfile: patient-example.json
-        expression: 1.2 * 1.8 = 2.16
+        expression: 1 * 1 = 1
         result:
           - true
         model: r4
       - desc: '** testMultiply2'
         inputfile: patient-example.json
-        expression: 1 * 1 = 1
+        expression: 1 * 0 = 0
         result:
           - true
         model: r4
       - desc: '** testMultiply3'
         inputfile: patient-example.json
-        expression: 1 * 0 = 0
+        expression: 1.2 * 1.8 = 2.16
         result:
           - true
         model: r4
@@ -4209,21 +4352,35 @@ tests:
           - Patient
         model: r4
   - 'group: testConformsTo':
-      - desc: '** testConformsTo'
+      - desc: '** testConformsTo1'
         inputfile: patient-example.json
         expression: 'conformsTo(''http://hl7.org/fhir/StructureDefinition/Patient'')'
         result:
           - true
         model: r4
-      - desc: '** testConformsTo'
+      - desc: '** testConformsTo2'
         inputfile: patient-example.json
         expression: 'conformsTo(''http://hl7.org/fhir/StructureDefinition/Person'')'
         result:
           - false
         model: r4
-      - desc: '** testConformsTo'
+      - desc: '** testConformsTo3'
         inputfile: patient-example.json
         expression: 'conformsTo(''http://trash'')'
         error: true
+        model: r4
+    disable: true
+  - 'group: from-Zulip':
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: (true and 'foo').empty()
+        result:
+          - true
+        model: r4
+      - desc: '** test'
+        inputfile: patient-example.json
+        expression: (true | 'foo').allTrue()
+        result:
+          - false
         model: r4
     disable: true

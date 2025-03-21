@@ -1,0 +1,89 @@
+tests:
+  - 'group: no model specified':
+    - desc: 'collection only contains one string'
+      inputfile: patient-example.json
+      expression: Patient.name.given[0].getValue()
+      result: ['Peter']
+
+    - desc: 'collection contains array of strings'
+      inputfile: patient-example.json
+      expression: Patient.name.given.getValue()
+      result: []
+
+    - desc: 'collection contains object'
+      inputfile: patient-example.json
+      expression: Patient.name.getValue()
+      result: []
+
+    - desc: 'collection only contains an element without a value but with an extension'
+      inputfile: patient-example-3.json
+      expression: Patient.birthDate.getValue()
+      result: []
+
+    - desc: 'collection only contains an element of a non-FHIR primitive type'
+      expression: >-
+        '5'.getValue()
+      result: ['5']
+
+  - 'group: model specified':
+      - desc: 'collection only contains one non-primitive'
+        inputfile: patient-example.json
+        expression: Patient.identifier.getValue()
+        model: r4
+        result: []
+
+      - desc: 'collection only contains one string'
+        inputfile: patient-example.json
+        expression: Patient.name.given[0].getValue()
+        model: 'r5'
+        result: ['Peter']
+      - desc: 'collection contains array of strings'
+        inputfile: patient-example.json
+        expression: Patient.name.given.getValue()
+        model: 'r5'
+        result: []
+
+      - desc: 'collection only contains one string'
+        inputfile: patient-example.json
+        expression: Patient.name.given[0].getValue()
+        model: 'r4'
+        result: ['Peter']
+      - desc: 'collection contains array of strings'
+        inputfile: patient-example.json
+        expression: Patient.name.given.getValue()
+        model: 'r4'
+        result: []
+
+      - desc: 'collection only contains one string'
+        inputfile: patient-example.json
+        expression: Patient.name.given[0].getValue()
+        model: 'stu3'
+        result: ['Peter']
+      - desc: 'collection contains array of strings'
+        inputfile: patient-example.json
+        expression: Patient.name.given.getValue()
+        model: 'stu3'
+        result: []
+
+      - desc: 'collection only contains one string'
+        inputfile: patient-example.json
+        expression: Patient.name.given[0].getValue()
+        model: 'dstu2'
+        result: ['Peter']
+      - desc: 'collection contains array of strings'
+        inputfile: patient-example.json
+        expression: Patient.name.given.getValue()
+        model: 'dstu2'
+        result: []
+
+      - desc: 'collection only contains an element without a value but with an extension'
+        inputfile: patient-example-3.json
+        expression: Patient.birthDate.getValue()
+        model: 'r4'
+        result: []
+
+      - desc: 'collection only contains an element of a non-FHIR primitive type'
+        expression: >-
+          '5'.getValue()
+        model: 'r4'
+        result: ['5']

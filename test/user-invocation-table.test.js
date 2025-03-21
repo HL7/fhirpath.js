@@ -75,6 +75,51 @@ describe('concept', () => {
     expr = "next.concept().select($this | $this.next.concept()).display";
     retrieved = fhirpath.evaluate(concepts.a, expr, null, null, options);
     expect(retrieved).toEqual(["B", "C"]);
-
   });
+});
+
+describe("toString", () => {
+  it("Works when userInvocationTable passed without overriding toString", () => {
+    const options = {
+      userInvocationTable: {},
+    };
+
+    let result = fhirpath.evaluate(
+      { index: 0 },
+      "index.toString()",
+      null,
+      null,
+      options
+    );
+
+    expect(result).toEqual(["0"]);
+  });
+});
+
+describe("Not implemented exception", () => {
+    it("Fires exception without userInvocationTable", () => {
+        try {
+            fhirpath.evaluate({ index: 0 }, "index.missing()");
+        } catch(e){
+            expect(e.message).toEqual('Not implemented: missing');
+        };
+    });
+    it("Fires exception with userInvocationTable", () => {
+        const options = {
+            userInvocationTable: {},
+        };
+
+        try {
+            fhirpath.evaluate(
+                { index: 0 },
+                "index.missing()",
+                null,
+                null,
+                options
+
+            );
+        } catch (e) {
+            expect(e.message).toEqual('Not implemented: missing');
+        };
+    });
 });

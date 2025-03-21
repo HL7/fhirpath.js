@@ -7,7 +7,7 @@ export function compile<T extends OptionVariants>(
 export function evaluate<T extends OptionVariants>(
   fhirData: any,
   path: string | Path,
-  context?: Context,
+  envVars?: Context,
   model?: Model,
   options?: T
 ): ReturnType<T>;
@@ -106,7 +106,7 @@ type ReturnType<T> =
     T extends NoAsyncOptions ? any[] :
     any[] | Promise<any[]>;
 
-type Compile<T> = (resource: any, context?: Context, additionalOptions?: Options) => ReturnType<T>;
+type Compile<T> = (resource: any, envVars?: Context, additionalOptions?: Options) => ReturnType<T>;
 
 type Context = void | Record<string, any>;
 

@@ -5,12 +5,6 @@ tests:
       expression: Patient.name.given[0].hasValue()
       result: [true]
 
-    - desc: 'collection only contains one non-primitive'
-      inputfile: patient-example.json
-      expression: Patient.identifier.hasValue()
-      model: r4
-      result: [false]
-
     - desc: 'collection contains array of strings'
       inputfile: patient-example.json
       expression: Patient.name.given.hasValue()
@@ -32,6 +26,12 @@ tests:
       result: [true]
 
   - 'group: model specified':
+    - desc: 'collection only contains one non-primitive'
+      inputfile: patient-example.json
+      expression: Patient.identifier.hasValue()
+      model: r4
+      result: [false]
+
     - desc: 'collection only contains one string'
       inputfile: patient-example.json
       expression: Patient.name.given[0].hasValue()

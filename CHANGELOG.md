@@ -3,7 +3,7 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [3.18.0] - 2024-02-10
+## [3.18.0] - 2024-03-21
 ### Added
 - The `signal` option to the `evaluate()` function and the function that is the
   result of executing the `compile()` function to allow the user to cancel the
@@ -16,6 +16,47 @@ This log documents significant changes for each release.  This project follows
   set and code system.
 - Removed creation of global `TypeInfo.model` value to allow asynchronous
   evaluations using different models.
+
+## [3.17.3] - 2025-03-13
+### Fixed
+- an issue where the "not implemented" exception was not raised when it should
+  have been raised.
+
+## [3.17.2] - 2025-02-25
+### Changed
+- Adjusted equality operation to take into account "id" and "extension"
+  properties for primitive types.
+
+## [3.17.1] - 2025-02-12
+### Fixed
+- exception in `toString()` for node of type `date`, `dateTime`, `instant` or
+  `time` without value but with extension and/or id.
+
+## [3.17.0] - 2025-02-03
+### Added
+- getValue() function.
+
+## [3.16.4] - 2025-01-24
+### Fixed
+- Bug where single-quoted variable names were not supported.
+
+## [3.16.3] - 2025-01-21
+### Fixed
+- Bug with async boolean expressions (when an operator takes an async value as
+  a singleton parameter).
+
+## [3.16.2] - 2025-01-16
+### Fixed
+- Bug with toString when userInvocationTable passed.
+
+## [3.16.1] - 2025-01-09
+### Fixed
+- Read environment variables only when they are used in an expression, avoiding
+  unnecessary getter calls when working with libraries like Jotai.
+
+## [3.16.0] - 2024-10-10
+### Added
+- Support for type factory API (%factory).
 
 ## [3.15.2] - 2024-08-30
 ### Fixed

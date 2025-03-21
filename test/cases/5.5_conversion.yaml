@@ -167,6 +167,12 @@ tests:
     expression: Patient.name.given[0].toString()
     result: []
 
+  - desc: '** null date to string'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.birthDate.toString()
+    result: []
+
 
   - desc: '5.5.7. toQuantity([unit:string]) : Quantity'
   - desc: '** string to Quantity'
