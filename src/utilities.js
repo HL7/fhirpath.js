@@ -63,6 +63,10 @@ util.isCapitalized = function(x){
   return x && (x[0] === x[0].toUpperCase());
 };
 
+util.capitalize = function(x){
+  return x[0].toUpperCase() + x.substring(1);
+};
+
 util.flatten = function(x){
   if (x.some(i => i instanceof Promise)) {
     return Promise.all(x).then(arr => flattenSync(arr));
@@ -191,25 +195,80 @@ util.makeChildResNodes = function(parentResNode, childProperty, model) {
   if (util.isSome(toAdd) || util.isSome(_toAdd)) {
     if(Array.isArray(toAdd)) {
       result = toAdd.map((x, i)=>
-        ResourceNode.makeResNode(x, parentResNode, childPath, _toAdd && _toAdd[i], fhirNodeDataType));
+        ResourceNode.makeResNode(x, parentResNode, childPath, _toAdd && _toAdd[i], fhirNodeDataType, model));
       // Add items to the end of the ResourceNode list that have no value
       // but have associated data, such as extensions or ids.
       const _toAddLength = _toAdd?.length || 0;
       for (let i = toAdd.length; i < _toAddLength; ++i) {
-        result.push(ResourceNode.makeResNode(null, parentResNode, childPath, _toAdd[i], fhirNodeDataType));
+        result.push(ResourceNode.makeResNode(null, parentResNode, childPath, _toAdd[i], fhirNodeDataType, model));
       }
     } else if (toAdd == null && Array.isArray(_toAdd)) {
       // Add items to the end of the ResourceNode list when there are no
       // values at all, but there is a list of associated data, such as
       // extensions or ids.
-      result = _toAdd.map((x) => ResourceNode.makeResNode(null, parentResNode, childPath, x, fhirNodeDataType));
+      result = _toAdd.map((x) => ResourceNode.makeResNode(null, parentResNode, childPath, x, fhirNodeDataType, model));
     } else {
-      result = [ResourceNode.makeResNode(toAdd, parentResNode, childPath, _toAdd, fhirNodeDataType)];
+      result = [ResourceNode.makeResNode(toAdd, parentResNode, childPath, _toAdd, fhirNodeDataType, model)];
     }
   } else {
     result = [];
   }
   return result;
 };
+
+
+// Object for storing fetch promises.
+const requestCache = {};
+// Duration of data storage in cache.
+const requestCacheStorageTime = 3600000; // 1 hour = 60 * 60 * 1000
+
+
+/**
+ * fetch() wrapper for caching server responses.
+ * @param {string} url - a URL of the resource you want to fetch.
+ * @param {object} [options] - optional object containing any custom settings
+ *  that you want to apply to the request.
+ * @return {Promise}
+ */
+util.fetchWithCache = function(url, options) {
+  const requestKey = [
+    url, options ? JSON.stringify(options) : ''
+  ].join('|');
+
+  const timestamp = Date.now();
+  for (const key in requestCache) {
+    if (timestamp - requestCache[key].timestamp > requestCacheStorageTime) {
+      // Remove responses older than an hour
+      delete requestCache[key];
+    }
+  }
+
+  if (!requestCache[requestKey]) {
+    requestCache[requestKey] = {
+      timestamp,
+      // In Jest unit tests, a promise returned by 'fetch' is not an instance of
+      // Promise that we have in our application context, so we use Promise.resolve
+      // to do the conversion.
+      promise: Promise.resolve(options ? fetch(url, options) : fetch(url))
+        .then(r => {
+          const contentType = r.headers.get('Content-Type');
+          const isJson = contentType.includes('application/json') ||
+            contentType.includes('application/fhir+json');
+          try {
+            if (isJson) {
+              return r.json().then((json) => r.ok ? json : Promise.reject(json));
+            } else {
+              return r.text().then((text) => Promise.reject(text));
+            }
+          } catch (e) {
+            return Promise.reject(new Error(e));
+          }
+        })
+    };
+  }
+
+  return requestCache[requestKey].promise;
+};
+
 
 module.exports = util;

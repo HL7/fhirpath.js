@@ -1,0 +1,146 @@
+{
+  "resourceType": "Questionnaire",
+  "name": "Questionnaire_with_itemWeight",
+  "status": "draft",
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-referencesContained",
+      "valueReference": {
+        "reference": "#some-system-id-4"
+      }
+    }
+  ],
+  "contained": [
+    {
+      "resourceType": "ValueSet",
+      "id": "some-value-set-id-1",
+      "url": "http://some-value-set-url-1",
+      "status": "draft",
+      "expansion": {
+        "property": [{
+          "code": "itemWeight",
+          "uri": "http://hl7.org/fhir/concept-properties#itemWeight"
+        }],
+        "timestamp": "2025-02-19T03:40:00Z",
+        "contains": [{
+          "system": "some-system-1",
+          "code": "some-code-1",
+          "property": [{
+            "code": "itemWeight",
+            "valueDecimal": 2
+          }]
+        }, {
+          "system": "http://some-system-1",
+          "code": "some-code-2",
+          "property": [{
+            "code": "itemWeight",
+            "valueDecimal": 10
+          }]
+        }]
+      }
+    }, {
+      "resourceType": "CodeSystem",
+      "id": "some-system-id-4",
+      "url": "http://some-system-4",
+      "status": "draft",
+      "caseSensitive": true,
+      "content": "example",
+      "property": [{
+        "code": "itemWeight",
+        "uri": "http://hl7.org/fhir/concept-properties#itemWeight",
+        "type": "decimal"
+      }],
+      "concept": [{
+        "code": "some-code-1",
+        "property": [{
+          "code": "itemWeight",
+          "valueDecimal": 30000
+        }]
+      }]
+    }
+  ],
+  "item": [{
+    "linkId": "link-1",
+    "type": "group",
+    "item": [{
+      "linkId": "link-1.1",
+      "type": "group",
+      "item": [{
+        "linkId": "link-1.1.1",
+        "text": "we use the embedded score in the questionnaire response item and ignore the score for this item in the value set contained in the questionnaire",
+        "type": "coding",
+        "answerValueSet": "#some-value-set-id-1"
+      }, {
+        "linkId": "link-1.1.2",
+        "text": "we get the score for this item from the value set contained in the questionnaire",
+        "type": "coding",
+        "answerValueSet": "#some-value-set-id-1"
+      }, {
+        "linkId": "link-1.1.3",
+        "text": "we get the score for this item from the coding answerOption in the questionnaire",
+        "type": "coding",
+        "answerOption": [{
+          "valueCoding": {
+            "system": "http://some-system-2",
+            "code": "some-code-1"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/itemWeight",
+              "valueDecimal": 200
+            }
+          ]
+        }]
+      }, {
+        "linkId": "link-1.1.4",
+        "text": "we get the score for this item from the string answerOption in the questionnaire",
+        "type": "string",
+        "answerOption": [{
+          "valueString": "string-1",
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/itemWeight",
+              "valueDecimal": 2000
+            }
+          ]
+        }]
+      }, {
+        "linkId": "link-1.1.5",
+        "text": "we get the score for this item from the corresponding CodeSystem.concept contained in the questionnaire",
+        "type": "coding",
+        "answerValueSet": "http://some-value-set-url-3"
+      }, {
+        "linkId": "link-1.1.6",
+        "text": "we get the score for this item from the corresponding CodeSystem.concept contained in the questionnaire response",
+        "type": "coding",
+        "answerValueSet": "http://some-value-set-url-4"
+      }, {
+        "linkId": "link-1.1.7",
+        "text": "we use the embedded score in the questionnaire response item and ignore the score for this item in the integer answerOption in the questionnaire",
+        "type": "integer",
+        "answerOption": [{
+          "valueInteger": 1,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/itemWeight",
+              "valueDecimal": 70000000
+            }
+          ]
+        }]
+      }, {
+        "linkId": "link-1.1.8",
+        "text": "we get the score for this item from the integer answerOption in the questionnaire",
+        "type": "integer",
+        "answerOption": [{
+          "valueInteger": 2,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/itemWeight",
+              "valueDecimal": 5000000
+            }
+          ]
+        }]
+      }]
+    }]
+  }]
+}

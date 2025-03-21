@@ -1,6 +1,7 @@
-import { Model } from "../../src/fhirpath";
+import {Model} from "../../src/fhirpath";
 
 export const {
+    version,
     choiceTypePaths,
     pathsDefinedElsewhere,
     type2Parent,

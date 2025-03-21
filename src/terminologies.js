@@ -1,6 +1,10 @@
 // This file contains a class that implements the Terminology Service API.
 // See https://build.fhir.org/fhirpath.html#txapi for details.
 
+
+const util = require("./utilities");
+
+
 class Terminologies {
   constructor(terminologyUrl) {
     this.terminologyUrl = terminologyUrl;
@@ -31,6 +35,12 @@ class Terminologies {
    *  operation.
    */
   static validateVS(self, valueset, coded, params = '') {
+    const ctx = this;
+    if (!ctx.async) {
+      throw new Error('The asynchronous function "validateVS" is not allowed. ' +
+        'To enable asynchronous functions, use the async=true or async="always"' +
+        ' option.');
+    }
     checkParams(params);
     const httpHeaders = {
       "Accept": "application/fhir+json; charset=utf-8",
@@ -59,9 +69,11 @@ class Terminologies {
         ]
       };
       myHeaders = new Headers(httpPostHeaders);
-      response = fetch(
-        requestUrl + (params ? '?' + params : ''),
-        { method: "POST", headers: myHeaders, body: JSON.stringify(parameters) }
+      response = util.fetchWithCache(
+        requestUrl + (params ? '?' + params : ''), {
+          method: "POST", headers: myHeaders, body: JSON.stringify(parameters),
+          ...(ctx.signal ? {signal: ctx.signal} : {})
+        }
       );
     } else if (typeof coded === "string") {
       const queryParams1 = new URLSearchParams({
@@ -69,11 +81,10 @@ class Terminologies {
       });
       //  Workaround for the case where we don't have a system. See discussion here:
       //  https://chat.fhir.org/#narrow/stream/179266-fhirpath/topic/Problem.20with.20the.20.22memberOf.22.20function.20and.20R4.20servers
-      response = fetch(
+      response = util.fetchWithCache(
         `${self[0].terminologyUrl}/ValueSet?${queryParams1.toString() + (params ? '&' + params : '')}`,
-        {headers: myHeaders}
+        {headers: myHeaders, ...(ctx.signal ? {signal: ctx.signal} : {})}
       )
-        .then(r => r.json())
         .then((bundle) => {
           const system = bundle?.entry?.length === 1 && (
             getSystemFromArrayItems(bundle.entry[0].resource.expansion?.contains)
@@ -85,9 +96,9 @@ class Terminologies {
               code: coded,
               system
             });
-            return fetch(
+            return util.fetchWithCache(
               `${requestUrl}?${queryParams2.toString() + (params ? '&' + params : '')}`,
-              { headers: myHeaders }
+              { headers: myHeaders, ...(ctx.signal ? {signal: ctx.signal} : {}) }
             );
           } else {
             throw new Error('The valueset does not have a single code system.');
@@ -100,18 +111,14 @@ class Terminologies {
           system: coded.system ?? '',
           code: coded.code
         });
-        response = fetch(
+        response = util.fetchWithCache(
           `${requestUrl}?${queryParams.toString() + (params ? '&' + params : '')}`,
-          { headers: myHeaders }
+          { headers: myHeaders, ...(ctx.signal ? {signal: ctx.signal} : {}) }
         );
       }
     }
 
-    // In Jest unit tests, a promise returned by 'fetch' is not an instance of
-    // Promise that we have in our application context, so we use Promise.resolve
-    // to do the conversion.
-    return Promise.resolve(response)
-      .then(r => r.json())
+    return response
       .then(params => {
         if (params?.parameter) {
           return params;

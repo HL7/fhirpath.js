@@ -1297,8 +1297,9 @@ class ResourceNode {
    *  prepended, see https://www.hl7.org/fhir/element.html#json for details.
    * @param {string} fhirNodeDataType - FHIR node data type, if the resource node
    *  is described in the FHIR model.
+   *  @param {Object} model - the model object specific to a domain, e.g. R4.
    */
-  constructor(data, parentResNode, path, _data, fhirNodeDataType) {
+  constructor(data, parentResNode, path, _data, fhirNodeDataType, model) {
     // If data is a resource (maybe a contained resource) reset the path
     // information to the resource type.
     if (data?.resourceType) {
@@ -1310,6 +1311,7 @@ class ResourceNode {
     this.data = data;
     this._data = _data || {};
     this.fhirNodeDataType = fhirNodeDataType || null;
+    this.model = model || null;
   }
 
   /**
@@ -1320,10 +1322,10 @@ class ResourceNode {
     if (!this.typeInfo) {
       let typeInfo;
 
-      if (TypeInfo.model) {
+      if (this.fhirNodeDataType) {
         if (/^System\.(.*)$/.test(this.fhirNodeDataType)) {
           typeInfo = new TypeInfo({namespace: TypeInfo.System, name: RegExp.$1});
-        } else if (this.fhirNodeDataType) {
+        } else {
           typeInfo = new TypeInfo({
             namespace: TypeInfo.FHIR,
             name: this.fhirNodeDataType
@@ -1361,7 +1363,7 @@ class ResourceNode {
         const cls = TypeInfo.typeToClassWithCheckString[this.path];
         if (cls) {
           data = cls.checkString(data) || data;
-        } else if (TypeInfo.isType(this.path, 'Quantity')) {
+        } else if (TypeInfo.isType(this.path, 'Quantity', this.model)) {
           if (data?.system === ucumSystemUrl) {
             if (typeof data.value === 'number' && typeof data.code === 'string') {
               if (data.comparator !== undefined)
@@ -1388,8 +1390,8 @@ class ResourceNode {
  *  given node is already a ResourceNode.  Takes the same arguments as the
  *  constructor for ResourceNode.
  */
-ResourceNode.makeResNode = function(data, parentResNode, path, _data, fhirNodeDataType = null) {
-  return (data instanceof ResourceNode) ? data : new ResourceNode(data, parentResNode, path, _data, fhirNodeDataType);
+ResourceNode.makeResNode = function(data, parentResNode, path, _data, fhirNodeDataType, model) {
+  return (data instanceof ResourceNode) ? data : new ResourceNode(data, parentResNode, path, _data, fhirNodeDataType, model);
 };
 
 // The set of available data types in the System namespace
@@ -1414,16 +1416,17 @@ class TypeInfo {
   /**
    * Checks for equality with another TypeInfo object, or that another TypeInfo
    * object specifies a superclass for the type specified by this object.
-   * @param {TypeInfo} other
+   * @param {TypeInfo} other - the TypeInfo object to compare with.
+   * @param {Object} model - the model object specific to a domain, e.g. R4.
    * @return {boolean}
    */
-  is(other) {
+  is(other, model) {
     if (
       other instanceof TypeInfo &&
       (!this.namespace || !other.namespace || this.namespace === other.namespace)
     ) {
-      return TypeInfo.model && (!this.namespace || this.namespace === TypeInfo.FHIR)
-        ? TypeInfo.isType(this.name, other.name)
+      return model && (!this.namespace || this.namespace === TypeInfo.FHIR)
+        ? TypeInfo.isType(this.name, other.name, model)
         : this.name === other.name;
     }
     return false;
@@ -1439,17 +1442,18 @@ class TypeInfo {
 
   /**
    * Returns true if type info represents a valid type identifier, false otherwise.
+   * @param {Object} model - the model object specific to a domain, e.g. R4.
    * @returns {boolean}
    */
-  isValid() {
+  isValid(model) {
     let result = false;
     if (this.namespace === 'System') {
       result = availableSystemTypes.has(this.name);
     } else if (this.namespace === 'FHIR') {
-      result = TypeInfo.model?.availableTypes.has(this.name);
+      result = model.availableTypes.has(this.name);
     } else if (!this.namespace) {
       result = availableSystemTypes.has(this.name)
-        || TypeInfo.model?.availableTypes.has(this.name);
+        || model.availableTypes.has(this.name);
     }
     return result;
   }
@@ -1471,14 +1475,15 @@ TypeInfo.typeToClassWithCheckString = {
  * the expected type name.
  * @param type - type name to check.
  * @param superType - expected type name.
+ * @param model - the model object specific to a domain, e.g. R4.
  * @return {boolean}
  */
-TypeInfo.isType = function(type, superType) {
+TypeInfo.isType = function(type, superType, model) {
   do {
     if (type === superType) {
       return true;
     }
-  } while ((type = TypeInfo.model?.type2Parent[type]));
+  } while ((type = model?.type2Parent[type]));
   return false;
 };
 
@@ -1613,7 +1618,9 @@ function isFn(coll, typeInfo) {
     throw new Error("Expected singleton on left side of 'is', got " + JSON.stringify(coll));
   }
 
-  return TypeInfo.fromValue(coll[0]).is(typeInfo);
+  const ctx = this;
+
+  return TypeInfo.fromValue(coll[0]).is(typeInfo, ctx.model);
 }
 
 /**
@@ -1632,7 +1639,8 @@ function asFn(coll, typeInfo) {
     throw new Error("Expected singleton on left side of 'as', got " + JSON.stringify(coll));
   }
 
-  return TypeInfo.fromValue(coll[0]).is(typeInfo) ? coll : [];
+  const ctx = this;
+  return TypeInfo.fromValue(coll[0]).is(typeInfo, ctx.model) ? coll : [];
 }
 
 module.exports = {

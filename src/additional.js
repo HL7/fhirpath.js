@@ -30,7 +30,7 @@ engine.memberOf = function (coll, valueset ) {
     if (!terminologies) {
       throw new Error('Option "terminologyUrl" is not specified.');
     }
-    return Terminologies.validateVS(
+    return Terminologies.validateVS.call(this,
       [terminologies], valueset, util.valData(coll[0]), ''
     ).then(params => {
       return params.parameter.find((p) => p.name === "result").valueBoolean;

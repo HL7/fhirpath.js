@@ -24,6 +24,7 @@ engine.whereMacro = function(parentData, expr) {
 };
 
 engine.extension = function(parentData, url) {
+  const ctx = this;
   if(parentData !== false && ! parentData || !url) { return []; }
 
   return util.flatten(parentData.map((x, i) => {
@@ -32,7 +33,7 @@ engine.extension = function(parentData, url) {
     if (extensions) {
       return extensions
         .filter(extension => extension.url === url)
-        .map(e => ResourceNode.makeResNode(e, x, 'Extension', null, 'Extension'));
+        .map(e => ResourceNode.makeResNode(e, x, 'Extension', null, 'Extension', ctx.model));
     }
     return [];
   }));
@@ -134,8 +135,9 @@ engine.skipFn = function(x, num) {
 };
 
 engine.ofTypeFn = function(coll, typeInfo) {
+  const ctx = this;
   return coll.filter(value => {
-    return TypeInfo.fromValue(value).is(typeInfo);
+    return TypeInfo.fromValue(value).is(typeInfo, ctx.model);
   });
 };
 

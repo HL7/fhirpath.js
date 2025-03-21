@@ -65,7 +65,11 @@ where:
   or object, if fhirData represents the part of the FHIR resource:
     * fhirPathExpression.base - base path in resource from which fhirData was extracted
     * fhirPathExpression.expression - FHIRPath expression relative to path.base
-* envVars - a hash of variable name/value pairs.
+* envVars - a hash of variable name/value pairs. It is not recommended to 
+  modify the internal fields of a variable after passing it to the evaluation
+  function, since these changes may not be taken into account in further
+  evaluations due to caching of the evaluation results.
+  We currently cache `%questionnaire` scores for the `weight()` function.
 * model - the "model" data object specific to a domain, e.g. R4.
   For example, you could pass in the result of require("fhirpath/fhir-context/r4");
 * options - additional options:
@@ -88,6 +92,8 @@ where:
       [Terminology Service API](https://www.hl7.org/fhir/fhirpath.html#txapi).
       See the [Implementation Status](#implementation-status) section for the
       currently supported %terminologies APIs.
+    * options.signal - an AbortSignal object that allows you to abort the
+      asynchronous FHIRPath expression evaluation.
 
 Note:  The resource will be modified by this function to add type information.
 
@@ -129,7 +135,7 @@ Precompiling fhirpath - result can be reused against multiple resources:
 
 ```js
 const path = fhirpath.compile('Patient.name.given', fhirpath_r4_model);
-var res = path({"resourceType": "Patient", ...}, {a: 5, ...});
+let res = path({"resourceType": "Patient", ...}, {a: 5, ...});
 ```
 
 If you are going to use the above "precompile" option with a part of a resource,
@@ -142,7 +148,7 @@ expression - fhirpath expression relative to base.
 const path = fhirpath.compile({ "base": "QuestionnaireResponse.item",
                                 "expression": "answer.value = 2 year"},
                               fhirpath_r4_model);
-var res = path({ "answer": { "valueQuantity": ...}, {a: 5, ...});
+let res = path({ "answer": { "valueQuantity": ...}, {a: 5, ...});
 ```
 
 During expression evaluation, some values or parts of values may have internal
@@ -164,6 +170,22 @@ This option may also be passed to compile function:
 const path = fhirpath.compile(
   expression, model, {resolveInternalTypes: false}
 );
+```
+
+But passing the `signal` option to compile() whose result is used more than once
+will cause abortion problems. If you need to abort the evaluation of the compiled
+expression, you should pass the signal option to the function that is returned
+by compile():
+
+```js
+const path = fhirpath.compile(
+  expression, model, {async: true}
+);
+const abortController = new AbortController();
+const signal = abortController.signal;
+let res = path(resource, environment, {signal});
+// Abort the evaluation of the compiled expression
+abortController.abort();
 ```
 
 If at some point you decide to convert all values which have internal types to
@@ -391,9 +413,13 @@ Supported additional functions from FHIR:
 - hasValue() : Boolean
 - memberOf(valueset : string) : Boolean
 
-Supported Terminology Service APIs (https://build.fhir.org/fhirpath.html#txapi):
+Supported [Terminology Service APIs](https://build.fhir.org/fhirpath.html#txapi):
 - only `%terminologies.validateVS(valueSet, coded, params) : Parameters` is
   partially supported. `valueSet` can only be a URL.
+
+Supported [FHIRPath supplements](https://hl7.org/fhir/uv/sdc/expressions.html#fhirpath-supplements):
+- sum(), min(), max(), count(), avg() - short-cuts for the equivalent .aggregate().
+- ordinal()/weight() - see [description of the weight() function](docs/weight.md).
 
 ## Development Notes
 

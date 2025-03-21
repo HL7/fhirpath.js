@@ -3,6 +3,20 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [3.18.0] - 2024-03-21
+### Added
+- The `signal` option to the `evaluate()` function and the function that is the
+  result of executing the `compile()` function to allow the user to cancel the
+  evaluation of an asynchronous expression.
+### Changed
+- The demo application now allows you to select a model, terminology server,
+  environment variables and can evaluate asynchronous expressions.
+### Fixed
+- The `weight()`/`ordinal()` function can now search for item weight in value
+  set and code system.
+- Removed creation of global `TypeInfo.model` value to allow asynchronous
+  evaluations using different models.
+
 ## [3.17.3] - 2025-03-13
 ### Fixed
 - an issue where the "not implemented" exception was not raised when it should
