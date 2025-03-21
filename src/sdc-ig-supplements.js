@@ -318,7 +318,7 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire,
   const cacheKey = [
     modelVersion,
     questionnaire?.url || questionnaire?.id,
-    getTerminologyUrl(ctx),
+    ctx.processedVars.terminologies?.terminologyUrl,
     vsURL, code, system
   ].join('|');
 
