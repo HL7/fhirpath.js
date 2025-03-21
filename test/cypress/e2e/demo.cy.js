@@ -59,9 +59,7 @@ describe('Demo page', () => {
           .then((win) => win.cm.setValue(
             JSON.stringify(require(`../../resources/weight-examples/questionnaire-${fhirVersion}.json`), null, 2)
           ));
-        cy.get('#output').should('have.text', 'Error: Option "terminologyUrl" is not specified.')
 
-        cy.get('#terminologyUrl').type(`https://lforms-fhir.nlm.nih.gov/base${fhirVersion}\n`);
         cy.get('#output').should('have.text', '- 65432211\n')
       });
     });
