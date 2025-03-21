@@ -30,13 +30,47 @@
            placeholder="fhirpath expr..."/>
       <div id="pane">
         <div id="inputWrapper">
-          Input type:
-          <label><input type="radio" name="inputType" value="yaml" checked>YAML</label>
-          <label><input type="radio" name="inputType" value="json">JSON</label>
-          <br>
+          <div>
+            Model:
+            <label><input type="radio" name="modelName" value="fhirpath_r5_model">R5</label>
+            <label><input type="radio" name="modelName" value="fhirpath_r4_model" checked>R4</label>
+            <label><input type="radio" name="modelName" value="fhirpath_stu3_model">STU3</label>
+            <label><input type="radio" name="modelName" value="fhirpath_dstu2_model">DSTU2</label>
+          </div>
+          <div>
+            Terminology server URL:
+            <input id="terminologyUrl" value = "" placeholder="type URL and press ENTER or move focus to another field to apply"/>
+          </div>
+          <div>
+            Input format:
+            <label><input type="radio" name="inputType" value="json" checked>JSON</label>
+            <label><input type="radio" name="inputType" value="yaml">YAML</label>
+          </div>
+          <div>
+            <label style="text-decoration: underline;">Context resource and variables</label>:
+          </div>
+          <div id="variables">
+            <ul>
+              <label><li>%<input type="text" readonly value="context">&nbsp;(context resource)</li></label>
+            </ul>
+          </div>
+          <div>
+            <button type="button" id="addVariable">Add variable</button>
+          </div>
+          <div>
+            <label id="inputTitle" style="text-decoration: underline;">-</label>:
+            <div style="flex: 1 1"></div>
+            <button id="loadFileButton">Load from file</button>
+            <input type="file" id="fileInput" style="display: none;" />
+          </div>
           <div id="input"></div>
         </div>
-        <div id="output">...</div>
+        <div class="outputWrapper">
+          <div>
+            <label id="outputTitle">Result:</label>:
+          </div>
+          <div id="output">...</div>
+        </div>
       </div>
     </div>
     <div id="footer">
