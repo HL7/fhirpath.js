@@ -3,6 +3,15 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.0.0] - 2024-03-26
+### Changed
+- Updated FHIRPath grammar:
+  - updated operator precedence, so that `is` and `as` have higher precedence
+    than `|`, `<=`, `<`, `>`, and `>=`.
+  - date literals produce values of type `System.Date` instead of
+    `System.DateTime`.
+  - time literals can no longer have a zone offset.
+
 ## [3.18.0] - 2024-03-21
 ### Added
 - The `signal` option to the `evaluate()` function and the function that is the

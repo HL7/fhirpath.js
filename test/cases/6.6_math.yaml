@@ -416,31 +416,31 @@ tests:
       result: [true]
     - expression: "@T09:45:23 + 2 years"
       error: true
-    - expression: "@T09:45Z + 120 seconds = @T04:47-05:00"
+    - expression: "@T09:45 + 120 seconds = @T09:47"
       result: [true]
-    - expression: "@T09:45Z + 59 seconds = @T09:45Z"
+    - expression: "@T09:45 + 59 seconds = @T09:45"
       result: [true]
-    - expression: "@T09:45:23Z + 2 minutes = @T04:47:23.000-05:00"
+    - expression: "@T09:45:23 + 2 minutes = @T09:47:23.000"
       result: [true]
-    - expression: "@T23:59:23Z + 2 minutes = @T00:01:23Z"
+    - expression: "@T23:59:23 + 2 minutes = @T00:01:23"
       result: [true]
-    - expression: "@T23:59:23-05:00 + 2 minutes = @T00:01:23-05:00"
+    - expression: "@T23:59:23 + 2 minutes = @T00:01:23"
       result: [true]
-    - expression: "@T23:59:23-05:00 + 2 days"
+    - expression: "@T23:59:23 + 2 days"
       error: true
-    - expression: "@T23:59:23-05:00 + 5 milliseconds = @T23:59:23.005-05:00"
+    - expression: "@T23:59:23 + 5 milliseconds = @T23:59:23.005"
       result: [true]
-    - expression: "@T23:59:23-05:00 + 1.5 seconds = @T23:59:24.500-05:00"
+    - expression: "@T23:59:23 + 1.5 seconds = @T23:59:24.500"
       result: [true]
-    - expression: "@T23:59:23-05:00 + 1.5 's' = @T23:59:24.500-05:00"
+    - expression: "@T23:59:23 + 1.5 's' = @T23:59:24.500"
       result: [true]
-    - expression: "@T23:59:23-05:00 - 1.5 's' = @T23:59:21.500-05:00"
+    - expression: "@T23:59:23 - 1.5 's' = @T23:59:21.500"
       result: [true]
-    - expression: "@T23:59:23-05:00 + 1000 milliseconds = @T23:59:24-05:00"
+    - expression: "@T23:59:23 + 1000 milliseconds = @T23:59:24"
       result: [true]
-    - expression: "@T23:59:23.005-05:00 + 995 milliseconds = @T23:59:24-05:00"
+    - expression: "@T23:59:23.005 + 995 milliseconds = @T23:59:24"
       result: [true]
-    - expression: "@T23:59:23.005-05:00 + 1990 milliseconds = @T23:59:24.995-05:00"
+    - expression: "@T23:59:23.005 + 1990 milliseconds = @T23:59:24.995"
       result: [true]
 # From the FHIRPath specification: "For precisions above seconds, the decimal
 # portion of the time-valued quantity is ignored, since date/time arithmetic
@@ -456,7 +456,7 @@ tests:
       error: true
     - expression: "@2016-02-28 + 1.5 day"
       result: ['2016-02-29']
-    - expression: "@T23:59:23-05:00 + 1.5 hours = @T00:59:23-05:00"
+    - expression: "@T23:59:23 + 1.5 hours = @T00:59:23"
       result: [true]
     - expression: "Patient.birthDate - 1 day = @1974-12-24"
       model: r4

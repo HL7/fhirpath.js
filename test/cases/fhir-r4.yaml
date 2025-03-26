@@ -290,42 +290,36 @@ tests:
         result:
           - true
         model: r4
-        disable: true
       - desc: '** testLiteralDateMonth'
         inputfile: patient-example.json
         expression: '@2015-02.is(Date)'
         result:
           - true
         model: r4
-        disable: true
       - desc: '** testLiteralDateDay'
         inputfile: patient-example.json
         expression: '@2015-02-04.is(Date)'
         result:
           - true
         model: r4
-        disable: true
       - desc: '** testLiteralDateTimeYear'
         inputfile: patient-example.json
         expression: '@2015T.is(DateTime)'
         result:
           - true
         model: r4
-        disable: true
       - desc: '** testLiteralDateTimeMonth'
         inputfile: patient-example.json
         expression: '@2015-02T.is(DateTime)'
         result:
           - true
         model: r4
-        disable: true
       - desc: '** testLiteralDateTimeDay'
         inputfile: patient-example.json
         expression: '@2015-02-04T.is(DateTime)'
         result:
           - true
         model: r4
-        disable: true
       - desc: '** testLiteralDateTimeHour'
         inputfile: patient-example.json
         expression: '@2015-02-04T14.is(DateTime)'
@@ -391,13 +385,11 @@ tests:
         expression: '@T14:34:28Z.is(Time)'
         error: true
         model: r4
-        disable: true
       - desc: '** testLiteralTimeTimezoneOffset'
         inputfile: patient-example.json
         expression: '@T14:34:28+10:00.is(Time)'
         error: true
         model: r4
-        disable: true
       - desc: '** testLiteralQuantityDecimal'
         inputfile: patient-example.json
         expression: 10.1 'mg'.convertsToQuantity()
@@ -1260,7 +1252,7 @@ tests:
         model: r4
       - desc: '** test'
         inputfile: patient-example.json
-        expression: "Patient.maritalStatus.coding.exists(code = 'P' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus')\r\n\t\t\tor Patient.maritalStatus.coding.exists(code = 'A' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus')"
+        expression: "Patient.maritalStatus.coding.exists(code = 'P' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus')\n\t\t\tor Patient.maritalStatus.coding.exists(code = 'A' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus')"
         result:
           - false
         model: r4
@@ -4153,12 +4145,14 @@ tests:
         result:
           - true
         model: r4
+        disable: true
       - desc: '** testPrecedence4'
         inputfile: patient-example.json
         expression: 1 | 1 is Integer
         result:
           - true
         model: r4
+        disable: true
   - 'group: testVariables':
       - desc: '** testVariables1'
         inputfile: patient-example.json

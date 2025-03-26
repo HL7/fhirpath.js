@@ -5,8 +5,8 @@ tests:
     result: ["a\\b'\"`\r\n\te"]
   - expression: "\"a\\\\b\\'\\\"\\`\\r\\n\\t\\u0065\"" # using " to wrap a string is not allowed by grammar
     error: true
-  - expression: "`a\\\\b\\'\\\"\\`\\r\\n\\t\\u0065`" # using ` to wrap a string is not allowed by grammar
-    error: true
+  - expression: "`a\\\\b\\'\\\"\\`\\r\\n\\t\\u0065`" # ` used to wrap an identifier
+    result: []
   - expression: "2 'mo'"
     result: ["2 'mo'"]
   - expression: "2 years"

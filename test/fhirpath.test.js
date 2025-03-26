@@ -13,6 +13,48 @@ const items = fs.readdirSync(__dirname + '/cases/');
 const focus = false;
 const focusFile = /.*.yaml/;
 
+// Add custom matchers to check if an error is not thrown
+expect.extend({
+  /**
+   * Custom matcher to check if the received value is not an error.
+   * @param {*} received - The value to check.
+   * @returns {Object} - An object indicating whether the check passed and
+   *  an optional message.
+   */
+  isNotError(received) {
+    if (received === null) {
+      return {
+        pass: true
+      };
+    } else {
+      return {
+        message: () => received instanceof Error ? received.stack || received.message : received + '',
+        pass: false
+      };
+    }
+  },
+  /**
+   * Custom matcher to check if the received value is an error.
+   * @param {*} received - The value to check.
+   * @param {*} unexpectedResult - The unexpected result to include in the error
+   *  message if the check fails.
+   * @returns {Object} - An object indicating whether the check passed and
+   *  an optional message.
+   */
+  isError(received, unexpectedResult) {
+    if (received !== null) {
+      return {
+        pass: true
+      };
+    } else {
+      return {
+        message: () => `Expected an error to be thrown, but the returned result is ${JSON.stringify(unexpectedResult)}.`,
+        pass: false
+      };
+    }
+  }
+});
+
 
 const endWith = (s, postfix) => {
   return s.length >= postfix.length && s.substr(-postfix.length) === postfix;
@@ -53,7 +95,7 @@ const generateTest = (test, testResource) => {
 
   const processTestResult = (test, result, exception, done) => {
     if (!test.error) {
-      expect(exception).toBe(null);
+      expect(exception).isNotError();
       // Run the result through JSON so the FP_Type quantities get converted to
       // strings.  Also , if the result is an FP_DateTime, convert to a Date
       // object so that timezone differences are handled.
@@ -63,9 +105,7 @@ const generateTest = (test, testResource) => {
         expect(JSON.parse(JSON.stringify(result))).toEqual(test.result);
     }
     else if (test.error) {
-      if (result != null)
-        console.log(result);
-      expect(exception).not.toBe(null);
+      expect(exception).isError(result);
     }
     if (test.disableConsoleLog)
       console.log = console_log;

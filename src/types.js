@@ -3,14 +3,16 @@ const ucumUtils = require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance();
 const numbers = require('./numbers');
 
 const ucumSystemUrl = 'http://unitsofmeasure.org';
-let timeFormat =
-  '[0-9][0-9](\\:[0-9][0-9](\\:[0-9][0-9](\\.[0-9]+)?)?)?(Z|(\\+|-)[0-9][0-9]\\:[0-9][0-9])?';
-let timeRE = new RegExp('^T?'+timeFormat+'$');
-let dateTimeRE = new RegExp(
-  '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T'+timeFormat+')?)?)?Z?$');
-let dateRE = new RegExp(
+const timeFormat =
+  '[0-9][0-9](\\:[0-9][0-9](\\:[0-9][0-9](\\.[0-9]+)?)?)?';
+const zoneFormat = '(Z|(\\+|-)[0-9][0-9]\\:[0-9][0-9])?';
+const timeRE = new RegExp('^T?' + timeFormat + '$');
+const dateTimeRE = new RegExp(
+  '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T' + timeFormat + zoneFormat +
+  ')?)?)?Z?$');
+const dateRE = new RegExp(
   '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9])?)?$');
-let instantRE = new RegExp(
+const instantRE = new RegExp(
   '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T[0-9][0-9](\\:[0-9][0-9](\\:[0-9][0-9](\\.[0-9]+)?))(Z|(\\+|-)[0-9][0-9]\\:[0-9][0-9]))))$');
 // FHIR date/time regular expressions are slightly different.  For now, we will
 // stick with the FHIRPath regular expressions.
@@ -604,7 +606,7 @@ class FP_TimeBase extends FP_Type {
     let newDateStr = FP_DateTime.isoDateTime(newDate, precision);
     if (isTime) {
       // FP_Time just needs the time part of the string
-      newDateStr = newDateStr.slice(newDateStr.indexOf('T') + 1);
+      newDateStr = newDateStr.slice(newDateStr.indexOf('T') + 1, -6);
     }
 
     return new cls(newDateStr);

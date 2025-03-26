@@ -255,22 +255,22 @@ tests:
         expression: '@T12:02:34.324 > @T12:01'
         result: [true]
       - desc: Time comparison with based on lesser precision (3)
-        expression: '@T12+04:00 > @T12:02:34.324+05:00'
+        expression: '@T13 > @T12:02:34.324'
         result: [true]
       - desc: Time comparison with based on lesser precision (4)
-        expression: '@T12:02:34.324+05:00 > @T12+05:00'
+        expression: '@T12:02:34.324 > @T12'
         result: []
       - desc: Comparison with later time in resource (1)
-        expression: '@T17:00-05:00 < timeWithT.toTime()'
+        expression: '@T17:00 < timeWithT.toTime()'
         result: [true]
       - desc: Comparison with later time in resource (2)
-        expression: '@T17:00-05:00 > timeWithT.toTime()'
+        expression: '@T17:00 > timeWithT.toTime()'
         result: [false]
       - desc: Comparison with later time in resource (3)
-        expression: '@T17:00-05:00 < timeWithOutT.toTime()'
+        expression: '@T17:00 < timeWithOutT.toTime()'
         result: [true]
       - desc: Comparison with later time in resource (4)
-        expression: '@T17:00-05:00 > timeWithOutT.toTime()'
+        expression: '@T17:00 > timeWithOutT.toTime()'
         result: [false]
     - 'group:  Instant':
       - desc: Comparison using the greater than operator
@@ -292,8 +292,8 @@ tests:
 subject:
   date: "2019-02-25"
   dateTime: "2019-02-25T17:01-05:00"
-  timeWithT: "T17:01-05:00"
-  timeWithOutT: "17:01-05:00"
+  timeWithT: "T17:01"
+  timeWithOutT: "17:01"
   a: 1
   b: 2
   c: 2
