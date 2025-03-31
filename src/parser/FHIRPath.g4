@@ -1,4 +1,9 @@
 // FHIRPath grammar adjusted for JavaScript.
+// Used this grammar https://build.fhir.org/ig/HL7/FHIRPath/grammar.html as
+// a source instead of https://hl7.org/fhirpath/grammar.html.
+// Because it is more up-to-date and contains the "entireExpression" rule
+// (see https://chat.fhir.org/#narrow/channel/179266-fhirpath/topic/Parse.20entire.20expression.20with.20fhirpath).
+
 grammar FHIRPath;
 
 // Grammar rules

@@ -15,9 +15,10 @@ const focusFile = /.*.yaml/;
 
 // Add custom matchers to check if an error is not thrown
 expect.extend({
+
   /**
-   * Custom matcher to check if the received value is not an error.
-   * @param {*} received - The value to check.
+   * Custom matcher to check if a caught exception is null.
+   * @param {Error|string|*|null} received - caught exception or null.
    * @returns {Object} - An object indicating whether the check passed and
    *  an optional message.
    */
@@ -33,9 +34,11 @@ expect.extend({
       };
     }
   },
+
+
   /**
-   * Custom matcher to check if the received value is an error.
-   * @param {*} received - The value to check.
+   * Custom matcher to check if a caught exception is not null.
+   * @param {Error|string|*|null} received - caught exception or null.
    * @param {*} unexpectedResult - The unexpected result to include in the error
    *  message if the check fails.
    * @returns {Object} - An object indicating whether the check passed and
@@ -53,6 +56,7 @@ expect.extend({
       };
     }
   }
+  
 });
 
 
