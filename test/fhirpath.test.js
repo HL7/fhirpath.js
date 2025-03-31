@@ -18,7 +18,9 @@ expect.extend({
 
   /**
    * Custom matcher to check if a caught exception is null.
-   * @param {Error|string|*|null} received - caught exception or null.
+   * @param {Error|string|null} received - caught exception in
+   *  the generateTest function or null. This should be `Error` or `string` if
+   *  the `fhirpath.js` code threw an error, or null.
    * @returns {Object} - An object indicating whether the check passed and
    *  an optional message.
    */
@@ -38,7 +40,9 @@ expect.extend({
 
   /**
    * Custom matcher to check if a caught exception is not null.
-   * @param {Error|string|*|null} received - caught exception or null.
+   * @param {Error|string|null} received - caught exception in
+   *  the generateTest function or null. This should be `Error` or `string` if
+   *  the `fhirpath.js` code threw an error, or null.
    * @param {*} unexpectedResult - The unexpected result to include in the error
    *  message if the check fails.
    * @returns {Object} - An object indicating whether the check passed and
