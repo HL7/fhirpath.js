@@ -373,6 +373,21 @@ engine.QuantityLiteral = function(ctx, parentData, node) {
   return [new FP_Quantity(value, unit)];
 };
 
+/**
+ * Evaluates a DateLiteral node in the FHIRPath abstract syntax tree (AST).
+ * Converts the node text to a FP_Date object after removing the leading '@'
+ * character.
+ *
+ * @param {Object} ctx - The evaluation context.
+ * @param {Array} parentData - The data from the parent node.
+ * @param {Object} node - The AST node representing the DateLiteral.
+ * @returns {Array} - An array containing a single FP_Date object.
+ */
+engine.DateLiteral = function(ctx, parentData, node) {
+  var dateStr = node.text.slice(1); // Remove the @
+  return [new FP_Date(dateStr)];
+};
+
 engine.DateTimeLiteral = function(ctx, parentData, node) {
   var dateStr = node.text.slice(1); // Remove the @
   return [new FP_DateTime(dateStr)];

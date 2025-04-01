@@ -335,31 +335,20 @@ tests:
         expression: "@2018 = 'zzz'"
         result: [false]
 
-      - desc: 'Time literal compared with same time in different timezone'
-        expression: '@T10:04:23-04:00 = @T18:04:23+04:00'
-        result: [true]
-
-      - expression: '@T19:01:23-05:00 = @T00:01:23-00:00'
-        result: [true]
-
       - desc: 'Time literal compared with different time'
-        expression: '@T10:04:23-04:00 = @T18:04:24+04:00'
+        expression: '@T16:04:23 = @T18:04:24'
         result: [false]
 
-      - desc: 'Time literal, comparing timezone and Z (same time)'
-        expression: '@T10:04:23-04:00 = @T14:04:23Z'
+      - desc: 'Time literal (same time)'
+        expression: '@T14:04:23 = @T14:04:23'
         result: [true]
 
-      - desc: 'Time literal, comparing timezone and Z (different time)'
-        expression: '@T10:04:23-04:00 = @T14:04:24Z'
-        result: [false]
-
-      - desc: 'Same time, different timezone and precision'
-        expression: '@T10:04:23-04:00 = @T14:04Z'
+      - desc: 'Same time, different precision'
+        expression: '@T14:04:23 = @T14:04'
         result: []
 
       - desc: 'Different time and different precision'
-        expression: '@T10:05:23-04:00 = @T14:04Z'
+        expression: '@T14:05:23 = @T14:04'
         result: [false]
 
       - desc: 'Time literal compared with same time in resource'
@@ -502,20 +491,12 @@ tests:
         expression: '@2018-02-02 ~ date1.toDate()'
         result: [false]
 
-      - desc: 'Time literal compared with same time in different timezone'
-        expression: '@T10:04:23-04:00 ~ @T18:04:23+04:00'
+      - desc: 'Time literal compared with same time'
+        expression: '@T18:04:23 ~ @T18:04:23'
         result: [true]
 
       - desc: 'Time literal compared with different time'
-        expression: '@T10:04:23-04:00 ~ @T18:04:24+04:00'
-        result: [false]
-
-      - desc: 'Time literal, comparing timezone and Z (same time)'
-        expression: '@T10:04:23-04:00 ~ @T14:04:23Z'
-        result: [true]
-
-      - desc: 'Time literal, comparing timezone and Z (different time)'
-        expression: '@T10:04:23-04:00 ~ @T14:04:24Z'
+        expression: '@T18:04:23 ~ @T18:04:24'
         result: [false]
 
       - desc: 'Time literal compared with same time in resource'
@@ -670,20 +651,12 @@ tests:
         expression: '@2018-02-02 != date1.toDate()'
         result: []
 
-      - desc: 'Time literal compared with same time in different timezone'
-        expression: '@T10:04:23-04:00 != @T18:04:23+04:00'
+      - desc: 'Time literal compared with same time'
+        expression: '@T18:04:23 != @T18:04:23'
         result: [false]
 
       - desc: 'Time literal compared with different time'
-        expression: '@T10:04:23-04:00 != @T18:04:24+04:00'
-        result: [true]
-
-      - desc: 'Time literal, comparing timezone and Z (same time)'
-        expression: '@T10:04:23-04:00 != @T14:04:23Z'
-        result: [false]
-
-      - desc: 'Time literal, comparing timezone and Z (different time)'
-        expression: '@T10:04:23-04:00 != @T14:04:24Z'
+        expression: '@T18:04:23 != @T18:04:24'
         result: [true]
 
       - desc: 'Time literal compared with same time in resource'
@@ -732,20 +705,12 @@ tests:
         expression: '@2018-02-02 !~ date1.toDate()'
         result: [true]
 
-      - desc: 'Time literal compared with same time in different timezone'
-        expression: '@T10:04:23-04:00 !~ @T18:04:23+04:00'
+      - desc: 'Time literal compared with same time'
+        expression: '@T18:04:23 !~ @T18:04:23'
         result: [false]
 
       - desc: 'Time literal compared with different time'
-        expression: '@T10:04:23-04:00 !~ @T18:04:24+04:00'
-        result: [true]
-
-      - desc: 'Time literal, comparing timezone and Z (same time)'
-        expression: '@T10:04:23-04:00 !~ @T14:04:23Z'
-        result: [false]
-
-      - desc: 'Time literal, comparing timezone and Z (different time)'
-        expression: '@T10:04:23-04:00 !~ @T14:04:24Z'
+        expression: '@T18:04:23 !~ @T18:04:24'
         result: [true]
 
       - desc: 'Time literal compared with same time in resource'

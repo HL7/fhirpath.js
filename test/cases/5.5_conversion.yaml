@@ -100,15 +100,15 @@ tests:
 
   - 'group: toTime':
     - desc: equality
-      expression: "time.toTime() = @T19:15-05:00"
+      expression: "time.toTime() = @T19:15"
       result: [true]
 
     - desc: inequality
-      expression: "time.toTime() = @T18:15-05:00"
+      expression: "time.toTime() = @T18:15"
       result: [false]
 
     - desc: inequality operator
-      expression: "time.toTime() != @T18:15-05:00"
+      expression: "time.toTime() != @T18:15"
       result: [true]
 
   - desc: '** Null to time'
@@ -245,7 +245,7 @@ subject:
   decstr: '101.99'
   attrdec: 101.99
   datetime:  "2019-02-06T19:17-05:00"
-  time:  "T19:15-05:00"
+  time:  "T19:15"
   attrsingle:
     - 1
   collWithNullsAndTrue:

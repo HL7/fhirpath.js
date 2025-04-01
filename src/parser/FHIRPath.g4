@@ -1,3 +1,9 @@
+// FHIRPath grammar adjusted for JavaScript.
+// Used this grammar https://build.fhir.org/ig/HL7/FHIRPath/grammar.html as
+// a source instead of https://hl7.org/fhirpath/grammar.html.
+// Because it is more up-to-date and contains the "entireExpression" rule
+// (see https://chat.fhir.org/#narrow/channel/179266-fhirpath/topic/Parse.20entire.20expression.20with.20fhirpath).
+
 grammar FHIRPath;
 
 // Grammar rules
@@ -16,9 +22,9 @@ expression
         | ('+' | '-') expression                                    #polarityExpression
         | expression ('*' | '/' | 'div' | 'mod') expression         #multiplicativeExpression
         | expression ('+' | '-' | '&') expression                   #additiveExpression
+        | expression ('is' | 'as') typeSpecifier                    #typeExpression
         | expression '|' expression                                 #unionExpression
         | expression ('<=' | '<' | '>' | '>=') expression           #inequalityExpression
-        | expression ('is' | 'as') typeSpecifier                    #typeExpression
         | expression ('=' | '~' | '!=' | '!~') expression           #equalityExpression
         | expression ('in' | 'contains') expression                 #membershipExpression
         | expression 'and' expression                               #andExpression
@@ -39,6 +45,9 @@ literal
         | ('true' | 'false')                                    #booleanLiteral
         | STRING                                                #stringLiteral
         | NUMBER                                                #numberLiteral
+// TODO: Add support for LONGNUMBER
+//        | LONGNUMBER                                            #longNumberLiteral
+        | DATE                                                 #dateLiteral
         | DATETIME                                              #dateTimeLiteral
         | TIME                                                  #timeLiteral
         | quantity                                              #quantityLiteral
@@ -94,9 +103,9 @@ identifier
         : IDENTIFIER
         | DELIMITEDIDENTIFIER
         | 'as'
-        | 'is'
         | 'contains'
         | 'in'
+        | 'is'
         ;
 
 
@@ -110,29 +119,29 @@ token to the parser. As such it is not attempting to validate that
 the date is a correct date, that task is for the parser or interpreter.
 */
 
+DATE
+        : '@' DATEFORMAT
+        ;
+
 DATETIME
-        : '@'
-            [0-9][0-9][0-9][0-9] // year
-            (
-                '-'[0-9][0-9] // month
-                (
-                    '-'[0-9][0-9] // day
-                    (
-                        'T' TIMEFORMAT
-                    )?
-                 )?
-             )?
-             'Z'? // UTC specifier
+        : '@' DATEFORMAT 'T' (TIMEFORMAT TIMEZONEOFFSETFORMAT?)?
         ;
 
 TIME
         : '@' 'T' TIMEFORMAT
         ;
 
+fragment DATEFORMAT
+        : [0-9][0-9][0-9][0-9] ('-'[0-9][0-9] ('-'[0-9][0-9])?)?
+        ;
+
 fragment TIMEFORMAT
         :
             [0-9][0-9] (':'[0-9][0-9] (':'[0-9][0-9] ('.'[0-9]+)?)?)?
-            ('Z' | ('+' | '-') [0-9][0-9]':'[0-9][0-9])? // timezone
+        ;
+
+fragment TIMEZONEOFFSETFORMAT
+        : ('Z' | ('+' | '-') [0-9][0-9]':'[0-9][0-9])
         ;
 
 IDENTIFIER
@@ -140,17 +149,22 @@ IDENTIFIER
         ;
 
 DELIMITEDIDENTIFIER
-        : '`' (ESC | ~[\\`])* '`'
+        : '`' (ESC | .)*? '`'
         ;
 
 STRING
-        : '\'' (ESC | ~['])* '\''
+        : '\'' (ESC | .)*? '\''
         ;
 
 // Also allows leading zeroes now (just like CQL and XSD)
 NUMBER
         : [0-9]+('.' [0-9]+)?
         ;
+
+// TODO: Add support for LONGNUMBER
+//LONGNUMBER
+//        : [0-9]+ 'L'?
+//        ;
 
 // Pipe whitespace to the HIDDEN channel to support retrieving source text through the parser.
 WS
