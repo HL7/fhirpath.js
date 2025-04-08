@@ -26,14 +26,12 @@ engine.memberOf = function (coll, valueSetColl ) {
     // If the valueSet cannot be resolved as an uri to a value set,
     // the return value is empty.
     if(typeInfo.is(TypeInfo.FhirUri, ctx.model) || typeInfo.is(TypeInfo.SystemString)) {
-      const valueSet = util.valData(valueSetColl[0]);
-
       const terminologies = this.processedVars.terminologies;
       if (!terminologies) {
         throw new Error('Option "terminologyUrl" is not specified.');
       }
       return Terminologies.validateVS.call(this,
-        [terminologies], [valueSet], coll, ''
+        [terminologies], valueSetColl, coll, ''
       ).then(params => {
         return util.valData(params)?.parameter.find((p) => p.name === "result").valueBoolean;
       }, () => []);
