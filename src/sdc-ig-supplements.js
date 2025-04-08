@@ -423,9 +423,6 @@ function getWeightFromTerminologyCodeSet(ctx, code, system) {
 
   const terminologyUrl = getTerminologyUrl(ctx);
   const fetchOptions = {
-    headers: {
-      'Accept': 'application/fhir+json'
-    },
     ...(ctx.signal ? {signal: ctx.signal} : {})
   };
   return util.fetchWithCache(`${terminologyUrl}/CodeSystem?` + new URLSearchParams({

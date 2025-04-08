@@ -222,6 +222,13 @@ const requestCache = {};
 // Duration of data storage in cache.
 const requestCacheStorageTime = 3600000; // 1 hour = 60 * 60 * 1000
 
+const defaultPostHeaders = new Headers({
+  'Accept': 'application/fhir+json; charset=utf-8',
+  'Content-Type': 'application/fhir+json; charset=utf-8'
+});
+const defaultGetHeaders = new Headers({
+  'Accept': 'application/fhir+json; charset=utf-8'
+});
 
 /**
  * fetch() wrapper for caching server responses.
@@ -234,6 +241,17 @@ util.fetchWithCache = function(url, options) {
   const requestKey = [
     url, options ? JSON.stringify(options) : ''
   ].join('|');
+
+  // If the options object does not have headers, set default headers based on
+  // the request method.
+  if (!options?.headers) {
+    const headers = options?.method === 'POST' ?
+      defaultPostHeaders : defaultGetHeaders;
+    options = {
+      ...options,
+      headers
+    };
+  }
 
   const timestamp = Date.now();
   for (const key in requestCache) {
@@ -249,7 +267,7 @@ util.fetchWithCache = function(url, options) {
       // In Jest unit tests, a promise returned by 'fetch' is not an instance of
       // Promise that we have in our application context, so we use Promise.resolve
       // to do the conversion.
-      promise: Promise.resolve(options ? fetch(url, options) : fetch(url))
+      promise: Promise.resolve(fetch(url, options))
         .then(r => {
           const contentType = r.headers.get('Content-Type');
           const isJson = contentType.includes('application/json') ||
@@ -268,6 +286,26 @@ util.fetchWithCache = function(url, options) {
   }
 
   return requestCache[requestKey].promise;
+};
+
+
+/**
+ * Checks if the given context allows asynchronous functions.
+ * Throws an error if asynchronous functions are not allowed.
+ *
+ * @param {Object} ctx - An object describing the context of expression
+ *  evaluation (see the "applyParsedPath" function).
+ * @param {string} fnName - The name of the function being checked, used in
+ *  the error message.
+ * @throws {Error} - Throws an error if the context does not allow asynchronous
+ *  functions.
+ */
+util.checkContext = function(ctx, fnName) {
+  if(!ctx.async) {
+    throw new Error(`The asynchronous function "${fnName}" is not allowed. ` +
+      'To enable asynchronous functions, use the async=true or async="always"' +
+      ' option.');
+  }
 };
 
 

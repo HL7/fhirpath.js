@@ -1,0 +1,41 @@
+{
+  "resourceType": "ValueSet",
+  "status": "active",
+  "id" : "administrative-gender",
+  "url" : "http://hl7.org/fhir/ValueSet/administrative-gender",
+  "compose": {
+    "include": [ {
+      "system": "http://hl7.org/fhir/administrative-gender"
+    } ]
+  },
+  "expansion": {
+    "identifier": "843dfaef-1cd7-4b37-8fdb-c3ce7ce2641f",
+    "timestamp": "2025-03-28T13:31:33-04:00",
+    "total": 4,
+    "offset": 0,
+    "parameter": [ {
+      "name": "offset",
+      "valueInteger": 0
+    }, {
+      "name": "count",
+      "valueInteger": 1000
+    } ],
+    "contains": [ {
+      "system": "http://hl7.org/fhir/administrative-gender",
+      "code": "unknown",
+      "display": "Unknown"
+    }, {
+      "system": "http://hl7.org/fhir/administrative-gender",
+      "code": "female",
+      "display": "Female"
+    }, {
+      "system": "http://hl7.org/fhir/administrative-gender",
+      "code": "other",
+      "display": "Other"
+    }, {
+      "system": "http://hl7.org/fhir/administrative-gender",
+      "code": "male",
+      "display": "Male"
+    } ]
+  }
+}

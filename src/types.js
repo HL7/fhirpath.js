@@ -1493,6 +1493,23 @@ TypeInfo.isType = function(type, superType, model) {
 TypeInfo.System = 'System';
 TypeInfo.FHIR = 'FHIR';
 
+TypeInfo.FhirValueSet = new TypeInfo({
+  namespace: TypeInfo.FHIR, name: 'ValueSet'});
+TypeInfo.FhirUri = new TypeInfo({
+  namespace: TypeInfo.FHIR, name: 'uri'});
+TypeInfo.SystemString = new TypeInfo({
+  namespace: TypeInfo.System, name: 'String'});
+TypeInfo.FhirCodeSystem = new TypeInfo({
+  namespace: TypeInfo.FHIR, name: 'CodeSystem'});
+TypeInfo.FhirCodeableConcept = new TypeInfo({
+  namespace: TypeInfo.FHIR, name: 'CodeableConcept'});
+TypeInfo.FhirCoding = new TypeInfo({
+  namespace: TypeInfo.FHIR, name: 'Coding'});
+TypeInfo.FhirCode = new TypeInfo({
+  namespace: TypeInfo.FHIR, name: 'code'});
+TypeInfo.FhirConceptMap = new TypeInfo({
+  namespace: TypeInfo.FHIR, name: 'ConceptMap'});
+
 /**
  * Creates new TypeInfo object for specified value in the System namespace.
  * @param {*} value
