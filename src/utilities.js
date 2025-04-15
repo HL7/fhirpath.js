@@ -300,7 +300,7 @@ util.fetchWithCache = function(url, options) {
  * @throws {Error} - Throws an error if the context does not allow asynchronous
  *  functions.
  */
-util.checkContext = function(ctx, fnName) {
+util.checkAllowAsync = function(ctx, fnName) {
   if(!ctx.async) {
     throw new Error(`The asynchronous function "${fnName}" is not allowed. ` +
       'To enable asynchronous functions, use the async=true or async="always"' +

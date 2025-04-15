@@ -61,7 +61,7 @@ class Terminologies {
   static expand(self, valueSetColl, params = '') {
     let response = null;
     const ctx = this;
-    util.checkContext(ctx, 'expand');
+    util.checkAllowAsync(ctx, 'expand');
 
     if (valueSetColl.length === 1 && checkParams(params)) {
       const typeInfo = TypeInfo.fromValue(valueSetColl[0]);
@@ -78,7 +78,7 @@ class Terminologies {
         const parameters = [{
           "name": "valueSet",
           "resource": valueSet
-        }, ...parseParams(params)];
+        }, ...toFhirParameters(params)];
 
         response = util.fetchWithCache(`${self[0].terminologyUrl}/ValueSet/$expand`, {
           method: 'POST',
@@ -91,12 +91,7 @@ class Terminologies {
       }
     }
 
-    return response && response.then(obj => {
-      if (obj?.resourceType === 'ValueSet') {
-        return ResourceNode.makeResNode(obj, null, null, null, null, ctx.model);
-      }
-      throw new Error(params);
-    }).catch(() => null);
+    return transformResponseToResource(ctx, response, 'ValueSet');
   }
 
 
@@ -108,8 +103,8 @@ class Terminologies {
    * @param {Terminologies[]} self - an array with one element that refers to
    *  the current Terminology instance.
    * @param {(ResourceNode|string)[]} codedColl - an array that should have
-   *  one element, which is either a Coding, or a resource
-   *  element that is a code. CodeableConcept is not supported.
+   *  one element, which is either a Coding, a CodeableConcept, or a resource
+   *  element that is a code.
    * @param {string} [params] - a URL encoded string with other parameters for
    *  the lookup operation (e.g. 'date=2011-03-04&displayLanguage=en').
    * @return {Promise<ResourceNode|null>|null} - a Parameters resource
@@ -119,24 +114,21 @@ class Terminologies {
   static lookup(self, codedColl, params = '') {
     let response = null;
     const ctx = this;
-    util.checkContext(ctx, 'lookup');
+    util.checkAllowAsync(ctx, 'lookup');
 
     if (codedColl.length === 1 && checkParams(params)) {
-      const codedTypeInfo = TypeInfo.fromValue(codedColl[0]);
-      const isCoding = codedTypeInfo.is(TypeInfo.FhirCoding, ctx.model);
-      const isCode = codedTypeInfo.is(TypeInfo.FhirCode, ctx.model) ||
-        codedTypeInfo.is(TypeInfo.SystemString, ctx.model);
-      if (isCoding || isCode) {
+      const {isCodeableConcept, isCoding, isCode} = getCodedType(ctx, codedColl);
+      if (isCodeableConcept || isCoding || isCode) {
         const coded = util.valData(codedColl[0]);
-        const codedParamName = isCoding ? 'coding' : 'code';
+        const codedParamName = isCodeableConcept || isCoding ? 'coding' : 'code';
         const parameters = {
           resourceType: 'Parameters',
           parameter: [
             {
               name: codedParamName,
-              [paramName2fieldName[codedParamName]]: coded
+              [paramName2valueXName[codedParamName]]: isCodeableConcept ? coded?.coding : coded
             },
-            ...parseParams(params)
+            ...toFhirParameters(params)
           ]
         };
         response = util.fetchWithCache(
@@ -149,12 +141,7 @@ class Terminologies {
       }
     }
 
-    return response && response.then(obj => {
-      if (obj?.resourceType === 'Parameters') {
-        return ResourceNode.makeResNode(obj, null, null, null, null, ctx.model);
-      }
-      throw new Error(params);
-    }).catch(() => null);
+    return transformResponseToResource(ctx, response, 'Parameters');
   }
 
 
@@ -171,7 +158,7 @@ class Terminologies {
    *  one element, which is either a ResourceNode with an actual ValueSet, or
    *  a ResourceNode with a canonical URL reference to a value set, or
    *  a string with a canonical URL reference to a value set.
-   *  @param {(ResourceNode|string)[]} codedColl - an array that should have
+   * @param {(ResourceNode|string)[]} codedColl - an array that should have
    *  one element, which is either a Coding, a CodeableConcept, or a resource
    *  element that is a code.
    * @param {string} [params] - a URL encoded string with other parameters for
@@ -183,7 +170,7 @@ class Terminologies {
   static validateVS(self, valueSetColl, codedColl, params = '') {
     let response = null;
     const ctx = this;
-    util.checkContext(ctx, 'validateVS');
+    util.checkAllowAsync(ctx, 'validateVS');
 
     if(valueSetColl.length === 1 && codedColl.length === 1 &&
       checkParams(params)) {
@@ -192,12 +179,7 @@ class Terminologies {
       const isValueSetUrl = vsTypeInfo.is(TypeInfo.FhirUri, ctx.model) ||
         vsTypeInfo.is(TypeInfo.SystemString, ctx.model);
       if (isActualValueSet || isValueSetUrl) {
-        const codedTypeInfo = TypeInfo.fromValue(codedColl[0]);
-        const isCodeableConcept =
-          codedTypeInfo.is(TypeInfo.FhirCodeableConcept, ctx.model);
-        const isCoding = codedTypeInfo.is(TypeInfo.FhirCoding, ctx.model);
-        const isCode = codedTypeInfo.is(TypeInfo.FhirCode, ctx.model) ||
-          codedTypeInfo.is(TypeInfo.SystemString, ctx.model);
+        const {isCodeableConcept, isCoding, isCode} = getCodedType(ctx, codedColl);
         if (isCodeableConcept || isCoding || isCode) {
           const valueSet = util.valData(valueSetColl[0]);
           const coded = util.valData(codedColl[0]);
@@ -222,10 +204,10 @@ class Terminologies {
                   },
                   {
                     name: codedParamName,
-                    [paramName2fieldName[codedParamName]]: coded
+                    [paramName2valueXName[codedParamName]]: coded
                   },
                   ...(system ? [{name: 'system', valueUri: system}] : []),
-                  ...parseParams(params)
+                  ...toFhirParameters(params)
                 ]
               };
               return util.fetchWithCache(
@@ -273,12 +255,7 @@ class Terminologies {
       }
     }
 
-    return response && response.then(obj => {
-      if (obj?.resourceType === 'Parameters') {
-        return ResourceNode.makeResNode(obj, null, null, null, null, ctx.model);
-      }
-      throw new Error(obj);
-    }).catch(() => null);
+    return transformResponseToResource(ctx, response, 'Parameters');
   }
 
 
@@ -305,7 +282,7 @@ class Terminologies {
   static validateCS(self, codeSystemColl, codedColl, params = '') {
     let response = null;
     const ctx = this;
-    util.checkContext(ctx, 'validateCS');
+    util.checkAllowAsync(ctx, 'validateCS');
 
     if(codeSystemColl.length === 1 && codedColl.length === 1 &&
       checkParams(params)) {
@@ -315,12 +292,7 @@ class Terminologies {
       const isCodeSystemUrl = csTypeInfo.is(TypeInfo.FhirUri, ctx.model) ||
         csTypeInfo.is(TypeInfo.SystemString, ctx.model);
       if (isActualCodeSystem || isCodeSystemUrl) {
-        const codedTypeInfo = TypeInfo.fromValue(codedColl[0]);
-        const isCodeableConcept =
-          codedTypeInfo.is(TypeInfo.FhirCodeableConcept, ctx.model);
-        const isCoding = codedTypeInfo.is(TypeInfo.FhirCoding, ctx.model);
-        const isCode = codedTypeInfo.is(TypeInfo.FhirCode, ctx.model) ||
-          codedTypeInfo.is(TypeInfo.SystemString, ctx.model);
+        const {isCodeableConcept, isCoding, isCode} = getCodedType(ctx, codedColl);
         if (isCodeableConcept || isCoding || isCode) {
           const codeSystem = util.valData(codeSystemColl[0]);
           const coded = util.valData(codedColl[0]);
@@ -337,9 +309,9 @@ class Terminologies {
               },
               {
                 name: codedParamName,
-                [paramName2fieldName[codedParamName]]: coded
+                [paramName2valueXName[codedParamName]]: coded
               },
-              ...parseParams(params)
+              ...toFhirParameters(params)
             ]
           };
           response = util.fetchWithCache(
@@ -353,12 +325,7 @@ class Terminologies {
       }
     }
 
-    return response && response.then(obj => {
-      if (obj?.resourceType === 'Parameters') {
-        return ResourceNode.makeResNode(obj, null, null, null, null, ctx.model);
-      }
-      throw new Error(obj);
-    }).catch(() => null);
+    return transformResponseToResource(ctx, response, 'Parameters');
   }
 
 
@@ -387,7 +354,7 @@ class Terminologies {
   static subsumes(self, systemColl, coded1Coll, coded2Coll, params = '') {
     let response = null;
     const ctx = this;
-    util.checkContext(ctx, 'subsumes');
+    util.checkAllowAsync(ctx, 'subsumes');
 
     if(systemColl.length === 1 && coded1Coll.length === 1 &&
       coded2Coll.length === 1 && checkParams(params)) {
@@ -427,7 +394,7 @@ class Terminologies {
                 name: coded2ParamName,
                 [coded2ValueName]: coded2
               },
-              ...parseParams(params)
+              ...toFhirParameters(params)
             ]
           };
           response = util.fetchWithCache(
@@ -477,7 +444,7 @@ class Terminologies {
   static translate(self, conceptMapColl, codedColl, params = '') {
     let response = null;
     const ctx = this;
-    util.checkContext(ctx, 'translate');
+    util.checkAllowAsync(ctx, 'translate');
 
     if(conceptMapColl.length === 1 && codedColl.length === 1 &&
       checkParams(params)) {
@@ -487,12 +454,7 @@ class Terminologies {
       const isConceptMapUrl = cmTypeInfo.is(TypeInfo.FhirUri, ctx.model) ||
         cmTypeInfo.is(TypeInfo.SystemString, ctx.model);
       if (isActualConceptMap || isConceptMapUrl) {
-        const codedTypeInfo = TypeInfo.fromValue(codedColl[0]);
-        const isCodeableConcept = codedTypeInfo.is(
-          TypeInfo.FhirCodeableConcept, ctx.model);
-        const isCoding = codedTypeInfo.is(TypeInfo.FhirCoding, ctx.model);
-        const isCode = codedTypeInfo.is(TypeInfo.FhirCode, ctx.model) ||
-          codedTypeInfo.is(TypeInfo.SystemString, ctx.model);
+        const {isCodeableConcept, isCoding, isCode} = getCodedType(ctx, codedColl);
         if (isCoding || isCode) {
           const conceptMap = util.valData(conceptMapColl[0]);
           const coded = util.valData(codedColl[0]);
@@ -509,9 +471,9 @@ class Terminologies {
               },
               {
                 name: codedParamName,
-                [paramName2fieldName[codedParamName]]: coded
+                [paramName2valueXName[codedParamName]]: coded
               },
-              ...parseParams(params)
+              ...toFhirParameters(params)
             ]
           };
           response = util.fetchWithCache(
@@ -525,13 +487,7 @@ class Terminologies {
       }
     }
 
-    return response && response.then(obj => {
-      if (obj?.resourceType === 'Parameters') {
-        return ResourceNode.makeResNode(obj, null, null, null, null, ctx.model);
-      }
-      throw new Error(obj);
-    }).catch(() => null);
-
+    return transformResponseToResource(ctx, response, 'Parameters');
   }
 
 }
@@ -547,21 +503,26 @@ class Terminologies {
 function checkParams(params) {
   return !params?.split('&').find(
     p => {
-      const v = p.split('=');
-      return v.length <= 2 && v.find(x =>
-        encodeURIComponent(decodeURIComponent(x)) !== x);
+      if (p[0] === '=') {
+        return true;
+      } else {
+        const v = p.split('=');
+        return v.length <= 2 && v.find(x =>
+          v && encodeURIComponent(decodeURIComponent(x)) !== x);
+      }
     }
   );
 }
 
 
 /**
- * Returns the code system from the value set if it is the same for all items.
+ * Returns the code system URI from the value set if it is the same for all items.
  * Workaround for the case where we don't have a system. See discussion here:
  *  https://chat.fhir.org/#narrow/stream/179266-fhirpath/topic/Problem.20with.20the.20.22memberOf.22.20function.20and.20R4.20servers
  *
- * @param {Object} ctx -
- * @param {Object} terminologyUrl -
+ * @param {Object} ctx - object describing the context of expression
+ *  evaluation (see the "applyParsedPath" function).
+ * @param {Object} terminologyUrl - a URL that points to a terminology server
  * @param {Object|string} valueSet -  either an actual ValueSet, or a canonical URL
  *  reference to a value set.
  * @return {Promise<string>} - a promise that resolves to the code system.
@@ -599,11 +560,16 @@ function getSystemFromVS(ctx, terminologyUrl, valueSet) {
 
 
 /**
- * Returns the "system" property from an array of items if it is the same for all
- * items and equal to the initial value if the initial value is defined.
- * @param {Object[]|undefined} arr - array of items
- * @param {string|undefined} [system] - optional initial value
- * @return {string|undefined}
+ * Determines if all items in the given array have the same "system" property.
+ * If the "system" property is consistent across all items, returns that value.
+ * Otherwise, returns undefined.
+ *
+ * @param {Object[]|undefined} arr - An array of objects, each potentially
+ *  containing a "system" property.
+ * @param {string|undefined} [system] - An optional initial value for
+ *  the "system" property.
+ * @returns {string|undefined} - The consistent "system" value if all items
+ *  share the same value, or undefined otherwise.
  */
 function getSystemFromArrayItems(arr, system = undefined) {
   if (arr) {
@@ -622,21 +588,30 @@ function getSystemFromArrayItems(arr, system = undefined) {
 
 
 /**
- * Parses a URL-encoded string with parameters and returns an array of objects
- * that represent the parameters for the "Parameters" FHIR resource.
- * @param {string} params
- * @returns {Object[]}
+ * Parses a URL-encoded string with parameters and converts it into an array of
+ * objects representing the parameters for the "Parameters" FHIR resource.
+ *
+ * @param {string} params - A URL-encoded string with parameters (e.g.,
+ *  'key1=value1&key2=value2').
+ * @returns {Object[]} - An array of objects where each object represents
+ * a parameter with:
+ *  - `name`: The decoded parameter name.
+ *  - an additional value[x] field based on the parameter value type, determined
+ *    by `getParamValue`.
  */
-function parseParams(params) {
+function toFhirParameters(params) {
   const parsed = [];
   params.split('&').forEach(p => {
     const [key, value] = p.split('=');
-    if (key && value) {
+    if (key) {
       const name = decodeURIComponent(key);
-      parsed[parsed.length] = {
+      parsed.push({
         name,
-        ...getParamValue(paramName2fieldName[name], decodeURIComponent(value))
-      };
+        ...getParamValue(
+          paramName2valueXName[name],
+          decodeURIComponent(value || '')
+        )
+      });
     }
   });
   return parsed;
@@ -670,121 +645,56 @@ const modelToTranslateSourceParamName = {
 /**
  * The mapping of the search parameter names to the field names in
  * the Parameters FHIR resource (https://hl7.org/fhir/parameters.html).
+ * See search parameters for the $expand operation here:
+ *   https://hl7.org/fhir/valueset-operation-expand.html
+ *   https://hl7.org/fhir/R4/valueset-operation-expand.html
+ * Search parameters for the $lookup operation:
+ *   https://hl7.org/fhir/codesystem-operation-lookup.html
+ *   https://hl7.org/fhir/R4/codesystem-operation-lookup.html
+ * Search parameters for the /ValueSet/$validate-code operation:
+ *   https://hl7.org/fhir/valueset-operation-validate-code.html
+ *   https://hl7.org/fhir/R4/valueset-operation-validate-code.html
+ * Search parameters for the /CodeSystem/$validate-code operation:
+ *   https://hl7.org/fhir/codesystem-operation-validate-code.html
+ *   https://hl7.org/fhir/R4/codesystem-operation-validate-code.html
+ * Search parameters for the /CodeSystem/$subsumes operation:
+ *   https://hl7.org/fhir/codesystem-operation-subsumes.html
+ *   https://hl7.org/fhir/R4/codesystem-operation-subsumes.html
+ * Search parameters for the /CodeSystem/$translate operation:
+ *   https://hl7.org/fhir/conceptmap-operation-translate.html
+ *   https://hl7.org/fhir/R4/conceptmap-operation-translate.html
+ * Search parameters for the /CodeSystem/$translate operation:
+ *   https://hl7.org/fhir/conceptmap-operation-translate.html
+ *   https://hl7.org/fhir/R4/conceptmap-operation-translate.html
+ *
  * @type {Object}
- * TODO: Should this constant be moved to the model?
  */
-const paramName2fieldName = {
-  // Search parameters for the $expand operation:
-  // https://hl7.org/fhir/valueset-operation-expand.html
-  // https://hl7.org/fhir/R4/valueset-operation-expand.html
-  url: 'valueUri',
-  valueSet: 'ValueSet',
-  valueSetVersion: 'valueString',
-  context: 'valueUri',
-  contextDirection: 'valueCode',
-  filter: 'valueString',
-  date: 'valueDateTime',
-  offset: 'valueInteger',
-  count: 'valueInteger',
-  includeDesignations: 'valueBoolean',
-  designation: 'valueString',
-  includeDefinition: 'valueBoolean',
-  activeOnly: 'valueBoolean',
-  useSupplement: 'valueCanonical', // exist in R5 only
-  excludeNested: 'valueBoolean',
-  excludeNotForUI: 'valueBoolean',
-  excludePostCoordinated: 'valueBoolean',
-  displayLanguage: 'valueCode',
-  property: 'valueString', // exist in R5 only
-  'exclude-system': 'valueCanonical',
-  'system-version': 'valueCanonical',
-  'check-system-version': 'valueCanonical',
-  'force-system-version': 'valueCanonical',
-
-  // Search parameters for the $lookup operation:
-  // https://hl7.org/fhir/codesystem-operation-lookup.html
-  // https://hl7.org/fhir/R4/codesystem-operation-lookup.html
-  // (some parameters are commented out because they are already described above)
-  code: 'valueCode',
-  system: 'valueUri',
-  version: 'valueString',
-  coding: 'valueCoding',
-  // date: 'valueDateTime',
-  // displayLanguage: 'valueCode',
-  // property: 'valueCode',
-  // useSupplement: 'valueCanonical', // exist in R5 only
-
-  // Search parameters for the /ValueSet/$validate-code operation:
-  // https://hl7.org/fhir/valueset-operation-validate-code.html
-  // https://hl7.org/fhir/R4/valueset-operation-validate-code.html
-  // (some parameters are commented out because they are already described above)
-  // url: 'valueUri',
-  // context: 'valueUri',
-  // valueSet: 'ValueSet',
-  // valueSetVersion: 'valueString',
-  // code: 'valueCode',
-  // system: 'valueUri',
-  systemVersion: 'valueString',
-  display: 'valueString',
-  // coding: 'valueCoding',
-  codeableConcept: 'valueCodeableConcept',
-  // date: 'valueDateTime',
-  abstract: 'valueBoolean',
-  // displayLanguage: 'valueCode',
-  // useSupplement: 'valueCanonical', // exist in R5 only
-
-  // Search parameters for the /CodeSystem/$validate-code operation:
-  // https://hl7.org/fhir/codesystem-operation-validate-code.html
-  // https://hl7.org/fhir/R4/codesystem-operation-validate-code.html
-  // (some parameters are commented out because they are already described above)
-  // url: 'valueUri',
-  codeSystem: 'CodeSystem',
-  // code: 'valueCode',
-  // version: 'valueString',
-  // display: 'valueString',
-  // coding: 'valueCoding',
-  // codeableConcept: 'valueCodeableConcept',
-  // date: 'valueDateTime',
-  // abstract: 'valueBoolean',
-  // displayLanguage: 'valueCode',
-
-  // Search parameters for the /CodeSystem/$subsumes operation:
-  // https://hl7.org/fhir/codesystem-operation-subsumes.html
-  // https://hl7.org/fhir/R4/codesystem-operation-subsumes.html
-  // (some parameters are commented out because they are already described above)
-  codeA: 'valueCode',
-  codeB: 'valueCode',
-  // system: 'valueUri',
-  // version: 'valueString',
-  codingA: 'valueCoding',
-  codingB: 'valueCoding',
-
-  // Search parameters for the /CodeSystem/$translate operation:
-  // https://hl7.org/fhir/conceptmap-operation-translate.html
-  // https://hl7.org/fhir/R4/conceptmap-operation-translate.html
-  // (some parameters are commented out because they are already described above)
-  // url: 'valueUri',
-  conceptMap: 'ConceptMap',
-  conceptMapVersion: 'valueString',
-  sourceCode: 'valueCode', // exist in R5 only
-  // code: 'valueCode', // exist in R4 only
-  // system: 'valueUri',
-  // version: 'valueString',
-  sourceScope: 'valueUri', // exist in R5 only
-  source: 'valueUri', // exist in R4 only
-  sourceCoding: 'valueCoding', // exist in R5 only
-  // coding: 'valueCoding', // exist in R4 only
-  sourceCodeableConcept: 'valueCodeableConcept', // exist in R5 only
-  // codeableConcept: 'valueCodeableConcept', // exist in R4 only
-  targetCode: 'valueCode', // exist in R5 only
-  targetCoding: 'valueCoding', // exist in R5 only
-  targetCodeableConcept: 'valueCodeableConcept', // exist in R5 only
-  targetScope: 'valueUri', // exist in R5 only
-  target: 'valueUri', // exist in R4 only
-  targetSystem: 'valueUri',
-  /// dependency: ???
-  reverse: 'valueBoolean' // exist in R4 only
-};
+const paramName2valueXName = Object.entries({
+  valueUri: ['url', 'context', 'system', 'sourceScope', 'source', 'targetScope',
+    'target', 'targetSystem'],
+  ValueSet: ['valueSet'],
+  valueString: ['valueSetVersion', 'filter', 'designation', 'property',
+    'version', 'systemVersion', 'display', 'conceptMapVersion'],
+  valueCode: ['contextDirection', 'displayLanguage', 'code', 'codeA', 'codeB',
+    'sourceCode', 'targetCode'],
+  valueDateTime: ['date'],
+  valueInteger: ['offset', 'count'],
+  valueBoolean: ['includeDesignations', 'includeDefinition', 'activeOnly',
+    'excludeNested', 'excludeNotForUI', 'excludePostCoordinated', 'abstract',
+    'reverse'],
+  valueCanonical: ['useSupplement', 'exclude-system', 'system-version',
+    'check-system-version', 'force-system-version'],
+  valueCoding: ['coding', 'codingA', 'codingB', 'sourceCoding', 'targetCoding'],
+  valueCodeableConcept: ['codeableConcept', 'sourceCodeableConcept',
+    'targetCodeableConcept'],
+  CodeSystem: ['codeSystem'],
+  ConceptMap: ['conceptMap']
+}).reduce((acc, [key, value]) => {
+  value.forEach(v => {
+    acc[v] = key;
+  });
+  return acc;
+}, {});
 
 
 /**
@@ -800,10 +710,10 @@ const paramName2fieldName = {
  */
 function getParamValue(fieldName, value) {
   let paramValue = {};
-  let v;
-  let isTrue;
   switch (fieldName) {
-    case 'valueInteger':
+    case 'valueInteger': {
+      let v;
+
       v = Number(value);
       if (Number.isInteger(v)) {
         paramValue[fieldName] = parseInt(value);
@@ -811,7 +721,10 @@ function getParamValue(fieldName, value) {
         throw new Error(`The value for "${fieldName}" should be an integer.`);
       }
       break;
-    case 'valueBoolean':
+    }
+    case 'valueBoolean': {
+      let isTrue;
+
       isTrue = value === 'true';
       if (isTrue || value === 'false') {
         paramValue[fieldName] = isTrue;
@@ -819,6 +732,7 @@ function getParamValue(fieldName, value) {
         throw new Error(`The value for "${fieldName}" should be a boolean.`);
       }
       break;
+    }
     case 'valueCoding':
     case 'valueCodeableConcept':
     case 'CodeSystem':
@@ -830,5 +744,56 @@ function getParamValue(fieldName, value) {
   return paramValue;
 }
 
+
+/**
+ * Determines the type of a coded element from the provided collection.
+ *
+ * @param {Object} ctx - object describing the context of expression
+ *  evaluation (see the "applyParsedPath" function).
+ * @param {(ResourceNode|string)[]} codedColl - an array that should have
+ *  one element, which is either a ResourceNode with a Coding,
+ *  a CodeableConcept, or a code, or a string with a code.
+ * @returns {Object} - An object with boolean properties indicating the type of
+ *  the coded element:
+ *  - `isCodeableConcept`: True if the element is a CodeableConcept.
+ *  - `isCoding`: True if the element is a Coding.
+ *  - `isCode`: True if the element is a Code or a string.
+ */
+function getCodedType(ctx, codedColl) {
+  const codedTypeInfo = TypeInfo.fromValue(codedColl[0]);
+  const isCodeableConcept =
+    codedTypeInfo.is(TypeInfo.FhirCodeableConcept, ctx.model);
+  const isCoding = !isCodeableConcept && codedTypeInfo.is(TypeInfo.FhirCoding, ctx.model);
+  const isCode = !isCodeableConcept && !isCoding && (
+    codedTypeInfo.is(TypeInfo.FhirCode, ctx.model) ||
+    codedTypeInfo.is(TypeInfo.SystemString, ctx.model)
+  );
+  return {isCodeableConcept, isCoding, isCode};
+}
+
+/**
+ * Transforms a response object into a ResourceNode if the response matches
+ * the expected resource type.
+ *
+ * @param {Object} ctx - object describing the context of expression
+ *  evaluation (see the "applyParsedPath" function).
+ * @param {Promise<Object>|null} response - A promise resolving to the response
+ *  object or null.
+ * @param {string} resourceType - The expected FHIR resource type (e.g.,
+ *  "ValueSet", "Parameters").
+ * @returns {Promise<ResourceNode|null>} - A promise resolving to a ResourceNode
+ *  if the resource type matches, or null if an error occurs or the resource
+ *  type does not match.
+ */
+function transformResponseToResource(ctx, response, resourceType) {
+  return response && response.then(obj => {
+    if (obj?.resourceType === resourceType) {
+      return ResourceNode.makeResNode(obj, null, null, null, null, ctx.model);
+    }
+    // Throw an error if the resource type does not match - will cause the catch
+    // function to be called.
+    throw new Error('Unexpected resourceType in response: ' + obj?.resourceType);
+  }).catch(() => null);
+}
 
 module.exports = Terminologies;

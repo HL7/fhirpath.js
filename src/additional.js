@@ -19,7 +19,7 @@ let engine = {};
 engine.memberOf = function (coll, valueSetColl ) {
   const ctx = this;
 
-  util.checkContext(ctx, 'memberOf');
+  util.checkAllowAsync(ctx, 'memberOf');
   // If the input is empty or has more than one value, the return value is empty
   if (coll.length === 1 && coll[0] != null && valueSetColl.length === 1 && valueSetColl[0] != null) {
     const typeInfo = TypeInfo.fromValue(valueSetColl[0]);

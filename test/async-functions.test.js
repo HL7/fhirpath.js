@@ -103,6 +103,47 @@ describe('Async functions', () => {
       })
     });
 
+
+    it('should return an empty value if an error occurs', (done) => {
+      mockFetchResults([
+        [{url: 'ValueSet/$expand', body: bodyStr => {
+          const bodyObj = JSON.parse(bodyStr);
+          return bodyObj.resourceType === 'Parameters' &&
+            bodyObj.parameter.find(
+              p => p.name === 'valueSet'
+            ).resource.resourceType === 'ValueSet' &&
+            bodyObj.parameter.find(
+              p => p.name === 'offset'
+            ).valueInteger === 20 &&
+            bodyObj.parameter.find(
+              p => p.name === 'count'
+            ).valueInteger === 20;
+        }}, null, {
+          "resourceType": "OperationOutcome",
+          "issue": [ {
+            "severity": "error",
+            "code": "processing",
+            "diagnostics": "Additional diagnostic information about the issue."
+          } ]
+        }]
+      ]);
+
+      let result = fhirpath.evaluate(
+        emptyResource,
+        "%terminologies.expand(%administrativeGenderVS, 'offset=20&count=20') is ValueSet",
+        {
+          administrativeGenderVS
+        },
+        modelR4,
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([]);
+        done();
+      })
+    });
+
   });
 
 
