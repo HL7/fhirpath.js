@@ -722,17 +722,15 @@ function getParamValue(fieldName, value) {
       }
       break;
     }
-    case 'valueBoolean': {
-      let isTrue;
-
-      isTrue = value === 'true';
-      if (isTrue || value === 'false') {
-        paramValue[fieldName] = isTrue;
+    case 'valueBoolean':
+      if (value === 'true') {
+        paramValue[fieldName] = true;
+      } else if (value === 'false') {
+        paramValue[fieldName] = false;
       } else {
         throw new Error(`The value for "${fieldName}" should be a boolean.`);
       }
       break;
-    }
     case 'valueCoding':
     case 'valueCodeableConcept':
     case 'CodeSystem':
