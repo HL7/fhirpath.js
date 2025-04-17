@@ -66,7 +66,7 @@ const Factory = require('./factory');
 //   calling function if one of params is  empty return empty
 
 engine.invocationTable = {
-  memberOf:     {fn: additional.memberOf, arity: { 1: ['String']} },
+  memberOf:     {fn: additional.memberOf, arity: { 1: ['Any']} },
   empty:        {fn: existence.emptyFn},
   not:          {fn: existence.notFn},
   exists:       {fn: existence.existsMacro, arity: {0: [], 1: ["Expr"]}},

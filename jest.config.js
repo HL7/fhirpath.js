@@ -2,7 +2,7 @@
 // https://jestjs.io/docs/en/configuration.html
 
 module.exports = {
-//testRegex: './test/fhirpath.test.js',
+  // testRegex: './test/async-functions.test.js',
   testEnvironment: "node",
   testPathIgnorePatterns: ["/cypress/", "/node_modules/"]
 };
