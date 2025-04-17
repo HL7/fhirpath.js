@@ -414,8 +414,12 @@ Supported additional functions from FHIR:
 - memberOf(valueset : string) : Boolean
 
 Supported [Terminology Service APIs](https://build.fhir.org/fhirpath.html#txapi):
-- only `%terminologies.validateVS(valueSet, coded, params) : Parameters` is
-  partially supported. `valueSet` can only be a URL.
+- %terminologies.expand(valueSet, params) : ValueSet
+- %terminologies.lookup(coded, params) : Parameters
+- %terminologies.validateVS(valueSet, coded, params) : Parameters
+- %terminologies.validateCS(codeSystem, coded, params) : Parameters
+- %terminologies.subsumes(system, coded1, coded2, params) : code
+- %terminologies.translate(conceptMap, code, params) : Parameters
 
 Supported [FHIRPath supplements](https://hl7.org/fhir/uv/sdc/expressions.html#fhirpath-supplements):
 - sum(), min(), max(), count(), avg() - short-cuts for the equivalent .aggregate().
