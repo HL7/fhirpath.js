@@ -52,6 +52,18 @@ tests:
       expression: "Ops.int1 = Ops.int2"
       result: [false]
 
+    - desc: '** not equal, different types'
+      expression: "2 = 2L"
+      result: [false]
+
+    - desc: '** equal, long integers'
+      expression: "2L = 2L"
+      result: [true]
+
+    - desc: '** not equal, long integers'
+      expression: "2L = 3L"
+      result: [false]
+
     - desc: '* decimal: values must be equal, trailing zeroes are ignored'
     - desc: '** decimals equal'
       expression: "1.01 = 1.01"
@@ -415,6 +427,13 @@ tests:
       expression: "1.001 ~ 01.0012"
       result: [true]
 
+    - desc: '** equivalence of integer and long'
+      expression: "2 ~ 2L"
+      result: [true]
+    - desc: '** non-equivalence of integer and long'
+      expression: "1 ~ 2L"
+      result: [false]
+
     - 'group: trailing zeros after decimal':
       - expression: 1.100 ~ 1.1
         result: [true]
@@ -581,6 +600,18 @@ tests:
       expression: "Ops.int1 != Ops.int2"
       result: [true]
 
+    - desc: '** not equal, different types'
+      expression: "2 != 2L"
+      result: [true]
+
+    - desc: '** equal, long integers'
+      expression: "2L != 2L"
+      result: [false]
+
+    - desc: '** not equal, long integers'
+      expression: "1L != 2L"
+      result: [true]
+
     - desc: '* decimal: values must be equal, trailing zeroes are ignored'
     - desc: '** decimals equal'
       expression: "1.01 != 1.01"
@@ -675,6 +706,12 @@ tests:
         result: [true]
 
   - 'group: 6.1.4. !~ (Not Equivalent)':
+    - desc: '** equivalence of integer and long'
+      expression: "2 !~ 2L"
+      result: [false]
+    - desc: '** non-equivalence of integer and long'
+      expression: "1 !~ 2L"
+      result: [true]
 # The inverse of the equivalent operator.
     - 'group: Dates & Times':
       - desc:  'DateTime literal compared with DateTime'

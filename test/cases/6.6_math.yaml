@@ -7,6 +7,21 @@ tests:
   - desc: '** Can multiply two number literals'
     expression: 2 * 4
     result: [8]
+  - desc: '** Can multiply two long number literals'
+    expression: 2L * 4L
+    result: ['8']
+  - desc: '** Can multiply a long number literal by a number literal'
+    expression: 2L * 4
+    result: ['8']
+  - desc: '** Can multiply a long number literal by a decimal literal'
+    expression: 2L * 4.1
+    result: [8.2]
+  - desc: '** Can multiply a decimal literal by a long number literal'
+    expression: 4.1 * 2L
+    result: [8.2]
+  - desc: '** Error multiplying a long number literal by a Quantity literal'
+    expression: 2L * 4 '1'
+    error: true
   - desc: '** Error multiplying string (1)'
     expression: s5 * n2
     error: true
@@ -64,6 +79,21 @@ tests:
   - desc: '** Can divide two number literals'
     expression: 5/2
     result: [2.5]
+  - desc: '** Can divide two long number literals'
+    expression: 2L / 4L
+    result: [0.5]
+  - desc: '** Can divide a long number literal by a number literal'
+    expression: 2L / 4
+    result: [0.5]
+  - desc: '** Can divide a long number literal by a decimal literal'
+    expression: 9L / 4.5
+    result: [2]
+  - desc: '** Can divide a decimal literal by a long number literal'
+    expression: 9 / 4L
+    result: [2.25]
+  - desc: '** Error dividing a Quantity literal by a long number literal'
+    expression: 4 '1' / 2L
+    error: true
   - desc: '** Empty result when one of the operands is null'
     expression: n1 / i
     result: []
@@ -138,6 +168,18 @@ tests:
   - desc: '** Can add two number literals'
     expression: 2+3
     result: [5]
+  - desc: '** Can add two long number literals'
+    expression: 2L + 4L
+    result: ['6']
+  - desc: '** Can add a number literal to a long number literal'
+    expression: 2L + 4
+    result: ['6']
+  - desc: '** Can add a decimal literal to a long number literal'
+    expression: 9L + 4.5
+    result: [13.5]
+  - desc: '** Error adding a long number literal to a Quantity literal'
+    expression: 4 '1' + 2L
+    error: true
   - desc: '** Can add two quantity literals'
     expression: 3 'm' + 3 'cm' = 303 'cm'
     result: [true]
@@ -211,6 +253,21 @@ tests:
   - desc: '** Can subtract two number literals'
     expression:  5-3
     result: [2]
+  - desc: '** Can subtract two long number literals'
+    expression: 2L - 4L
+    result: ['-2']
+  - desc: '** Can subtract a number literal from a long number literal'
+    expression: 2L - 4
+    result: ['-2']
+  - desc: '** Can subtract a decimal literal from a long number literal'
+    expression: 9L - 4.5
+    result: [4.5]
+  - desc: '** Error subtracting a long number literal from a Quantity literal'
+    expression: 4 '1' - 2L
+    error: true
+  - desc: '** Error subtracting a Quantity literal from a long number literal'
+    expression: 2L - 4 '1'
+    error: true
   - desc: '** Empty result when one of the operands is empty'
     expression: n1 - n4
     result: []
@@ -253,6 +310,18 @@ tests:
   - desc: '** Can div two numbers'
     expression: n2 div n1
     result: [2]
+  - desc: '** Can div two long number literals'
+    expression: 5L div 2L
+    result: ['2']
+  - desc: '** Can div a long number literal by a number literal'
+    expression: 5L div 2
+    result: [2]
+  - desc: '** Can div a long number literal by a decimal literal'
+    expression: 10L div 4.5
+    result: [2]
+  - desc: '** Error dividing a Quantity literal by a long number literal'
+    expression: 4 '1' div 2L
+    error: true
   - desc: '** Empty result when one of the operands is null'
     expression: n1 div i
     result: []
@@ -271,6 +340,18 @@ tests:
   - desc: '** Can mod two numbers'
     expression: n2 mod n1
     result: [1]
+  - desc: '** Can mod two long number literals'
+    expression: 5L mod 2L
+    result: ['1']
+  - desc: '** Can mod a long number literal by a number literal'
+    expression: 5L mod 2
+    result: [1]
+  - desc: '** Can mod a long number literal by a decimal literal'
+    expression: 10L mod 4.5
+    result: [1]
+  - desc: '** Error dividing a Quantity literal by a long number literal'
+    expression: 4 '1' mod 2L
+    error: true
   - desc: '** Empty result when one of the operands is null'
     expression: n1 mod i
     result: []

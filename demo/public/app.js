@@ -70,7 +70,7 @@ function evaluate(){
           // objects during yaml.dump, so we take care of that by calling toJSON
           // first, parsing that, and then creating the yaml output.
           outNode.childNodes.item(0).textContent =
-            yaml.dump(JSON.parse(JSON.stringify(r)), {lineWidth: 50});
+            yaml.dump(JSON.parse(fhirpath.util.toJSON(r)), {lineWidth: 50});
         }).catch((e) => {
           if (!signal.aborted) {
             outNode.innerHTML = '<div style="color: red;" />';
@@ -79,7 +79,7 @@ function evaluate(){
         });
       } else {
         outNode.childNodes.item(0).textContent =
-          yaml.dump(JSON.parse(JSON.stringify(result)), {lineWidth: 50});
+          yaml.dump(JSON.parse(fhirpath.util.toJSON(result)), {lineWidth: 50});
       }
     }
   } catch (e) {
@@ -117,7 +117,7 @@ function handleInputTypeChange(event) {
       cm.setOption('mode', 'javascript');
       cm.setOption('json', 'true');
       if (yamlVal) {
-        cm.setValue(JSON.stringify(yaml.safeLoad(yamlVal), null, 2));
+        cm.setValue(fhirpath.util.toJSON(yaml.safeLoad(yamlVal), 2));
       }
     }
     else { // yaml
@@ -171,7 +171,7 @@ function updateCurrentVariable() {
   const selected = document.querySelector('#variables label.selected');
   const editorText = cm.getValue();
   if (cm.getOption('mode') === 'yaml') {
-    selected.setAttribute('data-json', editorText ? JSON.stringify(yaml.safeLoad(cm.getValue()), null, 2) : '');
+    selected.setAttribute('data-json', editorText ? fhirpath.util.toJSON(yaml.safeLoad(cm.getValue()), 2) : '');
   } else {
     selected.setAttribute('data-json', editorText);
   }
@@ -241,7 +241,7 @@ getVariableLabels().forEach((item, index) => {
   item.addEventListener("focusin", selectVariableLabel);
   if (index === 0) {
     item.className = "selected";
-    item.setAttribute("data-json", JSON.stringify(example, null, 2));
+    item.setAttribute("data-json", fhirpath.util.toJSON(example, 2));
     updateEditorText();
     updateEditorTitle();
   }

@@ -9,7 +9,7 @@ module.exports = {
     static: './build',
     allowedHosts: 'all'
   },
-  target: "es5",
+  target: "es2020",
   devtool: 'source-map',
   module: {
     rules: [
@@ -22,7 +22,7 @@ module.exports = {
             presets: [['@babel/preset-env',
               {
                 targets: {
-                  browsers: 'ie >= 11'
+                  browsers: '> 0.5%, last 2 versions, Firefox ESR, not dead'
                 }
               }
             ]]

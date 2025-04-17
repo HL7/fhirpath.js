@@ -8,7 +8,7 @@ const path = require('path');
 function makeBaseConfig() {
   return {
     mode: 'production',
-    target: "es5",
+    target: "es2020",
     devtool: 'source-map',
     output: {
       libraryTarget: 'window',
@@ -26,7 +26,7 @@ function makeBaseConfig() {
               presets: [['@babel/preset-env',
                 {
                   targets: {
-                    browsers: 'ie >= 11'
+                    browsers: '> 0.5%, last 2 versions, Firefox ESR, not dead'
                   }
                 }
               ]]

@@ -1,4 +1,5 @@
-const util = require('util');
+const util = require('../src/utilities');
+const util1 = require('util');
 const _ = require('lodash');
 
 const xml2js = require('xml2js');
@@ -24,7 +25,7 @@ function validateTest(test) {
       if (result.length === 1 && result[0] instanceof FP_DateTime)
         return equals(new Date(result[0]), new Date(test.result[0]));
       else
-        return equals(JSON.parse(JSON.stringify(result)), test.result);
+        return equals(JSON.parse(util.toJSON(result)), test.result);
     } catch (e) {
       return false;
     }
@@ -129,7 +130,7 @@ module.exports = {
    */
   testsXmlStringToYamlString: async (xmlData, model) => {
     const parser = new xml2js.Parser({ explicitCharkey: true });
-    const parseString = util.promisify(parser.parseString);
+    const parseString = util1.promisify(parser.parseString);
 
     const parsed = await parseString(xmlData);
     const transformed = transform(parsed, model);

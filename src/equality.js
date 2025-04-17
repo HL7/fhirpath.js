@@ -52,8 +52,12 @@ function typecheck(a, b){
   a = util.valDataConverted(a[0]);
   b = util.valDataConverted(b[0]);
   if (a != null && b != null) {
-    let lClass = a instanceof FP_DateTime ? FP_DateTime : a.constructor;
-    let rClass = b instanceof FP_DateTime ? FP_DateTime : b.constructor;
+    // FP_Date, FP_Instant are extended from FP_DateTime and can be compared
+    // in some cases. BigInt can be compared to Number.
+    let lClass = a instanceof FP_DateTime ? FP_DateTime
+      : typeof a === 'bigint' ? Number : a.constructor;
+    let rClass = b instanceof FP_DateTime ? FP_DateTime
+      : typeof b === 'bigint' ? Number : b.constructor;
     if (lClass !== rClass) {
       util.raiseError('Type of "' + a + '" (' + lClass.name + ') did not match type of "' +
         b + '" (' + rClass.name + ')', 'InequalityExpression');

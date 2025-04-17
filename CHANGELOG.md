@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.2.0] - 2024-04-10
+### Added
+- Support for the `LONGNUMBER` literal and the corresponding FHIR `integer64`
+  data type.
+
 ## [4.1.0] - 2024-04-08
 ### Added
 - Implemented the Terminology Service API (%terminologies).

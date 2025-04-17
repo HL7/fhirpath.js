@@ -138,11 +138,11 @@ class Factory {
       {
         type: 'integer64',
         getValue: (v) => {
-          const n = Number(v);
-          if (Number.isInteger(n)) {
-            return n;
+          try {
+            return BigInt(v);
+          } catch (e) {
+            throw new Error(`"${v}" is not a big integer.` );
           }
-          throw new Error(`"${v}" is not an integer.` );
         }
       },
       {
@@ -302,7 +302,7 @@ class Factory {
       Factory[primitiveType] = function (self, valueColl, extensions) {
         let data;
         if (valueColl.length > 1) {
-          throw new Error('Unexpected collection ' + JSON.stringify(valueColl) +
+          throw new Error('Unexpected collection ' + util.toJSON(valueColl) +
             ` as a value for %factory.${primitiveType}(value, extensions)`);
         } else if (valueColl.length === 0) {
           data = null;
@@ -353,12 +353,12 @@ class Factory {
   static Extension(self, url, value) {
     if (value.length !== 1) {
       if (value.length > 1) {
-        throw new Error("Unexpected collection " + JSON.stringify(value) +
+        throw new Error("Unexpected collection " + util.toJSON(value) +
           " as a value for %factory.Extension(url, value)");
       }
 
       if (value.length === 0) {
-        throw new Error("Unexpected empty collection " + JSON.stringify(value) +
+        throw new Error("Unexpected empty collection " + util.toJSON(value) +
           " as a value for %factory.Extension(url, value)");
       }
     } else {
@@ -396,7 +396,7 @@ class Factory {
    */
   static Identifier (self, system, value, use, typeColl) {
     if (typeColl?.length > 1) {
-      throw new Error("Unexpected collection " + JSON.stringify(typeColl) +
+      throw new Error("Unexpected collection " + util.toJSON(typeColl) +
         " as a type for %factory.Identifier{system, value, use, type)");
     }
     const data = {};
@@ -444,7 +444,7 @@ class Factory {
         if (typeof v === "string") {
           return v;
         }
-        throw new Error(`Expected string, but got: ${JSON.stringify(v)}`);
+        throw new Error(`Expected string, but got: ${util.toJSON(v)}`);
       });
     }
     if (util.isSome(prefix)) {
@@ -509,7 +509,7 @@ class Factory {
         if (typeof v === "string") {
           return v;
         }
-        throw new Error(`Expected string, but got: ${JSON.stringify(v)}`);
+        throw new Error(`Expected string, but got: ${util.toJSON(v)}`);
       });
     }
     if (util.isSome(city)) {
@@ -608,7 +608,7 @@ class Factory {
             coding.getTypeInfo().name === 'Coding') {
             return util.valData(coding);
           }
-          throw new Error("Unexpected value " + JSON.stringify(coding) +
+          throw new Error("Unexpected value " + util.toJSON(coding) +
             "; expected value of type Coding");
         })
       }
@@ -651,18 +651,18 @@ class Factory {
    */
   static withExtension(self, instanceColl, url, value) {
     if (instanceColl.length > 1 ) {
-      throw  new Error("Unexpected collection " + JSON.stringify(instanceColl) +
+      throw  new Error("Unexpected collection " + util.toJSON(instanceColl) +
         " as an instance for %factory.withExtension(instance, url, value)");
     }
 
     if (value.length !== 1) {
       if (value.length > 1) {
-        throw new Error("Unexpected collection " + JSON.stringify(value) +
+        throw new Error("Unexpected collection " + util.toJSON(value) +
           " as a value for %factory.withExtension(instance, url, value)");
       }
 
       if (value.length === 0) {
-        throw new Error("Unexpected empty collection " + JSON.stringify(value) +
+        throw new Error("Unexpected empty collection " + util.toJSON(value) +
           " as a value for %factory.withExtension(instance, url, value)");
       }
     }
@@ -712,18 +712,18 @@ class Factory {
    */
   static withProperty(self, instanceColl, name, value) {
     if (instanceColl.length > 1 ) {
-      throw  new Error("Unexpected collection " + JSON.stringify(instanceColl) +
+      throw  new Error("Unexpected collection " + util.toJSON(instanceColl) +
         " as an instance for %factory.withProperty(instance, name, value)");
     }
 
     if (value.length !== 1) {
       if (value.length > 1) {
-        throw new Error("Unexpected collection " + JSON.stringify(value) +
+        throw new Error("Unexpected collection " + util.toJSON(value) +
           " as a value for %factory.withProperty(instance, name, value)");
       }
 
       if (value.length === 0) {
-        throw new Error("Unexpected empty collection " + JSON.stringify(value) +
+        throw new Error("Unexpected empty collection " + util.toJSON(value) +
           " as a value for %factory.withProperty(instance, name, value)");
       }
     }

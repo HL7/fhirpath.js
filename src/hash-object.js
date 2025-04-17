@@ -26,6 +26,8 @@ function prepareObject(value) {
   value = valDataConverted(value);
   if (value === null) {
     return null;
+  } else if (typeof value === 'bigint') {
+    return value.toString();
   } else if (typeof value === 'number') {
     return roundToMaxPrecision(value);
   } else if (value instanceof Date) {
