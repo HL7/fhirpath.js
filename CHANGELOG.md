@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.1.1] - 2024-04-18
+### Fixed
+- Updated the list of supported Terminology Service API functions in README.md.
+
 ## [4.1.0] - 2024-04-08
 ### Added
 - Implemented the Terminology Service API (%terminologies).
