@@ -52,9 +52,13 @@ tests:
       expression: "Ops.int1 = Ops.int2"
       result: [false]
 
-    - desc: '** not equal, different types'
+    - desc: '** equal, different types, but same values'
       expression: "2 = 2L"
-      result: [false]
+      result: [true]
+
+    - desc: '** equal, different types, but same values (opposite order of operands)'
+      expression: "2L = 2"
+      result: [true]
 
     - desc: '** equal, long integers'
       expression: "2L = 2L"
@@ -600,9 +604,13 @@ tests:
       expression: "Ops.int1 != Ops.int2"
       result: [true]
 
-    - desc: '** not equal, different types'
+    - desc: '** equal, different types, but same values'
       expression: "2 != 2L"
-      result: [true]
+      result: [false]
+
+    - desc: '** equal, different types, but same values (opposite order of operands)'
+      expression: "2L != 2"
+      result: [false]
 
     - desc: '** equal, long integers'
       expression: "2L != 2L"

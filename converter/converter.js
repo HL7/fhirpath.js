@@ -1,5 +1,5 @@
 const util = require('../src/utilities');
-const util1 = require('util');
+const nodeUtil = require('util');
 const _ = require('lodash');
 
 const xml2js = require('xml2js');
@@ -130,7 +130,7 @@ module.exports = {
    */
   testsXmlStringToYamlString: async (xmlData, model) => {
     const parser = new xml2js.Parser({ explicitCharkey: true });
-    const parseString = util1.promisify(parser.parseString);
+    const parseString = nodeUtil.promisify(parser.parseString);
 
     const parsed = await parseString(xmlData);
     const transformed = transform(parsed, model);

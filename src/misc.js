@@ -81,15 +81,16 @@ engine.defineVariable = function (x, label, expr) {
 
 
 /**
- * Returns:
- *  true - if the input collection has only one item.
+ * Checks if the input collection is a singleton (contains exactly one item).
+ * Throws an error if the collection contains more than one item.
+ *
+ * @param {Array} coll - The input collection to check.
+ * @param {string} fnName - The name of the calling function, used in the error message.
+ * @return {boolean} - Returns true if the input collection has only one item,
  *  false - if the input collection has no items.
- *  throws an error - if the input collection has more than one item.
- * @param {Array} coll - the input collection
- * @param {string} fnName - the caller function name to report in the error message
- * @return {boolean}
+ * @throws {Error} - Throws an error if the input collection contains more than one item
  */
-function isSingleton(coll, fnName) {
+function checkSingleton(coll, fnName) {
   if (coll.length > 1) {
     util.raiseError('The input collection contains multiple items', fnName);
   }
@@ -99,10 +100,12 @@ function isSingleton(coll, fnName) {
 var intRegex = /^[+-]?\d+$/;
 engine.toInteger = function(coll){
   let rtn;
-  //  If the input collection contains multiple items, the evaluation of
-  //  the expression will end and signal an error to the calling environment.
-  //  If the input collection is empty, the result is an empty collection.
-  if (isSingleton(coll, 'toInteger')) {
+  // If the input collection contains multiple items, the evaluation of
+  // the expression will end and signal an error to the calling environment.
+  // If the input collection is empty, the result is an empty collection.
+  // Note: An undefined result will be converted to an empty collection in
+  // the calling function.
+  if (checkSingleton(coll, 'toInteger')) {
     const v = util.valData(coll[0]);
     if (v === false) {
       rtn = 0;
@@ -111,6 +114,8 @@ engine.toInteger = function(coll){
     } else {
       const type = typeof v;
       if (type === "bigint") {
+        // See the table of the possible conversions supported:
+        // https://build.fhir.org/ig/HL7/FHIRPath/#conversion
         rtn = Number(v);
       } else if (type === "number") {
         if (Number.isInteger(v)) {
@@ -127,10 +132,12 @@ engine.toInteger = function(coll){
 
 engine.toLong = function(coll){
   let rtn;
-  //  If the input collection contains multiple items, the evaluation of
-  //  the expression will end and signal an error to the calling environment.
-  //  If the input collection is empty, the result is an empty collection.
-  if (isSingleton(coll, 'toLong')) {
+  // If the input collection contains multiple items, the evaluation of
+  // the expression will end and signal an error to the calling environment.
+  // If the input collection is empty, the result is an empty collection.
+  // Note: An undefined result will be converted to an empty collection in
+  // the calling function.
+  if (checkSingleton(coll, 'toLong')) {
     const v = util.valData(coll[0]);
 
     if (v === false) {
@@ -158,10 +165,12 @@ const quantityRegex = /^((\+|-)?\d+(\.\d+)?)\s*(('[^']+')|([a-zA-Z]+))?$/,
 engine.toQuantity = function (coll, toUnit) {
   let result;
 
-  //  If the input collection contains multiple items, the evaluation of
-  //  the expression will end and signal an error to the calling environment.
-  //  If the input collection is empty, the result is an empty collection.
-  if (isSingleton(coll, 'toQuantity')) {
+  // If the input collection contains multiple items, the evaluation of
+  // the expression will end and signal an error to the calling environment.
+  // If the input collection is empty, the result is an empty collection.
+  // Note: An undefined result will be converted to an empty collection in
+  // the calling function.
+  if (checkSingleton(coll, 'toQuantity')) {
     if (toUnit) {
       const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
       const toUnitInSeconds = FP_Quantity._calendarDuration2Seconds[toUnit];
@@ -213,10 +222,12 @@ engine.toQuantity = function (coll, toUnit) {
 var numRegex = /^[+-]?\d+(\.\d+)?$/;
 engine.toDecimal = function(coll){
   let rtn;
-  //  If the input collection contains multiple items, the evaluation of
-  //  the expression will end and signal an error to the calling environment.
-  //  If the input collection is empty, the result is an empty collection.
-  if (isSingleton(coll, 'toDecimal')) {
+  // If the input collection contains multiple items, the evaluation of
+  // the expression will end and signal an error to the calling environment.
+  // If the input collection is empty, the result is an empty collection.
+  // Note: An undefined result will be converted to an empty collection in
+  // the calling function.
+  if (checkSingleton(coll, 'toDecimal')) {
     const v = util.valData(coll[0]);
     if (v === false) {
       rtn = 0;
@@ -225,6 +236,8 @@ engine.toDecimal = function(coll){
     } else {
       const type = typeof v;
       if (type === "bigint") {
+        // See the table of the possible conversions supported:
+        // https://build.fhir.org/ig/HL7/FHIRPath/#conversion
         rtn = Number(v);
       } else if (type === "number") {
         rtn = v;
@@ -238,10 +251,12 @@ engine.toDecimal = function(coll){
 
 engine.toString = function(coll){
   let rtn;
-  //  If the input collection contains multiple items, the evaluation of
-  //  the expression will end and signal an error to the calling environment.
-  //  If the input collection is empty, the result is an empty collection.
-  if (isSingleton(coll, 'toString')) {
+  // If the input collection contains multiple items, the evaluation of
+  // the expression will end and signal an error to the calling environment.
+  // If the input collection is empty, the result is an empty collection.
+  // Note: An undefined result will be converted to an empty collection in
+  // the calling function.
+  if (checkSingleton(coll, 'toString')) {
     rtn = util.valDataConverted(coll[0])?.toString();
   }
   return rtn;
@@ -259,7 +274,7 @@ function defineTimeConverter(timeType) {
     //  If the input collection contains multiple items, the evaluation of
     //  the expression will end and signal an error to the calling environment.
     //  If the input collection is empty, the result is an empty collection.
-    if (isSingleton(coll, 'toQuantity')) {
+    if (checkSingleton(coll, 'to'+timeName)) {
       const v = util.valData(coll[0]);
       if (typeof v === "string") {
         const t = types[timeType].checkString(v);
@@ -289,16 +304,20 @@ const falseStrings = ['false', 'f', 'no', 'n', '0', '0.0'].reduce((acc, val) => 
 
 engine.toBoolean = function (coll) {
   let rtn;
-  //  If the input collection contains multiple items, the evaluation of
-  //  the expression will end and signal an error to the calling environment.
-  //  If the input collection is empty, the result is an empty collection.
-  if (isSingleton(coll, 'toQuantity')) {
+  // If the input collection contains multiple items, the evaluation of
+  // the expression will end and signal an error to the calling environment.
+  // If the input collection is empty, the result is an empty collection.
+  // Note: An undefined result will be converted to an empty collection in
+  // the calling function..
+  if (checkSingleton(coll, 'toBoolean')) {
     const v = util.valData(coll[0]);
     switch (typeof v) {
       case 'boolean':
         rtn = v;
         break;
       case 'bigint':
+        // See the table of the possible conversions supported:
+        // https://build.fhir.org/ig/HL7/FHIRPath/#conversion
         if (v === 1n) {
           rtn = true;
         } else if (v === 0n) {

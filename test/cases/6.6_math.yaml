@@ -97,6 +97,15 @@ tests:
   - desc: '** Empty result when one of the operands is null'
     expression: n1 / i
     result: []
+  - desc: '** Empty result when dividing by zero (1)'
+    expression: 1L / 0L
+    result: []
+  - desc: '** Empty result when dividing by zero (2)'
+    expression: 1L / 0
+    result: []
+  - desc: '** Empty result when dividing by zero (3)'
+    expression: 1 / 0L
+    result: []
   - desc: '** Can divide two quantities'
     expression: 10 'kg' / 5 'm' = 2 'kg/m'
     result: [true]

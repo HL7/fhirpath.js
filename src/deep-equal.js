@@ -60,13 +60,21 @@ function deepEqual(v1, v2, opts) {
     // If these are numbers, they need to be rounded to the maximum supported
     // precision to remove floating point arithmetic errors (e.g. 0.1+0.1+0.1 should
     // equal 0.3) before comparing.
-    if (typeof actual === 'number' && typeof expected === 'number') {
-      if(numbers.isEqual(actual, expected)) {
-        return v1IsResourceNode && v2IsResourceNode ?
-          deepEqual(v1._data, v2._data, opts) : true;
-      } else {
-        return false;
+    const typeOfActual = typeof actual;
+    if (typeOfActual === 'number') {
+      const typeOfExpected = typeof expected;
+      if (typeOfExpected === 'bigint') {
+        return actual == expected;
+      } else if (typeOfExpected === 'number') {
+        if(numbers.isEqual(actual, expected)) {
+          return v1IsResourceNode && v2IsResourceNode ?
+            deepEqual(v1._data, v2._data, opts) : true;
+        } else {
+          return false;
+        }
       }
+    } else if (typeOfActual === 'bigint' && typeof expected === 'number') {
+      return actual == expected;
     }
   }
 

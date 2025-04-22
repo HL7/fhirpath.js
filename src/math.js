@@ -206,9 +206,11 @@ engine.div = function(xs, ys){
     }
     if(typeof x == 'bigint') {
       if (typeof y == 'bigint') {
+        if (y === 0n) return [];
         return Number(x) / Number(y);
       }
       if (typeof y == "number") {
+        if (y === 0) return [];
         return Number(x) / y;
       }
       if (y instanceof FP_Quantity) {
@@ -221,6 +223,7 @@ engine.div = function(xs, ys){
         return x / y;
       }
       if (typeof y === 'bigint') {
+        if (y === 0n) return [];
         return x / Number(y);
       }
       if (y instanceof FP_Quantity) {
