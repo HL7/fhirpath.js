@@ -54,10 +54,8 @@ function typecheck(a, b){
   if (a != null && b != null) {
     // FP_Date, FP_Instant are extended from FP_DateTime and can be compared
     // in some cases. BigInt can be compared to Number.
-    let lClass = a instanceof FP_DateTime ? FP_DateTime
-      : typeof a === 'bigint' ? Number : a.constructor;
-    let rClass = b instanceof FP_DateTime ? FP_DateTime
-      : typeof b === 'bigint' ? Number : b.constructor;
+    let lClass = getClassForComparison(a);
+    let rClass = getClassForComparison(b);
     if (lClass !== rClass) {
       util.raiseError('Type of "' + a + '" (' + lClass.name + ') did not match type of "' +
         b + '" (' + rClass.name + ')', 'InequalityExpression');
@@ -65,6 +63,23 @@ function typecheck(a, b){
   }
   return [a, b];
 }
+
+
+/**
+ * Determines the class of an object for comparison purposes. Should return
+ * the same value for objects that can be compared.
+ *
+ * @param {*} obj - The object to evaluate.
+ * @returns {Function} - The constructor or class of the object:
+ *   - Returns `FP_DateTime` if the object is an instance of `FP_DateTime`.
+ *   - Returns `Number` if the object is of type `bigint`.
+ *   - Otherwise, returns the object's constructor.
+ */
+function getClassForComparison(obj) {
+  return obj instanceof FP_DateTime ? FP_DateTime
+    : typeof obj === 'bigint' ? Number : obj.constructor;
+}
+
 
 engine.lt = function(a, b){
   const [a0, b0] = typecheck(a,b);
