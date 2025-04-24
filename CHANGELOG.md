@@ -3,6 +3,12 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.2.1] - 2024-04-18
+### Fixed
+- The ofType() function now uses automatic conversion when comparing types.
+  See https://hl7.org/fhir/fhirpath.html#types.
+- System.Quantity was treated as a primitive type by mistake.
+
 ## [4.2.0] - 2024-04-10
 ### Added
 - Support for the `LONGNUMBER` literal and the corresponding FHIR `integer64`

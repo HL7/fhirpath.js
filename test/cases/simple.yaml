@@ -177,6 +177,13 @@ tests:
     result:
       - Peter
       - James
+  - desc: 'ofType() function for the null element of a collection (3)'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: Patient.name.given.ofType(System.String)
+    result:
+      - Peter
+      - James
 
 subject:
   resourceType: Patient
