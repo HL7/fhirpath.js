@@ -1437,8 +1437,9 @@ class TypeInfo {
 
   /**
    * Determines whether the current type can be automatically converted to
-   * another type or whether another type specifies a superclass for the current
-   * type.
+   * another type or whether another type specifies the same type or
+   * a superclass for the current type.
+   * See automatic conversion: https://hl7.org/fhir/fhirpath.html#types
    *
    * @param {TypeInfo} other - The `TypeInfo` object to compare with.
    * @param {Object} model - The model object specific to a domain (e.g., R4).
@@ -1446,14 +1447,16 @@ class TypeInfo {
    *  converted to the other type or if the other type specifies a superclass for
    *  the current type; otherwise, returns `false`.
    */
-  isSimilarTo(other, model) {
+  isConvertibleTo(other, model) {
     if (other instanceof TypeInfo) {
+      // Check automatic conversion
       if ( (!this.namespace || this.namespace === TypeInfo.FHIR) &&
         (!other.namespace || other.namespace === TypeInfo.System) &&
         fhir2SystemAutomaticConversion[this.name] === other.name ) {
         return true;
       }
 
+      // The similar as in "is()" above
       if ( !this.namespace || !other.namespace ||
         this.namespace === other.namespace ) {
         return model && (!this.namespace || this.namespace === TypeInfo.FHIR)
