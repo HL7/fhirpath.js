@@ -6,7 +6,7 @@ This log documents significant changes for each release.  This project follows
 ## [4.2.0] - 2024-04-10
 ### Added
 - Support for the `LONGNUMBER` literal and the corresponding FHIR `integer64`
-  data type.
+  data type. (This does not work in IE11, since IE11 doesn't support BigInt.)
 
 ## [4.1.0] - 2024-04-08
 ### Added
