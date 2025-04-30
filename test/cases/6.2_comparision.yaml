@@ -25,6 +25,15 @@ tests:
   - desc: less than, expecting false
     expression: j < d
     result: [false]
+  - desc: less than, with long numbers
+    expression: -7L < 3L
+    result: [true]
+  - desc: less than, with long number and integer
+    expression: 2L < 3
+    result: [true]
+  - desc: less than, with long number and decimal
+    expression: 3L < 3.1
+    result: [true]
 
   - desc: greater than, expecting true
     expression: b > a
@@ -50,6 +59,15 @@ tests:
   - desc: greater than, expecting false
     expression: d > j
     result: [false]
+  - desc: greater than, with long numbers
+    expression: 3L > -7L
+    result: [true]
+  - desc: greater than, with long number and integer
+    expression: 3 > 2L
+    result: [true]
+  - desc: greater than, with long number and decimal
+    expression: 3.1 > 3L
+    result: [true]
 
   - desc: greater or equal than, expecting true
     expression: b >= c
@@ -75,6 +93,15 @@ tests:
   - desc: greater or equal than, expecting false
     expression: d >= j
     result: [false]
+  - desc: greater or equal than, with long numbers
+    expression: 3L >= -7L
+    result: [true]
+  - desc: greater or equal than, with long number and integer
+    expression: 3 >= 2L
+    result: [true]
+  - desc: greater or equal than, with long number and decimal
+    expression: 3.1 >= 3L
+    result: [true]
 
   - desc: less or equal than, expecting true
     expression: b <= c
@@ -101,6 +128,16 @@ tests:
   - desc: less than or equal, expecting false
     expression: j <= d
     result: [false]
+  - desc: less than or equal, with long numbers
+    expression: -7L <= 3L
+    result: [true]
+  - desc: less than or equal, with long number and integer
+    expression: 2L <= 3
+    result: [true]
+  - desc: less than or equal, with long number and decimal
+    expression: 3L <= 3.1
+    result: [true]
+
   - 'group: Quantities':
     - expression: 1 year > 1 'a'
       result: []

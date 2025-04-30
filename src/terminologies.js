@@ -83,7 +83,7 @@ class Terminologies {
         response = util.fetchWithCache(`${self[0].terminologyUrl}/ValueSet/$expand`, {
           method: 'POST',
           ...(ctx.signal ? {signal: ctx.signal} : {}),
-          body: JSON.stringify({
+          body: util.toJSON({
             "resourceType": "Parameters",
             "parameter": parameters
           })
@@ -134,7 +134,7 @@ class Terminologies {
         response = util.fetchWithCache(
           `${self[0].terminologyUrl}/CodeSystem/$lookup`, {
             method: "POST",
-            body: JSON.stringify(parameters),
+            body: util.toJSON(parameters),
             ...(ctx.signal ? {signal: ctx.signal} : {})
           }
         );
@@ -213,7 +213,7 @@ class Terminologies {
               return util.fetchWithCache(
                 requestUrl, {
                   method: "POST",
-                  body: JSON.stringify(parameters),
+                  body: util.toJSON(parameters),
                   ...(ctx.signal ? {signal: ctx.signal} : {})
                 }
               );
@@ -317,7 +317,7 @@ class Terminologies {
           response = util.fetchWithCache(
             requestUrl, {
               method: "POST",
-              body: JSON.stringify(parameters),
+              body: util.toJSON(parameters),
               ...(ctx.signal ? {signal: ctx.signal} : {})
             }
           );
@@ -400,7 +400,7 @@ class Terminologies {
           response = util.fetchWithCache(
             requestUrl, {
               method: "POST",
-              body: JSON.stringify(parameters),
+              body: util.toJSON(parameters),
               ...(ctx.signal ? {signal: ctx.signal} : {})
             }
           );
@@ -479,7 +479,7 @@ class Terminologies {
           response = util.fetchWithCache(
             requestUrl, {
               method: "POST",
-              body: JSON.stringify(parameters),
+              body: util.toJSON(parameters),
               ...(ctx.signal ? {signal: ctx.signal} : {})
             }
           );

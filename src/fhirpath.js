@@ -108,6 +108,7 @@ engine.invocationTable = {
   trace:        {fn: misc.traceFn,     arity: {1: ["String"], 2: ["String", "Expr"]}},
   defineVariable: {fn: misc.defineVariable,     arity: {1: ["String"], 2: ["String", "Expr"]}},
   toInteger:    {fn: misc.toInteger},
+  toLong:       {fn: misc.toLong},
   toDecimal:    {fn: misc.toDecimal},
   toString:     {fn: misc.toString},
   toDate:       {fn: misc.toDate},
@@ -119,6 +120,7 @@ engine.invocationTable = {
   getValue:     {fn: misc.getValueFn},
   convertsToBoolean:    {fn: misc.createConvertsToFn(misc.toBoolean, 'boolean')},
   convertsToInteger:    {fn: misc.createConvertsToFn(misc.toInteger, 'number')},
+  convertsToLong:       {fn: misc.createConvertsToFn(misc.toLong, 'bigint')},
   convertsToDecimal:    {fn: misc.createConvertsToFn(misc.toDecimal, 'number')},
   convertsToString:     {fn: misc.createConvertsToFn(misc.toString, 'string')},
   convertsToDate:       {fn: misc.createConvertsToFn(misc.toDate, FP_Date)},
@@ -217,13 +219,14 @@ engine.PolarityExpression = function(ctx, parentData, node) {
     throw new Error('Unary ' + sign +
      ' can only be applied to an individual number or Quantity.');
   }
-  if (rtn[0] instanceof FP_Quantity) {
-    if (sign === '-') {
-      rtn[0] = new FP_Quantity(-rtn[0].value, rtn[0].unit);
-    }
-  } else if (typeof rtn[0] === 'number' && !isNaN(rtn[0])) {
+  const typeOfVal = typeof rtn[0];
+  if ( typeOfVal === 'bigint' || typeOfVal === 'number' && !isNaN(rtn[0])) {
     if (sign === '-') {
       rtn[0] = -rtn[0];
+    }
+  } else  if (rtn[0] instanceof FP_Quantity) {
+    if (sign === '-') {
+      rtn[0] = new FP_Quantity(-rtn[0].value, rtn[0].unit);
     }
   } else {
     throw new Error('Unary ' + sign + ' can only be applied to a number or Quantity.');
@@ -243,7 +246,7 @@ engine.TypeSpecifier = function(ctx, parentData, node) {
       [name] = identifiers;
       break;
     default:
-      throw new Error("Expected TypeSpecifier node, got " + JSON.stringify(node));
+      throw new Error("Expected TypeSpecifier node, got " + util.toJSON(node));
   }
 
   const typeInfo =  new TypeInfo({ namespace, name });
@@ -402,6 +405,10 @@ engine.NumberLiteral = function(ctx, parentData, node) {
   return [Number(node.text)];
 };
 
+engine.LongNumberLiteral = function(ctx, parentData, node) {
+  return [BigInt(node.text.slice(0, -1))];
+};
+
 engine.Identifier = function(ctx, parentData, node) {
   return [getIdentifierVal(node.text)];
 };
@@ -503,7 +510,7 @@ function makeParam(ctx, parentData, type, param) {
     if(param.type === "TermExpression") {
       return param.text;
     } else {
-      throw new Error("Expected identifier node, got " + JSON.stringify(param));
+      throw new Error("Expected identifier node, got " + util.toJSON(param));
     }
   }
 
@@ -676,7 +683,7 @@ engine.AliasOpExpression = function(map){
   return function(ctx, parentData, node) {
     var op = node.terminalNodeText[0];
     var alias = map[op];
-    if(!alias) { throw new Error("Do not know how to alias " + op + " by " + JSON.stringify(map)); }
+    if(!alias) { throw new Error("Do not know how to alias " + op + " by " + util.toJSON(map)); }
     return infixInvoke(ctx, alias, parentData, node.children);
   };
 };

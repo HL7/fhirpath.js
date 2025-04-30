@@ -1310,7 +1310,7 @@ class ResourceNode {
     }
     this.parentResNode = parentResNode || null;
     this.path = path || null;
-    this.data = data;
+    this.data = fhirNodeDataType === 'integer64' ?  BigInt(data): data;
     this._data = _data || {};
     this.fhirNodeDataType = fhirNodeDataType || null;
     this.model = model || null;
@@ -1344,7 +1344,7 @@ class ResourceNode {
   }
 
   toJSON() {
-    return JSON.stringify(this.data);
+    return toJSON(this.data);
   }
 
   /**
@@ -1399,7 +1399,7 @@ ResourceNode.makeResNode = function(data, parentResNode, path, _data, fhirNodeDa
 // The set of available data types in the System namespace
 const availableSystemTypes = new Set();
 // IE11 probably doesn't support `new Set(iterable)`
-['Boolean', 'String', 'Integer', 'Decimal', 'Date', 'DateTime', 'Time', 'Quantity'].forEach(i => availableSystemTypes.add(i));
+['Boolean', 'String', 'Integer', 'Long', 'Decimal', 'Date', 'DateTime', 'Time', 'Quantity'].forEach(i => availableSystemTypes.add(i));
 
 /**
  * Object class defining type information.
@@ -1518,7 +1518,9 @@ TypeInfo.FhirConceptMap = new TypeInfo({
 TypeInfo.createByValueInSystemNamespace = function(value) {
   let name = typeof value;
 
-  if (Number.isInteger(value)) {
+  if (name === 'bigint') {
+    name = 'long';
+  } else if (Number.isInteger(value)) {
     name = 'integer';
   } else if (name === "number") {
     name = 'decimal';
@@ -1634,7 +1636,7 @@ function isFn(coll, typeInfo) {
   }
 
   if(coll.length > 1) {
-    throw new Error("Expected singleton on left side of 'is', got " + JSON.stringify(coll));
+    throw new Error("Expected singleton on left side of 'is', got " + toJSON(coll));
   }
 
   const ctx = this;
@@ -1655,12 +1657,27 @@ function asFn(coll, typeInfo) {
   }
 
   if(coll.length > 1) {
-    throw new Error("Expected singleton on left side of 'as', got " + JSON.stringify(coll));
+    throw new Error("Expected singleton on left side of 'as', got " + toJSON(coll));
   }
 
   const ctx = this;
   return TypeInfo.fromValue(coll[0]).is(typeInfo, ctx.model) ? coll : [];
 }
+
+/**
+ * Converts a value to a JSON string, handling BigInt values.
+ * This function is useful for serializing objects that may contain BigInt values,
+ * which are not natively supported by JSON.stringify.
+ *
+ * @param {*} obj - The object to be converted to a JSON string.
+ * @param {string|number} [space] - Adds indentation, white space, and line break
+ *  characters to the return-value JSON text to make it easier to read.
+ * @returns {string} - The JSON string representation of the object.
+ */
+function toJSON(obj, space = undefined) {
+  return JSON.stringify(obj, (_, i) => typeof i === 'bigint' ? i.toString(): i, space);
+}
+
 
 module.exports = {
   FP_Type,
@@ -1678,5 +1695,6 @@ module.exports = {
   TypeInfo,
   typeFn,
   isFn,
-  asFn
+  asFn,
+  toJSON
 };

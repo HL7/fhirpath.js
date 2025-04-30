@@ -65,6 +65,37 @@ tests:
     expression: Functions.collWithNullsAndTrue[0].toInteger()
     result: []
 
+  - desc: '** Long to int'
+    expression: 5L.toInteger()
+    result: [5]
+
+  - desc: '** collection to int'
+    expression: ('5' | '6').toInteger()
+    error: [true]
+
+
+  - desc: '** toLong(): Long'
+  - desc: '** int to Long'
+    expression: 5.toLong() = 5L
+    result: [true]
+
+  - desc: '** str to Long'
+    expression: intstr.toLong() = 101L
+    result: [true]
+
+  - desc: '** Bool to Long'
+    expression: Functions.attrtrue.toLong() = 1L
+    result: [true]
+
+  - desc: '** Null to Long'
+    expression: Functions.collWithNullsAndTrue[0].toLong()
+    result: []
+
+  - desc: '** collection to Long'
+    expression: ('5' | '6').toLong()
+    error: [true]
+
+
   - desc: '5.5.3. toDecimal() : decimal'
 # If the input collection contains a single item, this function will return a single decimal if:
 # the item in the input collection is an integer or decimal
@@ -81,9 +112,18 @@ tests:
     expression: decstr.toDecimal()
     result: [101.99]
 
+  - desc: '** Long to decimal'
+    expression: 5L.toDecimal()
+    result: [5]
+
   - desc: '** Null to decimal'
     expression: Functions.collWithNullsAndTrue[0].toDecimal()
     result: []
+
+  - desc: '** collection to decimal'
+    expression: ('5' | '6').toDecimal()
+    error: [true]
+
 
   - 'group: toDateTime':
     - desc: equality
@@ -123,6 +163,21 @@ tests:
     expression: Functions.collWithNullsAndTrue[0].toBoolean()
     result: []
 
+  - desc: '** 1L to boolean'
+    expression: 1L.toBoolean()
+    result: [true]
+
+  - desc: '** 0L to boolean'
+    expression: 0L.toBoolean()
+    result: [false]
+
+  - desc: '** 2L to boolean'
+    expression: 2L.toBoolean()
+    result: []
+
+  - desc: '** collection to boolean'
+    expression: ('0' | '1').toBoolean()
+    error: [true]
 
   - desc: '5.5.4. toString() : string'
 # If the input collection contains a single item, this function will return a single string if:
@@ -172,6 +227,14 @@ tests:
     model: r4
     expression: Patient.birthDate.toString()
     result: []
+
+  - desc: '** Long to string'
+    expression: 101L.toString() = '101'
+    result: [true]
+
+  - desc: '** collection to string'
+    expression: (5 | 6).toString()
+    error: [true]
 
 
   - desc: '5.5.7. toQuantity([unit:string]) : Quantity'
@@ -235,6 +298,19 @@ tests:
   - desc: '** Null to Quantity'
     expression: Functions.collWithNullsAndTrue[0].toQuantity()
     result: []
+
+  - desc: '** integer to Quantity'
+    expression: 1.toQuantity() = 1 '1'
+    result: [ true ]
+
+  - desc: '** long integer to Quantity is not defined'
+    expression: 1L.toQuantity() = 1 '1'
+    result: []
+
+  - desc: '** collection to Quantity'
+    expression: (5 | 6).toQuantity()
+    error: [true]
+
 
 subject:
   resourceType: Functions

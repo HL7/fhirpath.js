@@ -14,6 +14,10 @@ tests:
     expression: coll.a is Integer
     result: [true]
 
+  - desc: '** is long integer'
+    expression: 5L is Long
+    result: [true]
+
   - desc: '** values isnt Patient type'
     expression: coll.all($this is Patient)
     model: r4

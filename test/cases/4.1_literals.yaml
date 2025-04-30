@@ -23,6 +23,8 @@ tests:
     result: [-7]
   - expression: '-7.3'
     result: [-7.3]
+  - expression: '-7L'
+    result: ['-7'] # long numbers are stored as strings in JSON format
   - expression: '+7'
     result: [+7]
   - expression: '(-7).combine(3)'

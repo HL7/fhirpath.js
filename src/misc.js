@@ -40,10 +40,10 @@ engine.traceFn = function (x, label, expr) {
   }
   else {
     if (expr){
-      console.log("TRACE:[" + (label || "") + "]", JSON.stringify(expr(x), null, " "));
+      console.log("TRACE:[" + (label || "") + "]", util.toJSON(expr(x), null, " "));
     }
     else {
-      console.log("TRACE:[" + (label || "") + "]", JSON.stringify(x, null, " "));
+      console.log("TRACE:[" + (label || "") + "]", util.toJSON(x, null, " "));
     }
   }
   return x;
@@ -79,23 +79,85 @@ engine.defineVariable = function (x, label, expr) {
   return x;
 };
 
+
+/**
+ * Checks if the input collection is a singleton (contains exactly one item).
+ * Throws an error if the collection contains more than one item.
+ *
+ * @param {Array} coll - The input collection to check.
+ * @param {string} fnName - The name of the calling function, used in the error message.
+ * @return {boolean} - Returns true if the input collection has only one item,
+ *  false - if the input collection has no items.
+ * @throws {Error} - Throws an error if the input collection contains more than one item
+ */
+function checkSingleton(coll, fnName) {
+  if (coll.length > 1) {
+    util.raiseError('The input collection contains multiple items', fnName);
+  }
+  return coll.length === 1;
+}
+
 var intRegex = /^[+-]?\d+$/;
 engine.toInteger = function(coll){
-  if(coll.length !== 1) { return []; }
-  var v = util.valData(coll[0]);
-  if(v === false) {return 0;}
-  if(v === true) {return 1;}
-  if(typeof v === "number") {
-    if(Number.isInteger(v)) {
-      return v;
+  let rtn;
+  // If the input collection contains multiple items, the evaluation of
+  // the expression will end and signal an error to the calling environment.
+  // If the input collection is empty, the result is an empty collection.
+  // Note: An undefined result will be converted to an empty collection in
+  // the calling function.
+  if (checkSingleton(coll, 'toInteger')) {
+    const v = util.valData(coll[0]);
+    if (v === false) {
+      rtn = 0;
+    } else if (v === true) {
+      rtn = 1;
     } else {
-      return [];
+      const type = typeof v;
+      if (type === "bigint") {
+        // See the table of the possible conversions supported:
+        // https://build.fhir.org/ig/HL7/FHIRPath/#conversion
+        rtn = Number(v);
+      } else if (type === "number") {
+        if (Number.isInteger(v)) {
+          rtn = v;
+        }
+      } else if (type === "string" && intRegex.test(v)) {
+        rtn = parseInt(v);
+      }
     }
   }
-  if(typeof v === "string" && intRegex.test(v)) {
-    return parseInt(v);
+  return rtn;
+};
+
+
+engine.toLong = function(coll){
+  let rtn;
+  // If the input collection contains multiple items, the evaluation of
+  // the expression will end and signal an error to the calling environment.
+  // If the input collection is empty, the result is an empty collection.
+  // Note: An undefined result will be converted to an empty collection in
+  // the calling function.
+  if (checkSingleton(coll, 'toLong')) {
+    const v = util.valData(coll[0]);
+
+    if (v === false) {
+      rtn = 0n;
+    } else if (v === true) {
+      rtn = 1n;
+    } else {
+      const type = typeof v;
+      if (type === "bigint") {
+        rtn = v;
+      } else if (type === "number") {
+        if (Number.isInteger(v)) {
+          rtn = BigInt(v);
+        }
+      } else if (type === "string" && intRegex.test(v)) {
+        rtn = BigInt(v);
+      }
+    }
   }
-  return [];
+  return rtn;
 };
 
 const quantityRegex = /^((\+|-)?\d+(\.\d+)?)\s*(('[^']+')|([a-zA-Z]+))?$/,
@@ -103,9 +165,12 @@ const quantityRegex = /^((\+|-)?\d+(\.\d+)?)\s*(('[^']+')|([a-zA-Z]+))?$/,
 engine.toQuantity = function (coll, toUnit) {
   let result;
 
-  if (coll.length > 1) {
-    throw new Error("Could not convert to quantity: input collection contains multiple items");
-  } else if (coll.length === 1) {
+  // If the input collection contains multiple items, the evaluation of
+  // the expression will end and signal an error to the calling environment.
+  // If the input collection is empty, the result is an empty collection.
+  // Note: An undefined result will be converted to an empty collection in
+  // the calling function.
+  if (checkSingleton(coll, 'toQuantity')) {
     if (toUnit) {
       const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
       const toUnitInSeconds = FP_Quantity._calendarDuration2Seconds[toUnit];
@@ -125,16 +190,17 @@ engine.toQuantity = function (coll, toUnit) {
       }
     }
 
-    var v = util.valDataConverted(coll[0]);
+    const v = util.valDataConverted(coll[0]);
+    const type = typeof v;
     let quantityRegexRes;
 
-    if (typeof v === "number") {
+    if (type === "number") {
       result = new FP_Quantity(v, '\'1\'');
     } else if (v instanceof FP_Quantity) {
       result = v;
-    } else if (typeof v === 'boolean') {
+    } else if (type === 'boolean') {
       result = new FP_Quantity(v ? 1 : 0, '\'1\'');
-    } else if (typeof v === "string" && (quantityRegexRes = quantityRegex.exec(v)) ) {
+    } else if (type === "string" && (quantityRegexRes = quantityRegex.exec(v)) ) {
       const value = quantityRegexRes[quantityRegexMap.value],
         unit = quantityRegexRes[quantityRegexMap.unit],
         time = quantityRegexRes[quantityRegexMap.time];
@@ -150,29 +216,50 @@ engine.toQuantity = function (coll, toUnit) {
     }
   }
 
-  return result || [];
+  return result;
 };
 
 var numRegex = /^[+-]?\d+(\.\d+)?$/;
 engine.toDecimal = function(coll){
-  if(coll.length !== 1) { return []; }
-  var v = util.valData(coll[0]);
-  if(v === false) {return 0;}
-  if(v === true) {return 1.0;}
-  if(typeof v === "number") {
-    return v;
+  let rtn;
+  // If the input collection contains multiple items, the evaluation of
+  // the expression will end and signal an error to the calling environment.
+  // If the input collection is empty, the result is an empty collection.
+  // Note: An undefined result will be converted to an empty collection in
+  // the calling function.
+  if (checkSingleton(coll, 'toDecimal')) {
+    const v = util.valData(coll[0]);
+    if (v === false) {
+      rtn = 0;
+    } else if (v === true) {
+      rtn = 1;
+    } else {
+      const type = typeof v;
+      if (type === "bigint") {
+        // See the table of the possible conversions supported:
+        // https://build.fhir.org/ig/HL7/FHIRPath/#conversion
+        rtn = Number(v);
+      } else if (type === "number") {
+        rtn = v;
+      } else if (type === "string" && numRegex.test(v)) {
+        rtn = parseFloat(v);
+      }
+    }
   }
-  if(typeof v === "string" && numRegex.test(v)) {
-    return parseFloat(v);
-  }
-  return [];
+  return rtn;
 };
 
 engine.toString = function(coll){
-  if(coll.length !== 1) { return []; }
-  var v = util.valDataConverted(coll[0]);
-  if (v == null) { return []; }
-  return v.toString();
+  let rtn;
+  // If the input collection contains multiple items, the evaluation of
+  // the expression will end and signal an error to the calling environment.
+  // If the input collection is empty, the result is an empty collection.
+  // Note: An undefined result will be converted to an empty collection in
+  // the calling function.
+  if (checkSingleton(coll, 'toString')) {
+    rtn = util.valDataConverted(coll[0])?.toString();
+  }
+  return rtn;
 };
 
 
@@ -183,13 +270,14 @@ engine.toString = function(coll){
 function defineTimeConverter(timeType) {
   let timeName = timeType.slice(3); // Remove 'FP_'
   engine['to'+timeName] = function(coll) {
-    var rtn = [];
-    if (coll.length > 1)
-      throw Error('to '+timeName+' called for a collection of length '+coll.length);
-    if (coll.length === 1) {
-      var v = util.valData(coll[0]);
+    let rtn;
+    //  If the input collection contains multiple items, the evaluation of
+    //  the expression will end and signal an error to the calling environment.
+    //  If the input collection is empty, the result is an empty collection.
+    if (checkSingleton(coll, 'to'+timeName)) {
+      const v = util.valData(coll[0]);
       if (typeof v === "string") {
-        var t = types[timeType].checkString(v);
+        const t = types[timeType].checkString(v);
         if (t) {
           rtn = t;
         }
@@ -215,33 +303,45 @@ const falseStrings = ['false', 'f', 'no', 'n', '0', '0.0'].reduce((acc, val) => 
 }, {});
 
 engine.toBoolean = function (coll) {
-  if(coll.length !== 1) {
-    return [];
+  let rtn;
+  // If the input collection contains multiple items, the evaluation of
+  // the expression will end and signal an error to the calling environment.
+  // If the input collection is empty, the result is an empty collection.
+  // Note: An undefined result will be converted to an empty collection in
+  // the calling function..
+  if (checkSingleton(coll, 'toBoolean')) {
+    const v = util.valData(coll[0]);
+    switch (typeof v) {
+      case 'boolean':
+        rtn = v;
+        break;
+      case 'bigint':
+        // See the table of the possible conversions supported:
+        // https://build.fhir.org/ig/HL7/FHIRPath/#conversion
+        if (v === 1n) {
+          rtn = true;
+        } else if (v === 0n) {
+          rtn = false;
+        }
+        break;
+      case 'number':
+        if (v === 1) {
+          rtn = true;
+        } else if (v === 0) {
+          rtn = false;
+        }
+        break;
+      case 'string': {
+        const lowerCaseValue = v.toLowerCase();
+        if (trueStrings[lowerCaseValue]) {
+          rtn = true;
+        } else if (falseStrings[lowerCaseValue]) {
+          rtn = false;
+        }
+      }
+    }
   }
-
-  const v = util.valData(coll[0]);
-  switch (typeof v) {
-    case 'boolean':
-      return v;
-    case 'number':
-      if (v === 1) {
-        return true;
-      }
-      if (v === 0) {
-        return false;
-      }
-      break;
-    case 'string':
-      // eslint-disable-next-line no-case-declarations
-      const lowerCaseValue = v.toLowerCase();
-      if (trueStrings[lowerCaseValue]) {
-        return true;
-      }
-      if (falseStrings[lowerCaseValue]) {
-        return false;
-      }
-  }
-  return [];
+  return rtn;
 };
 
 /**
@@ -284,7 +384,8 @@ const singletonEvalByType = {
     }
   },
   "Number": function(d) {
-    if (typeof d === "number") {
+    const type = typeof d;
+    if (type === "number" || type === "bigint") {
       return d;
     }
   },
@@ -294,7 +395,8 @@ const singletonEvalByType = {
     }
   },
   "StringOrNumber": function(d){
-    if (typeof d === "string" || typeof d === "number") {
+    const type = typeof d;
+    if (type === "string" || type === "number") {
       return d;
     }
   },
@@ -315,7 +417,7 @@ const singletonEvalByType = {
  */
 engine.singleton = function (coll, type) {
   if(coll.length > 1){
-    throw new Error("Unexpected collection" + JSON.stringify(coll) +
+    throw new Error("Unexpected collection" + util.toJSON(coll) +
       "; expected singleton of type " + type);
   } else if (coll.length === 0) {
     return [];
@@ -330,7 +432,7 @@ engine.singleton = function (coll, type) {
     if (value !== undefined) {
       return value;
     }
-    throw new Error(`Expected ${type.toLowerCase()}, but got: ${JSON.stringify(coll)}`);
+    throw new Error(`Expected ${type.toLowerCase()}, but got: ${util.toJSON(coll)}`);
   }
   throw new Error('Not supported type ' + type);
 };

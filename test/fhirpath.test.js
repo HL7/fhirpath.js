@@ -1,4 +1,5 @@
 const yaml = require('js-yaml');
+const util = require('../src/utilities');
 const fs   = require('fs');
 const _    = require('lodash');
 const { calcExpression } = require("./test_utils");
@@ -55,7 +56,7 @@ expect.extend({
       };
     } else {
       return {
-        message: () => `Expected an error to be thrown, but the returned result is ${JSON.stringify(unexpectedResult)}.`,
+        message: () => `Expected an error to be thrown, but the returned result is ${util.toJSON(unexpectedResult)}.`,
         pass: false
       };
     }
@@ -110,7 +111,7 @@ const generateTest = (test, testResource) => {
       if (result.length === 1 && result[0] instanceof FP_DateTime)
         expect(new Date(result[0])).toEqual(new Date(test.result[0]))
       else
-        expect(JSON.parse(JSON.stringify(result))).toEqual(test.result);
+        expect(JSON.parse(util.toJSON(result))).toEqual(test.result);
     }
     else if (test.error) {
       expect(exception).isError(result);
@@ -121,7 +122,7 @@ const generateTest = (test, testResource) => {
   };
 
   expressions.forEach(expression => {
-    const expressionText = expression instanceof Object ? JSON.stringify(expression) : expression;
+    const expressionText = expression instanceof Object ? util.toJSON(expression) : expression;
     switch(test.type) {
     case 'skipped':
       return it.skip(`Disabled test ${test.desc}`, () => {});

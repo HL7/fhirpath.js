@@ -20,7 +20,7 @@ function callFnForNumericSingleton(x, fn){
   if (isEmpty(x)){
     res = [];
   } else if (x.length !== 1) {
-    throw new Error("Unexpected collection" + JSON.stringify(x) +
+    throw new Error("Unexpected collection" + util.toJSON(x) +
       "; expected singleton of type number");
   } else {
     const num = util.valData(x[0]);
@@ -29,7 +29,7 @@ function callFnForNumericSingleton(x, fn){
     } else if (typeof num === 'number') {
       res = fn(num);
     } else {
-      throw new Error("Expected number, but got " + JSON.stringify(num));
+      throw new Error("Expected number, but got " + util.toJSON(num));
     }
   }
   return res;
@@ -64,8 +64,26 @@ engine.plus = function(xs, ys){
     } else if(typeof x == "number") {
       if (typeof y == "number") {
         res = x + y;
+      } else if (typeof y == "bigint") {
+        if (Number.isInteger(x)) {
+          return BigInt(x) + y;
+        } else {
+          return x + Number(y);
+        }
       } else if (y instanceof FP_Quantity) {
         res = (new FP_Quantity(x, "'1'")).plus(y);
+      }
+    } else if(typeof x == "bigint") {
+      if (typeof y == "bigint") {
+        res = x + y;
+      } else if (typeof y == "number") {
+        if (Number.isInteger(y)) {
+          res = x + BigInt(y);
+        } else {
+          res = Number(x) + y;
+        }
+      } else if (y instanceof FP_Quantity) {
+        throw util.raiseError("Cannot add a Quantity to a BigInt");
       }
     } else if(x instanceof FP_Type) {
       if (y instanceof FP_Quantity) {
@@ -78,7 +96,7 @@ engine.plus = function(xs, ys){
     }
   }
   if (res === undefined) {
-    throw new Error("Cannot " + JSON.stringify(xs) + " + " + JSON.stringify(ys));
+    throw util.raiseError("Cannot " + util.toJSON(xs) + " + " + util.toJSON(ys));
   }
   return res;
 };
@@ -93,13 +111,29 @@ engine.minus = function(xs, ys){
     if(typeof x == "number") {
       if (typeof y == "number") {
         return x - y;
+      } else if (typeof y == "bigint") {
+        if (Number.isInteger(x)) {
+          return BigInt(x) - y;
+        } else {
+          return x - Number(y);
+        }
       }
       if (y instanceof FP_Quantity) {
         return (new FP_Quantity(x, "'1'")).plus(new FP_Quantity(-y.value, y.unit));
       }
-    }
-
-    if(x instanceof FP_Type) {
+    } else if(typeof x == "bigint") {
+      if (typeof y == "bigint") {
+        return x - y;
+      } else if (typeof y == "number") {
+        if (Number.isInteger(y)) {
+          return x - BigInt(y);
+        } else {
+          return Number(x) - y;
+        }
+      } else if (y instanceof FP_Quantity) {
+        util.raiseError("Cannot subtract a Quantity from a BigInt");
+      }
+    } else if(x instanceof FP_Type) {
       if (y instanceof FP_Quantity) {
         return x.plus(new FP_Quantity(-y.value, y.unit));
       }
@@ -108,7 +142,7 @@ engine.minus = function(xs, ys){
       }
     }
   }
-  throw new Error("Cannot " + JSON.stringify(xs) + " - " + JSON.stringify(ys));
+  throw new Error("Cannot " + util.toJSON(xs) + " - " + util.toJSON(ys));
 };
 
 
@@ -119,9 +153,31 @@ engine.mul = function(xs, ys){
     if (x == null || y == null) {
       return [];
     }
+    if(typeof x == 'bigint') {
+      if (typeof y == 'bigint') {
+        return x * y;
+      }
+      if (typeof y == "number") {
+        if (Number.isInteger(y)) {
+          return x * BigInt(y);
+        } else {
+          return Number(x) * y;
+        }
+      }
+      if (y instanceof FP_Quantity) {
+        util.raiseError("Cannot multiply bigint by Quantity");
+      }
+    }
     if(typeof x == "number") {
       if (typeof y == "number") {
         return x * y;
+      }
+      if (typeof y === 'bigint') {
+        if (Number.isInteger(x)) {
+          return BigInt(x) * y;
+        } else {
+          return x * Number(y);
+        }
       }
       if (y instanceof FP_Quantity) {
         return (new FP_Quantity(x, "'1'")).mul(y);
@@ -137,7 +193,8 @@ engine.mul = function(xs, ys){
       }
     }
   }
-  throw new Error("Cannot " + JSON.stringify(xs) + " * " + JSON.stringify(ys));
+
+  util.raiseError("Cannot " + util.toJSON(xs) + " * " + util.toJSON(ys));
 };
 
 engine.div = function(xs, ys){
@@ -147,10 +204,27 @@ engine.div = function(xs, ys){
     if (x == null || y == null) {
       return [];
     }
+    if(typeof x == 'bigint') {
+      if (typeof y == 'bigint') {
+        if (y === 0n) return [];
+        return Number(x) / Number(y);
+      }
+      if (typeof y == "number") {
+        if (y === 0) return [];
+        return Number(x) / y;
+      }
+      if (y instanceof FP_Quantity) {
+        util.raiseError("Cannot divide bigint by Quantity");
+      }
+    }
     if(typeof x == "number") {
       if (typeof y == "number") {
         if (y === 0) return [];
         return x / y;
+      }
+      if (typeof y === 'bigint') {
+        if (y === 0n) return [];
+        return x / Number(y);
       }
       if (y instanceof FP_Quantity) {
         return (new FP_Quantity(x, "'1'")).div(y);
@@ -166,18 +240,46 @@ engine.div = function(xs, ys){
       }
     }
   }
-  throw new Error("Cannot " + JSON.stringify(xs) + " / " + JSON.stringify(ys));
+  throw new Error("Cannot " + util.toJSON(xs) + " / " + util.toJSON(ys));
 
 };
 
 engine.intdiv = function(x, y){
-  if (y === 0) return [];
-  return Math.floor(x / y);
+  if (y === 0 || y === 0n) return [];
+  if(typeof x == 'bigint') {
+    if (typeof y == 'bigint') {
+      return x / y;
+    }
+    if (typeof y == "number") {
+      return Math.floor(Number(x) / y);
+    }
+  } else if(typeof x == "number") {
+    if (typeof y == "number") {
+      return Math.floor(x / y);
+    }
+    if (typeof y == 'bigint') {
+      return Math.floor(x / Number(y));
+    }
+  }
 };
 
 engine.mod = function(x, y){
   if (y === 0) return [];
-  return x % y;
+  if(typeof x == 'bigint') {
+    if (typeof y == 'bigint') {
+      return x % y;
+    }
+    if (typeof y == "number") {
+      return Number(x) % y;
+    }
+  } else if(typeof x == "number") {
+    if (typeof y == "number") {
+      return x % y;
+    }
+    if (typeof y == 'bigint') {
+      return x % Number(y);
+    }
+  }
 };
 
 engine.abs = function(x){
@@ -186,7 +288,7 @@ engine.abs = function(x){
   if (isEmpty(x)) {
     res = [];
   } else if (x.length !== 1) {
-    throw new Error("Unexpected collection" + JSON.stringify(x) +
+    throw new Error("Unexpected collection" + util.toJSON(x) +
       "; expected singleton of type number or Quantity");
   } else {
     var val = util.valData(x[0]);
@@ -197,7 +299,7 @@ engine.abs = function(x){
     } else if (val instanceof FP_Quantity) {
       res = new FP_Quantity(Math.abs(val.value), val.unit);
     } else {
-      throw new Error("Expected number or Quantity, but got " + JSON.stringify(val || x));
+      throw new Error("Expected number or Quantity, but got " + util.toJSON(val || x));
     }
   }
 

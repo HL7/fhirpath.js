@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const fp = require('../src/fhirpath');
+const util = require('../src/utilities');
 const fs = require('fs');
 const yaml = require('js-yaml');
 const options = require('commander');
@@ -65,5 +66,5 @@ else {
  */
 function printResult(expression, result) {
   console.log('fhirpath(' + expression + ') =>');
-  console.log(JSON.stringify(result, null, " "));
+  console.log(util.toJSON(result, " "));
 }

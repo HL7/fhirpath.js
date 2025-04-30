@@ -1,8 +1,19 @@
 // This file holds utility functions used in implementing the public functions.
 
 const util =  {};
-const types = require('./types');
-const {ResourceNode} = types;
+const { ResourceNode, toJSON } = require('./types');
+
+
+/**
+ * Converts a value to a JSON string, handling BigInt values.
+ * This function is useful for serializing objects that may contain BigInt values,
+ * which are not natively supported by JSON.stringify.
+ *
+ * @param {*} obj - The object to be converted to a JSON string.
+ * @returns {string} - The JSON string representation of the object.
+ */
+util.toJSON = toJSON;
+
 
 /**
  *  Reports and error to the calling environment and stops processing.
@@ -23,7 +34,7 @@ util.raiseError = function(message, fnName) {
 util.assertOnlyOne = function (collection, errorMsgPrefix) {
   if (collection.length !== 1) {
     util.raiseError("Was expecting only one element but got " +
-      JSON.stringify(collection), errorMsgPrefix);
+      util.toJSON(collection), errorMsgPrefix);
   }
 };
 
@@ -239,7 +250,7 @@ const defaultGetHeaders = new Headers({
  */
 util.fetchWithCache = function(url, options) {
   const requestKey = [
-    url, options ? JSON.stringify(options) : ''
+    url, options ? util.toJSON(options) : ''
   ].join('|');
 
   // If the options object does not have headers, set default headers based on
