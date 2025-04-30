@@ -3,10 +3,14 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [4.2.0] - 2024-04-10
+## [4.2.0] - 2024-04-30
 ### Added
 - Support for the `LONGNUMBER` literal and the corresponding FHIR `integer64`
   data type. (This does not work in IE11, since IE11 doesn't support BigInt.)
+
+## [4.1.1] - 2024-04-18
+### Fixed
+- Updated the list of supported Terminology Service API functions in README.md.
 
 ## [4.1.0] - 2024-04-08
 ### Added
