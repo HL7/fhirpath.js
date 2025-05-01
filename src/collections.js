@@ -1,6 +1,7 @@
 // This file holds code to hande the FHIRPath Math functions.
 
 const { deepEqual } = require('./deep-equal');
+const util = require("./utilities");
 
 const engine = {};
 
@@ -17,7 +18,7 @@ engine.contains = function(a, b){
   if(b.length == 0) { return []; }
   if(a.length == 0) { return false; }
   if(b.length > 1) {
-    throw new Error("Expected singleton on right side of contains, got " + JSON.stringify(b));
+    throw new Error("Expected singleton on right side of contains, got " + util.toJSON(b));
   }
   return containsImpl(a,b);
 };
@@ -26,7 +27,7 @@ engine.in = function(a, b){
   if(a.length == 0) { return []; }
   if(b.length == 0) { return false; }
   if(a.length > 1) {
-    throw new Error("Expected singleton on right side of in, got " + JSON.stringify(b));
+    throw new Error("Expected singleton on right side of in, got " + util.toJSON(b));
   }
   return containsImpl(b,a);
 };

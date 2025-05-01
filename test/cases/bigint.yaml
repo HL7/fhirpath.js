@@ -1,0 +1,61 @@
+tests:
+  - desc: '* Big integers'
+
+  - desc: '** check if value[x] is of type integer64'
+    model: r5
+    expression: >-
+      Parameters.parameter.value is integer64
+    result:
+      - true
+
+  - desc: '** check if the value in value[x] is actually stored as a BigInt'
+    model: r5
+    expression: >-
+      Parameters.parameter.value + 1 = 12345678901234567891L
+    result:
+      - true
+
+  # The following tests for converting literals to longs were copied and pasted
+  # from similar tests for integers in fhir-r4.yaml:
+  - desc: '** testLiteralLong1'
+    inputfile: patient-example.json
+    expression: 1.convertsToLong()
+    result:
+      - true
+    model: r5
+
+  - desc: '** testLiteralLong0'
+    inputfile: patient-example.json
+    expression: 0.convertsToLong()
+    result:
+      - true
+    model: r5
+
+  - desc: '** testLiteralLongNegative1'
+    inputfile: patient-example.json
+    expression: (-1).convertsToLong()
+    result:
+      - true
+    model: r5
+
+  - desc: '** testLiteralLongNegative1Invalid'
+    inputfile: patient-example.json
+    expression: '-1.convertsToLong()'
+    error: true
+    model: r5
+
+  - desc: '** testLiteralLongMax'
+    inputfile: patient-example.json
+    expression: 2147483647.convertsToLong()
+    result:
+      - true
+    model: r5
+
+
+subject:
+  resourceType: Parameters
+  parameter:
+    - name: someName
+      # big integers are stored as strings in JSON format
+      valueInteger64: '12345678901234567890'
+

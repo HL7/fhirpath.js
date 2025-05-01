@@ -45,8 +45,7 @@ literal
         | ('true' | 'false')                                    #booleanLiteral
         | STRING                                                #stringLiteral
         | NUMBER                                                #numberLiteral
-// TODO: Add support for LONGNUMBER
-//        | LONGNUMBER                                            #longNumberLiteral
+        | LONGNUMBER                                            #longNumberLiteral
         | DATE                                                 #dateLiteral
         | DATETIME                                              #dateTimeLiteral
         | TIME                                                  #timeLiteral
@@ -161,10 +160,9 @@ NUMBER
         : [0-9]+('.' [0-9]+)?
         ;
 
-// TODO: Add support for LONGNUMBER
-//LONGNUMBER
-//        : [0-9]+ 'L'?
-//        ;
+LONGNUMBER
+        : [0-9]+ 'L'?
+        ;
 
 // Pipe whitespace to the HIDDEN channel to support retrieving source text through the parser.
 WS

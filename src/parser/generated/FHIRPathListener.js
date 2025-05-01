@@ -212,6 +212,15 @@ class FHIRPathListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
+	// Enter a parse tree produced by FHIRPathParser#longNumberLiteral.
+	enterLongNumberLiteral(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#longNumberLiteral.
+	exitLongNumberLiteral(ctx) {
+	}
+
+
 	// Enter a parse tree produced by FHIRPathParser#dateLiteral.
 	enterDateLiteral(ctx) {
 	}

@@ -1,6 +1,6 @@
 {
   "name": "fhirpath",
-  "version": "4.1.1",
+  "version": "4.2.0",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "types": "src/fhirpath.d.ts",

@@ -230,7 +230,7 @@ tests:
         expression: >-
           %factory.integer64(134).where($this is integer64)
         result:
-          - 134
+          - '134'
 
       - desc: '** create an integer64 with an extension'
         model: r5
