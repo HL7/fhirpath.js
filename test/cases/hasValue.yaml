@@ -82,6 +82,15 @@ tests:
       model: 'r4'
       result: [false]
 
+    - desc: 'Quantity is not a primitive type'
+      model: r4
+      focus: true
+      expression: >-
+        (5.03 'mg/dL').hasValue()
+      result:
+        - false
+
+
     - desc: 'collection only contains an element of a non-FHIR primitive type'
       expression: >-
         '5'.hasValue()
