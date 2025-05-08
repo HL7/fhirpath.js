@@ -1384,6 +1384,16 @@ class ResourceNode {
     return this.convertedData;
   }
 
+  /**
+   * The full property name of the node in the resource (e.g. Patient.name[0].given[0])
+   */
+  fullPropertyName() {
+    let result = this.parentResNode ? this.parentResNode.fullPropertyName() + '.' + this.propName : this.path;
+    if (this.index !== undefined) {
+      result += '[' + this.index + ']';
+    }
+    return result;
+  }
 }
 
 
@@ -1394,6 +1404,29 @@ class ResourceNode {
  */
 ResourceNode.makeResNode = function(data, parentResNode, path, _data, fhirNodeDataType, model) {
   return (data instanceof ResourceNode) ? data : new ResourceNode(data, parentResNode, path, _data, fhirNodeDataType, model);
+};
+
+/**
+ *  Returns a ResourceNode for the given data node, checking first to see if the
+ *  given node is already a ResourceNode.  Takes the same arguments as the
+ *  constructor for ResourceNode.
+ */
+ResourceNode.makeChildPropertyResNode = function(data, parentResNode, propName, path, _data, fhirNodeDataType, model) {
+  let result = (data instanceof ResourceNode) ? data : new ResourceNode(data, parentResNode, path, _data, fhirNodeDataType, model);
+  result.propName = propName;
+  return result;
+};
+
+/**
+ *  Returns a ResourceNode for the given data node, checking first to see if the
+ *  given node is already a ResourceNode.  Takes the same arguments as the
+ *  constructor for ResourceNode.
+ */
+ResourceNode.makeArrayChildPropertyResNode = function(data, parentResNode, propName, index, path, _data, fhirNodeDataType, model) {
+  let result = (data instanceof ResourceNode) ? data : new ResourceNode(data, parentResNode, path, _data, fhirNodeDataType, model);
+  result.propName = propName;
+  result.index = index;
+  return result;
 };
 
 // The set of available data types in the System namespace
