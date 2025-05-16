@@ -1461,6 +1461,40 @@ class TypeInfo {
     return false;
   }
 
+
+  /**
+   * Determines whether the current type can be automatically converted to
+   * another type or whether another type specifies the same type or
+   * a superclass for the current type.
+   * See automatic conversion: https://hl7.org/fhir/fhirpath.html#types
+   *
+   * @param {TypeInfo} other - The `TypeInfo` object to compare with.
+   * @param {Object} model - The model object specific to a domain (e.g., R4).
+   * @returns {boolean} - Returns `true` if the current type can be automatically
+   *  converted to the other type or if the other type specifies a superclass for
+   *  the current type; otherwise, returns `false`.
+   */
+  isConvertibleTo(other, model) {
+    if (other instanceof TypeInfo) {
+      // Check automatic conversion
+      if ( (!this.namespace || this.namespace === TypeInfo.FHIR) &&
+        (!other.namespace || other.namespace === TypeInfo.System) &&
+        fhir2SystemAutomaticConversion[this.name] === other.name ) {
+        return true;
+      }
+
+      // The similar as in "is()" above
+      if ( !this.namespace || !other.namespace ||
+        this.namespace === other.namespace ) {
+        return model && (!this.namespace || this.namespace === TypeInfo.FHIR)
+          ? TypeInfo.isType(this.name, other.name, model)
+          : this.name === other.name;
+      }
+    }
+    return false;
+  }
+
+
   /**
    * Returns the string representation of type info.
    * @returns {string}
@@ -1605,13 +1639,38 @@ const primitives = new Set();
   "uuid",
   "canonical",
   "url",
+  // The following primitive type names are for reference only and are not
+  // currently used in code. Instead, in the TypeInfo.isPrimitiveValue function
+  // we use a simplified check.
   "Integer",
+  "Long",
   "Decimal",
   "String",
   "Date",
   "DateTime",
   "Time"
 ].forEach(i => primitives.add(i));
+
+
+// Defines automatic conversion of FHIR types to FHIRPath(System) types.
+// See https://hl7.org/fhir/fhirpath.html#types.
+const fhir2SystemAutomaticConversion = [
+  {from: ['boolean'], to: 'Boolean'},
+  {from: ['string', 'uri', 'code', 'oid', 'id', 'uuid', 'markdown', 'base64Binary'], to: 'String'},
+  {from: ['integer', 'unsignedInt', 'positiveInt'], to: 'Integer'},
+  {from: ['integer64'], to: 'Long'},
+  {from: ['decimal'], to: 'Decimal'},
+  {from: ['date', 'dateTime', 'instant'], to: 'DateTime'},
+  {from: ['time'], to: 'Time'},
+  {from: ['Quantity'], to: 'Quantity'}
+].reduce((acc, item) => {
+  const {from, to} = item;
+  from.forEach(f => {
+    acc[f] = to;
+  });
+  return acc;
+}, {});
+
 
 /**
  * Checks whether the specified type information contains a primitive data type.
@@ -1622,19 +1681,27 @@ TypeInfo.isPrimitive = function(typeInfo) {
   return primitives.has(typeInfo.name);
 };
 
+
 /**
  * Checks whether the specified value is of a primitive data type.
  * @param {*} value - The value to check.
  * @returns {boolean} - Returns true if the value is a primitive data type,
  *  otherwise false.
  */
-
 TypeInfo.isPrimitiveValue = function(value) {
   if (value instanceof ResourceNode) {
     return primitives.has(value.getTypeInfo().name);
   } else {
     // Simplified check for primitive data types:
-    return typeof value !== 'object' || value instanceof FP_Type;
+    return typeof value !== 'object' || value instanceof FP_Type
+      // Here Quantity is called a "primitive" type:
+      // https://hl7.org/fhir/fhirpath.html#types
+      // But here it is not a "primitive" type:
+      // https://hl7.org/fhir/R5/datatypes.html#2.1.28.0
+      // I consider it a non-primitive type.
+      // If we decide to consider it primitive, then we will need to make
+      // changes to the set of primitives (see the "primitives" constant above).
+      && !(value instanceof FP_Quantity);
   }
 };
 

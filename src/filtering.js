@@ -141,7 +141,7 @@ engine.skipFn = function(x, num) {
 engine.ofTypeFn = function(coll, typeInfo) {
   const ctx = this;
   return coll.filter(value => {
-    return TypeInfo.fromValue(value).is(typeInfo, ctx.model);
+    return TypeInfo.fromValue(value).isConvertibleTo(typeInfo, ctx.model);
   });
 };
 

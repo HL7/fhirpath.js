@@ -140,6 +140,14 @@ tests:
     expression: heteroattr.ofType(Object)
     error: true
 
+  - desc: 'ofType() function with automatic data type conversion'
+    inputfile: patient-example.json
+    model: r4
+    expression: Patient.name.given.ofType(FHIR.string) = Patient.name.given.ofType(System.String)
+    result:
+      - true
+
+
 subject:
   resourceType: Functions
   attrempty: []
