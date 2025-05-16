@@ -783,7 +783,7 @@ function applyParsedPath(resource, parsedPath, envVars, model, options) {
   let dataRoot = util.arraify(resource).map(
     i => i?.__path__
       ? makeResNode(i, i.__path__.parentResNode, i.__path__.path, null,
-        i.__path__.fhirNodeDataType, model)
+        i.__path__.fhirNodeDataType, model, i.__path__.propName, i.__path__.index)
       : i?.resourceType
         ? makeResNode(i, null, null, null, null, model)
         : i);
@@ -859,10 +859,14 @@ function prepareEvalResult(result, model, options) {
       let path;
       let fhirNodeDataType;
       let parentResNode;
+      let propName;
+      let index;
       if (n instanceof ResourceNode) {
         path = n.path;
         fhirNodeDataType = n.fhirNodeDataType;
         parentResNode = n.parentResNode;
+        propName = n.propName;
+        index = n.index;
       }
       n = util.valData(n);
       if (n instanceof FP_Type) {
@@ -875,7 +879,11 @@ function prepareEvalResult(result, model, options) {
         // Add a hidden (non-enumerable) property with the path to the data extracted
         // from the resource.
         if (path && typeof n === 'object' && !n.__path__) {
-          Object.defineProperty(n, '__path__', { value: {path, fhirNodeDataType, parentResNode, model} });
+          Object.defineProperty(n, '__path__', {
+            value: {
+              path, fhirNodeDataType, parentResNode, model, propName, index
+            }
+          });
         }
         acc.push(n);
       }
@@ -1001,13 +1009,34 @@ function compile(path, model, options) {
 
   if (typeof path === 'object') {
     const node = parse(path.expression);
+    let basePath = path.base?.replace(/\[\d*]/g, '');
+    let baseFhirNodeDataType;
+    if (basePath) {
+      // Normalize basePath by replacing long recursive paths with their base
+      // paths, e.g. Questionnaire.item.item -> Questionnaire.item
+      const pathsDefinedElsewhere = Object.keys(model.pathsDefinedElsewhere);
+      let changed;
+      do {
+        changed = pathsDefinedElsewhere.find((path) => {
+          const found = basePath.startsWith(path);
+          if (found) {
+            basePath = model.pathsDefinedElsewhere[path] +
+              basePath.substring(path.length);
+          }
+          return found;
+        });
+      } while(changed);
+      basePath = model.pathsDefinedElsewhere[basePath] || basePath;
+      baseFhirNodeDataType = model && model.path2Type[basePath];
+      basePath =
+        baseFhirNodeDataType === 'BackboneElement' ||
+        baseFhirNodeDataType === 'Element' ?
+          basePath : baseFhirNodeDataType || basePath;
+    }
     return function (fhirData, envVars, additionalOptions) {
-      if (path.base) {
-        let basePath = model.pathsDefinedElsewhere[path.base] || path.base;
-        const baseFhirNodeDataType = model && model.path2Type[basePath];
-        basePath = baseFhirNodeDataType === 'BackboneElement' || baseFhirNodeDataType === 'Element' ? basePath : baseFhirNodeDataType || basePath;
-
-        fhirData = makeResNode(fhirData, null, basePath, null, baseFhirNodeDataType, model);
+      if (basePath) {
+        fhirData = makeResNode(fhirData, null, basePath, null,
+          baseFhirNodeDataType, model, path.base);
       }
       const actualOptions = additionalOptions ?
         {...options, ...additionalOptions} : options;

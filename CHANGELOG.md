@@ -3,6 +3,14 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.3.0] - 2024-05-16
+### Added
+- Internal tracking of the full property name of a node in a resource.
+  (Added `fullPropertyName()` method to the `ResourceNode` class.)
+### Fixed
+- Issue in interpretation of the path in the resource when a partial resource
+  is used as the context, which resulted in incorrect type recognition.
+
 ## [4.2.0] - 2024-04-30
 ### Added
 - Support for the `LONGNUMBER` literal and the corresponding FHIR `integer64`

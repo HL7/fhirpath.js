@@ -1300,8 +1300,14 @@ class ResourceNode {
    * @param {string} fhirNodeDataType - FHIR node data type, if the resource node
    *  is described in the FHIR model.
    *  @param {Object} model - the model object specific to a domain, e.g. R4.
+   *  @param {string} propName – the property name of the node within its parent
+   *   resource, if applicable. Used to identify the specific property this node
+   *   represents.
+   *  @param {number} index - the index of the node within an array property,
+   *   if the node is part of an array. Used to track the position of the node
+   *   among siblings.
    */
-  constructor(data, parentResNode, path, _data, fhirNodeDataType, model) {
+  constructor(data, parentResNode, path, _data, fhirNodeDataType, model, propName = null, index = null) {
     // If data is a resource (maybe a contained resource) reset the path
     // information to the resource type.
     if (data?.resourceType) {
@@ -1314,6 +1320,8 @@ class ResourceNode {
     this._data = _data || {};
     this.fhirNodeDataType = fhirNodeDataType || null;
     this.model = model || null;
+    this.propName = propName;
+    this.index = index;
   }
 
   /**
@@ -1385,11 +1393,17 @@ class ResourceNode {
   }
 
   /**
-   * The full property name of the node in the resource (e.g. Patient.name[0].given[0])
+   * The full property name of the node in the resource
+   * (e.g. Patient.name[0].given[0])
+   *
+   * @return {string} - returns the full property name of the node in
+   *  the resource.
    */
   fullPropertyName() {
-    let result = this.parentResNode ? this.parentResNode.fullPropertyName() + '.' + this.propName : this.path;
-    if (this.index !== undefined) {
+    let result = this.parentResNode ?
+      this.parentResNode.fullPropertyName() + '.' + this.propName
+      : this.propName || this.path;
+    if (this.index != null) {
       result += '[' + this.index + ']';
     }
     return result;
@@ -1402,32 +1416,12 @@ class ResourceNode {
  *  given node is already a ResourceNode.  Takes the same arguments as the
  *  constructor for ResourceNode.
  */
-ResourceNode.makeResNode = function(data, parentResNode, path, _data, fhirNodeDataType, model) {
-  return (data instanceof ResourceNode) ? data : new ResourceNode(data, parentResNode, path, _data, fhirNodeDataType, model);
+ResourceNode.makeResNode = function(data, parentResNode, path, _data, fhirNodeDataType, model, propName, index) {
+  return (data instanceof ResourceNode) ? data
+    : new ResourceNode(data, parentResNode, path, _data, fhirNodeDataType,
+      model, propName, index);
 };
 
-/**
- *  Returns a ResourceNode for the given data node, checking first to see if the
- *  given node is already a ResourceNode.  Takes the same arguments as the
- *  constructor for ResourceNode.
- */
-ResourceNode.makeChildPropertyResNode = function(data, parentResNode, propName, path, _data, fhirNodeDataType, model) {
-  let result = (data instanceof ResourceNode) ? data : new ResourceNode(data, parentResNode, path, _data, fhirNodeDataType, model);
-  result.propName = propName;
-  return result;
-};
-
-/**
- *  Returns a ResourceNode for the given data node, checking first to see if the
- *  given node is already a ResourceNode.  Takes the same arguments as the
- *  constructor for ResourceNode.
- */
-ResourceNode.makeArrayChildPropertyResNode = function(data, parentResNode, propName, index, path, _data, fhirNodeDataType, model) {
-  let result = (data instanceof ResourceNode) ? data : new ResourceNode(data, parentResNode, path, _data, fhirNodeDataType, model);
-  result.propName = propName;
-  result.index = index;
-  return result;
-};
 
 // The set of available data types in the System namespace
 const availableSystemTypes = new Set();

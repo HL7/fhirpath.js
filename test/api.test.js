@@ -33,7 +33,7 @@ describe('compile', () => {
 
   it('should accept a part of a resource', () => {
     let f = fhirpath.compile({
-      base: 'QuestionnaireResponse.item',
+      base: 'QuestionnaireResponse.item[0].item[1].item[2].item[4]',
       expression: 'answer.value.toString()'
     }, r4_model);
     expect(f(input.questionnairePartExample))

@@ -18,15 +18,16 @@ const { spawn, fork } = require('child_process');
 
 // Insert performance test suites here:
 const availableTests = [
-  'intersect',
-  'member-invocation',
-  'union',
-  'exclude',
-  'subsetof',
-  'distinct',
   'comparison',
   'contains',
-  'descendants'
+  'descendants',
+  'distinct',
+  'exclude',
+  'intersect',
+  'member-invocation',
+  'part-of-resource',
+  'subsetof',
+  'union'
 ];
 
 const options = require('commander');

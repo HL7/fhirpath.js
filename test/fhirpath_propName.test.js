@@ -30,7 +30,15 @@ const testPatient = {
     {
       relationship: [
         {
-          _text: { id: "em1" },
+          _text: {
+            id: "em1",
+            "extension": [
+              {
+                "url": "someUrl",
+                "valueString": "someString"
+              }
+            ]
+          },
           text: "Emergency",
         },
       ],
@@ -66,37 +74,42 @@ test("traceProcessingHasAccessToPropertyNames", () => {
     async: false,
   };
 
-  let result = fhirpath.evaluate(
-    fhirData,
-    "select(Patient.name.given.where($this = 'F') | Patient.name.family | Patient.contact.skip(1) | Patient.contact.relationship.text[1] | 'Brian').trace('output')",
-    environment,
-    fhirpath_r4_model,
-    options
-  );
+  // An array containing pairs of expression and the result of calling
+  // fullPropertyName() on the ResourceNodes returned by that expression.
+  const cases = [
+    ["Patient.name.given.where($this = 'F')",
+      ["Patient.name[0].given[1]"]],
+    ["Patient.name.family",
+      ["Patient.name[0].family", "Patient.name[1].family"]],
+    ["Patient.contact.skip(1)",
+      ["Patient.contact[1]"]],
+    ["Patient.contact.relationship.text[1]",
+      ["Patient.contact[1].relationship[0].text"]],
+    ["'Brian'", [""]],
+    ["%factory.decimal(0.3, %factory.Extension('someExt', 'someString')).extension('someExt').value",
+      ["decimal.extension[0].value"]],
+    ["Patient.contact.relationship.text[1].extension('someUrl').value",
+      ["Patient.contact[1].relationship[0].text.extension[0].value"]]
+  ]
 
-  for (const element of output) {
-    let node = element;
-    if (node.fullPropertyName)
-      console.log(node.fullPropertyName(), JSON.stringify(node.convertData()));
-  }
+  cases.forEach(([expression, results]) => {
+    output = [];
+    fhirpath.evaluate(
+      fhirData,
+      `${expression}.trace('output')`,
+      environment,
+      fhirpath_r4_model,
+      options
+    );
 
-  expect(result).toBeDefined();
-  expect(output).toBeDefined();
-  expect(output.length).toBe(6);
-  expect(output[0].fullPropertyName()).toBe("Patient.name[0].given[1]");
-  expect(output[1].fullPropertyName()).toBe("Patient.name[0].family");
-  expect(output[2].fullPropertyName()).toBe("Patient.name[1].family");
-  expect(output[3].fullPropertyName()).toBe("Patient.contact[1]");
-  expect(output[4].fullPropertyName()).toBe(
-    "Patient.contact[1].relationship[0].text"
-  );
-  expect(output[5]).toBe("Brian"); // which is not a ResourceNode
+    expect(output.map(o => o?.fullPropertyName?.() || '')).toEqual(results);
+  });
 });
 
 test("useContextFromExpressionResult", () => {
   // This test will use the result of the expression as the context for the next expression.
   const contextExpr = "contact.where(relationship.text = 'Emergency')"; // will return the name of the contact with the relationship text 'Emergency'.
-  const expression = "name.given"; // will return the given name(s) of the contact.
+  const expression = "name.where($this is HumanName).given"; // will return the given name(s) of the contact.
 
   let fhirData = testPatient;
   let environment = {
@@ -131,36 +144,21 @@ test("useContextFromExpressionResult", () => {
     options
   );
 
-  for (const element of output) {
-    let node = element;
-    if (node.fullPropertyName)
-      console.log(node.fullPropertyName(), JSON.stringify(node.convertData()));
-  }
-
   expect(result).toBeDefined();
   expect(output).toBeDefined();
   expect(output.length).toBe(1);
   expect(output[0].fullPropertyName()).toBe("Patient.contact[1]");
-  const contextNode = output[0];
+  const contextData = result;
 
-  // Second expression using the result of the first expression as context
+  // Second expression using the "result" of the first expression as context
   output = []; // Reset output for the next expression
   result = fhirpath.evaluate(
-    contextNode.convertData(), // Use the result of the first expression as context
-    {
-      base: contextNode.fullPropertyName(),
-      expression: "select("+expression+").trace('output_processing')"
-    },
+    contextData, // Use the result of the first expression as context
+    "select("+expression+").trace('output_processing')",
     environment,
     fhirpath_r4_model,
     options
   );
-
-  for (const element of output) {
-    let node = element;
-    if (node.fullPropertyName)
-      console.log(node.fullPropertyName(), JSON.stringify(node.convertData()));
-  }
 
   expect(result).toBeDefined();
   expect(output).toBeDefined();
