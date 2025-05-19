@@ -1014,10 +1014,11 @@ function compile(path, model, options) {
     if (basePath) {
       // Normalize basePath by replacing long recursive paths with their base
       // paths, e.g. Questionnaire.item.item -> Questionnaire.item
-      const pathsDefinedElsewhere = Object.keys(model.pathsDefinedElsewhere);
+      const arrayOfPathsDefinedElsewhere =
+        Object.keys(model.pathsDefinedElsewhere);
       let changed;
       do {
-        changed = pathsDefinedElsewhere.find((path) => {
+        changed = arrayOfPathsDefinedElsewhere.find((path) => {
           const found = basePath.startsWith(path);
           if (found) {
             basePath = model.pathsDefinedElsewhere[path] +
