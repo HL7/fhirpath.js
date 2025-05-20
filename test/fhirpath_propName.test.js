@@ -90,7 +90,7 @@ test("traceProcessingHasAccessToPropertyNames", () => {
       ["decimal.extension[0].value"]],
     ["Patient.contact.relationship.text[1].extension('someUrl').value",
       ["Patient.contact[1].relationship[0].text.extension[0].value"]]
-  ]
+  ];
 
   cases.forEach(([expression, results]) => {
     output = [];
