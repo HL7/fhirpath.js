@@ -62,7 +62,8 @@ where:
   fhirPathExpression.base should be provided), bundle as js object or array
   of resources.
 * fhirPathExpression - string with FHIRPath expression, sample 'Patient.name.given',
-  or object, if fhirData represents the part of the FHIR resource:
+  or object, if fhirData represents the part of the FHIR resource obtained
+  without using fhirpath.js:
     * fhirPathExpression.base - base path in resource from which fhirData was extracted
     * fhirPathExpression.expression - FHIRPath expression relative to path.base
 * envVars - a hash of variable name/value pairs. It is not recommended to 
@@ -118,8 +119,9 @@ fhirpath.evaluate({"resourceType": "Observation", "valueString": "green"},
                   'Observation.value', null, fhirpath_r4_model);
 ```
 
-If the first parameter is a part of a resource, the second parameter should be
-an object with properties "base" and "expression":
+If the first parameter is a resource part obtained without using fhirpath.js,
+the second parameter should be an object with properties "base" and
+"expression":
 base - the path in the resource that represents the partial resource being used
        as the context,
 expression - fhirpath expression relative to base.
@@ -131,6 +133,17 @@ fhirpath.evaluate({ "answer": { "valueQuantity": ...}},
                   null, fhirpath_r4_model);                  
 ```
 
+If the first parameter is a resource part obtained using fhirpath.js, it may
+already have internal information in the hidden (non-enumerable) property
+`__path__`, so the second parameter could be just an expression.
+
+```js
+const resourcePart = fhirpath.evaluate(
+  questionnaireResponse,'QuestionnaireResponse.item', null, fhirpath_r4_model);
+fhirpath.evaluate(
+  resourcePart, "answer.value = 2 year", null, fhirpath_r4_model);                  
+```
+
 Precompiling fhirpath - result can be reused against multiple resources:
 
 ```js
@@ -138,8 +151,9 @@ const path = fhirpath.compile('Patient.name.given', fhirpath_r4_model);
 let res = path({"resourceType": "Patient", ...}, {a: 5, ...});
 ```
 
-If you are going to use the above "precompile" option with a part of a resource,
-the first parameter should be an object with properties "base" and "expression":
+If you are going to use the above "precompile" option with a resource part
+obtained without using fhirpath.js, the first parameter should be
+an object with properties "base" and "expression":
 base - the path in the resource that represents the partial resource being used
        as the context,
 expression - fhirpath expression relative to base.
