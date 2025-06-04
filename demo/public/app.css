@@ -11,7 +11,9 @@ body {
 }
 
 #header {
-  padding: 10px 0px;
+  padding: 10px 0;
+  display: flex;
+  align-items: center;
 }
 #header a {
   font-size: 20px;
@@ -23,7 +25,7 @@ body {
   display: flex;
   flex-direction: row;
   width: 100%;
-  max-height: calc(100vh - 140px);
+  max-height: calc(100vh - 166px);
 }
 #inputWrapper {
   flex: 3;
@@ -53,6 +55,7 @@ body {
   align-items: flex-start;
   overflow-y: auto;
   flex: 1 0 fit-content;
+  width: fit-content;
 }
 #inputWrapper #variables ul {
   list-style-type: none;
@@ -135,9 +138,9 @@ h1 {
 #footer {
   position: fixed;
   text-align: right;
-  bottom: 0px;
-  left:0px;
-  right: 0px;
+  bottom: 0;
+  left:0;
+  right: 0;
   padding: 5px 20px;
   background: #eee;
   opacity: 0.8;
