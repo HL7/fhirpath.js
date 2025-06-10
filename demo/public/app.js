@@ -1,4 +1,4 @@
-require('file-loader?name=index.html!./index.html');
+require('./index.html');
 require('./app.css');
 
 require ('../../browser-build/fhirpath.min');
@@ -16,7 +16,7 @@ require("codemirror/lib/codemirror.css");
 
 const {compressToEncodedURIComponent, decompressFromEncodedURIComponent} = require("lz-string");
 
-const example = require("json-loader!yaml-loader!./patient-example.yaml");
+const example = require("./patient-example.yaml");
 
 document.getElementById('version').innerText = '(version ' + fhirpath.version + ')';
 
@@ -38,6 +38,9 @@ let abortController;
 
 function evaluate(){
   try  {
+    // Clear the output node
+    document.getElementById('copyStatus').className = '';
+
     abortController?.abort();
     abortController = new AbortController();
     const signal = abortController.signal;
@@ -351,7 +354,14 @@ document.getElementById("copyUrl").addEventListener("click", () => {
       terminologyUrl: terminologyUrlNode.value,
       inputType: inputTypeBeforeChange
     }))}`;
-  navigator.clipboard.writeText(shareUrl);
+  navigator.clipboard.writeText(shareUrl)
+    .then(() => {
+      document.getElementById('copyStatus').className = 'success';
+
+    })
+    .catch(() => {
+      document.getElementById('copyStatus').className = 'error';
+    });
 });
 
 

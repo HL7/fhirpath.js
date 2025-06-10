@@ -148,3 +148,35 @@ h1 {
   font-size: 13px;
   border-top: 1px solid #ddd;
 }
+
+#copyStatus {
+  white-space: nowrap;
+  margin-right: 6px;
+  height: 18px;
+  width: 230px;
+  position: relative;
+}
+
+#copyStatus.hidden {
+  display: none;
+}
+
+#copyStatus span {
+  opacity: 0;
+  right: 0;
+  transition: opacity 1s ease-in-out;
+  position: absolute;
+}
+
+#copyStatus .success-msg {
+  color: green;
+}
+
+#copyStatus .error-msg {
+  color: red;
+}
+
+#copyStatus.success .success-msg,
+#copyStatus.error .error-msg {
+  opacity: 1;
+}
