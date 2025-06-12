@@ -1388,7 +1388,17 @@ class ResourceNode {
    * The full property name of the node in the resource (e.g. Patient.name[0].given[0])
    */
   fullPropertyName() {
-    let result = this.parentResNode ? this.parentResNode.fullPropertyName() + '.' + this.propName : this.path;
+    // check if the property name is for a primitive extension in FHIR
+    let propName = (this.propName?.startsWith('_') && this.model) ? this.propName.substring(1) : this.propName;
+
+    // Now Check if this is a choice type
+    if (this.parentResNode && this.model && this.fhirNodeDataType && propName.endsWith(this.fhirNodeDataType.charAt(0).toUpperCase() + this.fhirNodeDataType.substring(1))) {
+      if (this.model && this.model.choiceTypePaths[this.parentResNode?.path + '.' + propName.substring(0, propName.length - this.fhirNodeDataType.length)]) {
+        propName = propName.substring(0, propName.length - this.fhirNodeDataType.length);
+      }
+    }
+
+    let result = this.parentResNode ? this.parentResNode.fullPropertyName() + '.' + propName : this.path;
     if (this.index !== undefined) {
       result += '[' + this.index + ']';
     }
