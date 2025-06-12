@@ -31,9 +31,13 @@ engine.extension = function(parentData, url) {
     this.$index = i;
     const extensions = (x && (x.data && x.data.extension || x._data && x._data.extension));
     if (extensions) {
-      return extensions
-        .filter(extension => extension.url === url)
-        .map(e => ResourceNode.makeResNode(e, x, 'Extension', null, 'Extension', ctx.model));
+      return extensions.reduce((list, extension, index) => {
+        if(extension.url === url) {
+          list.push(ResourceNode.makeResNode(extension, x, 'Extension', null,
+            'Extension', ctx.model, 'extension', index));
+        }
+        return list;
+      }, []);
     }
     return [];
   }));
@@ -137,7 +141,7 @@ engine.skipFn = function(x, num) {
 engine.ofTypeFn = function(coll, typeInfo) {
   const ctx = this;
   return coll.filter(value => {
-    return TypeInfo.fromValue(value).is(typeInfo, ctx.model);
+    return TypeInfo.fromValue(value).isConvertibleTo(typeInfo, ctx.model);
   });
 };
 

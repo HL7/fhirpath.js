@@ -206,20 +206,24 @@ util.makeChildResNodes = function(parentResNode, childProperty, model) {
   if (util.isSome(toAdd) || util.isSome(_toAdd)) {
     if(Array.isArray(toAdd)) {
       result = toAdd.map((x, i)=>
-        ResourceNode.makeArrayChildPropertyResNode(x, parentResNode, childProperty, i, childPath, _toAdd && _toAdd[i], fhirNodeDataType, model));
+        ResourceNode.makeResNode(x, parentResNode, childPath,
+          _toAdd && _toAdd[i], fhirNodeDataType, model, childProperty, i));
       // Add items to the end of the ResourceNode list that have no value
       // but have associated data, such as extensions or ids.
       const _toAddLength = _toAdd?.length || 0;
       for (let i = toAdd.length; i < _toAddLength; ++i) {
-        result.push(ResourceNode.makeArrayChildPropertyResNode(null, parentResNode, childProperty, i, childPath, _toAdd[i], fhirNodeDataType, model));
+        result.push(ResourceNode.makeResNode(null, parentResNode, childPath,
+          _toAdd[i], fhirNodeDataType, model, childProperty, i));
       }
     } else if (toAdd == null && Array.isArray(_toAdd)) {
       // Add items to the end of the ResourceNode list when there are no
       // values at all, but there is a list of associated data, such as
       // extensions or ids.
-      result = _toAdd.map((x) => ResourceNode.makeChildPropertyResNode(null, parentResNode, childProperty, childPath, x, fhirNodeDataType, model));
+      result = _toAdd.map((x) => ResourceNode.makeResNode(null, parentResNode,
+        childPath, x, fhirNodeDataType, model, childProperty));
     } else {
-      result = [ResourceNode.makeChildPropertyResNode(toAdd, parentResNode, childProperty, childPath, _toAdd, fhirNodeDataType, model)];
+      result = [ResourceNode.makeResNode(toAdd, parentResNode, childPath,
+        _toAdd, fhirNodeDataType, model, childProperty)];
     }
   } else {
     result = [];

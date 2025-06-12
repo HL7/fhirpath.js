@@ -1300,8 +1300,14 @@ class ResourceNode {
    * @param {string} fhirNodeDataType - FHIR node data type, if the resource node
    *  is described in the FHIR model.
    *  @param {Object} model - the model object specific to a domain, e.g. R4.
+   *  @param {string} propName – the property name of the node within its parent
+   *   resource, if applicable. Used to identify the specific property this node
+   *   represents.
+   *  @param {number} index - the index of the node within an array property,
+   *   if the node is part of an array. Used to track the position of the node
+   *   among siblings.
    */
-  constructor(data, parentResNode, path, _data, fhirNodeDataType, model) {
+  constructor(data, parentResNode, path, _data, fhirNodeDataType, model, propName = null, index = null) {
     // If data is a resource (maybe a contained resource) reset the path
     // information to the resource type.
     if (data?.resourceType) {
@@ -1314,6 +1320,8 @@ class ResourceNode {
     this._data = _data || {};
     this.fhirNodeDataType = fhirNodeDataType || null;
     this.model = model || null;
+    this.propName = propName;
+    this.index = index;
   }
 
   /**
@@ -1385,11 +1393,17 @@ class ResourceNode {
   }
 
   /**
-   * The full property name of the node in the resource (e.g. Patient.name[0].given[0])
+   * The full property name of the node in the resource
+   * (e.g. Patient.name[0].given[0])
+   *
+   * @return {string} - returns the full property name of the node in
+   *  the resource.
    */
   fullPropertyName() {
     // check if the property name is for a primitive extension in FHIR
-    let propName = (this.propName?.startsWith('_') && this.model) ? this.propName.substring(1) : this.propName;
+    let propName = (this.propName?.startsWith('_') && this.model) ?
+      this.propName.substring(1)
+      : this.propName;
 
     // Now Check if this is a choice type
     if (this.parentResNode && this.model && this.fhirNodeDataType && propName.endsWith(this.fhirNodeDataType.charAt(0).toUpperCase() + this.fhirNodeDataType.substring(1))) {
@@ -1398,8 +1412,10 @@ class ResourceNode {
       }
     }
 
-    let result = this.parentResNode ? this.parentResNode.fullPropertyName() + '.' + propName : this.path;
-    if (this.index !== undefined) {
+    let result = this.parentResNode ?
+      this.parentResNode.fullPropertyName() + '.' + propName
+      : propName || this.path;
+    if (this.index != null) {
       result += '[' + this.index + ']';
     }
     return result;
@@ -1412,32 +1428,12 @@ class ResourceNode {
  *  given node is already a ResourceNode.  Takes the same arguments as the
  *  constructor for ResourceNode.
  */
-ResourceNode.makeResNode = function(data, parentResNode, path, _data, fhirNodeDataType, model) {
-  return (data instanceof ResourceNode) ? data : new ResourceNode(data, parentResNode, path, _data, fhirNodeDataType, model);
+ResourceNode.makeResNode = function(data, parentResNode, path, _data, fhirNodeDataType, model, propName, index) {
+  return (data instanceof ResourceNode) ? data
+    : new ResourceNode(data, parentResNode, path, _data, fhirNodeDataType,
+      model, propName, index);
 };
 
-/**
- *  Returns a ResourceNode for the given data node, checking first to see if the
- *  given node is already a ResourceNode.  Takes the same arguments as the
- *  constructor for ResourceNode.
- */
-ResourceNode.makeChildPropertyResNode = function(data, parentResNode, propName, path, _data, fhirNodeDataType, model) {
-  let result = (data instanceof ResourceNode) ? data : new ResourceNode(data, parentResNode, path, _data, fhirNodeDataType, model);
-  result.propName = propName;
-  return result;
-};
-
-/**
- *  Returns a ResourceNode for the given data node, checking first to see if the
- *  given node is already a ResourceNode.  Takes the same arguments as the
- *  constructor for ResourceNode.
- */
-ResourceNode.makeArrayChildPropertyResNode = function(data, parentResNode, propName, index, path, _data, fhirNodeDataType, model) {
-  let result = (data instanceof ResourceNode) ? data : new ResourceNode(data, parentResNode, path, _data, fhirNodeDataType, model);
-  result.propName = propName;
-  result.index = index;
-  return result;
-};
 
 // The set of available data types in the System namespace
 const availableSystemTypes = new Set();
@@ -1476,6 +1472,40 @@ class TypeInfo {
     }
     return false;
   }
+
+
+  /**
+   * Determines whether the current type can be automatically converted to
+   * another type or whether another type specifies the same type or
+   * a superclass for the current type.
+   * See automatic conversion: https://hl7.org/fhir/fhirpath.html#types
+   *
+   * @param {TypeInfo} other - The `TypeInfo` object to compare with.
+   * @param {Object} model - The model object specific to a domain (e.g., R4).
+   * @returns {boolean} - Returns `true` if the current type can be automatically
+   *  converted to the other type or if the other type specifies a superclass for
+   *  the current type; otherwise, returns `false`.
+   */
+  isConvertibleTo(other, model) {
+    if (other instanceof TypeInfo) {
+      // Check automatic conversion
+      if ( (!this.namespace || this.namespace === TypeInfo.FHIR) &&
+        (!other.namespace || other.namespace === TypeInfo.System) &&
+        fhir2SystemAutomaticConversion[this.name] === other.name ) {
+        return true;
+      }
+
+      // The similar as in "is()" above
+      if ( !this.namespace || !other.namespace ||
+        this.namespace === other.namespace ) {
+        return model && (!this.namespace || this.namespace === TypeInfo.FHIR)
+          ? TypeInfo.isType(this.name, other.name, model)
+          : this.name === other.name;
+      }
+    }
+    return false;
+  }
+
 
   /**
    * Returns the string representation of type info.
@@ -1621,13 +1651,38 @@ const primitives = new Set();
   "uuid",
   "canonical",
   "url",
+  // The following primitive type names are for reference only and are not
+  // currently used in code. Instead, in the TypeInfo.isPrimitiveValue function
+  // we use a simplified check.
   "Integer",
+  "Long",
   "Decimal",
   "String",
   "Date",
   "DateTime",
   "Time"
 ].forEach(i => primitives.add(i));
+
+
+// Defines automatic conversion of FHIR types to FHIRPath(System) types.
+// See https://hl7.org/fhir/fhirpath.html#types.
+const fhir2SystemAutomaticConversion = [
+  {from: ['boolean'], to: 'Boolean'},
+  {from: ['string', 'uri', 'code', 'oid', 'id', 'uuid', 'markdown', 'base64Binary'], to: 'String'},
+  {from: ['integer', 'unsignedInt', 'positiveInt'], to: 'Integer'},
+  {from: ['integer64'], to: 'Long'},
+  {from: ['decimal'], to: 'Decimal'},
+  {from: ['date', 'dateTime', 'instant'], to: 'DateTime'},
+  {from: ['time'], to: 'Time'},
+  {from: ['Quantity'], to: 'Quantity'}
+].reduce((acc, item) => {
+  const {from, to} = item;
+  from.forEach(f => {
+    acc[f] = to;
+  });
+  return acc;
+}, {});
+
 
 /**
  * Checks whether the specified type information contains a primitive data type.
@@ -1638,19 +1693,27 @@ TypeInfo.isPrimitive = function(typeInfo) {
   return primitives.has(typeInfo.name);
 };
 
+
 /**
  * Checks whether the specified value is of a primitive data type.
  * @param {*} value - The value to check.
  * @returns {boolean} - Returns true if the value is a primitive data type,
  *  otherwise false.
  */
-
 TypeInfo.isPrimitiveValue = function(value) {
   if (value instanceof ResourceNode) {
     return primitives.has(value.getTypeInfo().name);
   } else {
     // Simplified check for primitive data types:
-    return typeof value !== 'object' || value instanceof FP_Type;
+    return typeof value !== 'object' || value instanceof FP_Type
+      // Here Quantity is called a "primitive" type:
+      // https://hl7.org/fhir/fhirpath.html#types
+      // But here it is not a "primitive" type:
+      // https://hl7.org/fhir/R5/datatypes.html#2.1.28.0
+      // I consider it a non-primitive type.
+      // If we decide to consider it primitive, then we will need to make
+      // changes to the set of primitives (see the "primitives" constant above).
+      && !(value instanceof FP_Quantity);
   }
 };
 
