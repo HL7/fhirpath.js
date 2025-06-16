@@ -8,9 +8,11 @@ const options = require('commander');
 options.description('Parses and/or runs a FHIRPath expression.  If neither --resourceFile nor --resourceJSON is provided, the parse tree of the FHIRPath expression will be output.');
 options.option('-b, --basePath <path>', 'base path in the resource from which the JSON data was extracted.');
 options.option('-e, --expression <expr>', 'FHIRPath expression.');
-options.option('-f, --resourceFile <path name>', 'A file containing the JSON resource or part of it, if basePath is passed.');
+options.option('-f, --resourceFile <path>', 'A file containing the JSON resource or part of it, if basePath is passed.');
 options.option('-r, --resourceJSON <JSON>', 'JSON resource or part of it, if basePath is passed.');
 options.option('-v, --variables <JSON>', 'JSON hash of variables.');
+options.option('-t, --terminologyUrl <url>', 'the Terminology Service API URL.');
+options.option('-s, --fhirServerUrl <url>', 'the FHIR server URL.');
 options.option('-m, --model <dstu2 | stu3 | r4 | r5>', 'Include FHIR model data.');
 options.parse(process.argv);
 
@@ -48,7 +50,11 @@ else {
     }
     let res = fp.evaluate(
       resource, base ? {base, expression} : expression, context, model,
-      { async: true }
+      {
+        async: true,
+        ...(options.terminologyUrl ? {terminologyUrl: options.terminologyUrl} : {}),
+        ...(options.fhirServerUrl ? {fhirServerUrl : options.fhirServerUrl} : {})
+      }
     );
 
     if (res instanceof Promise) {

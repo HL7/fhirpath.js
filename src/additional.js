@@ -1,10 +1,14 @@
 // Contains the additional FHIRPath functions.
-// See https://build.fhir.org/fhirpath.html#functions for details.
+// See https://hl7.org/fhir/fhirpath.html#functions for details.
+
+
 const Terminologies = require('./terminologies');
 const util = require("./utilities");
-const {TypeInfo} = require('./types');
+const {TypeInfo, ResourceNode} = require('./types');
+const urlJoin = require('@loxjs/url-join');
 
 let engine = {};
+
 
 /**
  * Returns true if the code is a member of the given valueset.
@@ -40,5 +44,145 @@ engine.memberOf = function (coll, valueSetColl ) {
 
   return [];
 };
+
+
+/**
+ * Requests a FHIR resource by its canonical URL from the FHIR server.
+ * Throws an error if the FHIR server URL is not specified in the context.
+ *
+ * @param {Object} ctx - The execution context containing processedVars and model information.
+ * @param {string} refType - The FHIR resource type to query (e.g., 'ValueSet').
+ * @param {string} url - The canonical URL of the resource to fetch.
+ * @returns {Promise<Object|null>} A promise resolving to the resource object if found, or null.
+ */
+function requestResourceByCanonicalUrl(ctx, refType, url) {
+  const fhirServerUrl = ctx.processedVars.fhirServerUrl;
+  if (!fhirServerUrl) {
+    throw new Error('Option "fhirServerUrl" is not specified.');
+  }
+  if (refType && /^(https?:\/\/[^|]*)(\|([^#]*)(#(.*))?)?/.test(url)) {
+    const params = {url: RegExp.$1};
+    if (RegExp.$3) {
+      params.version = RegExp.$3;
+    }
+    const containedResId = RegExp.$5;
+    return  util.fetchWithCache(
+      urlJoin(fhirServerUrl, refType) + '?' +
+      new URLSearchParams(params).toString()
+    ).then((bundle) => {
+      // Assuming the bundle contains a single resource.
+      let resource = bundle.entry?.[0]?.resource;
+      if (containedResId) {
+        // If the resource is contained, we need to find it in the resulting resource.
+        resource = resource?.contained.find((r) => r.id === containedResId);
+      }
+      return resource || null;
+    });
+  }
+  return Promise.resolve(null);
+}
+
+
+/**
+ * A set of base FHIR resource types used to determine if a relative URL
+ * should be resolved against the FHIR server URL.
+ * @type {Object}
+ */
+const baseResourceTypes = {Resource: 1, DomainResource: 1};
+
+
+/**
+ * Requests a FHIR resource by its URL, which may be absolute or relative.
+ * If the URL is absolute, it is fetched directly. If the fetch fails and a refType is provided,
+ * attempts to resolve as a canonical URL. If the URL is relative and starts with a resource type,
+ * it is resolved against the FHIR server URL. Returns null if the resource cannot be resolved.
+ *
+ * @param {Object} ctx - The execution context containing processedVars and model information.
+ * @param {string|null} refType - The FHIR resource type to query, or null.
+ * @param {string} url - The URL of the resource to fetch.
+ * @returns {Promise<Object|null>} A promise resolving to the resource object if found, or null.
+ */
+function requestResourceByUrl(ctx, refType, url) {
+  if (/^https?:\/\//.test(url)) {
+    if (url.indexOf('|') !== -1) {
+      // If the reference is a canonical URL of specified type,
+      // we can use this type to resolve it.
+      if (refType) {
+        return requestResourceByCanonicalUrl(ctx, refType, url);
+      }
+    } else if (refType) {
+      // If the reference is an absolute URL, we can use it directly.
+      return util.fetchWithCache(url).catch(
+        // If the reference can be a canonical URL of specified type,
+        // we can use this type to resolve it.
+        () => requestResourceByCanonicalUrl(ctx, refType, url));
+    } else {
+      return util.fetchWithCache(url);
+    }
+  } else if (/([A-Za-z]*)\//.test(url) &&
+    ctx.model.type2Parent[RegExp.$1] in baseResourceTypes) {
+    // If the reference is a relative URL that starts with a resource type,
+    // we need to resolve it relative to the FHIR server URL.
+    const fhirServerUrl = ctx.processedVars.fhirServerUrl;
+    if (!fhirServerUrl) {
+      throw new Error('Option "fhirServerUrl" is not specified.');
+    }
+    return util.fetchWithCache(urlJoin(fhirServerUrl, url));
+  }
+
+  return Promise.resolve(null);
+}
+
+
+/**
+ * Resolves a collection of FHIR references, canonicals, or URIs to their
+ * corresponding resources.
+ * For each item in the collection:
+ * - If it is a Reference, resolves the referenced resource.
+ * - If it is a Canonical, resolves the resource by canonical URL.
+ * - If it is a URI or string, attempts to resolve as a resource URL.
+ * Returns an array of ResourceNode objects for successfully resolved resources.
+ *
+ * @param {Array} coll - The collection of items to resolve.
+ * @returns {Promise<Array>} A promise resolving to an array of ResourceNode
+ *  objects.
+ */
+engine.resolveFn = function (coll) {
+  const ctx = this;
+
+  util.checkAllowAsync(ctx, 'resolve');
+
+  return Promise.allSettled((coll || []).reduce((acc,item) => {
+    let res;
+    const typeInfo = TypeInfo.fromValue(item);
+
+    if (typeInfo.is(TypeInfo.FhirReference, ctx.model)) {
+      const v = util.valData(item);
+      if (v?.reference) {
+        // If the item is a Reference, use its reference property.
+        res = requestResourceByUrl(ctx, typeInfo.refType?.length === 1 &&
+          typeInfo.refType[0] || v.type, v.reference);
+      }
+    } else if(typeInfo.is(TypeInfo.FhirCanonical, ctx.model)) {
+      res = requestResourceByCanonicalUrl(ctx, typeInfo.refType?.length === 1 &&
+        typeInfo.refType[0], util.valData(item));
+    } else if(typeInfo.is(TypeInfo.FhirUri, ctx.model) ||
+      typeInfo.is(TypeInfo.SystemString)) {
+      res = requestResourceByUrl(ctx, null, util.valData(item));
+    }
+
+    acc.push(res);
+    return acc;
+  }, [])).then(result => {
+    return result.reduce((acc, resItem) => {
+      if (resItem.status === 'fulfilled' && resItem.value?.resourceType) {
+        acc.push(ResourceNode.makeResNode(resItem.value, null, null, null,
+          null, ctx.model));
+      }
+      return acc;
+    }, []);
+  });
+};
+
 
 module.exports = engine;

@@ -1,11 +1,12 @@
 {
   "name": "fhirpath",
-  "version": "4.4.0",
+  "version": "4.5.0",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "types": "src/fhirpath.d.ts",
   "dependencies": {
     "@lhncbc/ucum-lhc": "^5.0.0",
+    "@loxjs/url-join": "^1.0.2",
     "antlr4": "~4.9.3",
     "commander": "^2.18.0",
     "date-fns": "^1.30.1",

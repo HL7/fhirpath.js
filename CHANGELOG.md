@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.5.0] - 2025-06-16
+### Added
+- additional function `resolve()`.
+
 ## [4.4.0] - 2025-06-04
 ### Added
 - Button to copy a shareable link to the current expression and its parameters

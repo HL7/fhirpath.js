@@ -3,6 +3,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const util = require('../src/utilities');
 
 const args = require('yargs')
   .nargs('fhirDefDir', 1)
@@ -31,10 +32,24 @@ let path2Type = {};
  * Adds mapping from property path to data type.
  * @param {string} path - property path.
  * @param {string} code - data type code.
+ * @param {string} typeDesc - type description object.
  */
-function addPath2Type(path, code) {
-  if (path.indexOf('.') !== -1) {
-    if (/http:\/\/hl7\.org\/fhirpath\/(.*)/.test(code)) {
+function addPath2Type(path, code, typeDesc) {
+  if (code && path.indexOf('.') !== -1) {
+    if (code.toLowerCase() === 'reference' || code.toLowerCase() === 'canonical') {
+      path2Type[path] = {
+        code,
+        // For Reference and canonical types, we need to extract the target profile
+        // to determine the type of the reference.
+        refType: util.arraify(typeDesc.targetProfile || typeDesc.profile).map(url => {
+          if (/http:\/\/hl7.org\/fhir\/StructureDefinition\/(.*)/.test(url)) {
+            return RegExp.$1;
+          } else {
+            throw new Error('Unhandled targetProfile URL: ' + url);
+          }
+        })
+      };
+    } else if (/http:\/\/hl7\.org\/fhirpath\/(.*)/.test(code)) {
       path2Type[path] = RegExp.$1;
     } else {
       path2Type[path] = code;
@@ -126,7 +141,7 @@ for (let f of choiceTypeFiles) {
           let types = n.type.map(t => {
             const typeCode = getTypeCode(t);
             const suffix = typeCode[0].toUpperCase() + typeCode.slice(1);
-            addPath2Type(prefix + suffix, typeCode);
+            addPath2Type(prefix + suffix, typeCode, t);
             return suffix;
           });
           // Remove the [x] from end of the path and store only unique "types"
@@ -134,7 +149,7 @@ for (let f of choiceTypeFiles) {
         } else {
           const typeDesc = n.type[0];
           // Obtaining FHIR Definition Data in the normal way
-          addPath2Type(n.path, getTypeCode(typeDesc));
+          addPath2Type(n.path, getTypeCode(typeDesc), typeDesc);
         }
       }
       else {
@@ -163,4 +178,4 @@ fs.writeFileSync(path.join(outputDir, 'pathsDefinedElsewhere.json'),
 fs.writeFileSync(path.join(outputDir, 'type2Parent.json'),
   JSON.stringify(type2Parent, Object.keys(type2Parent).sort(), 2));
 fs.writeFileSync(path.join(outputDir, 'path2Type.json'),
-  JSON.stringify(path2Type, Object.keys(path2Type).sort(), 2));
+  JSON.stringify(path2Type, [...Object.keys(path2Type).sort(), 'code', 'refType'], 2));

@@ -8,7 +8,12 @@ module.exports = (modelInfo) => {
 
   // Generate a hash map to map paths to data types excluding "BackboneElement" and "Element".
   modelInfo.path2TypeWithoutElements = {};
+  modelInfo.path2RefType = {};
   for(let i in modelInfo.path2Type) {
+    if (modelInfo.path2Type[i].refType) {
+      modelInfo.path2RefType[i] = modelInfo.path2Type[i].refType;
+      modelInfo.path2Type[i] = modelInfo.path2Type[i].code;
+    }
     if (modelInfo.path2Type[i] === 'Element' || modelInfo.path2Type[i] === 'BackboneElement') {
       continue;
     }

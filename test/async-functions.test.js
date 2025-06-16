@@ -1,6 +1,7 @@
 const fhirpath = require('../src/fhirpath');
 const modelR4 = require('../fhir-context/r4');
 const modelR5 = require('../fhir-context/r5');
+const _ = require("lodash");
 const emptyResource = {};
 const observationResource = require('./resources/observation-example.json');
 const administrativeGenderVS = require('./resources/administrative-gender-valueset.json');
@@ -899,6 +900,146 @@ describe('Async functions', () => {
       })
     });
 
+  });
+
+
+  describe('resolve', () => {
+    const medicationDispenseResource106 = require('./resources/medicationdispense-med-106-0.json');
+    const medicationDispenseResource107 = _.cloneDeep(medicationDispenseResource106);
+    medicationDispenseResource107.id = 'med-107-0';
+    medicationDispenseResource107.subject = {
+      "reference": "https://lforms-fhir.nlm.nih.gov/baseR4/Patient/pat-107",
+      "display": "JIAN MCINTOSH"
+    };
+    const patientResource106 = require('./resources/patient-pat-106-0.json');
+    const patientResource107 = _.cloneDeep(patientResource106);
+    patientResource107.id = 'pat-107';
+    patientResource107.deceasedDateTime = '2129';
+    const valueSetResource = {
+      "resourceType": "Bundle",
+      "entry": [{
+        "resource": {
+          "resourceType": "ValueSet",
+          "url": "http://some-canonical-value-set-url"
+        }
+      }]
+    };
+    const QuestionnaireWithContainedQ = {
+      "resourceType": "Bundle",
+      "entry": [{
+        "resource": {
+          "resourceType": "Questionnaire",
+          "url": "http://some-canonical-questionnaire-url",
+          "version": "1.0",
+          "derivedFrom": "#childQuestionnaire",
+          "contained": [{
+            "resourceType": "Questionnaire",
+            "id": "childQuestionnaire"
+          }]
+        }
+      }]
+    };
+
+
+    beforeEach(() => {
+      mockFetchResults([
+        ['https://lforms-fhir.nlm.nih.gov/baseR4/MedicationDispense/med-106-0', medicationDispenseResource106],
+        ['https://lforms-fhir.nlm.nih.gov/baseR4/MedicationDispense/med-107-0', medicationDispenseResource107],
+        ['https://lforms-fhir.nlm.nih.gov/baseR4/Patient/pat-106', patientResource106],
+        ['https://lforms-fhir.nlm.nih.gov/baseR4/Patient/pat-107', patientResource107],
+        [/https:\/\/lforms-fhir.nlm.nih.gov\/baseR4\/ValueSet\?url=http%3A%2F%2Fsome-canonical-value-set-url$/, valueSetResource],
+        [/https:\/\/lforms-fhir.nlm.nih.gov\/baseR4\/ValueSet\?url=http%3A%2F%2Fsome-canonical-value-set-url&version=1.0$/, valueSetResource],
+        [/https:\/\/lforms-fhir.nlm.nih.gov\/baseR4\/Questionnaire\?url=http%3A%2F%2Fsome-canonical-questionnaire-url&version=2.0$/, QuestionnaireWithContainedQ],
+        ['http://some-canonical-url', null, {
+          "resourceType": "OperationOutcome",
+          "issue": [{
+            "severity": "error",
+            "code": "processing",
+            "diagnostics": "Additional diagnostic information about the issue."
+          }]
+        }]
+      ]);
+    });
+
+    [
+      [
+        'String with relative URL',
+        {},
+        '\'MedicationDispense/med-106-0\'.resolve().medication.coding.where(system=\'357\').code',
+        ['00168022138']
+      ],
+      [
+        'String with absolute URL',
+        {},
+        '\'https://lforms-fhir.nlm.nih.gov/baseR4/MedicationDispense/med-107-0\'.resolve().medication.coding.where(system=\'357\').code',
+        ['00168022138']
+      ],
+      [
+        'Reference with relative URL',
+        medicationDispenseResource106,
+        'MedicationDispense.subject.resolve().deceased.where($this is dateTime)',
+        ['2128']
+      ],
+      [
+        'Reference with absolute URL',
+        medicationDispenseResource107,
+        'MedicationDispense.subject.resolve().deceased.where($this is dateTime)',
+        ['2129']
+      ],
+      [
+        'uri with relative URL',
+        {},
+        '%factory.uri(\'MedicationDispense/med-106-0\').resolve().medication.coding.where(system=\'357\').code',
+        ['00168022138']
+      ],
+      [
+        'uri with absolute URL',
+        {},
+        '%factory.uri(\'https://lforms-fhir.nlm.nih.gov/baseR4/MedicationDispense/med-107-0\').resolve().medication.coding.where(system=\'357\').code',
+        ['00168022138']
+      ],
+      [
+        'canonical for a synthetic node as an empty collection',
+        {},
+        '%factory.canonical(\'http://some-canonical-url\').resolve()',
+        []
+      ],
+      [
+        'canonical for a node that resolves to a resource',
+        {
+          "resourceType": "CodeSystem",
+          "valueSet": "http://some-canonical-value-set-url",
+        },
+        'CodeSystem.valueSet.resolve() is ValueSet',
+        [true]
+      ],
+      [
+        'canonical with version and fragment',
+        {
+          "resourceType": "QuestionnaireResponse",
+          "questionnaire": "http://some-canonical-questionnaire-url|2.0#childQuestionnaire",
+        },
+        'QuestionnaireResponse.questionnaire.resolve().where($this is Questionnaire).id=\'childQuestionnaire\'',
+        [true]
+      ]
+    ].forEach(([dataType, resource, expression, res]) => {
+
+      it(`should resolve ${dataType}`, (done) => {
+        let result = fhirpath.evaluate(
+          resource,
+          `${expression}`,
+          {},
+          modelR4,
+          { async: true, fhirServerUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+        );
+        expect(result instanceof Promise).toBe(true);
+        result.then((r) => {
+          expect(r).toEqual(res);
+          done();
+        });
+      });
+
+    });
   });
 
 

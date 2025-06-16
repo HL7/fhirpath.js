@@ -13,9 +13,19 @@
   "Account.meta": "Meta",
   "Account.modifierExtension": "Extension",
   "Account.name": "string",
-  "Account.owner": "Reference",
+  "Account.owner": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "Account.status": "code",
-  "Account.subject": "Reference",
+  "Account.subject": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "Account.text": "Narrative",
   "Account.type": "CodeableConcept",
   "Address.city": "string",
@@ -43,7 +53,12 @@
   "AllergyIntolerance.modifierExtension": "Extension",
   "AllergyIntolerance.note": "Annotation",
   "AllergyIntolerance.onset": "dateTime",
-  "AllergyIntolerance.patient": "Reference",
+  "AllergyIntolerance.patient": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "AllergyIntolerance.reaction": "BackboneElement",
   "AllergyIntolerance.reaction.certainty": "code",
   "AllergyIntolerance.reaction.description": "string",
@@ -57,13 +72,28 @@
   "AllergyIntolerance.reaction.severity": "code",
   "AllergyIntolerance.reaction.substance": "CodeableConcept",
   "AllergyIntolerance.recordedDate": "dateTime",
-  "AllergyIntolerance.recorder": "Reference",
-  "AllergyIntolerance.reporter": "Reference",
+  "AllergyIntolerance.recorder": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
+  "AllergyIntolerance.reporter": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "AllergyIntolerance.status": "code",
   "AllergyIntolerance.substance": "CodeableConcept",
   "AllergyIntolerance.text": "Narrative",
   "AllergyIntolerance.type": "code",
-  "Annotation.authorReference": "Reference",
+  "Annotation.authorReference": {
+    "code": "Reference",
+    "refType": [
+      "RelatedPerson"
+    ]
+  },
   "Annotation.authorString": "string",
   "Annotation.extension": "Extension",
   "Annotation.id": "id",
@@ -82,7 +112,12 @@
   "Appointment.minutesDuration": "positiveInt",
   "Appointment.modifierExtension": "Extension",
   "Appointment.participant": "BackboneElement",
-  "Appointment.participant.actor": "Reference",
+  "Appointment.participant.actor": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "Appointment.participant.extension": "Extension",
   "Appointment.participant.id": "id",
   "Appointment.participant.modifierExtension": "Extension",
@@ -91,13 +126,28 @@
   "Appointment.participant.type": "CodeableConcept",
   "Appointment.priority": "unsignedInt",
   "Appointment.reason": "CodeableConcept",
-  "Appointment.slot": "Reference",
+  "Appointment.slot": {
+    "code": "Reference",
+    "refType": [
+      "Slot"
+    ]
+  },
   "Appointment.start": "instant",
   "Appointment.status": "code",
   "Appointment.text": "Narrative",
   "Appointment.type": "CodeableConcept",
-  "AppointmentResponse.actor": "Reference",
-  "AppointmentResponse.appointment": "Reference",
+  "AppointmentResponse.actor": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
+  "AppointmentResponse.appointment": {
+    "code": "Reference",
+    "refType": [
+      "Appointment"
+    ]
+  },
   "AppointmentResponse.comment": "string",
   "AppointmentResponse.contained": "Resource",
   "AppointmentResponse.end": "instant",
@@ -155,7 +205,12 @@
   "AuditEvent.object.modifierExtension": "Extension",
   "AuditEvent.object.name": "string",
   "AuditEvent.object.query": "base64Binary",
-  "AuditEvent.object.reference": "Reference",
+  "AuditEvent.object.reference": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "AuditEvent.object.role": "Coding",
   "AuditEvent.object.securityLabel": "Coding",
   "AuditEvent.object.type": "Coding",
@@ -163,7 +218,12 @@
   "AuditEvent.participant.altId": "string",
   "AuditEvent.participant.extension": "Extension",
   "AuditEvent.participant.id": "id",
-  "AuditEvent.participant.location": "Reference",
+  "AuditEvent.participant.location": {
+    "code": "Reference",
+    "refType": [
+      "Location"
+    ]
+  },
   "AuditEvent.participant.media": "Coding",
   "AuditEvent.participant.modifierExtension": "Extension",
   "AuditEvent.participant.name": "string",
@@ -175,7 +235,12 @@
   "AuditEvent.participant.network.type": "code",
   "AuditEvent.participant.policy": "uri",
   "AuditEvent.participant.purposeOfUse": "Coding",
-  "AuditEvent.participant.reference": "Reference",
+  "AuditEvent.participant.reference": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "AuditEvent.participant.requestor": "boolean",
   "AuditEvent.participant.role": "CodeableConcept",
   "AuditEvent.participant.userId": "Identifier",
@@ -190,7 +255,12 @@
   "BackboneElement.extension": "Extension",
   "BackboneElement.id": "id",
   "BackboneElement.modifierExtension": "Extension",
-  "Basic.author": "Reference",
+  "Basic.author": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "Basic.code": "CodeableConcept",
   "Basic.contained": "Resource",
   "Basic.created": "date",
@@ -200,7 +270,12 @@
   "Basic.extension.extension.id": "id",
   "Basic.extension.extension.url": "uri",
   "Basic.extension.extension.valueCodeableConcept": "CodeableConcept",
-  "Basic.extension.extension.valueReference": "Reference",
+  "Basic.extension.extension.valueReference": {
+    "code": "Reference",
+    "refType": [
+      "qicore-communication"
+    ]
+  },
   "Basic.extension.id": "id",
   "Basic.extension.url": "uri",
   "Basic.extension.valueAddress": "Address",
@@ -228,7 +303,10 @@
   "Basic.extension.valueQuantity": "Quantity",
   "Basic.extension.valueRange": "Range",
   "Basic.extension.valueRatio": "Ratio",
-  "Basic.extension.valueReference": "Reference",
+  "Basic.extension.valueReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "Basic.extension.valueSampledData": "SampledData",
   "Basic.extension.valueSignature": "Signature",
   "Basic.extension.valueString": "string",
@@ -242,7 +320,12 @@
   "Basic.language": "code",
   "Basic.meta": "Meta",
   "Basic.modifierExtension": "Extension",
-  "Basic.subject": "Reference",
+  "Basic.subject": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "Basic.text": "Narrative",
   "Binary.content": "base64Binary",
   "Binary.contentType": "code",
@@ -262,7 +345,12 @@
   "BodySite.meta": "Meta",
   "BodySite.modifier": "CodeableConcept",
   "BodySite.modifierExtension": "Extension",
-  "BodySite.patient": "Reference",
+  "BodySite.patient": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "BodySite.text": "Narrative",
   "Bundle.entry": "BackboneElement",
   "Bundle.entry.extension": "Extension",
@@ -308,24 +396,54 @@
   "Bundle.total": "unsignedInt",
   "Bundle.type": "code",
   "CarePlan.activity": "BackboneElement",
-  "CarePlan.activity.actionResulting": "Reference",
+  "CarePlan.activity.actionResulting": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "CarePlan.activity.detail": "BackboneElement",
   "CarePlan.activity.detail.category": "CodeableConcept",
   "CarePlan.activity.detail.code": "CodeableConcept",
   "CarePlan.activity.detail.dailyAmount": "Quantity",
   "CarePlan.activity.detail.description": "string",
   "CarePlan.activity.detail.extension": "Extension",
-  "CarePlan.activity.detail.goal": "Reference",
+  "CarePlan.activity.detail.goal": {
+    "code": "Reference",
+    "refType": [
+      "Goal"
+    ]
+  },
   "CarePlan.activity.detail.id": "id",
-  "CarePlan.activity.detail.location": "Reference",
+  "CarePlan.activity.detail.location": {
+    "code": "Reference",
+    "refType": [
+      "Location"
+    ]
+  },
   "CarePlan.activity.detail.modifierExtension": "Extension",
-  "CarePlan.activity.detail.performer": "Reference",
+  "CarePlan.activity.detail.performer": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "CarePlan.activity.detail.productCodeableConcept": "CodeableConcept",
-  "CarePlan.activity.detail.productReference": "Reference",
+  "CarePlan.activity.detail.productReference": {
+    "code": "Reference",
+    "refType": [
+      "Substance"
+    ]
+  },
   "CarePlan.activity.detail.prohibited": "boolean",
   "CarePlan.activity.detail.quantity": "Quantity",
   "CarePlan.activity.detail.reasonCode": "CodeableConcept",
-  "CarePlan.activity.detail.reasonReference": "Reference",
+  "CarePlan.activity.detail.reasonReference": {
+    "code": "Reference",
+    "refType": [
+      "Condition"
+    ]
+  },
   "CarePlan.activity.detail.scheduledPeriod": "Period",
   "CarePlan.activity.detail.scheduledString": "string",
   "CarePlan.activity.detail.scheduledTiming": "Timing",
@@ -335,15 +453,40 @@
   "CarePlan.activity.id": "id",
   "CarePlan.activity.modifierExtension": "Extension",
   "CarePlan.activity.progress": "Annotation",
-  "CarePlan.activity.reference": "Reference",
-  "CarePlan.addresses": "Reference",
-  "CarePlan.author": "Reference",
+  "CarePlan.activity.reference": {
+    "code": "Reference",
+    "refType": [
+      "Appointment"
+    ]
+  },
+  "CarePlan.addresses": {
+    "code": "Reference",
+    "refType": [
+      "Condition"
+    ]
+  },
+  "CarePlan.author": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "CarePlan.category": "CodeableConcept",
   "CarePlan.contained": "Resource",
-  "CarePlan.context": "Reference",
+  "CarePlan.context": {
+    "code": "Reference",
+    "refType": [
+      "Encounter"
+    ]
+  },
   "CarePlan.description": "string",
   "CarePlan.extension": "Extension",
-  "CarePlan.goal": "Reference",
+  "CarePlan.goal": {
+    "code": "Reference",
+    "refType": [
+      "Goal"
+    ]
+  },
   "CarePlan.id": "id",
   "CarePlan.identifier": "Identifier",
   "CarePlan.implicitRules": "uri",
@@ -355,7 +498,12 @@
   "CarePlan.participant": "BackboneElement",
   "CarePlan.participant.extension": "Extension",
   "CarePlan.participant.id": "id",
-  "CarePlan.participant.member": "Reference",
+  "CarePlan.participant.member": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "CarePlan.participant.modifierExtension": "Extension",
   "CarePlan.participant.role": "CodeableConcept",
   "CarePlan.period": "Period",
@@ -364,10 +512,25 @@
   "CarePlan.relatedPlan.extension": "Extension",
   "CarePlan.relatedPlan.id": "id",
   "CarePlan.relatedPlan.modifierExtension": "Extension",
-  "CarePlan.relatedPlan.plan": "Reference",
+  "CarePlan.relatedPlan.plan": {
+    "code": "Reference",
+    "refType": [
+      "CarePlan"
+    ]
+  },
   "CarePlan.status": "code",
-  "CarePlan.subject": "Reference",
-  "CarePlan.support": "Reference",
+  "CarePlan.subject": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
+  "CarePlan.support": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "CarePlan.text": "Narrative",
   "Claim.accident": "date",
   "Claim.accidentType": "Coding",
@@ -376,8 +539,18 @@
   "Claim.contained": "Resource",
   "Claim.coverage": "BackboneElement",
   "Claim.coverage.businessArrangement": "string",
-  "Claim.coverage.claimResponse": "Reference",
-  "Claim.coverage.coverage": "Reference",
+  "Claim.coverage.claimResponse": {
+    "code": "Reference",
+    "refType": [
+      "ClaimResponse"
+    ]
+  },
+  "Claim.coverage.coverage": {
+    "code": "Reference",
+    "refType": [
+      "Coverage"
+    ]
+  },
   "Claim.coverage.extension": "Extension",
   "Claim.coverage.focal": "boolean",
   "Claim.coverage.id": "id",
@@ -393,10 +566,20 @@
   "Claim.diagnosis.id": "id",
   "Claim.diagnosis.modifierExtension": "Extension",
   "Claim.diagnosis.sequence": "positiveInt",
-  "Claim.enterer": "Reference",
+  "Claim.enterer": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "Claim.exception": "Coding",
   "Claim.extension": "Extension",
-  "Claim.facility": "Reference",
+  "Claim.facility": {
+    "code": "Reference",
+    "refType": [
+      "Location"
+    ]
+  },
   "Claim.fundsReserve": "Coding",
   "Claim.id": "id",
   "Claim.identifier": "Identifier",
@@ -445,7 +628,12 @@
   "Claim.item.prosthesis.modifierExtension": "Extension",
   "Claim.item.prosthesis.priorDate": "date",
   "Claim.item.prosthesis.priorMaterial": "Coding",
-  "Claim.item.provider": "Reference",
+  "Claim.item.provider": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "Claim.item.quantity": "Quantity",
   "Claim.item.sequence": "positiveInt",
   "Claim.item.service": "Coding",
@@ -464,25 +652,75 @@
   "Claim.missingTeeth.reason": "Coding",
   "Claim.missingTeeth.tooth": "Coding",
   "Claim.modifierExtension": "Extension",
-  "Claim.organization": "Reference",
-  "Claim.originalPrescription": "Reference",
+  "Claim.organization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
+  "Claim.originalPrescription": {
+    "code": "Reference",
+    "refType": [
+      "MedicationOrder"
+    ]
+  },
   "Claim.originalRuleset": "Coding",
-  "Claim.patient": "Reference",
+  "Claim.patient": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "Claim.payee": "BackboneElement",
   "Claim.payee.extension": "Extension",
   "Claim.payee.id": "id",
   "Claim.payee.modifierExtension": "Extension",
-  "Claim.payee.organization": "Reference",
-  "Claim.payee.person": "Reference",
-  "Claim.payee.provider": "Reference",
+  "Claim.payee.organization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
+  "Claim.payee.person": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
+  "Claim.payee.provider": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "Claim.payee.type": "Coding",
-  "Claim.prescription": "Reference",
+  "Claim.prescription": {
+    "code": "Reference",
+    "refType": [
+      "MedicationOrder"
+    ]
+  },
   "Claim.priority": "Coding",
-  "Claim.provider": "Reference",
-  "Claim.referral": "Reference",
+  "Claim.provider": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
+  "Claim.referral": {
+    "code": "Reference",
+    "refType": [
+      "ReferralRequest"
+    ]
+  },
   "Claim.ruleset": "Coding",
   "Claim.school": "string",
-  "Claim.target": "Reference",
+  "Claim.target": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "Claim.text": "Narrative",
   "Claim.type": "code",
   "Claim.use": "code",
@@ -517,8 +755,18 @@
   "ClaimResponse.contained": "Resource",
   "ClaimResponse.coverage": "BackboneElement",
   "ClaimResponse.coverage.businessArrangement": "string",
-  "ClaimResponse.coverage.claimResponse": "Reference",
-  "ClaimResponse.coverage.coverage": "Reference",
+  "ClaimResponse.coverage.claimResponse": {
+    "code": "Reference",
+    "refType": [
+      "ClaimResponse"
+    ]
+  },
+  "ClaimResponse.coverage.coverage": {
+    "code": "Reference",
+    "refType": [
+      "Coverage"
+    ]
+  },
   "ClaimResponse.coverage.extension": "Extension",
   "ClaimResponse.coverage.focal": "boolean",
   "ClaimResponse.coverage.id": "id",
@@ -589,7 +837,12 @@
   "ClaimResponse.note.number": "positiveInt",
   "ClaimResponse.note.text": "string",
   "ClaimResponse.note.type": "Coding",
-  "ClaimResponse.organization": "Reference",
+  "ClaimResponse.organization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "ClaimResponse.originalRuleset": "Coding",
   "ClaimResponse.outcome": "code",
   "ClaimResponse.payeeType": "Coding",
@@ -598,17 +851,42 @@
   "ClaimResponse.paymentAmount": "Quantity",
   "ClaimResponse.paymentDate": "date",
   "ClaimResponse.paymentRef": "Identifier",
-  "ClaimResponse.request": "Reference",
-  "ClaimResponse.requestOrganization": "Reference",
-  "ClaimResponse.requestProvider": "Reference",
+  "ClaimResponse.request": {
+    "code": "Reference",
+    "refType": [
+      "Claim"
+    ]
+  },
+  "ClaimResponse.requestOrganization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
+  "ClaimResponse.requestProvider": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "ClaimResponse.reserved": "Coding",
   "ClaimResponse.ruleset": "Coding",
   "ClaimResponse.text": "Narrative",
   "ClaimResponse.totalBenefit": "Quantity",
   "ClaimResponse.totalCost": "Quantity",
   "ClaimResponse.unallocDeductable": "Quantity",
-  "ClinicalImpression.action": "Reference",
-  "ClinicalImpression.assessor": "Reference",
+  "ClinicalImpression.action": {
+    "code": "Reference",
+    "refType": [
+      "ReferralRequest"
+    ]
+  },
+  "ClinicalImpression.assessor": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "ClinicalImpression.contained": "Resource",
   "ClinicalImpression.date": "dateTime",
   "ClinicalImpression.description": "string",
@@ -625,15 +903,40 @@
   "ClinicalImpression.investigations.code": "CodeableConcept",
   "ClinicalImpression.investigations.extension": "Extension",
   "ClinicalImpression.investigations.id": "id",
-  "ClinicalImpression.investigations.item": "Reference",
+  "ClinicalImpression.investigations.item": {
+    "code": "Reference",
+    "refType": [
+      "Observation"
+    ]
+  },
   "ClinicalImpression.investigations.modifierExtension": "Extension",
   "ClinicalImpression.language": "code",
   "ClinicalImpression.meta": "Meta",
   "ClinicalImpression.modifierExtension": "Extension",
-  "ClinicalImpression.patient": "Reference",
-  "ClinicalImpression.plan": "Reference",
-  "ClinicalImpression.previous": "Reference",
-  "ClinicalImpression.problem": "Reference",
+  "ClinicalImpression.patient": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
+  "ClinicalImpression.plan": {
+    "code": "Reference",
+    "refType": [
+      "CarePlan"
+    ]
+  },
+  "ClinicalImpression.previous": {
+    "code": "Reference",
+    "refType": [
+      "ClinicalImpression"
+    ]
+  },
+  "ClinicalImpression.problem": {
+    "code": "Reference",
+    "refType": [
+      "Condition"
+    ]
+  },
   "ClinicalImpression.prognosis": "string",
   "ClinicalImpression.protocol": "uri",
   "ClinicalImpression.resolved": "CodeableConcept",
@@ -647,7 +950,12 @@
   "ClinicalImpression.summary": "string",
   "ClinicalImpression.text": "Narrative",
   "ClinicalImpression.triggerCodeableConcept": "CodeableConcept",
-  "ClinicalImpression.triggerReference": "Reference",
+  "ClinicalImpression.triggerReference": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "CodeableConcept.coding": "Coding",
   "CodeableConcept.extension": "Extension",
   "CodeableConcept.id": "id",
@@ -661,7 +969,12 @@
   "Coding.version": "string",
   "Communication.category": "CodeableConcept",
   "Communication.contained": "Resource",
-  "Communication.encounter": "Reference",
+  "Communication.encounter": {
+    "code": "Reference",
+    "refType": [
+      "qicore-encounter"
+    ]
+  },
   "Communication.extension": "Extension",
   "Communication.id": "id",
   "Communication.identifier": "Identifier",
@@ -672,23 +985,53 @@
   "Communication.modifierExtension": "Extension",
   "Communication.payload": "BackboneElement",
   "Communication.payload.contentAttachment": "Attachment",
-  "Communication.payload.contentReference": "Reference",
+  "Communication.payload.contentReference": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "Communication.payload.contentString": "string",
   "Communication.payload.extension": "Extension",
   "Communication.payload.id": "id",
   "Communication.payload.modifierExtension": "Extension",
   "Communication.reason": "CodeableConcept",
   "Communication.received": "dateTime",
-  "Communication.recipient": "Reference",
-  "Communication.requestDetail": "Reference",
-  "Communication.sender": "Reference",
+  "Communication.recipient": {
+    "code": "Reference",
+    "refType": [
+      "qicore-device"
+    ]
+  },
+  "Communication.requestDetail": {
+    "code": "Reference",
+    "refType": [
+      "CommunicationRequest"
+    ]
+  },
+  "Communication.sender": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
   "Communication.sent": "dateTime",
   "Communication.status": "code",
-  "Communication.subject": "Reference",
+  "Communication.subject": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "Communication.text": "Narrative",
   "CommunicationRequest.category": "CodeableConcept",
   "CommunicationRequest.contained": "Resource",
-  "CommunicationRequest.encounter": "Reference",
+  "CommunicationRequest.encounter": {
+    "code": "Reference",
+    "refType": [
+      "qicore-encounter"
+    ]
+  },
   "CommunicationRequest.extension": "Extension",
   "CommunicationRequest.id": "id",
   "CommunicationRequest.identifier": "Identifier",
@@ -699,39 +1042,89 @@
   "CommunicationRequest.modifierExtension": "Extension",
   "CommunicationRequest.payload": "BackboneElement",
   "CommunicationRequest.payload.contentAttachment": "Attachment",
-  "CommunicationRequest.payload.contentReference": "Reference",
+  "CommunicationRequest.payload.contentReference": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "CommunicationRequest.payload.contentString": "string",
   "CommunicationRequest.payload.extension": "Extension",
   "CommunicationRequest.payload.id": "id",
   "CommunicationRequest.payload.modifierExtension": "Extension",
   "CommunicationRequest.priority": "CodeableConcept",
   "CommunicationRequest.reason": "CodeableConcept",
-  "CommunicationRequest.recipient": "Reference",
+  "CommunicationRequest.recipient": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
   "CommunicationRequest.requestedOn": "dateTime",
-  "CommunicationRequest.requester": "Reference",
+  "CommunicationRequest.requester": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "CommunicationRequest.scheduledDateTime": "dateTime",
   "CommunicationRequest.scheduledPeriod": "Period",
-  "CommunicationRequest.sender": "Reference",
+  "CommunicationRequest.sender": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
   "CommunicationRequest.status": "code",
-  "CommunicationRequest.subject": "Reference",
+  "CommunicationRequest.subject": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "CommunicationRequest.text": "Narrative",
   "Composition.attester": "BackboneElement",
   "Composition.attester.extension": "Extension",
   "Composition.attester.id": "id",
   "Composition.attester.mode": "code",
   "Composition.attester.modifierExtension": "Extension",
-  "Composition.attester.party": "Reference",
+  "Composition.attester.party": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "Composition.attester.time": "dateTime",
-  "Composition.author": "Reference",
+  "Composition.author": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "Composition.class": "CodeableConcept",
   "Composition.confidentiality": "code",
   "Composition.contained": "Resource",
-  "Composition.custodian": "Reference",
+  "Composition.custodian": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "Composition.date": "dateTime",
-  "Composition.encounter": "Reference",
+  "Composition.encounter": {
+    "code": "Reference",
+    "refType": [
+      "Encounter"
+    ]
+  },
   "Composition.event": "BackboneElement",
   "Composition.event.code": "CodeableConcept",
-  "Composition.event.detail": "Reference",
+  "Composition.event.detail": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "Composition.event.extension": "Extension",
   "Composition.event.id": "id",
   "Composition.event.modifierExtension": "Extension",
@@ -746,7 +1139,12 @@
   "Composition.section": "BackboneElement",
   "Composition.section.code": "CodeableConcept",
   "Composition.section.emptyReason": "CodeableConcept",
-  "Composition.section.entry": "Reference",
+  "Composition.section.entry": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "Composition.section.extension": "Extension",
   "Composition.section.id": "id",
   "Composition.section.mode": "code",
@@ -755,7 +1153,12 @@
   "Composition.section.text": "Narrative",
   "Composition.section.title": "string",
   "Composition.status": "code",
-  "Composition.subject": "Reference",
+  "Composition.subject": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "Composition.text": "Narrative",
   "Composition.title": "string",
   "Composition.type": "CodeableConcept",
@@ -801,10 +1204,20 @@
   "ConceptMap.name": "string",
   "ConceptMap.publisher": "string",
   "ConceptMap.requirements": "string",
-  "ConceptMap.sourceReference": "Reference",
+  "ConceptMap.sourceReference": {
+    "code": "Reference",
+    "refType": [
+      "StructureDefinition"
+    ]
+  },
   "ConceptMap.sourceUri": "uri",
   "ConceptMap.status": "code",
-  "ConceptMap.targetReference": "Reference",
+  "ConceptMap.targetReference": {
+    "code": "Reference",
+    "refType": [
+      "StructureDefinition"
+    ]
+  },
   "ConceptMap.targetUri": "uri",
   "ConceptMap.text": "Narrative",
   "ConceptMap.url": "uri",
@@ -816,7 +1229,12 @@
   "Condition.abatementQuantity": "Quantity",
   "Condition.abatementRange": "Range",
   "Condition.abatementString": "string",
-  "Condition.asserter": "Reference",
+  "Condition.asserter": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "Condition.bodySite": "CodeableConcept",
   "Condition.category": "CodeableConcept",
   "Condition.category.coding": "Coding",
@@ -845,14 +1263,29 @@
   "Condition.code.text": "string",
   "Condition.contained": "Resource",
   "Condition.dateRecorded": "date",
-  "Condition.encounter": "Reference",
+  "Condition.encounter": {
+    "code": "Reference",
+    "refType": [
+      "qicore-encounter"
+    ]
+  },
   "Condition.evidence": "BackboneElement",
   "Condition.evidence.code": "CodeableConcept",
-  "Condition.evidence.detail": "Reference",
+  "Condition.evidence.detail": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "Condition.evidence.extension": "Extension",
   "Condition.evidence.id": "id",
   "Condition.evidence.modifierExtension": "Extension",
-  "Condition.extension": "Reference",
+  "Condition.extension": {
+    "code": "Reference",
+    "refType": [
+      "qicore-bodysite"
+    ]
+  },
   "Condition.id": "id",
   "Condition.identifier": "Identifier",
   "Condition.implicitRules": "uri",
@@ -865,10 +1298,20 @@
   "Condition.onsetQuantity": "Quantity",
   "Condition.onsetRange": "Range",
   "Condition.onsetString": "string",
-  "Condition.patient": "Reference",
+  "Condition.patient": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "Condition.severity": "CodeableConcept",
   "Condition.stage": "BackboneElement",
-  "Condition.stage.assessment": "Reference",
+  "Condition.stage.assessment": {
+    "code": "Reference",
+    "refType": [
+      "ClinicalImpression"
+    ]
+  },
   "Condition.stage.extension": "Extension",
   "Condition.stage.id": "id",
   "Condition.stage.modifierExtension": "Extension",
@@ -892,7 +1335,12 @@
   "Conformance.document.id": "id",
   "Conformance.document.mode": "code",
   "Conformance.document.modifierExtension": "Extension",
-  "Conformance.document.profile": "Reference",
+  "Conformance.document.profile": {
+    "code": "Reference",
+    "refType": [
+      "StructureDefinition"
+    ]
+  },
   "Conformance.experimental": "boolean",
   "Conformance.extension": "Extension",
   "Conformance.fhirVersion": "id",
@@ -924,8 +1372,18 @@
   "Conformance.messaging.event.id": "id",
   "Conformance.messaging.event.mode": "code",
   "Conformance.messaging.event.modifierExtension": "Extension",
-  "Conformance.messaging.event.request": "Reference",
-  "Conformance.messaging.event.response": "Reference",
+  "Conformance.messaging.event.request": {
+    "code": "Reference",
+    "refType": [
+      "StructureDefinition"
+    ]
+  },
+  "Conformance.messaging.event.response": {
+    "code": "Reference",
+    "refType": [
+      "StructureDefinition"
+    ]
+  },
   "Conformance.messaging.extension": "Extension",
   "Conformance.messaging.id": "id",
   "Conformance.messaging.modifierExtension": "Extension",
@@ -933,7 +1391,12 @@
   "Conformance.meta": "Meta",
   "Conformance.modifierExtension": "Extension",
   "Conformance.name": "string",
-  "Conformance.profile": "Reference",
+  "Conformance.profile": {
+    "code": "Reference",
+    "refType": [
+      "StructureDefinition"
+    ]
+  },
   "Conformance.publisher": "string",
   "Conformance.requirements": "string",
   "Conformance.rest": "BackboneElement",
@@ -950,7 +1413,12 @@
   "Conformance.rest.mode": "code",
   "Conformance.rest.modifierExtension": "Extension",
   "Conformance.rest.operation": "BackboneElement",
-  "Conformance.rest.operation.definition": "Reference",
+  "Conformance.rest.operation.definition": {
+    "code": "Reference",
+    "refType": [
+      "OperationDefinition"
+    ]
+  },
   "Conformance.rest.operation.extension": "Extension",
   "Conformance.rest.operation.id": "id",
   "Conformance.rest.operation.modifierExtension": "Extension",
@@ -968,7 +1436,12 @@
   "Conformance.rest.resource.interaction.id": "id",
   "Conformance.rest.resource.interaction.modifierExtension": "Extension",
   "Conformance.rest.resource.modifierExtension": "Extension",
-  "Conformance.rest.resource.profile": "Reference",
+  "Conformance.rest.resource.profile": {
+    "code": "Reference",
+    "refType": [
+      "StructureDefinition"
+    ]
+  },
   "Conformance.rest.resource.readHistory": "boolean",
   "Conformance.rest.resource.searchInclude": "string",
   "Conformance.rest.resource.searchParam": "BackboneElement",
@@ -1021,21 +1494,46 @@
   "Contract.action": "CodeableConcept",
   "Contract.actionReason": "CodeableConcept",
   "Contract.actor": "BackboneElement",
-  "Contract.actor.entity": "Reference",
+  "Contract.actor.entity": {
+    "code": "Reference",
+    "refType": [
+      "Contract"
+    ]
+  },
   "Contract.actor.extension": "Extension",
   "Contract.actor.id": "id",
   "Contract.actor.modifierExtension": "Extension",
   "Contract.actor.role": "CodeableConcept",
   "Contract.applies": "Period",
-  "Contract.authority": "Reference",
+  "Contract.authority": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "Contract.bindingAttachment": "Attachment",
-  "Contract.bindingReference": "Reference",
+  "Contract.bindingReference": {
+    "code": "Reference",
+    "refType": [
+      "QuestionnaireResponse"
+    ]
+  },
   "Contract.contained": "Resource",
-  "Contract.domain": "Reference",
+  "Contract.domain": {
+    "code": "Reference",
+    "refType": [
+      "Location"
+    ]
+  },
   "Contract.extension": "Extension",
   "Contract.friendly": "BackboneElement",
   "Contract.friendly.contentAttachment": "Attachment",
-  "Contract.friendly.contentReference": "Reference",
+  "Contract.friendly.contentReference": {
+    "code": "Reference",
+    "refType": [
+      "QuestionnaireResponse"
+    ]
+  },
   "Contract.friendly.extension": "Extension",
   "Contract.friendly.id": "id",
   "Contract.friendly.modifierExtension": "Extension",
@@ -1046,7 +1544,12 @@
   "Contract.language": "code",
   "Contract.legal": "BackboneElement",
   "Contract.legal.contentAttachment": "Attachment",
-  "Contract.legal.contentReference": "Reference",
+  "Contract.legal.contentReference": {
+    "code": "Reference",
+    "refType": [
+      "QuestionnaireResponse"
+    ]
+  },
   "Contract.legal.extension": "Extension",
   "Contract.legal.id": "id",
   "Contract.legal.modifierExtension": "Extension",
@@ -1054,7 +1557,12 @@
   "Contract.modifierExtension": "Extension",
   "Contract.rule": "BackboneElement",
   "Contract.rule.contentAttachment": "Attachment",
-  "Contract.rule.contentReference": "Reference",
+  "Contract.rule.contentReference": {
+    "code": "Reference",
+    "refType": [
+      "DocumentReference"
+    ]
+  },
   "Contract.rule.extension": "Extension",
   "Contract.rule.id": "id",
   "Contract.rule.modifierExtension": "Extension",
@@ -1062,16 +1570,31 @@
   "Contract.signer.extension": "Extension",
   "Contract.signer.id": "id",
   "Contract.signer.modifierExtension": "Extension",
-  "Contract.signer.party": "Reference",
+  "Contract.signer.party": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "Contract.signer.signature": "string",
   "Contract.signer.type": "Coding",
   "Contract.subType": "CodeableConcept",
-  "Contract.subject": "Reference",
+  "Contract.subject": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "Contract.term": "BackboneElement",
   "Contract.term.action": "CodeableConcept",
   "Contract.term.actionReason": "CodeableConcept",
   "Contract.term.actor": "BackboneElement",
-  "Contract.term.actor.entity": "Reference",
+  "Contract.term.actor.entity": {
+    "code": "Reference",
+    "refType": [
+      "Contract"
+    ]
+  },
   "Contract.term.actor.extension": "Extension",
   "Contract.term.actor.id": "id",
   "Contract.term.actor.modifierExtension": "Extension",
@@ -1083,13 +1606,23 @@
   "Contract.term.issued": "dateTime",
   "Contract.term.modifierExtension": "Extension",
   "Contract.term.subType": "CodeableConcept",
-  "Contract.term.subject": "Reference",
+  "Contract.term.subject": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "Contract.term.text": "string",
   "Contract.term.type": "CodeableConcept",
   "Contract.term.valuedItem": "BackboneElement",
   "Contract.term.valuedItem.effectiveTime": "dateTime",
   "Contract.term.valuedItem.entityCodeableConcept": "CodeableConcept",
-  "Contract.term.valuedItem.entityReference": "Reference",
+  "Contract.term.valuedItem.entityReference": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "Contract.term.valuedItem.extension": "Extension",
   "Contract.term.valuedItem.factor": "decimal",
   "Contract.term.valuedItem.id": "id",
@@ -1104,7 +1637,12 @@
   "Contract.valuedItem": "BackboneElement",
   "Contract.valuedItem.effectiveTime": "dateTime",
   "Contract.valuedItem.entityCodeableConcept": "CodeableConcept",
-  "Contract.valuedItem.entityReference": "Reference",
+  "Contract.valuedItem.entityReference": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "Contract.valuedItem.extension": "Extension",
   "Contract.valuedItem.factor": "decimal",
   "Contract.valuedItem.id": "id",
@@ -1116,14 +1654,24 @@
   "Contract.valuedItem.unitPrice": "Quantity",
   "Coverage.bin": "Identifier",
   "Coverage.contained": "Resource",
-  "Coverage.contract": "Reference",
+  "Coverage.contract": {
+    "code": "Reference",
+    "refType": [
+      "Contract"
+    ]
+  },
   "Coverage.dependent": "positiveInt",
   "Coverage.extension": "Extension",
   "Coverage.group": "string",
   "Coverage.id": "id",
   "Coverage.identifier": "Identifier",
   "Coverage.implicitRules": "uri",
-  "Coverage.issuer": "Reference",
+  "Coverage.issuer": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "Coverage.language": "code",
   "Coverage.meta": "Meta",
   "Coverage.modifierExtension": "Extension",
@@ -1132,7 +1680,12 @@
   "Coverage.plan": "string",
   "Coverage.sequence": "positiveInt",
   "Coverage.subPlan": "string",
-  "Coverage.subscriber": "Reference",
+  "Coverage.subscriber": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "Coverage.subscriberId": "Identifier",
   "Coverage.text": "Narrative",
   "Coverage.type": "Coding",
@@ -1158,7 +1711,12 @@
   "DataElement.element.binding.extension": "Extension",
   "DataElement.element.binding.id": "id",
   "DataElement.element.binding.strength": "code",
-  "DataElement.element.binding.valueSetReference": "Reference",
+  "DataElement.element.binding.valueSetReference": {
+    "code": "Reference",
+    "refType": [
+      "sdcde-valueset"
+    ]
+  },
   "DataElement.element.binding.valueSetReference.display": "string",
   "DataElement.element.binding.valueSetReference.extension": "Extension",
   "DataElement.element.binding.valueSetReference.id": "id",
@@ -1206,7 +1764,10 @@
   "DataElement.element.defaultValueQuantity": "Quantity",
   "DataElement.element.defaultValueRange": "Range",
   "DataElement.element.defaultValueRatio": "Ratio",
-  "DataElement.element.defaultValueReference": "Reference",
+  "DataElement.element.defaultValueReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "DataElement.element.defaultValueSampledData": "SampledData",
   "DataElement.element.defaultValueSignature": "Signature",
   "DataElement.element.defaultValueString": "string",
@@ -1240,7 +1801,10 @@
   "DataElement.element.exampleQuantity": "Quantity",
   "DataElement.element.exampleRange": "Range",
   "DataElement.element.exampleRatio": "Ratio",
-  "DataElement.element.exampleReference": "Reference",
+  "DataElement.element.exampleReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "DataElement.element.exampleSampledData": "SampledData",
   "DataElement.element.exampleSignature": "Signature",
   "DataElement.element.exampleString": "string",
@@ -1274,7 +1838,10 @@
   "DataElement.element.fixedQuantity": "Quantity",
   "DataElement.element.fixedRange": "Range",
   "DataElement.element.fixedRatio": "Ratio",
-  "DataElement.element.fixedReference": "Reference",
+  "DataElement.element.fixedReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "DataElement.element.fixedSampledData": "SampledData",
   "DataElement.element.fixedSignature": "Signature",
   "DataElement.element.fixedString": "string",
@@ -1324,7 +1891,10 @@
   "DataElement.element.maxValueQuantity": "Quantity",
   "DataElement.element.maxValueRange": "Range",
   "DataElement.element.maxValueRatio": "Ratio",
-  "DataElement.element.maxValueReference": "Reference",
+  "DataElement.element.maxValueReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "DataElement.element.maxValueSampledData": "SampledData",
   "DataElement.element.maxValueSignature": "Signature",
   "DataElement.element.maxValueString": "string",
@@ -1359,7 +1929,10 @@
   "DataElement.element.minValueQuantity": "Quantity",
   "DataElement.element.minValueRange": "Range",
   "DataElement.element.minValueRatio": "Ratio",
-  "DataElement.element.minValueReference": "Reference",
+  "DataElement.element.minValueReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "DataElement.element.minValueSampledData": "SampledData",
   "DataElement.element.minValueSignature": "Signature",
   "DataElement.element.minValueString": "string",
@@ -1396,7 +1969,10 @@
   "DataElement.element.patternQuantity": "Quantity",
   "DataElement.element.patternRange": "Range",
   "DataElement.element.patternRatio": "Ratio",
-  "DataElement.element.patternReference": "Reference",
+  "DataElement.element.patternReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "DataElement.element.patternSampledData": "SampledData",
   "DataElement.element.patternSignature": "Signature",
   "DataElement.element.patternString": "string",
@@ -1448,7 +2024,12 @@
   "DataElement.useContext.id": "id",
   "DataElement.useContext.text": "string",
   "DataElement.version": "string",
-  "DetectedIssue.author": "Reference",
+  "DetectedIssue.author": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "DetectedIssue.category": "CodeableConcept",
   "DetectedIssue.contained": "Resource",
   "DetectedIssue.date": "dateTime",
@@ -1456,19 +2037,34 @@
   "DetectedIssue.extension": "Extension",
   "DetectedIssue.id": "id",
   "DetectedIssue.identifier": "Identifier",
-  "DetectedIssue.implicated": "Reference",
+  "DetectedIssue.implicated": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "DetectedIssue.implicitRules": "uri",
   "DetectedIssue.language": "code",
   "DetectedIssue.meta": "Meta",
   "DetectedIssue.mitigation": "BackboneElement",
   "DetectedIssue.mitigation.action": "CodeableConcept",
-  "DetectedIssue.mitigation.author": "Reference",
+  "DetectedIssue.mitigation.author": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "DetectedIssue.mitigation.date": "dateTime",
   "DetectedIssue.mitigation.extension": "Extension",
   "DetectedIssue.mitigation.id": "id",
   "DetectedIssue.mitigation.modifierExtension": "Extension",
   "DetectedIssue.modifierExtension": "Extension",
-  "DetectedIssue.patient": "Reference",
+  "DetectedIssue.patient": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "DetectedIssue.reference": "uri",
   "DetectedIssue.severity": "code",
   "DetectedIssue.text": "Narrative",
@@ -1480,7 +2076,12 @@
   "Device.identifier": "Identifier",
   "Device.implicitRules": "uri",
   "Device.language": "code",
-  "Device.location": "Reference",
+  "Device.location": {
+    "code": "Reference",
+    "refType": [
+      "qicore-location"
+    ]
+  },
   "Device.lotNumber": "string",
   "Device.manufactureDate": "dateTime",
   "Device.manufacturer": "string",
@@ -1488,8 +2089,18 @@
   "Device.model": "string",
   "Device.modifierExtension": "Extension",
   "Device.note": "Annotation",
-  "Device.owner": "Reference",
-  "Device.patient": "Reference",
+  "Device.owner": {
+    "code": "Reference",
+    "refType": [
+      "qicore-organization"
+    ]
+  },
+  "Device.patient": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "Device.status": "code",
   "Device.text": "Narrative",
   "Device.type": "CodeableConcept",
@@ -1509,7 +2120,12 @@
   "DeviceComponent.modifierExtension": "Extension",
   "DeviceComponent.operationalStatus": "CodeableConcept",
   "DeviceComponent.parameterGroup": "CodeableConcept",
-  "DeviceComponent.parent": "Reference",
+  "DeviceComponent.parent": {
+    "code": "Reference",
+    "refType": [
+      "DeviceComponent"
+    ]
+  },
   "DeviceComponent.productionSpecification": "BackboneElement",
   "DeviceComponent.productionSpecification.componentId": "Identifier",
   "DeviceComponent.productionSpecification.extension": "Extension",
@@ -1517,7 +2133,12 @@
   "DeviceComponent.productionSpecification.modifierExtension": "Extension",
   "DeviceComponent.productionSpecification.productionSpec": "string",
   "DeviceComponent.productionSpecification.specType": "CodeableConcept",
-  "DeviceComponent.source": "Reference",
+  "DeviceComponent.source": {
+    "code": "Reference",
+    "refType": [
+      "Device"
+    ]
+  },
   "DeviceComponent.text": "Narrative",
   "DeviceComponent.type": "CodeableConcept",
   "DeviceMetric.calibration": "BackboneElement",
@@ -1539,16 +2160,41 @@
   "DeviceMetric.meta": "Meta",
   "DeviceMetric.modifierExtension": "Extension",
   "DeviceMetric.operationalStatus": "code",
-  "DeviceMetric.parent": "Reference",
-  "DeviceMetric.source": "Reference",
+  "DeviceMetric.parent": {
+    "code": "Reference",
+    "refType": [
+      "DeviceComponent"
+    ]
+  },
+  "DeviceMetric.source": {
+    "code": "Reference",
+    "refType": [
+      "Device"
+    ]
+  },
   "DeviceMetric.text": "Narrative",
   "DeviceMetric.type": "CodeableConcept",
   "DeviceMetric.unit": "CodeableConcept",
   "DeviceUseRequest.bodySiteCodeableConcept": "CodeableConcept",
-  "DeviceUseRequest.bodySiteReference": "Reference",
+  "DeviceUseRequest.bodySiteReference": {
+    "code": "Reference",
+    "refType": [
+      "qicore-bodysite"
+    ]
+  },
   "DeviceUseRequest.contained": "Resource",
-  "DeviceUseRequest.device": "Reference",
-  "DeviceUseRequest.encounter": "Reference",
+  "DeviceUseRequest.device": {
+    "code": "Reference",
+    "refType": [
+      "qicore-device"
+    ]
+  },
+  "DeviceUseRequest.encounter": {
+    "code": "Reference",
+    "refType": [
+      "qicore-encounter"
+    ]
+  },
   "DeviceUseRequest.extension": "Extension",
   "DeviceUseRequest.id": "id",
   "DeviceUseRequest.identifier": "Identifier",
@@ -1563,15 +2209,30 @@
   "DeviceUseRequest.prnReason": "CodeableConcept",
   "DeviceUseRequest.recordedOn": "dateTime",
   "DeviceUseRequest.status": "code",
-  "DeviceUseRequest.subject": "Reference",
+  "DeviceUseRequest.subject": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "DeviceUseRequest.text": "Narrative",
   "DeviceUseRequest.timingDateTime": "dateTime",
   "DeviceUseRequest.timingPeriod": "Period",
   "DeviceUseRequest.timingTiming": "Timing",
   "DeviceUseStatement.bodySiteCodeableConcept": "CodeableConcept",
-  "DeviceUseStatement.bodySiteReference": "Reference",
+  "DeviceUseStatement.bodySiteReference": {
+    "code": "Reference",
+    "refType": [
+      "qicore-bodysite"
+    ]
+  },
   "DeviceUseStatement.contained": "Resource",
-  "DeviceUseStatement.device": "Reference",
+  "DeviceUseStatement.device": {
+    "code": "Reference",
+    "refType": [
+      "qicore-device"
+    ]
+  },
   "DeviceUseStatement.extension": "Extension",
   "DeviceUseStatement.id": "id",
   "DeviceUseStatement.identifier": "Identifier",
@@ -1582,16 +2243,31 @@
   "DeviceUseStatement.modifierExtension": "Extension",
   "DeviceUseStatement.notes": "string",
   "DeviceUseStatement.recordedOn": "dateTime",
-  "DeviceUseStatement.subject": "Reference",
+  "DeviceUseStatement.subject": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "DeviceUseStatement.text": "Narrative",
   "DeviceUseStatement.timingDateTime": "dateTime",
   "DeviceUseStatement.timingPeriod": "Period",
   "DeviceUseStatement.timingTiming": "Timing",
   "DeviceUseStatement.whenUsed": "Period",
   "DiagnosticOrder.contained": "Resource",
-  "DiagnosticOrder.encounter": "Reference",
+  "DiagnosticOrder.encounter": {
+    "code": "Reference",
+    "refType": [
+      "qicore-encounter"
+    ]
+  },
   "DiagnosticOrder.event": "BackboneElement",
-  "DiagnosticOrder.event.actor": "Reference",
+  "DiagnosticOrder.event.actor": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
   "DiagnosticOrder.event.dateTime": "dateTime",
   "DiagnosticOrder.event.description": "CodeableConcept",
   "DiagnosticOrder.event.description.coding": "Coding",
@@ -1613,10 +2289,20 @@
   "DiagnosticOrder.extension.extension": "Extension",
   "DiagnosticOrder.extension.id": "id",
   "DiagnosticOrder.extension.url": "uri",
-  "DiagnosticOrder.extension.valueReference": "Reference",
+  "DiagnosticOrder.extension.valueReference": {
+    "code": "Reference",
+    "refType": [
+      "uslab-pract"
+    ]
+  },
   "DiagnosticOrder.id": "id",
   "DiagnosticOrder.identifier": "Identifier",
-  "DiagnosticOrder.identifier.assigner": "Reference",
+  "DiagnosticOrder.identifier.assigner": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "DiagnosticOrder.identifier.extension": "Extension",
   "DiagnosticOrder.identifier.id": "id",
   "DiagnosticOrder.identifier.period": "Period",
@@ -1642,19 +2328,44 @@
   "DiagnosticOrder.item.extension": "Extension",
   "DiagnosticOrder.item.id": "id",
   "DiagnosticOrder.item.modifierExtension": "Extension",
-  "DiagnosticOrder.item.specimen": "Reference",
+  "DiagnosticOrder.item.specimen": {
+    "code": "Reference",
+    "refType": [
+      "qicore-specimen"
+    ]
+  },
   "DiagnosticOrder.item.status": "code",
   "DiagnosticOrder.language": "code",
   "DiagnosticOrder.meta": "Meta",
   "DiagnosticOrder.modifierExtension": "Extension",
   "DiagnosticOrder.note": "Annotation",
-  "DiagnosticOrder.orderer": "Reference",
+  "DiagnosticOrder.orderer": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
   "DiagnosticOrder.priority": "code",
   "DiagnosticOrder.reason": "CodeableConcept",
-  "DiagnosticOrder.specimen": "Reference",
+  "DiagnosticOrder.specimen": {
+    "code": "Reference",
+    "refType": [
+      "qicore-specimen"
+    ]
+  },
   "DiagnosticOrder.status": "code",
-  "DiagnosticOrder.subject": "Reference",
-  "DiagnosticOrder.supportingInformation": "Reference",
+  "DiagnosticOrder.subject": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
+  "DiagnosticOrder.supportingInformation": {
+    "code": "Reference",
+    "refType": [
+      "qicore-observation"
+    ]
+  },
   "DiagnosticOrder.text": "Narrative",
   "DiagnosticReport.category": "CodeableConcept",
   "DiagnosticReport.code": "CodeableConcept",
@@ -1674,15 +2385,30 @@
   "DiagnosticReport.contained": "Resource",
   "DiagnosticReport.effectiveDateTime": "dateTime",
   "DiagnosticReport.effectivePeriod": "Period",
-  "DiagnosticReport.encounter": "Reference",
+  "DiagnosticReport.encounter": {
+    "code": "Reference",
+    "refType": [
+      "qicore-encounter"
+    ]
+  },
   "DiagnosticReport.extension": "Extension",
   "DiagnosticReport.extension.extension": "Extension",
   "DiagnosticReport.extension.id": "id",
   "DiagnosticReport.extension.url": "uri",
-  "DiagnosticReport.extension.valueReference": "Reference",
+  "DiagnosticReport.extension.valueReference": {
+    "code": "Reference",
+    "refType": [
+      "qicore-location"
+    ]
+  },
   "DiagnosticReport.id": "id",
   "DiagnosticReport.identifier": "Identifier",
-  "DiagnosticReport.identifier.assigner": "Reference",
+  "DiagnosticReport.identifier.assigner": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "DiagnosticReport.identifier.extension": "Extension",
   "DiagnosticReport.identifier.id": "id",
   "DiagnosticReport.identifier.period": "Period",
@@ -1694,30 +2420,75 @@
   "DiagnosticReport.image.comment": "string",
   "DiagnosticReport.image.extension": "Extension",
   "DiagnosticReport.image.id": "id",
-  "DiagnosticReport.image.link": "Reference",
+  "DiagnosticReport.image.link": {
+    "code": "Reference",
+    "refType": [
+      "Media"
+    ]
+  },
   "DiagnosticReport.image.modifierExtension": "Extension",
-  "DiagnosticReport.imagingStudy": "Reference",
+  "DiagnosticReport.imagingStudy": {
+    "code": "Reference",
+    "refType": [
+      "qicore-imagingstudy"
+    ]
+  },
   "DiagnosticReport.implicitRules": "uri",
   "DiagnosticReport.issued": "instant",
   "DiagnosticReport.language": "code",
   "DiagnosticReport.meta": "Meta",
   "DiagnosticReport.modifierExtension": "Extension",
-  "DiagnosticReport.performer": "Reference",
+  "DiagnosticReport.performer": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
   "DiagnosticReport.presentedForm": "Attachment",
-  "DiagnosticReport.request": "Reference",
-  "DiagnosticReport.result": "Reference",
-  "DiagnosticReport.specimen": "Reference",
+  "DiagnosticReport.request": {
+    "code": "Reference",
+    "refType": [
+      "qicore-diagnosticorder"
+    ]
+  },
+  "DiagnosticReport.result": {
+    "code": "Reference",
+    "refType": [
+      "qicore-observation"
+    ]
+  },
+  "DiagnosticReport.specimen": {
+    "code": "Reference",
+    "refType": [
+      "qicore-specimen"
+    ]
+  },
   "DiagnosticReport.status": "code",
-  "DiagnosticReport.subject": "Reference",
+  "DiagnosticReport.subject": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "DiagnosticReport.text": "Narrative",
-  "DocumentManifest.author": "Reference",
+  "DocumentManifest.author": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "DocumentManifest.contained": "Resource",
   "DocumentManifest.content": "BackboneElement",
   "DocumentManifest.content.extension": "Extension",
   "DocumentManifest.content.id": "id",
   "DocumentManifest.content.modifierExtension": "Extension",
   "DocumentManifest.content.pAttachment": "Attachment",
-  "DocumentManifest.content.pReference": "Reference",
+  "DocumentManifest.content.pReference": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "DocumentManifest.created": "dateTime",
   "DocumentManifest.description": "string",
   "DocumentManifest.extension": "Extension",
@@ -1728,20 +2499,45 @@
   "DocumentManifest.masterIdentifier": "Identifier",
   "DocumentManifest.meta": "Meta",
   "DocumentManifest.modifierExtension": "Extension",
-  "DocumentManifest.recipient": "Reference",
+  "DocumentManifest.recipient": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "DocumentManifest.related": "BackboneElement",
   "DocumentManifest.related.extension": "Extension",
   "DocumentManifest.related.id": "id",
   "DocumentManifest.related.identifier": "Identifier",
   "DocumentManifest.related.modifierExtension": "Extension",
-  "DocumentManifest.related.ref": "Reference",
+  "DocumentManifest.related.ref": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "DocumentManifest.source": "uri",
   "DocumentManifest.status": "code",
-  "DocumentManifest.subject": "Reference",
+  "DocumentManifest.subject": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "DocumentManifest.text": "Narrative",
   "DocumentManifest.type": "CodeableConcept",
-  "DocumentReference.authenticator": "Reference",
-  "DocumentReference.author": "Reference",
+  "DocumentReference.authenticator": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
+  "DocumentReference.author": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "DocumentReference.class": "CodeableConcept",
   "DocumentReference.contained": "Resource",
   "DocumentReference.content": "BackboneElement",
@@ -1761,7 +2557,12 @@
   "DocumentReference.content.id": "id",
   "DocumentReference.content.modifierExtension": "Extension",
   "DocumentReference.context": "BackboneElement",
-  "DocumentReference.context.encounter": "Reference",
+  "DocumentReference.context.encounter": {
+    "code": "Reference",
+    "refType": [
+      "Encounter"
+    ]
+  },
   "DocumentReference.context.event": "CodeableConcept",
   "DocumentReference.context.extension": "Extension",
   "DocumentReference.context.facilityType": "CodeableConcept",
@@ -1774,10 +2575,25 @@
   "DocumentReference.context.related.id": "id",
   "DocumentReference.context.related.identifier": "Identifier",
   "DocumentReference.context.related.modifierExtension": "Extension",
-  "DocumentReference.context.related.ref": "Reference",
-  "DocumentReference.context.sourcePatientInfo": "Reference",
+  "DocumentReference.context.related.ref": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
+  "DocumentReference.context.sourcePatientInfo": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "DocumentReference.created": "dateTime",
-  "DocumentReference.custodian": "Reference",
+  "DocumentReference.custodian": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "DocumentReference.description": "string",
   "DocumentReference.docStatus": "CodeableConcept",
   "DocumentReference.extension": "Extension",
@@ -1794,10 +2610,20 @@
   "DocumentReference.relatesTo.extension": "Extension",
   "DocumentReference.relatesTo.id": "id",
   "DocumentReference.relatesTo.modifierExtension": "Extension",
-  "DocumentReference.relatesTo.target": "Reference",
+  "DocumentReference.relatesTo.target": {
+    "code": "Reference",
+    "refType": [
+      "DocumentReference"
+    ]
+  },
   "DocumentReference.securityLabel": "CodeableConcept",
   "DocumentReference.status": "code",
-  "DocumentReference.subject": "Reference",
+  "DocumentReference.subject": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "DocumentReference.text": "Narrative",
   "DocumentReference.type": "CodeableConcept",
   "DomainResource.contained": "Resource",
@@ -1822,7 +2648,12 @@
   "ElementDefinition.binding.extension": "Extension",
   "ElementDefinition.binding.id": "id",
   "ElementDefinition.binding.strength": "code",
-  "ElementDefinition.binding.valueSetReference": "Reference",
+  "ElementDefinition.binding.valueSetReference": {
+    "code": "Reference",
+    "refType": [
+      "ValueSet"
+    ]
+  },
   "ElementDefinition.binding.valueSetUri": "uri",
   "ElementDefinition.code": "Coding",
   "ElementDefinition.comments": "markdown",
@@ -1860,7 +2691,10 @@
   "ElementDefinition.defaultValueQuantity": "Quantity",
   "ElementDefinition.defaultValueRange": "Range",
   "ElementDefinition.defaultValueRatio": "Ratio",
-  "ElementDefinition.defaultValueReference": "Reference",
+  "ElementDefinition.defaultValueReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "ElementDefinition.defaultValueSampledData": "SampledData",
   "ElementDefinition.defaultValueSignature": "Signature",
   "ElementDefinition.defaultValueString": "string",
@@ -1894,7 +2728,10 @@
   "ElementDefinition.exampleQuantity": "Quantity",
   "ElementDefinition.exampleRange": "Range",
   "ElementDefinition.exampleRatio": "Ratio",
-  "ElementDefinition.exampleReference": "Reference",
+  "ElementDefinition.exampleReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "ElementDefinition.exampleSampledData": "SampledData",
   "ElementDefinition.exampleSignature": "Signature",
   "ElementDefinition.exampleString": "string",
@@ -1928,7 +2765,10 @@
   "ElementDefinition.fixedQuantity": "Quantity",
   "ElementDefinition.fixedRange": "Range",
   "ElementDefinition.fixedRatio": "Ratio",
-  "ElementDefinition.fixedReference": "Reference",
+  "ElementDefinition.fixedReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "ElementDefinition.fixedSampledData": "SampledData",
   "ElementDefinition.fixedSignature": "Signature",
   "ElementDefinition.fixedString": "string",
@@ -1973,7 +2813,10 @@
   "ElementDefinition.maxValueQuantity": "Quantity",
   "ElementDefinition.maxValueRange": "Range",
   "ElementDefinition.maxValueRatio": "Ratio",
-  "ElementDefinition.maxValueReference": "Reference",
+  "ElementDefinition.maxValueReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "ElementDefinition.maxValueSampledData": "SampledData",
   "ElementDefinition.maxValueSignature": "Signature",
   "ElementDefinition.maxValueString": "string",
@@ -2008,7 +2851,10 @@
   "ElementDefinition.minValueQuantity": "Quantity",
   "ElementDefinition.minValueRange": "Range",
   "ElementDefinition.minValueRatio": "Ratio",
-  "ElementDefinition.minValueReference": "Reference",
+  "ElementDefinition.minValueReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "ElementDefinition.minValueSampledData": "SampledData",
   "ElementDefinition.minValueSignature": "Signature",
   "ElementDefinition.minValueString": "string",
@@ -2045,7 +2891,10 @@
   "ElementDefinition.patternQuantity": "Quantity",
   "ElementDefinition.patternRange": "Range",
   "ElementDefinition.patternRatio": "Ratio",
-  "ElementDefinition.patternReference": "Reference",
+  "ElementDefinition.patternReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "ElementDefinition.patternSampledData": "SampledData",
   "ElementDefinition.patternSignature": "Signature",
   "ElementDefinition.patternString": "string",
@@ -2078,11 +2927,26 @@
   "EligibilityRequest.language": "code",
   "EligibilityRequest.meta": "Meta",
   "EligibilityRequest.modifierExtension": "Extension",
-  "EligibilityRequest.organization": "Reference",
+  "EligibilityRequest.organization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "EligibilityRequest.originalRuleset": "Coding",
-  "EligibilityRequest.provider": "Reference",
+  "EligibilityRequest.provider": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "EligibilityRequest.ruleset": "Coding",
-  "EligibilityRequest.target": "Reference",
+  "EligibilityRequest.target": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "EligibilityRequest.text": "Narrative",
   "EligibilityResponse.contained": "Resource",
   "EligibilityResponse.created": "dateTime",
@@ -2094,34 +2958,89 @@
   "EligibilityResponse.language": "code",
   "EligibilityResponse.meta": "Meta",
   "EligibilityResponse.modifierExtension": "Extension",
-  "EligibilityResponse.organization": "Reference",
+  "EligibilityResponse.organization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "EligibilityResponse.originalRuleset": "Coding",
   "EligibilityResponse.outcome": "code",
-  "EligibilityResponse.request": "Reference",
-  "EligibilityResponse.requestOrganization": "Reference",
-  "EligibilityResponse.requestProvider": "Reference",
+  "EligibilityResponse.request": {
+    "code": "Reference",
+    "refType": [
+      "EligibilityRequest"
+    ]
+  },
+  "EligibilityResponse.requestOrganization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
+  "EligibilityResponse.requestProvider": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "EligibilityResponse.ruleset": "Coding",
   "EligibilityResponse.text": "Narrative",
-  "Encounter.appointment": "Reference",
+  "Encounter.appointment": {
+    "code": "Reference",
+    "refType": [
+      "Appointment"
+    ]
+  },
   "Encounter.class": "code",
   "Encounter.contained": "Resource",
-  "Encounter.episodeOfCare": "Reference",
+  "Encounter.episodeOfCare": {
+    "code": "Reference",
+    "refType": [
+      "EpisodeOfCare"
+    ]
+  },
   "Encounter.extension": "Extension",
   "Encounter.extension.extension": "Extension",
   "Encounter.extension.id": "id",
   "Encounter.extension.url": "uri",
-  "Encounter.extension.valueReference": "Reference",
+  "Encounter.extension.valueReference": {
+    "code": "Reference",
+    "refType": [
+      "Condition"
+    ]
+  },
   "Encounter.hospitalization": "BackboneElement",
   "Encounter.hospitalization.admitSource": "CodeableConcept",
-  "Encounter.hospitalization.admittingDiagnosis": "Reference",
-  "Encounter.hospitalization.destination": "Reference",
+  "Encounter.hospitalization.admittingDiagnosis": {
+    "code": "Reference",
+    "refType": [
+      "Condition"
+    ]
+  },
+  "Encounter.hospitalization.destination": {
+    "code": "Reference",
+    "refType": [
+      "qicore-location"
+    ]
+  },
   "Encounter.hospitalization.dietPreference": "CodeableConcept",
-  "Encounter.hospitalization.dischargeDiagnosis": "Reference",
+  "Encounter.hospitalization.dischargeDiagnosis": {
+    "code": "Reference",
+    "refType": [
+      "Condition"
+    ]
+  },
   "Encounter.hospitalization.dischargeDisposition": "CodeableConcept",
   "Encounter.hospitalization.extension": "Extension",
   "Encounter.hospitalization.id": "id",
   "Encounter.hospitalization.modifierExtension": "Extension",
-  "Encounter.hospitalization.origin": "Reference",
+  "Encounter.hospitalization.origin": {
+    "code": "Reference",
+    "refType": [
+      "qicore-location"
+    ]
+  },
   "Encounter.hospitalization.preAdmissionIdentifier": "Identifier",
   "Encounter.hospitalization.reAdmission": "CodeableConcept",
   "Encounter.hospitalization.specialArrangement": "CodeableConcept",
@@ -2129,32 +3048,67 @@
   "Encounter.id": "id",
   "Encounter.identifier": "Identifier",
   "Encounter.implicitRules": "uri",
-  "Encounter.incomingReferral": "Reference",
-  "Encounter.indication": "Reference",
+  "Encounter.incomingReferral": {
+    "code": "Reference",
+    "refType": [
+      "qicore-referralrequest"
+    ]
+  },
+  "Encounter.indication": {
+    "code": "Reference",
+    "refType": [
+      "Condition"
+    ]
+  },
   "Encounter.language": "code",
   "Encounter.length": "Quantity",
   "Encounter.location": "BackboneElement",
   "Encounter.location.extension": "Extension",
   "Encounter.location.id": "id",
-  "Encounter.location.location": "Reference",
+  "Encounter.location.location": {
+    "code": "Reference",
+    "refType": [
+      "qicore-location"
+    ]
+  },
   "Encounter.location.modifierExtension": "Extension",
   "Encounter.location.period": "Period",
   "Encounter.location.status": "code",
   "Encounter.meta": "Meta",
   "Encounter.modifierExtension": "Extension",
-  "Encounter.partOf": "Reference",
+  "Encounter.partOf": {
+    "code": "Reference",
+    "refType": [
+      "qicore-encounter"
+    ]
+  },
   "Encounter.participant": "BackboneElement",
   "Encounter.participant.extension": "Extension",
   "Encounter.participant.id": "id",
-  "Encounter.participant.individual": "Reference",
+  "Encounter.participant.individual": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
   "Encounter.participant.modifierExtension": "Extension",
   "Encounter.participant.period": "Period",
   "Encounter.participant.type": "CodeableConcept",
-  "Encounter.patient": "Reference",
+  "Encounter.patient": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "Encounter.period": "Period",
   "Encounter.priority": "CodeableConcept",
   "Encounter.reason": "CodeableConcept",
-  "Encounter.serviceProvider": "Reference",
+  "Encounter.serviceProvider": {
+    "code": "Reference",
+    "refType": [
+      "qicore-organization"
+    ]
+  },
   "Encounter.status": "code",
   "Encounter.statusHistory": "BackboneElement",
   "Encounter.statusHistory.extension": "Extension",
@@ -2165,7 +3119,12 @@
   "Encounter.text": "Narrative",
   "Encounter.type": "CodeableConcept",
   "EnrollmentRequest.contained": "Resource",
-  "EnrollmentRequest.coverage": "Reference",
+  "EnrollmentRequest.coverage": {
+    "code": "Reference",
+    "refType": [
+      "Coverage"
+    ]
+  },
   "EnrollmentRequest.created": "dateTime",
   "EnrollmentRequest.extension": "Extension",
   "EnrollmentRequest.id": "id",
@@ -2174,13 +3133,33 @@
   "EnrollmentRequest.language": "code",
   "EnrollmentRequest.meta": "Meta",
   "EnrollmentRequest.modifierExtension": "Extension",
-  "EnrollmentRequest.organization": "Reference",
+  "EnrollmentRequest.organization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "EnrollmentRequest.originalRuleset": "Coding",
-  "EnrollmentRequest.provider": "Reference",
+  "EnrollmentRequest.provider": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "EnrollmentRequest.relationship": "Coding",
   "EnrollmentRequest.ruleset": "Coding",
-  "EnrollmentRequest.subject": "Reference",
-  "EnrollmentRequest.target": "Reference",
+  "EnrollmentRequest.subject": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
+  "EnrollmentRequest.target": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "EnrollmentRequest.text": "Narrative",
   "EnrollmentResponse.contained": "Resource",
   "EnrollmentResponse.created": "dateTime",
@@ -2192,35 +3171,85 @@
   "EnrollmentResponse.language": "code",
   "EnrollmentResponse.meta": "Meta",
   "EnrollmentResponse.modifierExtension": "Extension",
-  "EnrollmentResponse.organization": "Reference",
+  "EnrollmentResponse.organization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "EnrollmentResponse.originalRuleset": "Coding",
   "EnrollmentResponse.outcome": "code",
-  "EnrollmentResponse.request": "Reference",
-  "EnrollmentResponse.requestOrganization": "Reference",
-  "EnrollmentResponse.requestProvider": "Reference",
+  "EnrollmentResponse.request": {
+    "code": "Reference",
+    "refType": [
+      "EnrollmentRequest"
+    ]
+  },
+  "EnrollmentResponse.requestOrganization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
+  "EnrollmentResponse.requestProvider": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "EnrollmentResponse.ruleset": "Coding",
   "EnrollmentResponse.text": "Narrative",
-  "EpisodeOfCare.careManager": "Reference",
+  "EpisodeOfCare.careManager": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "EpisodeOfCare.careTeam": "BackboneElement",
   "EpisodeOfCare.careTeam.extension": "Extension",
   "EpisodeOfCare.careTeam.id": "id",
-  "EpisodeOfCare.careTeam.member": "Reference",
+  "EpisodeOfCare.careTeam.member": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "EpisodeOfCare.careTeam.modifierExtension": "Extension",
   "EpisodeOfCare.careTeam.period": "Period",
   "EpisodeOfCare.careTeam.role": "CodeableConcept",
-  "EpisodeOfCare.condition": "Reference",
+  "EpisodeOfCare.condition": {
+    "code": "Reference",
+    "refType": [
+      "Condition"
+    ]
+  },
   "EpisodeOfCare.contained": "Resource",
   "EpisodeOfCare.extension": "Extension",
   "EpisodeOfCare.id": "id",
   "EpisodeOfCare.identifier": "Identifier",
   "EpisodeOfCare.implicitRules": "uri",
   "EpisodeOfCare.language": "code",
-  "EpisodeOfCare.managingOrganization": "Reference",
+  "EpisodeOfCare.managingOrganization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "EpisodeOfCare.meta": "Meta",
   "EpisodeOfCare.modifierExtension": "Extension",
-  "EpisodeOfCare.patient": "Reference",
+  "EpisodeOfCare.patient": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "EpisodeOfCare.period": "Period",
-  "EpisodeOfCare.referralRequest": "Reference",
+  "EpisodeOfCare.referralRequest": {
+    "code": "Reference",
+    "refType": [
+      "ReferralRequest"
+    ]
+  },
   "EpisodeOfCare.status": "code",
   "EpisodeOfCare.statusHistory": "BackboneElement",
   "EpisodeOfCare.statusHistory.extension": "Extension",
@@ -2240,12 +3269,32 @@
   "ExplanationOfBenefit.language": "code",
   "ExplanationOfBenefit.meta": "Meta",
   "ExplanationOfBenefit.modifierExtension": "Extension",
-  "ExplanationOfBenefit.organization": "Reference",
+  "ExplanationOfBenefit.organization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "ExplanationOfBenefit.originalRuleset": "Coding",
   "ExplanationOfBenefit.outcome": "code",
-  "ExplanationOfBenefit.request": "Reference",
-  "ExplanationOfBenefit.requestOrganization": "Reference",
-  "ExplanationOfBenefit.requestProvider": "Reference",
+  "ExplanationOfBenefit.request": {
+    "code": "Reference",
+    "refType": [
+      "Claim"
+    ]
+  },
+  "ExplanationOfBenefit.requestOrganization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
+  "ExplanationOfBenefit.requestProvider": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "ExplanationOfBenefit.ruleset": "Coding",
   "ExplanationOfBenefit.text": "Narrative",
   "Extension.extension": "Extension",
@@ -2276,7 +3325,10 @@
   "Extension.valueQuantity": "Quantity",
   "Extension.valueRange": "Range",
   "Extension.valueRatio": "Ratio",
-  "Extension.valueReference": "Reference",
+  "Extension.valueReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "Extension.valueSampledData": "SampledData",
   "Extension.valueSignature": "Signature",
   "Extension.valueString": "string",
@@ -2318,15 +3370,30 @@
   "FamilyMemberHistory.modifierExtension": "Extension",
   "FamilyMemberHistory.name": "string",
   "FamilyMemberHistory.note": "Annotation",
-  "FamilyMemberHistory.patient": "Reference",
+  "FamilyMemberHistory.patient": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "FamilyMemberHistory.relationship": "CodeableConcept",
   "FamilyMemberHistory.status": "code",
   "FamilyMemberHistory.text": "Narrative",
-  "Flag.author": "Reference",
+  "Flag.author": {
+    "code": "Reference",
+    "refType": [
+      "Device"
+    ]
+  },
   "Flag.category": "CodeableConcept",
   "Flag.code": "CodeableConcept",
   "Flag.contained": "Resource",
-  "Flag.encounter": "Reference",
+  "Flag.encounter": {
+    "code": "Reference",
+    "refType": [
+      "Encounter"
+    ]
+  },
   "Flag.extension": "Extension",
   "Flag.id": "id",
   "Flag.identifier": "Identifier",
@@ -2336,10 +3403,25 @@
   "Flag.modifierExtension": "Extension",
   "Flag.period": "Period",
   "Flag.status": "code",
-  "Flag.subject": "Reference",
+  "Flag.subject": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "Flag.text": "Narrative",
-  "Goal.addresses": "Reference",
-  "Goal.author": "Reference",
+  "Goal.addresses": {
+    "code": "Reference",
+    "refType": [
+      "qicore-condition"
+    ]
+  },
+  "Goal.author": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "Goal.category": "CodeableConcept",
   "Goal.contained": "Resource",
   "Goal.description": "string",
@@ -2372,7 +3454,10 @@
   "Goal.extension.valueQuantity": "Quantity",
   "Goal.extension.valueRange": "Range",
   "Goal.extension.valueRatio": "Ratio",
-  "Goal.extension.valueReference": "Reference",
+  "Goal.extension.valueReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "Goal.extension.valueSampledData": "SampledData",
   "Goal.extension.valueSignature": "Signature",
   "Goal.extension.valueString": "string",
@@ -2392,14 +3477,24 @@
   "Goal.outcome.id": "id",
   "Goal.outcome.modifierExtension": "Extension",
   "Goal.outcome.resultCodeableConcept": "CodeableConcept",
-  "Goal.outcome.resultReference": "Reference",
+  "Goal.outcome.resultReference": {
+    "code": "Reference",
+    "refType": [
+      "Observation"
+    ]
+  },
   "Goal.priority": "CodeableConcept",
   "Goal.startCodeableConcept": "CodeableConcept",
   "Goal.startDate": "date",
   "Goal.status": "code",
   "Goal.statusDate": "date",
   "Goal.statusReason": "CodeableConcept",
-  "Goal.subject": "Reference",
+  "Goal.subject": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "Goal.targetDate": "date",
   "Goal.targetQuantity": "Quantity",
   "Goal.text": "Narrative",
@@ -2423,7 +3518,12 @@
   "Group.implicitRules": "uri",
   "Group.language": "code",
   "Group.member": "BackboneElement",
-  "Group.member.entity": "Reference",
+  "Group.member.entity": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "Group.member.extension": "Extension",
   "Group.member.id": "id",
   "Group.member.inactive": "boolean",
@@ -2448,7 +3548,12 @@
   "HealthcareService.characteristic": "CodeableConcept",
   "HealthcareService.comment": "string",
   "HealthcareService.contained": "Resource",
-  "HealthcareService.coverageArea": "Reference",
+  "HealthcareService.coverageArea": {
+    "code": "Reference",
+    "refType": [
+      "Location"
+    ]
+  },
   "HealthcareService.eligibility": "CodeableConcept",
   "HealthcareService.eligibilityNote": "string",
   "HealthcareService.extension": "Extension",
@@ -2457,7 +3562,12 @@
   "HealthcareService.identifier": "Identifier",
   "HealthcareService.implicitRules": "uri",
   "HealthcareService.language": "code",
-  "HealthcareService.location": "Reference",
+  "HealthcareService.location": {
+    "code": "Reference",
+    "refType": [
+      "Location"
+    ]
+  },
   "HealthcareService.meta": "Meta",
   "HealthcareService.modifierExtension": "Extension",
   "HealthcareService.notAvailable": "BackboneElement",
@@ -2468,7 +3578,12 @@
   "HealthcareService.notAvailable.modifierExtension": "Extension",
   "HealthcareService.photo": "Attachment",
   "HealthcareService.programName": "string",
-  "HealthcareService.providedBy": "Reference",
+  "HealthcareService.providedBy": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "HealthcareService.publicKey": "string",
   "HealthcareService.referralMethod": "CodeableConcept",
   "HealthcareService.serviceCategory": "CodeableConcept",
@@ -2491,7 +3606,12 @@
   "HumanName.suffix": "string",
   "HumanName.text": "string",
   "HumanName.use": "code",
-  "Identifier.assigner": "Reference",
+  "Identifier.assigner": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "Identifier.extension": "Extension",
   "Identifier.id": "id",
   "Identifier.period": "Period",
@@ -2499,7 +3619,12 @@
   "Identifier.type": "CodeableConcept",
   "Identifier.use": "code",
   "Identifier.value": "string",
-  "ImagingObjectSelection.author": "Reference",
+  "ImagingObjectSelection.author": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "ImagingObjectSelection.authoringTime": "dateTime",
   "ImagingObjectSelection.contained": "Resource",
   "ImagingObjectSelection.description": "string",
@@ -2509,11 +3634,21 @@
   "ImagingObjectSelection.language": "code",
   "ImagingObjectSelection.meta": "Meta",
   "ImagingObjectSelection.modifierExtension": "Extension",
-  "ImagingObjectSelection.patient": "Reference",
+  "ImagingObjectSelection.patient": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "ImagingObjectSelection.study": "BackboneElement",
   "ImagingObjectSelection.study.extension": "Extension",
   "ImagingObjectSelection.study.id": "id",
-  "ImagingObjectSelection.study.imagingStudy": "Reference",
+  "ImagingObjectSelection.study.imagingStudy": {
+    "code": "Reference",
+    "refType": [
+      "ImagingStudy"
+    ]
+  },
   "ImagingObjectSelection.study.modifierExtension": "Extension",
   "ImagingObjectSelection.study.series": "BackboneElement",
   "ImagingObjectSelection.study.series.extension": "Extension",
@@ -2547,17 +3682,42 @@
   "ImagingStudy.id": "id",
   "ImagingStudy.identifier": "Identifier",
   "ImagingStudy.implicitRules": "uri",
-  "ImagingStudy.interpreter": "Reference",
+  "ImagingStudy.interpreter": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
   "ImagingStudy.language": "code",
   "ImagingStudy.meta": "Meta",
   "ImagingStudy.modalityList": "Coding",
   "ImagingStudy.modifierExtension": "Extension",
   "ImagingStudy.numberOfInstances": "unsignedInt",
   "ImagingStudy.numberOfSeries": "unsignedInt",
-  "ImagingStudy.order": "Reference",
-  "ImagingStudy.patient": "Reference",
-  "ImagingStudy.procedure": "Reference",
-  "ImagingStudy.referrer": "Reference",
+  "ImagingStudy.order": {
+    "code": "Reference",
+    "refType": [
+      "qicore-diagnosticorder"
+    ]
+  },
+  "ImagingStudy.patient": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
+  "ImagingStudy.procedure": {
+    "code": "Reference",
+    "refType": [
+      "Procedure"
+    ]
+  },
+  "ImagingStudy.referrer": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
   "ImagingStudy.series": "BackboneElement",
   "ImagingStudy.series.availability": "code",
   "ImagingStudy.series.bodySite": "Coding",
@@ -2589,7 +3749,12 @@
   "Immunization.contained": "Resource",
   "Immunization.date": "dateTime",
   "Immunization.doseQuantity": "Quantity",
-  "Immunization.encounter": "Reference",
+  "Immunization.encounter": {
+    "code": "Reference",
+    "refType": [
+      "qicore-encounter"
+    ]
+  },
   "Immunization.expirationDate": "date",
   "Immunization.explanation": "BackboneElement",
   "Immunization.explanation.extension": "Extension",
@@ -2602,29 +3767,64 @@
   "Immunization.identifier": "Identifier",
   "Immunization.implicitRules": "uri",
   "Immunization.language": "code",
-  "Immunization.location": "Reference",
+  "Immunization.location": {
+    "code": "Reference",
+    "refType": [
+      "qicore-location"
+    ]
+  },
   "Immunization.lotNumber": "string",
-  "Immunization.manufacturer": "Reference",
+  "Immunization.manufacturer": {
+    "code": "Reference",
+    "refType": [
+      "qicore-organization"
+    ]
+  },
   "Immunization.meta": "Meta",
   "Immunization.modifierExtension": "Extension",
   "Immunization.note": "Annotation",
-  "Immunization.patient": "Reference",
-  "Immunization.performer": "Reference",
+  "Immunization.patient": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
+  "Immunization.performer": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
   "Immunization.reaction": "BackboneElement",
   "Immunization.reaction.date": "dateTime",
-  "Immunization.reaction.detail": "Reference",
+  "Immunization.reaction.detail": {
+    "code": "Reference",
+    "refType": [
+      "qicore-observation"
+    ]
+  },
   "Immunization.reaction.extension": "Extension",
   "Immunization.reaction.id": "id",
   "Immunization.reaction.modifierExtension": "Extension",
   "Immunization.reaction.reported": "boolean",
   "Immunization.reported": "boolean",
-  "Immunization.requester": "Reference",
+  "Immunization.requester": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
   "Immunization.route": "CodeableConcept",
   "Immunization.site": "CodeableConcept",
   "Immunization.status": "code",
   "Immunization.text": "Narrative",
   "Immunization.vaccinationProtocol": "BackboneElement",
-  "Immunization.vaccinationProtocol.authority": "Reference",
+  "Immunization.vaccinationProtocol.authority": {
+    "code": "Reference",
+    "refType": [
+      "qicore-organization"
+    ]
+  },
   "Immunization.vaccinationProtocol.description": "string",
   "Immunization.vaccinationProtocol.doseSequence": "positiveInt",
   "Immunization.vaccinationProtocol.doseStatus": "CodeableConcept",
@@ -2645,7 +3845,12 @@
   "ImmunizationRecommendation.language": "code",
   "ImmunizationRecommendation.meta": "Meta",
   "ImmunizationRecommendation.modifierExtension": "Extension",
-  "ImmunizationRecommendation.patient": "Reference",
+  "ImmunizationRecommendation.patient": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "ImmunizationRecommendation.recommendation": "BackboneElement",
   "ImmunizationRecommendation.recommendation.date": "dateTime",
   "ImmunizationRecommendation.recommendation.dateCriterion": "BackboneElement",
@@ -2660,15 +3865,30 @@
   "ImmunizationRecommendation.recommendation.id": "id",
   "ImmunizationRecommendation.recommendation.modifierExtension": "Extension",
   "ImmunizationRecommendation.recommendation.protocol": "BackboneElement",
-  "ImmunizationRecommendation.recommendation.protocol.authority": "Reference",
+  "ImmunizationRecommendation.recommendation.protocol.authority": {
+    "code": "Reference",
+    "refType": [
+      "qicore-organization"
+    ]
+  },
   "ImmunizationRecommendation.recommendation.protocol.description": "string",
   "ImmunizationRecommendation.recommendation.protocol.doseSequence": "integer",
   "ImmunizationRecommendation.recommendation.protocol.extension": "Extension",
   "ImmunizationRecommendation.recommendation.protocol.id": "id",
   "ImmunizationRecommendation.recommendation.protocol.modifierExtension": "Extension",
   "ImmunizationRecommendation.recommendation.protocol.series": "string",
-  "ImmunizationRecommendation.recommendation.supportingImmunization": "Reference",
-  "ImmunizationRecommendation.recommendation.supportingPatientInformation": "Reference",
+  "ImmunizationRecommendation.recommendation.supportingImmunization": {
+    "code": "Reference",
+    "refType": [
+      "qicore-immunization"
+    ]
+  },
+  "ImmunizationRecommendation.recommendation.supportingPatientInformation": {
+    "code": "Reference",
+    "refType": [
+      "qicore-observation"
+    ]
+  },
   "ImmunizationRecommendation.recommendation.vaccineCode": "CodeableConcept",
   "ImmunizationRecommendation.text": "Narrative",
   "ImplementationGuide.binary": "uri",
@@ -2695,7 +3915,12 @@
   "ImplementationGuide.global.extension": "Extension",
   "ImplementationGuide.global.id": "id",
   "ImplementationGuide.global.modifierExtension": "Extension",
-  "ImplementationGuide.global.profile": "Reference",
+  "ImplementationGuide.global.profile": {
+    "code": "Reference",
+    "refType": [
+      "StructureDefinition"
+    ]
+  },
   "ImplementationGuide.global.type": "code",
   "ImplementationGuide.id": "id",
   "ImplementationGuide.implicitRules": "uri",
@@ -2712,13 +3937,23 @@
   "ImplementationGuide.package.resource": "BackboneElement",
   "ImplementationGuide.package.resource.acronym": "string",
   "ImplementationGuide.package.resource.description": "string",
-  "ImplementationGuide.package.resource.exampleFor": "Reference",
+  "ImplementationGuide.package.resource.exampleFor": {
+    "code": "Reference",
+    "refType": [
+      "StructureDefinition"
+    ]
+  },
   "ImplementationGuide.package.resource.extension": "Extension",
   "ImplementationGuide.package.resource.id": "id",
   "ImplementationGuide.package.resource.modifierExtension": "Extension",
   "ImplementationGuide.package.resource.name": "string",
   "ImplementationGuide.package.resource.purpose": "code",
-  "ImplementationGuide.package.resource.sourceReference": "Reference",
+  "ImplementationGuide.package.resource.sourceReference": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "ImplementationGuide.package.resource.sourceUri": "uri",
   "ImplementationGuide.page": "BackboneElement",
   "ImplementationGuide.page.extension": "Extension",
@@ -2740,14 +3975,24 @@
   "List.contained": "Resource",
   "List.date": "dateTime",
   "List.emptyReason": "CodeableConcept",
-  "List.encounter": "Reference",
+  "List.encounter": {
+    "code": "Reference",
+    "refType": [
+      "Encounter"
+    ]
+  },
   "List.entry": "BackboneElement",
   "List.entry.date": "dateTime",
   "List.entry.deleted": "boolean",
   "List.entry.extension": "Extension",
   "List.entry.flag": "CodeableConcept",
   "List.entry.id": "id",
-  "List.entry.item": "Reference",
+  "List.entry.item": {
+    "code": "Reference",
+    "refType": [
+      "daf-diagnosticreport"
+    ]
+  },
   "List.entry.modifierExtension": "Extension",
   "List.extension": "Extension",
   "List.id": "id",
@@ -2759,9 +4004,19 @@
   "List.modifierExtension": "Extension",
   "List.note": "string",
   "List.orderedBy": "CodeableConcept",
-  "List.source": "Reference",
+  "List.source": {
+    "code": "Reference",
+    "refType": [
+      "daf-pract"
+    ]
+  },
   "List.status": "code",
-  "List.subject": "Reference",
+  "List.subject": {
+    "code": "Reference",
+    "refType": [
+      "daf-patient"
+    ]
+  },
   "List.text": "Narrative",
   "List.title": "string",
   "Location.address": "Address",
@@ -2784,12 +4039,22 @@
   "Location.identifier": "Identifier",
   "Location.implicitRules": "uri",
   "Location.language": "code",
-  "Location.managingOrganization": "Reference",
+  "Location.managingOrganization": {
+    "code": "Reference",
+    "refType": [
+      "qicore-organization"
+    ]
+  },
   "Location.meta": "Meta",
   "Location.mode": "code",
   "Location.modifierExtension": "Extension",
   "Location.name": "string",
-  "Location.partOf": "Reference",
+  "Location.partOf": {
+    "code": "Reference",
+    "refType": [
+      "qicore-location"
+    ]
+  },
   "Location.physicalType": "CodeableConcept",
   "Location.position": "BackboneElement",
   "Location.position.altitude": "decimal",
@@ -2815,8 +4080,18 @@
   "Media.language": "code",
   "Media.meta": "Meta",
   "Media.modifierExtension": "Extension",
-  "Media.operator": "Reference",
-  "Media.subject": "Reference",
+  "Media.operator": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
+  "Media.subject": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "Media.subtype": "CodeableConcept",
   "Media.text": "Narrative",
   "Media.type": "code",
@@ -2829,7 +4104,12 @@
   "Medication.implicitRules": "uri",
   "Medication.isBrand": "boolean",
   "Medication.language": "code",
-  "Medication.manufacturer": "Reference",
+  "Medication.manufacturer": {
+    "code": "Reference",
+    "refType": [
+      "qicore-organization"
+    ]
+  },
   "Medication.meta": "Meta",
   "Medication.modifierExtension": "Extension",
   "Medication.package": "BackboneElement",
@@ -2838,7 +4118,12 @@
   "Medication.package.content.amount": "Quantity",
   "Medication.package.content.extension": "Extension",
   "Medication.package.content.id": "id",
-  "Medication.package.content.item": "Reference",
+  "Medication.package.content.item": {
+    "code": "Reference",
+    "refType": [
+      "qicore-medication"
+    ]
+  },
   "Medication.package.content.modifierExtension": "Extension",
   "Medication.package.extension": "Extension",
   "Medication.package.id": "id",
@@ -2857,12 +4142,22 @@
   "Medication.product.ingredient.amount": "Ratio",
   "Medication.product.ingredient.extension": "Extension",
   "Medication.product.ingredient.id": "id",
-  "Medication.product.ingredient.item": "Reference",
+  "Medication.product.ingredient.item": {
+    "code": "Reference",
+    "refType": [
+      "qicore-substance"
+    ]
+  },
   "Medication.product.ingredient.modifierExtension": "Extension",
   "Medication.product.modifierExtension": "Extension",
   "Medication.text": "Narrative",
   "MedicationAdministration.contained": "Resource",
-  "MedicationAdministration.device": "Reference",
+  "MedicationAdministration.device": {
+    "code": "Reference",
+    "refType": [
+      "qicore-device"
+    ]
+  },
   "MedicationAdministration.dosage": "BackboneElement",
   "MedicationAdministration.dosage.extension": "Extension",
   "MedicationAdministration.dosage.id": "id",
@@ -2873,34 +4168,79 @@
   "MedicationAdministration.dosage.rateRatio": "Ratio",
   "MedicationAdministration.dosage.route": "CodeableConcept",
   "MedicationAdministration.dosage.siteCodeableConcept": "CodeableConcept",
-  "MedicationAdministration.dosage.siteReference": "Reference",
+  "MedicationAdministration.dosage.siteReference": {
+    "code": "Reference",
+    "refType": [
+      "BodySite"
+    ]
+  },
   "MedicationAdministration.dosage.text": "string",
   "MedicationAdministration.effectiveTimeDateTime": "dateTime",
   "MedicationAdministration.effectiveTimePeriod": "Period",
-  "MedicationAdministration.encounter": "Reference",
+  "MedicationAdministration.encounter": {
+    "code": "Reference",
+    "refType": [
+      "qicore-encounter"
+    ]
+  },
   "MedicationAdministration.extension": "Extension",
   "MedicationAdministration.id": "id",
   "MedicationAdministration.identifier": "Identifier",
   "MedicationAdministration.implicitRules": "uri",
   "MedicationAdministration.language": "code",
   "MedicationAdministration.medicationCodeableConcept": "CodeableConcept",
-  "MedicationAdministration.medicationReference": "Reference",
+  "MedicationAdministration.medicationReference": {
+    "code": "Reference",
+    "refType": [
+      "qicore-medication"
+    ]
+  },
   "MedicationAdministration.meta": "Meta",
   "MedicationAdministration.modifierExtension": "Extension",
   "MedicationAdministration.note": "string",
-  "MedicationAdministration.patient": "Reference",
-  "MedicationAdministration.practitioner": "Reference",
-  "MedicationAdministration.prescription": "Reference",
+  "MedicationAdministration.patient": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
+  "MedicationAdministration.practitioner": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
+  "MedicationAdministration.prescription": {
+    "code": "Reference",
+    "refType": [
+      "qicore-medicationorder"
+    ]
+  },
   "MedicationAdministration.reasonGiven": "CodeableConcept",
   "MedicationAdministration.reasonNotGiven": "CodeableConcept",
   "MedicationAdministration.status": "code",
   "MedicationAdministration.text": "Narrative",
   "MedicationAdministration.wasNotGiven": "boolean",
-  "MedicationDispense.authorizingPrescription": "Reference",
+  "MedicationDispense.authorizingPrescription": {
+    "code": "Reference",
+    "refType": [
+      "qicore-medicationorder"
+    ]
+  },
   "MedicationDispense.contained": "Resource",
   "MedicationDispense.daysSupply": "Quantity",
-  "MedicationDispense.destination": "Reference",
-  "MedicationDispense.dispenser": "Reference",
+  "MedicationDispense.destination": {
+    "code": "Reference",
+    "refType": [
+      "qicore-location"
+    ]
+  },
+  "MedicationDispense.dispenser": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
   "MedicationDispense.dosageInstruction": "BackboneElement",
   "MedicationDispense.dosageInstruction.additionalInstructions": "CodeableConcept",
   "MedicationDispense.dosageInstruction.asNeededBoolean": "boolean",
@@ -2916,7 +4256,12 @@
   "MedicationDispense.dosageInstruction.rateRatio": "Ratio",
   "MedicationDispense.dosageInstruction.route": "CodeableConcept",
   "MedicationDispense.dosageInstruction.siteCodeableConcept": "CodeableConcept",
-  "MedicationDispense.dosageInstruction.siteReference": "Reference",
+  "MedicationDispense.dosageInstruction.siteReference": {
+    "code": "Reference",
+    "refType": [
+      "BodySite"
+    ]
+  },
   "MedicationDispense.dosageInstruction.text": "string",
   "MedicationDispense.dosageInstruction.timing": "Timing",
   "MedicationDispense.extension": "Extension",
@@ -2925,20 +4270,40 @@
   "MedicationDispense.implicitRules": "uri",
   "MedicationDispense.language": "code",
   "MedicationDispense.medicationCodeableConcept": "CodeableConcept",
-  "MedicationDispense.medicationReference": "Reference",
+  "MedicationDispense.medicationReference": {
+    "code": "Reference",
+    "refType": [
+      "Medication"
+    ]
+  },
   "MedicationDispense.meta": "Meta",
   "MedicationDispense.modifierExtension": "Extension",
   "MedicationDispense.note": "string",
-  "MedicationDispense.patient": "Reference",
+  "MedicationDispense.patient": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "MedicationDispense.quantity": "Quantity",
-  "MedicationDispense.receiver": "Reference",
+  "MedicationDispense.receiver": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "MedicationDispense.status": "code",
   "MedicationDispense.substitution": "BackboneElement",
   "MedicationDispense.substitution.extension": "Extension",
   "MedicationDispense.substitution.id": "id",
   "MedicationDispense.substitution.modifierExtension": "Extension",
   "MedicationDispense.substitution.reason": "CodeableConcept",
-  "MedicationDispense.substitution.responsibleParty": "Reference",
+  "MedicationDispense.substitution.responsibleParty": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
   "MedicationDispense.substitution.type": "CodeableConcept",
   "MedicationDispense.text": "Narrative",
   "MedicationDispense.type": "CodeableConcept",
@@ -2952,7 +4317,12 @@
   "MedicationOrder.dispenseRequest.extension": "Extension",
   "MedicationOrder.dispenseRequest.id": "id",
   "MedicationOrder.dispenseRequest.medicationCodeableConcept": "CodeableConcept",
-  "MedicationOrder.dispenseRequest.medicationReference": "Reference",
+  "MedicationOrder.dispenseRequest.medicationReference": {
+    "code": "Reference",
+    "refType": [
+      "qicore-medication"
+    ]
+  },
   "MedicationOrder.dispenseRequest.modifierExtension": "Extension",
   "MedicationOrder.dispenseRequest.numberOfRepeatsAllowed": "positiveInt",
   "MedicationOrder.dispenseRequest.quantity": "Quantity",
@@ -2972,26 +4342,61 @@
   "MedicationOrder.dosageInstruction.rateRatio": "Ratio",
   "MedicationOrder.dosageInstruction.route": "CodeableConcept",
   "MedicationOrder.dosageInstruction.siteCodeableConcept": "CodeableConcept",
-  "MedicationOrder.dosageInstruction.siteReference": "Reference",
+  "MedicationOrder.dosageInstruction.siteReference": {
+    "code": "Reference",
+    "refType": [
+      "BodySite"
+    ]
+  },
   "MedicationOrder.dosageInstruction.text": "string",
   "MedicationOrder.dosageInstruction.timing": "Timing",
-  "MedicationOrder.encounter": "Reference",
+  "MedicationOrder.encounter": {
+    "code": "Reference",
+    "refType": [
+      "qicore-encounter"
+    ]
+  },
   "MedicationOrder.extension": "Extension",
   "MedicationOrder.id": "id",
   "MedicationOrder.identifier": "Identifier",
   "MedicationOrder.implicitRules": "uri",
   "MedicationOrder.language": "code",
   "MedicationOrder.medicationCodeableConcept": "CodeableConcept",
-  "MedicationOrder.medicationReference": "Reference",
+  "MedicationOrder.medicationReference": {
+    "code": "Reference",
+    "refType": [
+      "qicore-medication"
+    ]
+  },
   "MedicationOrder.meta": "Meta",
   "MedicationOrder.modifierExtension": "Extension",
   "MedicationOrder.note": "string",
-  "MedicationOrder.patient": "Reference",
-  "MedicationOrder.prescriber": "Reference",
-  "MedicationOrder.priorPrescription": "Reference",
+  "MedicationOrder.patient": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
+  "MedicationOrder.prescriber": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
+  "MedicationOrder.priorPrescription": {
+    "code": "Reference",
+    "refType": [
+      "MedicationOrder"
+    ]
+  },
   "MedicationOrder.reasonCodeableConcept": "CodeableConcept",
   "MedicationOrder.reasonEnded": "CodeableConcept",
-  "MedicationOrder.reasonReference": "Reference",
+  "MedicationOrder.reasonReference": {
+    "code": "Reference",
+    "refType": [
+      "Condition"
+    ]
+  },
   "MedicationOrder.status": "code",
   "MedicationOrder.substitution": "BackboneElement",
   "MedicationOrder.substitution.extension": "Extension",
@@ -3016,7 +4421,12 @@
   "MedicationStatement.dosage.rateRatio": "Ratio",
   "MedicationStatement.dosage.route": "CodeableConcept",
   "MedicationStatement.dosage.siteCodeableConcept": "CodeableConcept",
-  "MedicationStatement.dosage.siteReference": "Reference",
+  "MedicationStatement.dosage.siteReference": {
+    "code": "Reference",
+    "refType": [
+      "BodySite"
+    ]
+  },
   "MedicationStatement.dosage.text": "string",
   "MedicationStatement.dosage.timing": "Timing",
   "MedicationStatement.effectiveDateTime": "dateTime",
@@ -3025,32 +4435,77 @@
   "MedicationStatement.id": "id",
   "MedicationStatement.identifier": "Identifier",
   "MedicationStatement.implicitRules": "uri",
-  "MedicationStatement.informationSource": "Reference",
+  "MedicationStatement.informationSource": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "MedicationStatement.language": "code",
   "MedicationStatement.medicationCodeableConcept": "CodeableConcept",
-  "MedicationStatement.medicationReference": "Reference",
+  "MedicationStatement.medicationReference": {
+    "code": "Reference",
+    "refType": [
+      "qicore-medication"
+    ]
+  },
   "MedicationStatement.meta": "Meta",
   "MedicationStatement.modifierExtension": "Extension",
   "MedicationStatement.note": "string",
-  "MedicationStatement.patient": "Reference",
+  "MedicationStatement.patient": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "MedicationStatement.reasonForUseCodeableConcept": "CodeableConcept",
-  "MedicationStatement.reasonForUseReference": "Reference",
+  "MedicationStatement.reasonForUseReference": {
+    "code": "Reference",
+    "refType": [
+      "qicore-condition"
+    ]
+  },
   "MedicationStatement.reasonNotTaken": "CodeableConcept",
   "MedicationStatement.status": "code",
-  "MedicationStatement.supportingInformation": "Reference",
+  "MedicationStatement.supportingInformation": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "MedicationStatement.text": "Narrative",
   "MedicationStatement.wasNotTaken": "boolean",
-  "MessageHeader.author": "Reference",
+  "MessageHeader.author": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "MessageHeader.contained": "Resource",
-  "MessageHeader.data": "Reference",
+  "MessageHeader.data": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "MessageHeader.destination": "BackboneElement",
   "MessageHeader.destination.endpoint": "uri",
   "MessageHeader.destination.extension": "Extension",
   "MessageHeader.destination.id": "id",
   "MessageHeader.destination.modifierExtension": "Extension",
   "MessageHeader.destination.name": "string",
-  "MessageHeader.destination.target": "Reference",
-  "MessageHeader.enterer": "Reference",
+  "MessageHeader.destination.target": {
+    "code": "Reference",
+    "refType": [
+      "Device"
+    ]
+  },
+  "MessageHeader.enterer": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "MessageHeader.event": "Coding",
   "MessageHeader.extension": "Extension",
   "MessageHeader.id": "id",
@@ -3059,15 +4514,30 @@
   "MessageHeader.meta": "Meta",
   "MessageHeader.modifierExtension": "Extension",
   "MessageHeader.reason": "CodeableConcept",
-  "MessageHeader.receiver": "Reference",
+  "MessageHeader.receiver": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "MessageHeader.response": "BackboneElement",
   "MessageHeader.response.code": "code",
-  "MessageHeader.response.details": "Reference",
+  "MessageHeader.response.details": {
+    "code": "Reference",
+    "refType": [
+      "OperationOutcome"
+    ]
+  },
   "MessageHeader.response.extension": "Extension",
   "MessageHeader.response.id": "id",
   "MessageHeader.response.identifier": "id",
   "MessageHeader.response.modifierExtension": "Extension",
-  "MessageHeader.responsible": "Reference",
+  "MessageHeader.responsible": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "MessageHeader.source": "BackboneElement",
   "MessageHeader.source.contact": "ContactPoint",
   "MessageHeader.source.endpoint": "uri",
@@ -3104,7 +4574,12 @@
   "NamingSystem.modifierExtension": "Extension",
   "NamingSystem.name": "string",
   "NamingSystem.publisher": "string",
-  "NamingSystem.replacedBy": "Reference",
+  "NamingSystem.replacedBy": {
+    "code": "Reference",
+    "refType": [
+      "NamingSystem"
+    ]
+  },
   "NamingSystem.responsible": "string",
   "NamingSystem.status": "code",
   "NamingSystem.text": "Narrative",
@@ -3123,10 +4598,20 @@
   "Narrative.extension": "Extension",
   "Narrative.id": "id",
   "Narrative.status": "code",
-  "NutritionOrder.allergyIntolerance": "Reference",
+  "NutritionOrder.allergyIntolerance": {
+    "code": "Reference",
+    "refType": [
+      "AllergyIntolerance"
+    ]
+  },
   "NutritionOrder.contained": "Resource",
   "NutritionOrder.dateTime": "dateTime",
-  "NutritionOrder.encounter": "Reference",
+  "NutritionOrder.encounter": {
+    "code": "Reference",
+    "refType": [
+      "Encounter"
+    ]
+  },
   "NutritionOrder.enteralFormula": "BackboneElement",
   "NutritionOrder.enteralFormula.additiveProductName": "string",
   "NutritionOrder.enteralFormula.additiveType": "CodeableConcept",
@@ -3176,8 +4661,18 @@
   "NutritionOrder.oralDiet.texture.modifier": "CodeableConcept",
   "NutritionOrder.oralDiet.texture.modifierExtension": "Extension",
   "NutritionOrder.oralDiet.type": "CodeableConcept",
-  "NutritionOrder.orderer": "Reference",
-  "NutritionOrder.patient": "Reference",
+  "NutritionOrder.orderer": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
+  "NutritionOrder.patient": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "NutritionOrder.status": "code",
   "NutritionOrder.supplement": "BackboneElement",
   "NutritionOrder.supplement.extension": "Extension",
@@ -3233,10 +4728,20 @@
   "Observation.component.valueTime": "time",
   "Observation.contained": "Resource",
   "Observation.dataAbsentReason": "CodeableConcept",
-  "Observation.device": "Reference",
+  "Observation.device": {
+    "code": "Reference",
+    "refType": [
+      "qicore-device"
+    ]
+  },
   "Observation.effectiveDateTime": "dateTime",
   "Observation.effectivePeriod": "Period",
-  "Observation.encounter": "Reference",
+  "Observation.encounter": {
+    "code": "Reference",
+    "refType": [
+      "qicore-encounter"
+    ]
+  },
   "Observation.extension": "Extension",
   "Observation.extension.extension": "Extension",
   "Observation.extension.id": "id",
@@ -3255,7 +4760,12 @@
   "Observation.extension.valueCodeableConcept.text": "string",
   "Observation.id": "id",
   "Observation.identifier": "Identifier",
-  "Observation.identifier.assigner": "Reference",
+  "Observation.identifier.assigner": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "Observation.identifier.extension": "Extension",
   "Observation.identifier.id": "id",
   "Observation.identifier.period": "Period",
@@ -3281,7 +4791,12 @@
   "Observation.meta": "Meta",
   "Observation.method": "CodeableConcept",
   "Observation.modifierExtension": "Extension",
-  "Observation.performer": "Reference",
+  "Observation.performer": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
   "Observation.referenceRange": "BackboneElement",
   "Observation.referenceRange.age": "Range",
   "Observation.referenceRange.age.extension": "Extension",
@@ -3327,11 +4842,26 @@
   "Observation.related.extension": "Extension",
   "Observation.related.id": "id",
   "Observation.related.modifierExtension": "Extension",
-  "Observation.related.target": "Reference",
+  "Observation.related.target": {
+    "code": "Reference",
+    "refType": [
+      "qicore-observation"
+    ]
+  },
   "Observation.related.type": "code",
-  "Observation.specimen": "Reference",
+  "Observation.specimen": {
+    "code": "Reference",
+    "refType": [
+      "qicore-specimen"
+    ]
+  },
   "Observation.status": "code",
-  "Observation.subject": "Reference",
+  "Observation.subject": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "Observation.text": "Narrative",
   "Observation.valueAttachment": "Attachment",
   "Observation.valueCodeableConcept": "CodeableConcept",
@@ -3350,7 +4880,12 @@
   "Observation.valueSampledData": "SampledData",
   "Observation.valueString": "string",
   "Observation.valueTime": "time",
-  "OperationDefinition.base": "Reference",
+  "OperationDefinition.base": {
+    "code": "Reference",
+    "refType": [
+      "OperationDefinition"
+    ]
+  },
   "OperationDefinition.code": "code",
   "OperationDefinition.contact": "BackboneElement",
   "OperationDefinition.contact.extension": "Extension",
@@ -3379,7 +4914,12 @@
   "OperationDefinition.parameter.binding.id": "id",
   "OperationDefinition.parameter.binding.modifierExtension": "Extension",
   "OperationDefinition.parameter.binding.strength": "code",
-  "OperationDefinition.parameter.binding.valueSetReference": "Reference",
+  "OperationDefinition.parameter.binding.valueSetReference": {
+    "code": "Reference",
+    "refType": [
+      "ValueSet"
+    ]
+  },
   "OperationDefinition.parameter.binding.valueSetUri": "uri",
   "OperationDefinition.parameter.documentation": "string",
   "OperationDefinition.parameter.extension": "Extension",
@@ -3388,7 +4928,12 @@
   "OperationDefinition.parameter.min": "integer",
   "OperationDefinition.parameter.modifierExtension": "Extension",
   "OperationDefinition.parameter.name": "code",
-  "OperationDefinition.parameter.profile": "Reference",
+  "OperationDefinition.parameter.profile": {
+    "code": "Reference",
+    "refType": [
+      "StructureDefinition"
+    ]
+  },
   "OperationDefinition.parameter.type": "code",
   "OperationDefinition.parameter.use": "code",
   "OperationDefinition.publisher": "string",
@@ -3418,7 +4963,12 @@
   "OperationOutcome.text": "Narrative",
   "Order.contained": "Resource",
   "Order.date": "dateTime",
-  "Order.detail": "Reference",
+  "Order.detail": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "Order.extension": "Extension",
   "Order.id": "id",
   "Order.identifier": "Identifier",
@@ -3427,10 +4977,30 @@
   "Order.meta": "Meta",
   "Order.modifierExtension": "Extension",
   "Order.reasonCodeableConcept": "CodeableConcept",
-  "Order.reasonReference": "Reference",
-  "Order.source": "Reference",
-  "Order.subject": "Reference",
-  "Order.target": "Reference",
+  "Order.reasonReference": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
+  "Order.source": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
+  "Order.subject": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
+  "Order.target": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "Order.text": "Narrative",
   "Order.when": "BackboneElement",
   "Order.when.code": "CodeableConcept",
@@ -3442,7 +5012,12 @@
   "OrderResponse.date": "dateTime",
   "OrderResponse.description": "string",
   "OrderResponse.extension": "Extension",
-  "OrderResponse.fulfillment": "Reference",
+  "OrderResponse.fulfillment": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "OrderResponse.id": "id",
   "OrderResponse.identifier": "Identifier",
   "OrderResponse.implicitRules": "uri",
@@ -3450,9 +5025,19 @@
   "OrderResponse.meta": "Meta",
   "OrderResponse.modifierExtension": "Extension",
   "OrderResponse.orderStatus": "code",
-  "OrderResponse.request": "Reference",
+  "OrderResponse.request": {
+    "code": "Reference",
+    "refType": [
+      "Order"
+    ]
+  },
   "OrderResponse.text": "Narrative",
-  "OrderResponse.who": "Reference",
+  "OrderResponse.who": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "Organization.active": "boolean",
   "Organization.address": "Address",
   "Organization.address.city": "string",
@@ -3488,7 +5073,12 @@
   "Organization.extension": "Extension",
   "Organization.id": "id",
   "Organization.identifier": "Identifier",
-  "Organization.identifier.assigner": "Reference",
+  "Organization.identifier.assigner": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "Organization.identifier.extension": "Extension",
   "Organization.identifier.id": "id",
   "Organization.identifier.period": "Period",
@@ -3501,7 +5091,12 @@
   "Organization.meta": "Meta",
   "Organization.modifierExtension": "Extension",
   "Organization.name": "string",
-  "Organization.partOf": "Reference",
+  "Organization.partOf": {
+    "code": "Reference",
+    "refType": [
+      "qicore-organization"
+    ]
+  },
   "Organization.telecom": "ContactPoint",
   "Organization.telecom.extension": "Extension",
   "Organization.telecom.id": "id",
@@ -3547,7 +5142,10 @@
   "Parameters.parameter.valueQuantity": "Quantity",
   "Parameters.parameter.valueRange": "Range",
   "Parameters.parameter.valueRatio": "Ratio",
-  "Parameters.parameter.valueReference": "Reference",
+  "Parameters.parameter.valueReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "Parameters.parameter.valueSampledData": "SampledData",
   "Parameters.parameter.valueSignature": "Signature",
   "Parameters.parameter.valueString": "string",
@@ -3577,7 +5175,12 @@
   "Patient.animal.modifierExtension": "Extension",
   "Patient.animal.species": "CodeableConcept",
   "Patient.birthDate": "date",
-  "Patient.careProvider": "Reference",
+  "Patient.careProvider": {
+    "code": "Reference",
+    "refType": [
+      "qicore-organization"
+    ]
+  },
   "Patient.communication": "BackboneElement",
   "Patient.communication.extension": "Extension",
   "Patient.communication.id": "id",
@@ -3612,7 +5215,12 @@
   "Patient.contact.name.suffix": "string",
   "Patient.contact.name.text": "string",
   "Patient.contact.name.use": "code",
-  "Patient.contact.organization": "Reference",
+  "Patient.contact.organization": {
+    "code": "Reference",
+    "refType": [
+      "qicore-organization"
+    ]
+  },
   "Patient.contact.period": "Period",
   "Patient.contact.relationship": "CodeableConcept",
   "Patient.contact.relationship.coding": "Coding",
@@ -3683,7 +5291,10 @@
   "Patient.extension.valueQuantity": "Quantity",
   "Patient.extension.valueRange": "Range",
   "Patient.extension.valueRatio": "Ratio",
-  "Patient.extension.valueReference": "Reference",
+  "Patient.extension.valueReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "Patient.extension.valueSampledData": "SampledData",
   "Patient.extension.valueSignature": "Signature",
   "Patient.extension.valueString": "string",
@@ -3694,7 +5305,12 @@
   "Patient.gender": "code",
   "Patient.id": "id",
   "Patient.identifier": "Identifier",
-  "Patient.identifier.assigner": "Reference",
+  "Patient.identifier.assigner": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "Patient.identifier.extension": "Extension",
   "Patient.identifier.id": "id",
   "Patient.identifier.period": "Period",
@@ -3708,9 +5324,19 @@
   "Patient.link.extension": "Extension",
   "Patient.link.id": "id",
   "Patient.link.modifierExtension": "Extension",
-  "Patient.link.other": "Reference",
+  "Patient.link.other": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "Patient.link.type": "code",
-  "Patient.managingOrganization": "Reference",
+  "Patient.managingOrganization": {
+    "code": "Reference",
+    "refType": [
+      "qicore-organization"
+    ]
+  },
   "Patient.maritalStatus": "CodeableConcept",
   "Patient.meta": "Meta",
   "Patient.modifierExtension": "Extension",
@@ -3745,14 +5371,39 @@
   "PaymentNotice.language": "code",
   "PaymentNotice.meta": "Meta",
   "PaymentNotice.modifierExtension": "Extension",
-  "PaymentNotice.organization": "Reference",
+  "PaymentNotice.organization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "PaymentNotice.originalRuleset": "Coding",
   "PaymentNotice.paymentStatus": "Coding",
-  "PaymentNotice.provider": "Reference",
-  "PaymentNotice.request": "Reference",
-  "PaymentNotice.response": "Reference",
+  "PaymentNotice.provider": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
+  "PaymentNotice.request": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
+  "PaymentNotice.response": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "PaymentNotice.ruleset": "Coding",
-  "PaymentNotice.target": "Reference",
+  "PaymentNotice.target": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "PaymentNotice.text": "Narrative",
   "PaymentReconciliation.contained": "Resource",
   "PaymentReconciliation.created": "dateTime",
@@ -3762,10 +5413,30 @@
   "PaymentReconciliation.detail.extension": "Extension",
   "PaymentReconciliation.detail.id": "id",
   "PaymentReconciliation.detail.modifierExtension": "Extension",
-  "PaymentReconciliation.detail.payee": "Reference",
-  "PaymentReconciliation.detail.request": "Reference",
-  "PaymentReconciliation.detail.responce": "Reference",
-  "PaymentReconciliation.detail.submitter": "Reference",
+  "PaymentReconciliation.detail.payee": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
+  "PaymentReconciliation.detail.request": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
+  "PaymentReconciliation.detail.responce": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
+  "PaymentReconciliation.detail.submitter": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "PaymentReconciliation.detail.type": "Coding",
   "PaymentReconciliation.disposition": "string",
   "PaymentReconciliation.extension": "Extension",
@@ -3782,13 +5453,33 @@
   "PaymentReconciliation.note.modifierExtension": "Extension",
   "PaymentReconciliation.note.text": "string",
   "PaymentReconciliation.note.type": "Coding",
-  "PaymentReconciliation.organization": "Reference",
+  "PaymentReconciliation.organization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "PaymentReconciliation.originalRuleset": "Coding",
   "PaymentReconciliation.outcome": "code",
   "PaymentReconciliation.period": "Period",
-  "PaymentReconciliation.request": "Reference",
-  "PaymentReconciliation.requestOrganization": "Reference",
-  "PaymentReconciliation.requestProvider": "Reference",
+  "PaymentReconciliation.request": {
+    "code": "Reference",
+    "refType": [
+      "ProcessRequest"
+    ]
+  },
+  "PaymentReconciliation.requestOrganization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
+  "PaymentReconciliation.requestProvider": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "PaymentReconciliation.ruleset": "Coding",
   "PaymentReconciliation.text": "Narrative",
   "PaymentReconciliation.total": "Quantity",
@@ -3811,8 +5502,18 @@
   "Person.link.extension": "Extension",
   "Person.link.id": "id",
   "Person.link.modifierExtension": "Extension",
-  "Person.link.target": "Reference",
-  "Person.managingOrganization": "Reference",
+  "Person.link.target": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
+  "Person.managingOrganization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "Person.meta": "Meta",
   "Person.modifierExtension": "Extension",
   "Person.name": "HumanName",
@@ -3840,7 +5541,12 @@
   "Practitioner.gender": "code",
   "Practitioner.id": "id",
   "Practitioner.identifier": "Identifier",
-  "Practitioner.identifier.assigner": "Reference",
+  "Practitioner.identifier.assigner": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "Practitioner.identifier.extension": "Extension",
   "Practitioner.identifier.id": "id",
   "Practitioner.identifier.period": "Period",
@@ -3865,10 +5571,25 @@
   "Practitioner.photo": "Attachment",
   "Practitioner.practitionerRole": "BackboneElement",
   "Practitioner.practitionerRole.extension": "Extension",
-  "Practitioner.practitionerRole.healthcareService": "Reference",
+  "Practitioner.practitionerRole.healthcareService": {
+    "code": "Reference",
+    "refType": [
+      "HealthcareService"
+    ]
+  },
   "Practitioner.practitionerRole.id": "id",
-  "Practitioner.practitionerRole.location": "Reference",
-  "Practitioner.practitionerRole.managingOrganization": "Reference",
+  "Practitioner.practitionerRole.location": {
+    "code": "Reference",
+    "refType": [
+      "qicore-location"
+    ]
+  },
+  "Practitioner.practitionerRole.managingOrganization": {
+    "code": "Reference",
+    "refType": [
+      "qicore-organization"
+    ]
+  },
   "Practitioner.practitionerRole.modifierExtension": "Extension",
   "Practitioner.practitionerRole.period": "Period",
   "Practitioner.practitionerRole.role": "CodeableConcept",
@@ -3882,7 +5603,12 @@
   "Practitioner.qualification.extension": "Extension",
   "Practitioner.qualification.id": "id",
   "Practitioner.qualification.identifier": "Identifier",
-  "Practitioner.qualification.issuer": "Reference",
+  "Practitioner.qualification.issuer": {
+    "code": "Reference",
+    "refType": [
+      "qicore-organization"
+    ]
+  },
   "Practitioner.qualification.modifierExtension": "Extension",
   "Practitioner.qualification.period": "Period",
   "Practitioner.telecom": "ContactPoint",
@@ -3903,20 +5629,35 @@
   "Procedure.code": "CodeableConcept",
   "Procedure.complication": "CodeableConcept",
   "Procedure.contained": "Resource",
-  "Procedure.encounter": "Reference",
+  "Procedure.encounter": {
+    "code": "Reference",
+    "refType": [
+      "qicore-encounter"
+    ]
+  },
   "Procedure.extension": "Extension",
   "Procedure.focalDevice": "BackboneElement",
   "Procedure.focalDevice.action": "CodeableConcept",
   "Procedure.focalDevice.extension": "Extension",
   "Procedure.focalDevice.id": "id",
-  "Procedure.focalDevice.manipulated": "Reference",
+  "Procedure.focalDevice.manipulated": {
+    "code": "Reference",
+    "refType": [
+      "qicore-device"
+    ]
+  },
   "Procedure.focalDevice.modifierExtension": "Extension",
   "Procedure.followUp": "CodeableConcept",
   "Procedure.id": "id",
   "Procedure.identifier": "Identifier",
   "Procedure.implicitRules": "uri",
   "Procedure.language": "code",
-  "Procedure.location": "Reference",
+  "Procedure.location": {
+    "code": "Reference",
+    "refType": [
+      "qicore-location"
+    ]
+  },
   "Procedure.meta": "Meta",
   "Procedure.modifierExtension": "Extension",
   "Procedure.notPerformed": "boolean",
@@ -3925,26 +5666,61 @@
   "Procedure.performedDateTime": "dateTime",
   "Procedure.performedPeriod": "Period",
   "Procedure.performer": "BackboneElement",
-  "Procedure.performer.actor": "Reference",
+  "Procedure.performer.actor": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
   "Procedure.performer.extension": "Extension",
   "Procedure.performer.id": "id",
   "Procedure.performer.modifierExtension": "Extension",
   "Procedure.performer.role": "CodeableConcept",
   "Procedure.reasonCodeableConcept": "CodeableConcept",
   "Procedure.reasonNotPerformed": "CodeableConcept",
-  "Procedure.reasonReference": "Reference",
-  "Procedure.report": "Reference",
-  "Procedure.request": "Reference",
+  "Procedure.reasonReference": {
+    "code": "Reference",
+    "refType": [
+      "Condition"
+    ]
+  },
+  "Procedure.report": {
+    "code": "Reference",
+    "refType": [
+      "qicore-diagnosticreport"
+    ]
+  },
+  "Procedure.request": {
+    "code": "Reference",
+    "refType": [
+      "CarePlan"
+    ]
+  },
   "Procedure.status": "code",
-  "Procedure.subject": "Reference",
+  "Procedure.subject": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "Procedure.text": "Narrative",
-  "Procedure.used": "Reference",
+  "Procedure.used": {
+    "code": "Reference",
+    "refType": [
+      "Device"
+    ]
+  },
   "ProcedureRequest.asNeededBoolean": "boolean",
   "ProcedureRequest.asNeededCodeableConcept": "CodeableConcept",
   "ProcedureRequest.bodySite": "CodeableConcept",
   "ProcedureRequest.code": "CodeableConcept",
   "ProcedureRequest.contained": "Resource",
-  "ProcedureRequest.encounter": "Reference",
+  "ProcedureRequest.encounter": {
+    "code": "Reference",
+    "refType": [
+      "qicore-encounter"
+    ]
+  },
   "ProcedureRequest.extension": "Extension",
   "ProcedureRequest.id": "id",
   "ProcedureRequest.identifier": "Identifier",
@@ -3954,16 +5730,36 @@
   "ProcedureRequest.modifierExtension": "Extension",
   "ProcedureRequest.notes": "Annotation",
   "ProcedureRequest.orderedOn": "dateTime",
-  "ProcedureRequest.orderer": "Reference",
-  "ProcedureRequest.performer": "Reference",
+  "ProcedureRequest.orderer": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
+  "ProcedureRequest.performer": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
   "ProcedureRequest.priority": "code",
   "ProcedureRequest.reasonCodeableConcept": "CodeableConcept",
-  "ProcedureRequest.reasonReference": "Reference",
+  "ProcedureRequest.reasonReference": {
+    "code": "Reference",
+    "refType": [
+      "Condition"
+    ]
+  },
   "ProcedureRequest.scheduledDateTime": "dateTime",
   "ProcedureRequest.scheduledPeriod": "Period",
   "ProcedureRequest.scheduledTiming": "Timing",
   "ProcedureRequest.status": "code",
-  "ProcedureRequest.subject": "Reference",
+  "ProcedureRequest.subject": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "ProcedureRequest.text": "Narrative",
   "ProcessRequest.action": "code",
   "ProcessRequest.contained": "Resource",
@@ -3983,15 +5779,40 @@
   "ProcessRequest.meta": "Meta",
   "ProcessRequest.modifierExtension": "Extension",
   "ProcessRequest.nullify": "boolean",
-  "ProcessRequest.organization": "Reference",
+  "ProcessRequest.organization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "ProcessRequest.originalRuleset": "Coding",
   "ProcessRequest.period": "Period",
-  "ProcessRequest.provider": "Reference",
+  "ProcessRequest.provider": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "ProcessRequest.reference": "string",
-  "ProcessRequest.request": "Reference",
-  "ProcessRequest.response": "Reference",
+  "ProcessRequest.request": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
+  "ProcessRequest.response": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "ProcessRequest.ruleset": "Coding",
-  "ProcessRequest.target": "Reference",
+  "ProcessRequest.target": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "ProcessRequest.text": "Narrative",
   "ProcessResponse.contained": "Resource",
   "ProcessResponse.created": "dateTime",
@@ -4011,17 +5832,42 @@
   "ProcessResponse.notes.modifierExtension": "Extension",
   "ProcessResponse.notes.text": "string",
   "ProcessResponse.notes.type": "Coding",
-  "ProcessResponse.organization": "Reference",
+  "ProcessResponse.organization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "ProcessResponse.originalRuleset": "Coding",
   "ProcessResponse.outcome": "Coding",
-  "ProcessResponse.request": "Reference",
-  "ProcessResponse.requestOrganization": "Reference",
-  "ProcessResponse.requestProvider": "Reference",
+  "ProcessResponse.request": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
+  "ProcessResponse.requestOrganization": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
+  "ProcessResponse.requestProvider": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "ProcessResponse.ruleset": "Coding",
   "ProcessResponse.text": "Narrative",
   "Provenance.activity": "CodeableConcept",
   "Provenance.agent": "BackboneElement",
-  "Provenance.agent.actor": "Reference",
+  "Provenance.agent.actor": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "Provenance.agent.extension": "Extension",
   "Provenance.agent.id": "id",
   "Provenance.agent.modifierExtension": "Extension",
@@ -4046,7 +5892,12 @@
   "Provenance.id": "id",
   "Provenance.implicitRules": "uri",
   "Provenance.language": "code",
-  "Provenance.location": "Reference",
+  "Provenance.location": {
+    "code": "Reference",
+    "refType": [
+      "Location"
+    ]
+  },
   "Provenance.meta": "Meta",
   "Provenance.modifierExtension": "Extension",
   "Provenance.period": "Period",
@@ -4054,7 +5905,12 @@
   "Provenance.reason": "CodeableConcept",
   "Provenance.recorded": "instant",
   "Provenance.signature": "Signature",
-  "Provenance.target": "Reference",
+  "Provenance.target": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "Provenance.text": "Narrative",
   "Quantity.code": "code",
   "Quantity.comparator": "code",
@@ -4110,7 +5966,10 @@
   "Questionnaire.group.question.extension.extension.valueQuantity": "Quantity",
   "Questionnaire.group.question.extension.extension.valueRange": "Range",
   "Questionnaire.group.question.extension.extension.valueRatio": "Ratio",
-  "Questionnaire.group.question.extension.extension.valueReference": "Reference",
+  "Questionnaire.group.question.extension.extension.valueReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "Questionnaire.group.question.extension.extension.valueSampledData": "SampledData",
   "Questionnaire.group.question.extension.extension.valueSignature": "Signature",
   "Questionnaire.group.question.extension.extension.valueString": "string",
@@ -4145,7 +6004,10 @@
   "Questionnaire.group.question.extension.valueQuantity": "Quantity",
   "Questionnaire.group.question.extension.valueRange": "Range",
   "Questionnaire.group.question.extension.valueRatio": "Ratio",
-  "Questionnaire.group.question.extension.valueReference": "Reference",
+  "Questionnaire.group.question.extension.valueReference": {
+    "code": "Reference",
+    "refType": []
+  },
   "Questionnaire.group.question.extension.valueSampledData": "SampledData",
   "Questionnaire.group.question.extension.valueSignature": "Signature",
   "Questionnaire.group.question.extension.valueString": "string",
@@ -4159,7 +6021,12 @@
   "Questionnaire.group.question.linkId": "string",
   "Questionnaire.group.question.modifierExtension": "Extension",
   "Questionnaire.group.question.option": "Coding",
-  "Questionnaire.group.question.options": "Reference",
+  "Questionnaire.group.question.options": {
+    "code": "Reference",
+    "refType": [
+      "ValueSet"
+    ]
+  },
   "Questionnaire.group.question.repeats": "boolean",
   "Questionnaire.group.question.required": "boolean",
   "Questionnaire.group.question.text": "string",
@@ -4186,10 +6053,20 @@
   "Questionnaire.telecom": "ContactPoint",
   "Questionnaire.text": "Narrative",
   "Questionnaire.version": "string",
-  "QuestionnaireResponse.author": "Reference",
+  "QuestionnaireResponse.author": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "QuestionnaireResponse.authored": "dateTime",
   "QuestionnaireResponse.contained": "Resource",
-  "QuestionnaireResponse.encounter": "Reference",
+  "QuestionnaireResponse.encounter": {
+    "code": "Reference",
+    "refType": [
+      "Encounter"
+    ]
+  },
   "QuestionnaireResponse.extension": "Extension",
   "QuestionnaireResponse.group": "BackboneElement",
   "QuestionnaireResponse.group.extension": "Extension",
@@ -4210,7 +6087,12 @@
   "QuestionnaireResponse.group.question.answer.valueInstant": "instant",
   "QuestionnaireResponse.group.question.answer.valueInteger": "integer",
   "QuestionnaireResponse.group.question.answer.valueQuantity": "Quantity",
-  "QuestionnaireResponse.group.question.answer.valueReference": "Reference",
+  "QuestionnaireResponse.group.question.answer.valueReference": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "QuestionnaireResponse.group.question.answer.valueString": "string",
   "QuestionnaireResponse.group.question.answer.valueTime": "time",
   "QuestionnaireResponse.group.question.answer.valueUri": "uri",
@@ -4219,7 +6101,12 @@
   "QuestionnaireResponse.group.question.linkId": "string",
   "QuestionnaireResponse.group.question.modifierExtension": "Extension",
   "QuestionnaireResponse.group.question.text": "string",
-  "QuestionnaireResponse.group.subject": "Reference",
+  "QuestionnaireResponse.group.subject": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "QuestionnaireResponse.group.text": "string",
   "QuestionnaireResponse.group.title": "string",
   "QuestionnaireResponse.id": "id",
@@ -4228,10 +6115,25 @@
   "QuestionnaireResponse.language": "code",
   "QuestionnaireResponse.meta": "Meta",
   "QuestionnaireResponse.modifierExtension": "Extension",
-  "QuestionnaireResponse.questionnaire": "Reference",
-  "QuestionnaireResponse.source": "Reference",
+  "QuestionnaireResponse.questionnaire": {
+    "code": "Reference",
+    "refType": [
+      "sdc-questionnaire"
+    ]
+  },
+  "QuestionnaireResponse.source": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "QuestionnaireResponse.status": "code",
-  "QuestionnaireResponse.subject": "Reference",
+  "QuestionnaireResponse.subject": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "QuestionnaireResponse.text": "Narrative",
   "Range.extension": "Extension",
   "Range.high": "Quantity",
@@ -4249,7 +6151,12 @@
   "ReferralRequest.date": "dateTime",
   "ReferralRequest.dateSent": "dateTime",
   "ReferralRequest.description": "string",
-  "ReferralRequest.encounter": "Reference",
+  "ReferralRequest.encounter": {
+    "code": "Reference",
+    "refType": [
+      "qicore-encounter"
+    ]
+  },
   "ReferralRequest.extension": "Extension",
   "ReferralRequest.fulfillmentTime": "Period",
   "ReferralRequest.id": "id",
@@ -4258,15 +6165,35 @@
   "ReferralRequest.language": "code",
   "ReferralRequest.meta": "Meta",
   "ReferralRequest.modifierExtension": "Extension",
-  "ReferralRequest.patient": "Reference",
+  "ReferralRequest.patient": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "ReferralRequest.priority": "CodeableConcept",
   "ReferralRequest.reason": "CodeableConcept",
-  "ReferralRequest.recipient": "Reference",
-  "ReferralRequest.requester": "Reference",
+  "ReferralRequest.recipient": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
+  "ReferralRequest.requester": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
   "ReferralRequest.serviceRequested": "CodeableConcept",
   "ReferralRequest.specialty": "CodeableConcept",
   "ReferralRequest.status": "code",
-  "ReferralRequest.supportingInformation": "Reference",
+  "ReferralRequest.supportingInformation": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "ReferralRequest.text": "Narrative",
   "ReferralRequest.type": "CodeableConcept",
   "RelatedPerson.address": "Address",
@@ -4281,7 +6208,12 @@
   "RelatedPerson.meta": "Meta",
   "RelatedPerson.modifierExtension": "Extension",
   "RelatedPerson.name": "HumanName",
-  "RelatedPerson.patient": "Reference",
+  "RelatedPerson.patient": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "RelatedPerson.period": "Period",
   "RelatedPerson.photo": "Attachment",
   "RelatedPerson.relationship": "CodeableConcept",
@@ -4291,11 +6223,26 @@
   "Resource.implicitRules": "uri",
   "Resource.language": "code",
   "Resource.meta": "Meta",
-  "RiskAssessment.basis": "Reference",
-  "RiskAssessment.condition": "Reference",
+  "RiskAssessment.basis": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
+  "RiskAssessment.condition": {
+    "code": "Reference",
+    "refType": [
+      "Condition"
+    ]
+  },
   "RiskAssessment.contained": "Resource",
   "RiskAssessment.date": "dateTime",
-  "RiskAssessment.encounter": "Reference",
+  "RiskAssessment.encounter": {
+    "code": "Reference",
+    "refType": [
+      "Encounter"
+    ]
+  },
   "RiskAssessment.extension": "Extension",
   "RiskAssessment.id": "id",
   "RiskAssessment.identifier": "Identifier",
@@ -4305,7 +6252,12 @@
   "RiskAssessment.method": "CodeableConcept",
   "RiskAssessment.mitigation": "string",
   "RiskAssessment.modifierExtension": "Extension",
-  "RiskAssessment.performer": "Reference",
+  "RiskAssessment.performer": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "RiskAssessment.prediction": "BackboneElement",
   "RiskAssessment.prediction.extension": "Extension",
   "RiskAssessment.prediction.id": "id",
@@ -4318,7 +6270,12 @@
   "RiskAssessment.prediction.relativeRisk": "decimal",
   "RiskAssessment.prediction.whenPeriod": "Period",
   "RiskAssessment.prediction.whenRange": "Range",
-  "RiskAssessment.subject": "Reference",
+  "RiskAssessment.subject": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "RiskAssessment.text": "Narrative",
   "SampledData.data": "string",
   "SampledData.dimensions": "positiveInt",
@@ -4329,7 +6286,12 @@
   "SampledData.origin": "Quantity",
   "SampledData.period": "decimal",
   "SampledData.upperLimit": "decimal",
-  "Schedule.actor": "Reference",
+  "Schedule.actor": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "Schedule.comment": "string",
   "Schedule.contained": "Resource",
   "Schedule.extension": "Extension",
@@ -4376,7 +6338,12 @@
   "Signature.id": "id",
   "Signature.type": "Coding",
   "Signature.when": "instant",
-  "Signature.whoReference": "Reference",
+  "Signature.whoReference": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "Signature.whoUri": "uri",
   "Slot.comment": "string",
   "Slot.contained": "Resource",
@@ -4390,12 +6357,22 @@
   "Slot.meta": "Meta",
   "Slot.modifierExtension": "Extension",
   "Slot.overbooked": "boolean",
-  "Slot.schedule": "Reference",
+  "Slot.schedule": {
+    "code": "Reference",
+    "refType": [
+      "Schedule"
+    ]
+  },
   "Slot.start": "instant",
   "Slot.text": "Narrative",
   "Slot.type": "CodeableConcept",
   "Specimen.accessionIdentifier": "Identifier",
-  "Specimen.accessionIdentifier.assigner": "Reference",
+  "Specimen.accessionIdentifier.assigner": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "Specimen.accessionIdentifier.extension": "Extension",
   "Specimen.accessionIdentifier.id": "id",
   "Specimen.accessionIdentifier.period": "Period",
@@ -4418,7 +6395,12 @@
   "Specimen.collection.bodySite.text": "string",
   "Specimen.collection.collectedDateTime": "dateTime",
   "Specimen.collection.collectedPeriod": "Period",
-  "Specimen.collection.collector": "Reference",
+  "Specimen.collection.collector": {
+    "code": "Reference",
+    "refType": [
+      "qicore-practitioner"
+    ]
+  },
   "Specimen.collection.comment": "string",
   "Specimen.collection.extension": "Extension",
   "Specimen.collection.id": "id",
@@ -4428,7 +6410,12 @@
   "Specimen.contained": "Resource",
   "Specimen.container": "BackboneElement",
   "Specimen.container.additiveCodeableConcept": "CodeableConcept",
-  "Specimen.container.additiveReference": "Reference",
+  "Specimen.container.additiveReference": {
+    "code": "Reference",
+    "refType": [
+      "qicore-substance"
+    ]
+  },
   "Specimen.container.capacity": "Quantity",
   "Specimen.container.description": "string",
   "Specimen.container.extension": "Extension",
@@ -4440,7 +6427,12 @@
   "Specimen.extension": "Extension",
   "Specimen.id": "id",
   "Specimen.identifier": "Identifier",
-  "Specimen.identifier.assigner": "Reference",
+  "Specimen.identifier.assigner": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "Specimen.identifier.extension": "Extension",
   "Specimen.identifier.id": "id",
   "Specimen.identifier.period": "Period",
@@ -4452,13 +6444,28 @@
   "Specimen.language": "code",
   "Specimen.meta": "Meta",
   "Specimen.modifierExtension": "Extension",
-  "Specimen.parent": "Reference",
+  "Specimen.parent": {
+    "code": "Reference",
+    "refType": [
+      "qicore-specimen"
+    ]
+  },
   "Specimen.receivedTime": "dateTime",
   "Specimen.status": "code",
-  "Specimen.subject": "Reference",
+  "Specimen.subject": {
+    "code": "Reference",
+    "refType": [
+      "qicore-patient"
+    ]
+  },
   "Specimen.text": "Narrative",
   "Specimen.treatment": "BackboneElement",
-  "Specimen.treatment.additive": "Reference",
+  "Specimen.treatment.additive": {
+    "code": "Reference",
+    "refType": [
+      "qicore-substance"
+    ]
+  },
   "Specimen.treatment.description": "string",
   "Specimen.treatment.extension": "Extension",
   "Specimen.treatment.id": "id",
@@ -4565,7 +6572,12 @@
   "Substance.ingredient.id": "id",
   "Substance.ingredient.modifierExtension": "Extension",
   "Substance.ingredient.quantity": "Ratio",
-  "Substance.ingredient.substance": "Reference",
+  "Substance.ingredient.substance": {
+    "code": "Reference",
+    "refType": [
+      "qicore-substance"
+    ]
+  },
   "Substance.instance": "BackboneElement",
   "Substance.instance.expiry": "dateTime",
   "Substance.instance.extension": "Extension",
@@ -4578,7 +6590,12 @@
   "Substance.modifierExtension": "Extension",
   "Substance.text": "Narrative",
   "SupplyDelivery.contained": "Resource",
-  "SupplyDelivery.destination": "Reference",
+  "SupplyDelivery.destination": {
+    "code": "Reference",
+    "refType": [
+      "Location"
+    ]
+  },
   "SupplyDelivery.extension": "Extension",
   "SupplyDelivery.id": "id",
   "SupplyDelivery.identifier": "Identifier",
@@ -4586,12 +6603,32 @@
   "SupplyDelivery.language": "code",
   "SupplyDelivery.meta": "Meta",
   "SupplyDelivery.modifierExtension": "Extension",
-  "SupplyDelivery.patient": "Reference",
+  "SupplyDelivery.patient": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "SupplyDelivery.quantity": "Quantity",
-  "SupplyDelivery.receiver": "Reference",
+  "SupplyDelivery.receiver": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "SupplyDelivery.status": "code",
-  "SupplyDelivery.suppliedItem": "Reference",
-  "SupplyDelivery.supplier": "Reference",
+  "SupplyDelivery.suppliedItem": {
+    "code": "Reference",
+    "refType": [
+      "Medication"
+    ]
+  },
+  "SupplyDelivery.supplier": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "SupplyDelivery.text": "Narrative",
   "SupplyDelivery.time": "dateTime",
   "SupplyDelivery.type": "CodeableConcept",
@@ -4606,13 +6643,38 @@
   "SupplyRequest.language": "code",
   "SupplyRequest.meta": "Meta",
   "SupplyRequest.modifierExtension": "Extension",
-  "SupplyRequest.orderedItem": "Reference",
-  "SupplyRequest.patient": "Reference",
+  "SupplyRequest.orderedItem": {
+    "code": "Reference",
+    "refType": [
+      "Medication"
+    ]
+  },
+  "SupplyRequest.patient": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
   "SupplyRequest.reasonCodeableConcept": "CodeableConcept",
-  "SupplyRequest.reasonReference": "Reference",
-  "SupplyRequest.source": "Reference",
+  "SupplyRequest.reasonReference": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
+  "SupplyRequest.source": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "SupplyRequest.status": "code",
-  "SupplyRequest.supplier": "Reference",
+  "SupplyRequest.supplier": {
+    "code": "Reference",
+    "refType": [
+      "Organization"
+    ]
+  },
   "SupplyRequest.text": "Narrative",
   "SupplyRequest.when": "BackboneElement",
   "SupplyRequest.when.code": "CodeableConcept",
@@ -4638,7 +6700,12 @@
   "TestScript.fixture.extension": "Extension",
   "TestScript.fixture.id": "id",
   "TestScript.fixture.modifierExtension": "Extension",
-  "TestScript.fixture.resource": "Reference",
+  "TestScript.fixture.resource": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "TestScript.id": "id",
   "TestScript.identifier": "Identifier",
   "TestScript.implicitRules": "uri",
@@ -4646,7 +6713,12 @@
   "TestScript.meta": "Meta",
   "TestScript.metadata": "BackboneElement",
   "TestScript.metadata.capability": "BackboneElement",
-  "TestScript.metadata.capability.conformance": "Reference",
+  "TestScript.metadata.capability.conformance": {
+    "code": "Reference",
+    "refType": [
+      "Conformance"
+    ]
+  },
   "TestScript.metadata.capability.description": "string",
   "TestScript.metadata.capability.destination": "integer",
   "TestScript.metadata.capability.extension": "Extension",
@@ -4667,7 +6739,12 @@
   "TestScript.modifierExtension": "Extension",
   "TestScript.multiserver": "boolean",
   "TestScript.name": "string",
-  "TestScript.profile": "Reference",
+  "TestScript.profile": {
+    "code": "Reference",
+    "refType": [
+      "Resource"
+    ]
+  },
   "TestScript.publisher": "string",
   "TestScript.requirements": "string",
   "TestScript.setup": "BackboneElement",
@@ -4922,7 +6999,12 @@
   "VisionPrescription.dispense.prism": "decimal",
   "VisionPrescription.dispense.product": "Coding",
   "VisionPrescription.dispense.sphere": "decimal",
-  "VisionPrescription.encounter": "Reference",
+  "VisionPrescription.encounter": {
+    "code": "Reference",
+    "refType": [
+      "Encounter"
+    ]
+  },
   "VisionPrescription.extension": "Extension",
   "VisionPrescription.id": "id",
   "VisionPrescription.identifier": "Identifier",
@@ -4930,10 +7012,25 @@
   "VisionPrescription.language": "code",
   "VisionPrescription.meta": "Meta",
   "VisionPrescription.modifierExtension": "Extension",
-  "VisionPrescription.patient": "Reference",
-  "VisionPrescription.prescriber": "Reference",
+  "VisionPrescription.patient": {
+    "code": "Reference",
+    "refType": [
+      "Patient"
+    ]
+  },
+  "VisionPrescription.prescriber": {
+    "code": "Reference",
+    "refType": [
+      "Practitioner"
+    ]
+  },
   "VisionPrescription.reasonCodeableConcept": "CodeableConcept",
-  "VisionPrescription.reasonReference": "Reference",
+  "VisionPrescription.reasonReference": {
+    "code": "Reference",
+    "refType": [
+      "Condition"
+    ]
+  },
   "VisionPrescription.text": "Narrative",
   "base64Binary.extension": "Extension",
   "base64Binary.id": "id",
