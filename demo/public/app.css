@@ -34,16 +34,15 @@ body {
   min-width: 400px;
   overflow: auto;
 }
-#inputWrapper > div {
+#inputWrapper > div,
+#inputWrapper > label {
   display: flex;
   flex-direction: row;
   align-items: center;
   min-height: 26px
 }
-#inputWrapper > div > input {
+#inputWrapper > label > input {
   margin-left: 6px;
-}
-#terminologyUrl {
   flex: 1;
 }
 #inputWrapper #variables {
