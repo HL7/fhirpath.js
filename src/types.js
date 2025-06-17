@@ -1357,6 +1357,19 @@ class ResourceNode {
     return toJSON(this.data);
   }
 
+
+  /**
+   * Returns the root node of the resource tree.
+   * @returns {ResourceNode}
+   */
+  getRootNode() {
+    let node = this;
+    while (node?.parentResNode) {
+      node = node.parentResNode;
+    }
+    return node;
+  }
+
   /**
    * Converts a resource node value to an instance of the FHIRPath system type
    * (FP_Quantity, FP_Date, FP_DateTime, or FP_Time) for use in evaluating

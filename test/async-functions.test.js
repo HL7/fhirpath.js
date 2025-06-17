@@ -924,19 +924,14 @@ describe('Async functions', () => {
         }
       }]
     };
-    const QuestionnaireWithContainedQ = {
-      "resourceType": "Bundle",
-      "entry": [{
-        "resource": {
-          "resourceType": "Questionnaire",
-          "url": "http://some-canonical-questionnaire-url",
-          "version": "1.0",
-          "derivedFrom": "#childQuestionnaire",
-          "contained": [{
-            "resourceType": "Questionnaire",
-            "id": "childQuestionnaire"
-          }]
-        }
+    const questionnaireWithContainedQ = {
+      "resourceType": "Questionnaire",
+      "url": "http://some-canonical-questionnaire-url",
+      "version": "1.0",
+      "derivedFrom": "#childQuestionnaire",
+      "contained": [{
+        "resourceType": "Questionnaire",
+        "id": "childQuestionnaire"
       }]
     };
 
@@ -949,7 +944,12 @@ describe('Async functions', () => {
         ['https://lforms-fhir.nlm.nih.gov/baseR4/Patient/pat-107', patientResource107],
         [/https:\/\/lforms-fhir.nlm.nih.gov\/baseR4\/ValueSet\?url=http%3A%2F%2Fsome-canonical-value-set-url$/, valueSetResource],
         [/https:\/\/lforms-fhir.nlm.nih.gov\/baseR4\/ValueSet\?url=http%3A%2F%2Fsome-canonical-value-set-url&version=1.0$/, valueSetResource],
-        [/https:\/\/lforms-fhir.nlm.nih.gov\/baseR4\/Questionnaire\?url=http%3A%2F%2Fsome-canonical-questionnaire-url&version=2.0$/, QuestionnaireWithContainedQ],
+        [/https:\/\/lforms-fhir.nlm.nih.gov\/baseR4\/Questionnaire\?url=http%3A%2F%2Fsome-canonical-questionnaire-url&version=2.0$/, {
+          "resourceType": "Bundle",
+          "entry": [{
+            "resource": questionnaireWithContainedQ
+          }]
+        }],
         ['http://some-canonical-url', null, {
           "resourceType": "OperationOutcome",
           "issue": [{
@@ -1020,6 +1020,12 @@ describe('Async functions', () => {
           "questionnaire": "http://some-canonical-questionnaire-url|2.0#childQuestionnaire",
         },
         'QuestionnaireResponse.questionnaire.resolve().where($this is Questionnaire).id=\'childQuestionnaire\'',
+        [true]
+      ],
+      [
+        'canonical URL with a fragment only',
+        questionnaireWithContainedQ,
+        'Questionnaire.derivedFrom.resolve().where($this is Questionnaire).id=\'childQuestionnaire\'',
         [true]
       ]
     ].forEach(([dataType, resource, expression, res]) => {
