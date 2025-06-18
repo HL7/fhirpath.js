@@ -60,17 +60,18 @@ function requestResourceByCanonicalUrl(ctx, refType, url) {
   if (!fhirServerUrl) {
     throw new Error('Option "fhirServerUrl" is not specified.');
   }
-  if (refType && /^(https?:\/\/[^|]*)(\|(.*))?/.test(url)) {
-    const params = {url: RegExp.$1};
-    if (RegExp.$3) {
-      params.version = RegExp.$3;
+  const match = /^(https?:\/\/[^|]*)(\|(.*))?/.exec(url);
+  if (refType && match) {
+    const params = {url: match[1]};
+    if (match[3]) {
+      params.version = match[3];
     }
     return  util.fetchWithCache(
       urlJoin(fhirServerUrl, refType) + '?' +
       new URLSearchParams(params).toString()
     ).then((bundle) => {
       // Assuming the bundle contains a single resource.
-      return bundle.entry?.[0]?.resource || null;
+      return bundle.entry?.[0]?.resource ?? null;
     });
   }
   return Promise.resolve(null);
@@ -100,14 +101,16 @@ const baseResourceTypes = {Resource: 1, DomainResource: 1};
 
 /**
  * Requests a FHIR resource by its URL, which may be absolute or relative.
- * If the URL is absolute, it is fetched directly. If the fetch fails and a refType is provided,
- * attempts to resolve as a canonical URL. If the URL is relative and starts with a resource type,
- * it is resolved against the FHIR server URL. Returns null if the resource cannot be resolved.
- * If a fragment is specified, it retrieves the contained resource by its ID.
+ * If the URL is absolute, it is fetched directly. If the fetch fails and
+ * a refType is provided, attempts to resolve as a canonical URL. If the URL is
+ * relative and starts with a resource type, it is resolved against the FHIR
+ * server URL. Returns null if the resource cannot be resolved. If a fragment
+ * is specified, it retrieves the contained resource by its ID.
  *
  * @param {Object} ctx - The execution context containing processedVars and model information.
  * @param {ResourceNode} node - the current resource node.
- * @param {string|null} refType - The FHIR resource type to query, or null.
+ * @param {string|null|undefined} refType - The FHIR resource type to query,
+ *  undefined or null.
  * @param {string} url - The URL of the resource to fetch.
  * @param {boolean} isCanonical - Indicates if the URL is a canonical URL.
  * @returns {Promise<Object|null>} A promise resolving to the resource object if found, or null.
@@ -132,17 +135,23 @@ function requestResourceByUrl(ctx, node, refType, url, isCanonical) {
     } else {
       resource = util.fetchWithCache(url);
     }
-  } else if (!isCanonical && /([A-Za-z]*)\//.test(url) &&
-    ctx.model.type2Parent[RegExp.$1] in baseResourceTypes) {
-    // If the reference is a relative URL that starts with a resource type,
-    // we need to resolve it relative to the FHIR server URL.
-    const fhirServerUrl = ctx.processedVars.fhirServerUrl;
-    if (!fhirServerUrl) {
-      throw new Error('Option "fhirServerUrl" is not specified.');
+  } else {
+    const match = /([A-Za-z]*)\//.exec(url);
+    if (
+      !isCanonical &&
+      match &&
+      ctx.model.type2Parent[match[1]] in baseResourceTypes
+    ) {
+      // If the reference is a relative URL that starts with a resource type,
+      // we need to resolve it relative to the FHIR server URL.
+      const fhirServerUrl = ctx.processedVars.fhirServerUrl;
+      if (!fhirServerUrl) {
+        throw new Error('Option "fhirServerUrl" is not specified.');
+      }
+      resource = util.fetchWithCache(urlJoin(fhirServerUrl, url));
+    } else if (!url && fragment && node instanceof ResourceNode) {
+      resource = Promise.resolve(node.getRootNode());
     }
-    resource = util.fetchWithCache(urlJoin(fhirServerUrl, url));
-  } else if (!url && fragment && node instanceof ResourceNode) {
-    resource = Promise.resolve(node.getRootNode());
   }
 
   if (resource) {
@@ -154,7 +163,6 @@ function requestResourceByUrl(ctx, node, refType, url, isCanonical) {
       return res;
     });
   }
-
 
   return Promise.resolve(null);
 }
