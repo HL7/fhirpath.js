@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=share" />
     <!-- <link rel="stylesheet" href="app.css"> -->
     <title>fhirpath.js Demo</title>
     <!-- anti-clickjacking script from:
@@ -20,11 +21,25 @@
   <body>
     <div class="container">
       <div id="header">
+        <span>
         A demo of the
         <a href="https://github.com/HL7/fhirpath.js">fhirpath.js</a>
         <span id="version"></span>
         JavaScript Engine for HL7 FHIRPath
+        </span>
+        <div style="flex: 1 1;"></div>
+        <div id="copyStatus" class="hidden">
+          <span class="error-msg">Failed to copy URL to clipboard.</span>
+          <span class="success-msg">URL copied to clipboard.</span>
+        </div>
+        <button id="copyUrl" type="button">
+          <span class="material-symbols-outlined"
+                title="Copy a shareable link to the data currently entered on this page.">
+            share
+          </span>
+        </button>
       </div>
+      <div>FHIRPath expression:</div>
       <input id="path"
            value = "Patient.name.where(use='usual').given.first()"
            placeholder="fhirpath expr..."/>
@@ -67,7 +82,7 @@
         </div>
         <div class="outputWrapper">
           <div>
-            <label id="outputTitle">Result:</label>:
+            <label id="outputTitle">Result</label>:
           </div>
           <div id="output">...</div>
         </div>
