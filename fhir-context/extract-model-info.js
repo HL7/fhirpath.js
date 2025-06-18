@@ -42,8 +42,9 @@ function addPath2Type(path, code, typeDesc) {
         // For Reference and canonical types, we need to extract the target profile
         // to determine the type of the reference.
         refType: util.arraify(typeDesc.targetProfile || typeDesc.profile).map(url => {
-          if (/http:\/\/hl7.org\/fhir\/StructureDefinition\/(.*)/.test(url)) {
-            return RegExp.$1;
+          const match = /http:\/\/hl7.org\/fhir\/StructureDefinition\/(.*)/.exec(url)
+          if (match) {
+            return match[1];
           } else {
             throw new Error('Unhandled targetProfile URL: ' + url);
           }
