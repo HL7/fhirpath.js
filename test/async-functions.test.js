@@ -931,7 +931,12 @@ describe('Async functions', () => {
       "derivedFrom": "#childQuestionnaire",
       "contained": [{
         "resourceType": "Questionnaire",
-        "id": "childQuestionnaire"
+        "id": "childQuestionnaire",
+        "derivedFrom": "#childOfChildQuestionnaire",
+        "contained": [{
+          "resourceType": "Questionnaire",
+          "id": "childOfChildQuestionnaire"
+        }]
       }]
     };
 
@@ -1026,6 +1031,12 @@ describe('Async functions', () => {
         'canonical URL with a fragment only',
         questionnaireWithContainedQ,
         'Questionnaire.derivedFrom.resolve().where($this is Questionnaire).id=\'childQuestionnaire\'',
+        [true]
+      ],
+      [
+        'canonical URL with a fragment only for a nested resource that contains another resource',
+        questionnaireWithContainedQ,
+        'Questionnaire.derivedFrom.resolve().derivedFrom.resolve().where($this is Questionnaire).id=\'childOfChildQuestionnaire\'',
         [true]
       ]
     ].forEach(([dataType, resource, expression, res]) => {

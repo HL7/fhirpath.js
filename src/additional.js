@@ -150,7 +150,7 @@ function requestResourceByUrl(ctx, node, refType, url, isCanonical) {
       }
       resource = util.fetchWithCache(urlJoin(fhirServerUrl, url));
     } else if (!url && fragment && node instanceof ResourceNode) {
-      resource = Promise.resolve(node.getRootNode());
+      resource = Promise.resolve(node.getParentResource());
     }
   }
 

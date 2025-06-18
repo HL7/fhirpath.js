@@ -1359,14 +1359,16 @@ class ResourceNode {
 
 
   /**
-   * Returns the root node of the resource tree.
+   * Get the resource that contains this node.
+   * The node may be in contained resources.
+   *
    * @returns {ResourceNode}
    */
-  getRootNode() {
+  getParentResource() {
     let node = this;
-    while (node?.parentResNode) {
+    do {
       node = node.parentResNode;
-    }
+    } while(node && !node.data?.resourceType);
     return node;
   }
 
