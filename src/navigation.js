@@ -12,7 +12,20 @@ engine.children = function(coll){
     if (typeof x.data === 'object' && x.data != null) {
       let keys = Object.keys(x.data).filter( k => k !== 'resourceType');
       for (let prop of keys) {
-        if (!prop.startsWith('_') || !keys.includes(prop.slice(1))) {
+        if (prop.startsWith('_')) {
+          const propWithoutUnderscore = prop.slice(1);
+          if (!keys.includes(propWithoutUnderscore)) {
+            // If there is only a property that starts with an underscore
+            // (e.g. _name = {id: 'someId'} is present but "name" is missing).
+            // We have to create a node using the property name without
+            // the underscore (e.g. "name") because accessing values doesn't use
+            // the underscore anyway (e.g. name.id = 'someId').
+            // ResourceNode has properties "data" and "_data" to store
+            // un-underscored and underscored values.
+            util.pushFn(acc, util.makeChildResNodes(x,
+              propWithoutUnderscore, model));
+          }
+        } else {
           util.pushFn(acc, util.makeChildResNodes(x, prop, model));
         }
       }

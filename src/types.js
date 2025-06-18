@@ -1400,12 +1400,9 @@ class ResourceNode {
    *  the resource.
    */
   fullPropertyName() {
-    // check if the property name is for a primitive extension in FHIR
-    let propName = (this.propName?.startsWith('_') && this.model) ?
-      this.propName.substring(1)
-      : this.propName;
+    let propName = this.propName;
 
-    // Now Check if this is a choice type
+    // Check if this is a choice type
     if (this.parentResNode && this.model && this.fhirNodeDataType && propName.endsWith(this.fhirNodeDataType.charAt(0).toUpperCase() + this.fhirNodeDataType.substring(1))) {
       if (this.model && this.model.choiceTypePaths[this.parentResNode?.path + '.' + propName.substring(0, propName.length - this.fhirNodeDataType.length)]) {
         propName = propName.substring(0, propName.length - this.fhirNodeDataType.length);
