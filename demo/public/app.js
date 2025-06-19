@@ -1,4 +1,4 @@
-require('file-loader?name=index.html!./index.html');
+require('./index.html');
 require('./app.css');
 
 require ('../../browser-build/fhirpath.min');
@@ -14,7 +14,9 @@ require("codemirror/mode/javascript/javascript.js");
 require("codemirror/addon/lint/yaml-lint.js");
 require("codemirror/lib/codemirror.css");
 
-const example = require("json-loader!yaml-loader!./patient-example.yaml");
+const {compressToEncodedURIComponent, decompressFromEncodedURIComponent} = require("lz-string");
+
+const example = require("./patient-example.yaml");
 
 document.getElementById('version').innerText = '(version ' + fhirpath.version + ')';
 
@@ -36,6 +38,9 @@ let abortController;
 
 function evaluate(){
   try  {
+    // Clear the output node
+    document.getElementById('copyStatus').className = '';
+
     abortController?.abort();
     abortController = new AbortController();
     const signal = abortController.signal;
@@ -56,7 +61,7 @@ function evaluate(){
           const varName = item.querySelector('input').value;
           if (varName) {
             envVars[varName] = inputText ? JSON.parse(inputText) : undefined;
-            console.log(`Variable %${varName}:`, envVars[varName]);
+            console.log(`Variable %%${varName}:`, envVars[varName]);
           }
         }
       });
@@ -234,7 +239,6 @@ const selectVariableLabel = (event) => {
   updateEditorTitle();
 };
 
-
 // Add focusin event listeners to each variable label and set the first label as
 // selected by default.
 getVariableLabels().forEach((item, index) => {
@@ -242,18 +246,32 @@ getVariableLabels().forEach((item, index) => {
   if (index === 0) {
     item.className = "selected";
     item.setAttribute("data-json", fhirpath.util.toJSON(example, 2));
-    updateEditorText();
-    updateEditorTitle();
   }
 });
 
 
-// Event handler for adding a new variable.
-document.getElementById("addVariable").addEventListener("click", () => {
+/**
+ * Adds a new variable label element to the variables list in the UI. The label
+ * contains an input for the variable name and a button to remove the variable.
+ * If a value is provided, it is serialized and set as a data attribute.
+ * Event listeners are attached for selection, input changes, and removal.
+ *
+ * @param {string|null} name - The name of the variable to add. If null,
+ *  the input will be empty.
+ * @param {Object|null} val - The value of the variable to add. Serialized
+ *  as JSON if provided.
+ * @returns {HTMLElement} The newly created label element representing
+ *  the variable.
+ */
+function addVariable(name = null, val = null) {
   const newItem = document.createElement("label");
   newItem.innerHTML =
-    '<li>%<input type="text" value=""></li><button type="button">' +
+    `<li>%<input type="text" value="${name || ''}"></li><button type="button">` +
     "Remove variable</button>";
+  if (val) {
+    newItem.setAttribute("data-json", fhirpath.util.toJSON(val, 2));
+  }
+
   newItem.addEventListener("focusin", selectVariableLabel);
   newItem.querySelector('input').addEventListener("input", debounce(() => {
     updateEditorTitle();
@@ -264,6 +282,13 @@ document.getElementById("addVariable").addEventListener("click", () => {
     newItem.remove();
   });
   document.querySelector("#variables ul").appendChild(newItem);
+  return newItem;
+}
+
+
+// Event handler for adding a new variable.
+document.getElementById("addVariable").addEventListener("click", () => {
+  const newItem = addVariable();
   setTimeout(() => newItem.querySelector("input").focus());
 });
 
@@ -295,4 +320,103 @@ document.getElementById('fileInput').addEventListener('change', (event) => {
   event.target.value = '';
 });
 
-evaluate();
+
+/**
+ * Parses the current URL and extracts the 'p' query parameter, which contains
+ * compressed and encoded application state.
+ */
+const currentUrl = new URL(location.href);
+const encAppState = currentUrl.searchParams.get('p');
+
+
+/**
+ * Adds a click event listener to the "Copy URL" button. When clicked, it
+ * serializes the current application state (path, variables, model, terminology
+ * URL, and input type), compresses and encodes it, and copies the resulting
+ * shareable URL to the clipboard.
+ */
+document.getElementById("copyUrl").addEventListener("click", () => {
+  const vars = [];
+  getVariableLabels().forEach((item, index) => {
+    const varName = item.querySelector('input').value;
+    const inputText = item.getAttribute('data-json');
+    vars[index] = {
+      name: varName,
+      val: inputText ? JSON.parse(inputText) : undefined
+    };
+  });
+
+  let shareUrl = `${currentUrl.origin}${currentUrl.pathname}?p=${
+    compressToEncodedURIComponent(JSON.stringify({
+      path: pathNode.value,
+      vars,
+      model: modelName,
+      terminologyUrl: terminologyUrlNode.value,
+      inputType: inputTypeBeforeChange
+    }))}`;
+  navigator.clipboard.writeText(shareUrl)
+    .then(() => {
+      document.getElementById('copyStatus').className = 'success';
+
+    })
+    .catch(() => {
+      document.getElementById('copyStatus').className = 'error';
+    });
+});
+
+
+/**
+ * If a compressed state is present in the URL ('p' parameter), this block
+ * restores the application state by:
+ * - Setting the FHIRPath expression value
+ * - Removing existing variables
+ * - Restoring resource value(%context), variables and their values
+ * - Updating the selected model, terminology URL, and input type
+ */
+if (encAppState) {
+  const appState = JSON.parse(decompressFromEncodedURIComponent(encAppState));
+  // Update the value of the FHIRPath expression:
+  pathNode.value = appState.path;
+
+  // Remove all vars:
+  document.querySelectorAll('#variables label:has(li):not(:first-child)')
+    .forEach(item => item.remove());
+
+  // Update resource and variables:
+  appState?.vars?.forEach(({name, val}, index) => {
+    if (index === 0) {
+      const item = document.querySelector(
+        '#variables label:has(li):first-child');
+      item.className = 'selected';
+      item.setAttribute("data-json", fhirpath.util.toJSON(val, 2));
+    } else {
+      addVariable(name, val);
+    }
+  });
+
+  // Update model and terminology URL:
+  if (appState?.model) {
+    modelName = appState.model;
+    document.querySelector(`input[name="modelName"][value="${modelName}"]`)
+      .checked = true;
+  }
+  // Update terminology server Url
+  if (appState?.terminologyUrl) {
+    terminologyUrlNode.value = appState.terminologyUrl;
+  }
+
+  // Update input type
+  if (appState?.inputType) {
+    const inputTypeNode = document.querySelector(
+      `input[name="inputType"][value="${appState.inputType}"]`);
+    if (inputTypeNode) {
+      inputTypeNode.checked = true;
+      handleInputTypeChange({target: inputTypeNode});
+    }
+  }
+}
+
+
+// Initial evaluation
+updateEditorText();
+updateEditorTitle();
