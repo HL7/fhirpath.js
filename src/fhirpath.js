@@ -742,7 +742,11 @@ engine.doEval = function(ctx, parentData, node) {
 engine.doEvalSync = function(ctx, parentData, node) {
   const evaluator = engine.evalTable[node.type] || engine[node.type];
   if(evaluator){
-    return evaluator.call(engine, ctx, parentData, node);
+    let result = evaluator.call(engine, ctx, parentData, node);
+    if (ctx.debugger){
+      ctx.debugger(ctx, parentData, result, node);
+    }
+    return result;
   } else {
     throw new Error("No " + node.type + " evaluator ");
   }
@@ -803,6 +807,9 @@ function applyParsedPath(resource, parsedPath, envVars, model, options) {
   };
   if (options.traceFn) {
     ctx.customTraceFn = options.traceFn;
+  }
+  if (options.debugger) {
+    ctx.debugger = options.debugger;
   }
   if (options.userInvocationTable) {
     ctx.userInvocationTable = options.userInvocationTable;

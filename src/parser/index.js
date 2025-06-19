@@ -49,6 +49,7 @@ var parse = function(path){
         let nodeType = p.slice(5); // remove "enter"
         node = {type: nodeType};
         node.text = ctx.getText();
+        node.length = node.text?.length;
         if (!parentNode.children)
           parentNode.children = [];
         parentNode.children.push(node);
@@ -57,13 +58,57 @@ var parse = function(path){
         // not walked with the rest of the tree, but include things like "+" and
         // "-", which we need.
         node.terminalNodeText = [];
+
+        // Position information for the node
+        if (p === "enterMultiplicativeExpression"
+          || p === "enterAdditiveExpression"
+          || p === "enterTypeExpression"
+          || p === "enterUnionExpression"
+          || p === "enterInequalityExpression"
+          || p === "enterEqualityExpression"
+          || p === "enterMembershipExpression"
+          || p === "enterAndExpression"
+          || p === "enterOrExpression"
+          || p === "enterImpliesExpression"
+        ) {
+          const opSymbol = ctx.children[1].symbol;
+          node.start = { line: opSymbol.line, column: opSymbol.column };
+          node.length = opSymbol.stop - opSymbol.start + 1;
+          node.text = opSymbol.text;
+
+        } else if (p === "enterPolarityExpression") {
+          const pSymbol = ctx.children[0].symbol;
+          node.start = { line: pSymbol.line, column: pSymbol.column };
+          node.length = pSymbol.stop - pSymbol.start + 1;
+
+        } else if (p === "enterFunctionInvocation") {
+          const fSymbol = ctx.children[0].children[0];
+          node.start = { line: fSymbol.start.line, column: fSymbol.start.column };
+          node.text = fSymbol.getText();
+          node.length = node.text.length;
+
+        } else if (p === "enterMemberInvocation") {
+          const mSymbol = ctx.children[0].children[0].symbol;
+          node.start = { line: mSymbol.line, column: mSymbol.column };
+          node.length = mSymbol.stop - mSymbol.start + 1;
+          node.text = mSymbol.text;
+          node.length = node.text.length;
+
+        } else {
+          node.start = { line: ctx.start.line, column: ctx.start.column };
+          node.stop = { line: ctx.stop.line, column: ctx.stop.column };
+
+        }
+
         for (let c of ctx.children) {
           // Test for node type "TerminalNodeImpl".  Minimized code no longer
           // has the original function names, so we can't rely on
           // c.constructor.name.  It appears the TerminalNodeImpl is the only
           // node with a "symbol" property, so test for that.
-          if (c.symbol)
+          if (c.symbol) {
             node.terminalNodeText.push(c.getText());
+            node.length = node.terminalNodeText[0].length;
+          }
         }
       };
     }
