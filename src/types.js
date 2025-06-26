@@ -1333,13 +1333,14 @@ class ResourceNode {
       let typeInfo;
 
       if (this.fhirNodeDataType) {
-        if (/^System\.(.*)$/.test(this.fhirNodeDataType)) {
-          typeInfo = new TypeInfo({namespace: TypeInfo.System, name: RegExp.$1});
+        const match = /^System\.(.*)$/.exec(this.fhirNodeDataType);
+        if (match) {
+          typeInfo = new TypeInfo({namespace: TypeInfo.System, name: match[1]});
         } else {
           typeInfo = new TypeInfo({
             namespace: TypeInfo.FHIR,
             name: this.fhirNodeDataType,
-            // refType is a list of possible resources that this reference may refer to.
+            // refType is a list of possible resource types that this reference may refer to.
             refType: this.parentResNode && this.model?.path2RefType[this.parentResNode.path + '.' + this.propName] || null
           });
         }

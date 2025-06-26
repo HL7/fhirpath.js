@@ -13,8 +13,7 @@ module.exports = (modelInfo) => {
     if (modelInfo.path2Type[i].refType) {
       modelInfo.path2RefType[i] = modelInfo.path2Type[i].refType;
       modelInfo.path2Type[i] = modelInfo.path2Type[i].code;
-    }
-    if (modelInfo.path2Type[i] === 'Element' || modelInfo.path2Type[i] === 'BackboneElement') {
+    } else if (modelInfo.path2Type[i] === 'Element' || modelInfo.path2Type[i] === 'BackboneElement') {
       continue;
     }
     modelInfo.path2TypeWithoutElements[i] = modelInfo.path2Type[i];

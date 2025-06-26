@@ -47,10 +47,16 @@ engine.memberOf = function (coll, valueSetColl ) {
 
 
 /**
- * Requests a FHIR resource by its canonical URL from the FHIR server.
+ * Requests a FHIR resource by its canonical URL (see
+ * https://hl7.org/fhir/references.html#canonical) from the FHIR server.
+ * To request a resource by a canonical URL of the form "someUrl[|version]",
+ * we need to make a request: "<resourceType>?url=<someUrl>[&version=version]"
+ * In general, we don't know how to get the resource type from the canonical
+ * URL. So we need the resource type.
  * Throws an error if the FHIR server URL is not specified in the context.
  *
- * @param {Object} ctx - The execution context containing processedVars and model information.
+ * @param {Object} ctx - The execution context containing processedVars and
+ *  model information.
  * @param {string} refType - The FHIR resource type to query (e.g., 'ValueSet').
  * @param {string} url - The canonical URL of the resource to fetch.
  * @returns {Promise<Object|null>} A promise resolving to the resource object if found, or null.
@@ -116,7 +122,7 @@ const baseResourceTypes = {Resource: 1, DomainResource: 1};
  * @returns {Promise<Object|null>} A promise resolving to the resource object if found, or null.
  */
 function requestResourceByUrl(ctx, node, refType, url, isCanonical) {
-  let resource = null;
+  let promiseOfResource = null;
   let fragment = '';
   [url, fragment] = url.split('#');
   if (/^https?:\/\//.test(url)) {
@@ -124,16 +130,16 @@ function requestResourceByUrl(ctx, node, refType, url, isCanonical) {
       // If the reference is a canonical URL of specified type,
       // we can use this type to resolve it.
       if (refType) {
-        resource = requestResourceByCanonicalUrl(ctx, refType, url);
+        promiseOfResource = requestResourceByCanonicalUrl(ctx, refType, url);
       }
     } else if (refType) {
       // If the reference is an absolute URL, we can use it directly.
-      resource = util.fetchWithCache(url).catch(
+      promiseOfResource = util.fetchWithCache(url).catch(
         // If the reference can be a canonical URL of specified type,
         // we can use this type to resolve it.
         () => requestResourceByCanonicalUrl(ctx, refType, url));
     } else {
-      resource = util.fetchWithCache(url);
+      promiseOfResource = util.fetchWithCache(url);
     }
   } else {
     const match = /([A-Za-z]*)\//.exec(url);
@@ -148,14 +154,14 @@ function requestResourceByUrl(ctx, node, refType, url, isCanonical) {
       if (!fhirServerUrl) {
         throw new Error('Option "fhirServerUrl" is not specified.');
       }
-      resource = util.fetchWithCache(urlJoin(fhirServerUrl, url));
+      promiseOfResource = util.fetchWithCache(urlJoin(fhirServerUrl, url));
     } else if (!url && fragment && node instanceof ResourceNode) {
-      resource = Promise.resolve(node.getParentResource());
+      promiseOfResource = Promise.resolve(node.getParentResource());
     }
   }
 
-  if (resource) {
-    return resource.then(res => {
+  if (promiseOfResource) {
+    return promiseOfResource.then(res => {
       if (fragment) {
         // If a fragment is specified, we need to find the contained resource by its ID.
         res = getContainedResource(res, fragment);

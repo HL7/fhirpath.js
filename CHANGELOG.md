@@ -6,6 +6,8 @@ This log documents significant changes for each release.  This project follows
 ## [4.5.0] - 2025-06-16
 ### Added
 - additional function `resolve()`.
+### Fixed
+- added descriptions for nested nodes that were missing in the DSTU2 model.
 
 ## [4.4.0] - 2025-06-04
 ### Added

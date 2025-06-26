@@ -1,4 +1,6 @@
 const fhirpath = require('../src/fhirpath');
+const modelDSTU2 = require('../fhir-context/dstu2');
+const modelSTU3 = require('../fhir-context/stu3');
 const modelR4 = require('../fhir-context/r4');
 const modelR5 = require('../fhir-context/r5');
 const _ = require("lodash");
@@ -903,18 +905,26 @@ describe('Async functions', () => {
   });
 
 
+  /**
+   * Test suite for the 'resolve' functionality in FHIRPath evaluation.
+   * This suite verifies that various forms of FHIR references (relative/absolute URLs, canonical, uri, etc.)
+   * are correctly resolved to their corresponding resources using asynchronous evaluation.
+   */
   describe('resolve', () => {
+    // Load test resources and set up test data for MedicationDispense and Patient resources.
     const medicationDispenseResource106 = require('./resources/medicationdispense-med-106-0.json');
     const medicationDispenseResource107 = _.cloneDeep(medicationDispenseResource106);
     medicationDispenseResource107.id = 'med-107-0';
     medicationDispenseResource107.subject = {
-      "reference": "https://lforms-fhir.nlm.nih.gov/baseR4/Patient/pat-107",
+      "reference": "https://some-fhir-server/Patient/pat-107",
       "display": "JIAN MCINTOSH"
     };
     const patientResource106 = require('./resources/patient-pat-106-0.json');
     const patientResource107 = _.cloneDeep(patientResource106);
     patientResource107.id = 'pat-107';
     patientResource107.deceasedDateTime = '2129';
+
+    // ValueSet bundle resource for canonical URL resolution tests.
     const valueSetResource = {
       "resourceType": "Bundle",
       "entry": [{
@@ -924,6 +934,8 @@ describe('Async functions', () => {
         }
       }]
     };
+
+    // Questionnaire resource with contained/nested questionnaires for fragment resolution tests.
     const questionnaireWithContainedQ = {
       "resourceType": "Questionnaire",
       "url": "http://some-canonical-questionnaire-url",
@@ -940,16 +952,18 @@ describe('Async functions', () => {
       }]
     };
 
-
+    /**
+     * Sets up mock fetch results before each test to simulate FHIR server responses.
+     */
     beforeEach(() => {
       mockFetchResults([
-        ['https://lforms-fhir.nlm.nih.gov/baseR4/MedicationDispense/med-106-0', medicationDispenseResource106],
-        ['https://lforms-fhir.nlm.nih.gov/baseR4/MedicationDispense/med-107-0', medicationDispenseResource107],
-        ['https://lforms-fhir.nlm.nih.gov/baseR4/Patient/pat-106', patientResource106],
-        ['https://lforms-fhir.nlm.nih.gov/baseR4/Patient/pat-107', patientResource107],
-        [/https:\/\/lforms-fhir.nlm.nih.gov\/baseR4\/ValueSet\?url=http%3A%2F%2Fsome-canonical-value-set-url$/, valueSetResource],
-        [/https:\/\/lforms-fhir.nlm.nih.gov\/baseR4\/ValueSet\?url=http%3A%2F%2Fsome-canonical-value-set-url&version=1.0$/, valueSetResource],
-        [/https:\/\/lforms-fhir.nlm.nih.gov\/baseR4\/Questionnaire\?url=http%3A%2F%2Fsome-canonical-questionnaire-url&version=2.0$/, {
+        ['https://some-fhir-server/MedicationDispense/med-106-0', medicationDispenseResource106],
+        ['https://some-fhir-server/MedicationDispense/med-107-0', medicationDispenseResource107],
+        ['https://some-fhir-server/Patient/pat-106', patientResource106],
+        ['https://some-fhir-server/Patient/pat-107', patientResource107],
+        [/https:\/\/some-fhir-server\/ValueSet\?url=http%3A%2F%2Fsome-canonical-value-set-url$/, valueSetResource],
+        [/https:\/\/some-fhir-server\/ValueSet\?url=http%3A%2F%2Fsome-canonical-value-set-url&version=1.0$/, valueSetResource],
+        [/https:\/\/some-fhir-server\/Questionnaire\?url=http%3A%2F%2Fsome-canonical-questionnaire-url&version=2.0$/, {
           "resourceType": "Bundle",
           "entry": [{
             "resource": questionnaireWithContainedQ
@@ -966,50 +980,63 @@ describe('Async functions', () => {
       ]);
     });
 
+    /**
+     * Parameterized tests for various resolve scenarios.
+     * Each test case checks that the FHIRPath expression resolves the reference as expected.
+     */
     [
+      // [models, description, resource, expression, expectedResult]
       [
+        [modelDSTU2, modelSTU3, modelR4],
         'String with relative URL',
         {},
         '\'MedicationDispense/med-106-0\'.resolve().medication.coding.where(system=\'357\').code',
         ['00168022138']
       ],
       [
+        [modelDSTU2, modelSTU3, modelR4],
         'String with absolute URL',
         {},
-        '\'https://lforms-fhir.nlm.nih.gov/baseR4/MedicationDispense/med-107-0\'.resolve().medication.coding.where(system=\'357\').code',
+        '\'https://some-fhir-server/MedicationDispense/med-107-0\'.resolve().medication.coding.where(system=\'357\').code',
         ['00168022138']
       ],
       [
+        [modelSTU3, modelR4, modelR5],
         'Reference with relative URL',
         medicationDispenseResource106,
         'MedicationDispense.subject.resolve().deceased.where($this is dateTime)',
         ['2128']
       ],
       [
+        [modelSTU3, modelR4, modelR5],
         'Reference with absolute URL',
         medicationDispenseResource107,
         'MedicationDispense.subject.resolve().deceased.where($this is dateTime)',
         ['2129']
       ],
       [
+        [modelDSTU2, modelSTU3, modelR4],
         'uri with relative URL',
         {},
         '%factory.uri(\'MedicationDispense/med-106-0\').resolve().medication.coding.where(system=\'357\').code',
         ['00168022138']
       ],
       [
+        [modelDSTU2, modelSTU3, modelR4],
         'uri with absolute URL',
         {},
-        '%factory.uri(\'https://lforms-fhir.nlm.nih.gov/baseR4/MedicationDispense/med-107-0\').resolve().medication.coding.where(system=\'357\').code',
+        '%factory.uri(\'https://some-fhir-server/MedicationDispense/med-107-0\').resolve().medication.coding.where(system=\'357\').code',
         ['00168022138']
       ],
       [
+        [modelR4, modelR5],
         'canonical for a synthetic node as an empty collection',
         {},
         '%factory.canonical(\'http://some-canonical-url\').resolve()',
         []
       ],
       [
+        [modelR4, modelR5],
         'canonical for a node that resolves to a resource',
         {
           "resourceType": "CodeSystem",
@@ -1019,6 +1046,7 @@ describe('Async functions', () => {
         [true]
       ],
       [
+        [modelR4, modelR5],
         'canonical with version and fragment',
         {
           "resourceType": "QuestionnaireResponse",
@@ -1028,35 +1056,46 @@ describe('Async functions', () => {
         [true]
       ],
       [
+        [modelR4, modelR5],
         'canonical URL with a fragment only',
         questionnaireWithContainedQ,
         'Questionnaire.derivedFrom.resolve().where($this is Questionnaire).id=\'childQuestionnaire\'',
         [true]
       ],
       [
+        [modelR4, modelR5],
         'canonical URL with a fragment only for a nested resource that contains another resource',
         questionnaireWithContainedQ,
         'Questionnaire.derivedFrom.resolve().derivedFrom.resolve().where($this is Questionnaire).id=\'childOfChildQuestionnaire\'',
         [true]
       ]
-    ].forEach(([dataType, resource, expression, res]) => {
+    ].forEach((testData) => {
+      // Extract models and test parameters for each test case.
+      const [models, dataType, resource, expression, res] = testData;
 
-      it(`should resolve ${dataType}`, (done) => {
-        let result = fhirpath.evaluate(
-          resource,
-          `${expression}`,
-          {},
-          modelR4,
-          { async: true, fhirServerUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
-        );
-        expect(result instanceof Promise).toBe(true);
-        result.then((r) => {
-          expect(r).toEqual(res);
-          done();
+      // Run the test for each FHIR model version.
+      models.forEach(model => {
+        it(`should resolve ${dataType} (${model.version.toUpperCase()})`, (done) => {
+          let result = fhirpath.evaluate(
+            resource,
+            `${expression}`,
+            {},
+            model,
+            {
+              async: true,
+              fhirServerUrl: "https://some-fhir-server"
+            }
+          );
+          expect(result instanceof Promise).toBe(true);
+          result.then((r) => {
+            expect(r).toEqual(res);
+            done();
+          });
         });
-      });
 
+      });
     });
+
   });
 
 

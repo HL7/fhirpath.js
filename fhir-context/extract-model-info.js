@@ -35,25 +35,41 @@ let path2Type = {};
  * @param {string} typeDesc - type description object.
  */
 function addPath2Type(path, code, typeDesc) {
+  // TODO: LF-3344 - should we check if path is already defined?
+  //  E.g. ... && !path2Type[path]
   if (code && path.indexOf('.') !== -1) {
     if (code.toLowerCase() === 'reference' || code.toLowerCase() === 'canonical') {
-      path2Type[path] = {
-        code,
-        // For Reference and canonical types, we need to extract the target profile
-        // to determine the type of the reference.
-        refType: util.arraify(typeDesc.targetProfile || typeDesc.profile).map(url => {
-          const match = /http:\/\/hl7.org\/fhir\/StructureDefinition\/(.*)/.exec(url)
-          if (match) {
-            return match[1];
-          } else {
-            throw new Error('Unhandled targetProfile URL: ' + url);
-          }
-        })
-      };
-    } else if (/http:\/\/hl7\.org\/fhirpath\/(.*)/.test(code)) {
-      path2Type[path] = RegExp.$1;
+      const refType = util.arraify(typeDesc.targetProfile || typeDesc.profile).reduce((res, url) => {
+        const match =
+          /http:\/\/hl7.org\/fhir\/StructureDefinition\/([A-Z][A-Za-z]+)/.exec(url);
+        if (match) {
+          res.push(match[1]);
+        } else {
+          console.log(
+            `Warning: unhandled Profile on ${path}:`,
+            '-', url, (path2Type[path]?.refType ?
+              `(using value from another node: ${
+                path2Type[path].refType.join(',')
+              })`
+              : ''));
+        }
+        return res;
+      }, []);
+      if (refType.length > 0 || !path2Type[path]) {
+        path2Type[path] = {
+          code,
+          // For Reference and canonical types, we need to extract the target profile
+          // to determine the type of the reference.
+          refType
+        };
+      }
     } else {
-      path2Type[path] = code;
+      const match = /http:\/\/hl7\.org\/fhirpath\/(.*)/.exec(code);
+      if (match) {
+        path2Type[path] = match[1];
+      } else {
+        path2Type[path] = code;
+      }
     }
   }
 }
@@ -130,10 +146,17 @@ for (let f of choiceTypeFiles) {
         name2Path[n.name] = n.path;
       }
       if (n.path && n.nameReference) {
-        // we use previously saved path by name
-        pathsDefinedElsewhere[n.path] = name2Path[n.nameReference];
+        if (name2Path[n.nameReference]) {
+          // we use previously saved path by name
+          pathsDefinedElsewhere[n.path] = name2Path[n.nameReference];
+        } else if (!pathsDefinedElsewhere[n.path]) {
+          throw new Error('Unhandled nameReference');
+        }
       }
 
+      // TODO: LF-3344 - To eliminate unnecessary extra data from model, we can
+      //  try adding an additional condition:
+      //   ... && (!n.base || n.base?.path === n.path)
       if (n.path && n.type) {
         if (n.path.match(/\[x\]$/)) {
           const prefix = n.path.slice(0, -3);

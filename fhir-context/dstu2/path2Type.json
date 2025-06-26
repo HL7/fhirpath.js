@@ -56,7 +56,7 @@
   "AllergyIntolerance.patient": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "AllergyIntolerance.reaction": "BackboneElement",
@@ -75,7 +75,7 @@
   "AllergyIntolerance.recorder": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "AllergyIntolerance.reporter": {
@@ -258,7 +258,7 @@
   "Basic.author": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Practitioner"
     ]
   },
   "Basic.code": "CodeableConcept",
@@ -272,9 +272,7 @@
   "Basic.extension.extension.valueCodeableConcept": "CodeableConcept",
   "Basic.extension.extension.valueReference": {
     "code": "Reference",
-    "refType": [
-      "qicore-communication"
-    ]
+    "refType": []
   },
   "Basic.extension.id": "id",
   "Basic.extension.url": "uri",
@@ -323,7 +321,7 @@
   "Basic.subject": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Resource"
     ]
   },
   "Basic.text": "Narrative",
@@ -972,7 +970,7 @@
   "Communication.encounter": {
     "code": "Reference",
     "refType": [
-      "qicore-encounter"
+      "Encounter"
     ]
   },
   "Communication.extension": "Extension",
@@ -1000,7 +998,7 @@
   "Communication.recipient": {
     "code": "Reference",
     "refType": [
-      "qicore-device"
+      "Device"
     ]
   },
   "Communication.requestDetail": {
@@ -1012,7 +1010,7 @@
   "Communication.sender": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Device"
     ]
   },
   "Communication.sent": "dateTime",
@@ -1020,7 +1018,7 @@
   "Communication.subject": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "Communication.text": "Narrative",
@@ -1029,7 +1027,7 @@
   "CommunicationRequest.encounter": {
     "code": "Reference",
     "refType": [
-      "qicore-encounter"
+      "Encounter"
     ]
   },
   "CommunicationRequest.extension": "Extension",
@@ -1057,14 +1055,14 @@
   "CommunicationRequest.recipient": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Device"
     ]
   },
   "CommunicationRequest.requestedOn": "dateTime",
   "CommunicationRequest.requester": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Practitioner"
     ]
   },
   "CommunicationRequest.scheduledDateTime": "dateTime",
@@ -1072,7 +1070,7 @@
   "CommunicationRequest.sender": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Device"
     ]
   },
   "CommunicationRequest.status": "code",
@@ -1232,7 +1230,7 @@
   "Condition.asserter": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Practitioner"
     ]
   },
   "Condition.bodySite": "CodeableConcept",
@@ -1266,7 +1264,7 @@
   "Condition.encounter": {
     "code": "Reference",
     "refType": [
-      "qicore-encounter"
+      "Encounter"
     ]
   },
   "Condition.evidence": "BackboneElement",
@@ -1280,12 +1278,7 @@
   "Condition.evidence.extension": "Extension",
   "Condition.evidence.id": "id",
   "Condition.evidence.modifierExtension": "Extension",
-  "Condition.extension": {
-    "code": "Reference",
-    "refType": [
-      "qicore-bodysite"
-    ]
-  },
+  "Condition.extension": "Extension",
   "Condition.id": "id",
   "Condition.identifier": "Identifier",
   "Condition.implicitRules": "uri",
@@ -1301,7 +1294,7 @@
   "Condition.patient": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "Condition.severity": "CodeableConcept",
@@ -1714,7 +1707,7 @@
   "DataElement.element.binding.valueSetReference": {
     "code": "Reference",
     "refType": [
-      "sdcde-valueset"
+      "ValueSet"
     ]
   },
   "DataElement.element.binding.valueSetReference.display": "string",
@@ -2079,7 +2072,7 @@
   "Device.location": {
     "code": "Reference",
     "refType": [
-      "qicore-location"
+      "Location"
     ]
   },
   "Device.lotNumber": "string",
@@ -2092,13 +2085,13 @@
   "Device.owner": {
     "code": "Reference",
     "refType": [
-      "qicore-organization"
+      "Organization"
     ]
   },
   "Device.patient": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "Device.status": "code",
@@ -2179,20 +2172,20 @@
   "DeviceUseRequest.bodySiteReference": {
     "code": "Reference",
     "refType": [
-      "qicore-bodysite"
+      "BodySite"
     ]
   },
   "DeviceUseRequest.contained": "Resource",
   "DeviceUseRequest.device": {
     "code": "Reference",
     "refType": [
-      "qicore-device"
+      "Device"
     ]
   },
   "DeviceUseRequest.encounter": {
     "code": "Reference",
     "refType": [
-      "qicore-encounter"
+      "Encounter"
     ]
   },
   "DeviceUseRequest.extension": "Extension",
@@ -2212,7 +2205,7 @@
   "DeviceUseRequest.subject": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "DeviceUseRequest.text": "Narrative",
@@ -2223,14 +2216,14 @@
   "DeviceUseStatement.bodySiteReference": {
     "code": "Reference",
     "refType": [
-      "qicore-bodysite"
+      "BodySite"
     ]
   },
   "DeviceUseStatement.contained": "Resource",
   "DeviceUseStatement.device": {
     "code": "Reference",
     "refType": [
-      "qicore-device"
+      "Device"
     ]
   },
   "DeviceUseStatement.extension": "Extension",
@@ -2246,7 +2239,7 @@
   "DeviceUseStatement.subject": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "DeviceUseStatement.text": "Narrative",
@@ -2258,14 +2251,14 @@
   "DiagnosticOrder.encounter": {
     "code": "Reference",
     "refType": [
-      "qicore-encounter"
+      "Encounter"
     ]
   },
   "DiagnosticOrder.event": "BackboneElement",
   "DiagnosticOrder.event.actor": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "DiagnosticOrder.event.dateTime": "dateTime",
@@ -2291,9 +2284,7 @@
   "DiagnosticOrder.extension.url": "uri",
   "DiagnosticOrder.extension.valueReference": {
     "code": "Reference",
-    "refType": [
-      "uslab-pract"
-    ]
+    "refType": []
   },
   "DiagnosticOrder.id": "id",
   "DiagnosticOrder.identifier": "Identifier",
@@ -2331,7 +2322,7 @@
   "DiagnosticOrder.item.specimen": {
     "code": "Reference",
     "refType": [
-      "qicore-specimen"
+      "Specimen"
     ]
   },
   "DiagnosticOrder.item.status": "code",
@@ -2342,7 +2333,7 @@
   "DiagnosticOrder.orderer": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "DiagnosticOrder.priority": "code",
@@ -2350,20 +2341,20 @@
   "DiagnosticOrder.specimen": {
     "code": "Reference",
     "refType": [
-      "qicore-specimen"
+      "Specimen"
     ]
   },
   "DiagnosticOrder.status": "code",
   "DiagnosticOrder.subject": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "DiagnosticOrder.supportingInformation": {
     "code": "Reference",
     "refType": [
-      "qicore-observation"
+      "Observation"
     ]
   },
   "DiagnosticOrder.text": "Narrative",
@@ -2388,7 +2379,7 @@
   "DiagnosticReport.encounter": {
     "code": "Reference",
     "refType": [
-      "qicore-encounter"
+      "Encounter"
     ]
   },
   "DiagnosticReport.extension": "Extension",
@@ -2397,9 +2388,7 @@
   "DiagnosticReport.extension.url": "uri",
   "DiagnosticReport.extension.valueReference": {
     "code": "Reference",
-    "refType": [
-      "qicore-location"
-    ]
+    "refType": []
   },
   "DiagnosticReport.id": "id",
   "DiagnosticReport.identifier": "Identifier",
@@ -2430,7 +2419,7 @@
   "DiagnosticReport.imagingStudy": {
     "code": "Reference",
     "refType": [
-      "qicore-imagingstudy"
+      "ImagingStudy"
     ]
   },
   "DiagnosticReport.implicitRules": "uri",
@@ -2441,33 +2430,33 @@
   "DiagnosticReport.performer": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "DiagnosticReport.presentedForm": "Attachment",
   "DiagnosticReport.request": {
     "code": "Reference",
     "refType": [
-      "qicore-diagnosticorder"
+      "DiagnosticOrder"
     ]
   },
   "DiagnosticReport.result": {
     "code": "Reference",
     "refType": [
-      "qicore-observation"
+      "Observation"
     ]
   },
   "DiagnosticReport.specimen": {
     "code": "Reference",
     "refType": [
-      "qicore-specimen"
+      "Specimen"
     ]
   },
   "DiagnosticReport.status": "code",
   "DiagnosticReport.subject": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "DiagnosticReport.text": "Narrative",
@@ -3021,7 +3010,7 @@
   "Encounter.hospitalization.destination": {
     "code": "Reference",
     "refType": [
-      "qicore-location"
+      "Location"
     ]
   },
   "Encounter.hospitalization.dietPreference": "CodeableConcept",
@@ -3038,7 +3027,7 @@
   "Encounter.hospitalization.origin": {
     "code": "Reference",
     "refType": [
-      "qicore-location"
+      "Location"
     ]
   },
   "Encounter.hospitalization.preAdmissionIdentifier": "Identifier",
@@ -3051,7 +3040,7 @@
   "Encounter.incomingReferral": {
     "code": "Reference",
     "refType": [
-      "qicore-referralrequest"
+      "ReferralRequest"
     ]
   },
   "Encounter.indication": {
@@ -3068,7 +3057,7 @@
   "Encounter.location.location": {
     "code": "Reference",
     "refType": [
-      "qicore-location"
+      "Location"
     ]
   },
   "Encounter.location.modifierExtension": "Extension",
@@ -3079,7 +3068,7 @@
   "Encounter.partOf": {
     "code": "Reference",
     "refType": [
-      "qicore-encounter"
+      "Encounter"
     ]
   },
   "Encounter.participant": "BackboneElement",
@@ -3088,7 +3077,7 @@
   "Encounter.participant.individual": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "Encounter.participant.modifierExtension": "Extension",
@@ -3097,7 +3086,7 @@
   "Encounter.patient": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "Encounter.period": "Period",
@@ -3106,7 +3095,7 @@
   "Encounter.serviceProvider": {
     "code": "Reference",
     "refType": [
-      "qicore-organization"
+      "Organization"
     ]
   },
   "Encounter.status": "code",
@@ -3373,7 +3362,7 @@
   "FamilyMemberHistory.patient": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "FamilyMemberHistory.relationship": "CodeableConcept",
@@ -3406,14 +3395,14 @@
   "Flag.subject": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "Flag.text": "Narrative",
   "Goal.addresses": {
     "code": "Reference",
     "refType": [
-      "qicore-condition"
+      "Condition"
     ]
   },
   "Goal.author": {
@@ -3492,7 +3481,7 @@
   "Goal.subject": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "Goal.targetDate": "date",
@@ -3685,7 +3674,7 @@
   "ImagingStudy.interpreter": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "ImagingStudy.language": "code",
@@ -3697,13 +3686,13 @@
   "ImagingStudy.order": {
     "code": "Reference",
     "refType": [
-      "qicore-diagnosticorder"
+      "DiagnosticOrder"
     ]
   },
   "ImagingStudy.patient": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "ImagingStudy.procedure": {
@@ -3715,7 +3704,7 @@
   "ImagingStudy.referrer": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "ImagingStudy.series": "BackboneElement",
@@ -3752,7 +3741,7 @@
   "Immunization.encounter": {
     "code": "Reference",
     "refType": [
-      "qicore-encounter"
+      "Encounter"
     ]
   },
   "Immunization.expirationDate": "date",
@@ -3770,14 +3759,14 @@
   "Immunization.location": {
     "code": "Reference",
     "refType": [
-      "qicore-location"
+      "Location"
     ]
   },
   "Immunization.lotNumber": "string",
   "Immunization.manufacturer": {
     "code": "Reference",
     "refType": [
-      "qicore-organization"
+      "Organization"
     ]
   },
   "Immunization.meta": "Meta",
@@ -3786,13 +3775,13 @@
   "Immunization.patient": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "Immunization.performer": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "Immunization.reaction": "BackboneElement",
@@ -3800,7 +3789,7 @@
   "Immunization.reaction.detail": {
     "code": "Reference",
     "refType": [
-      "qicore-observation"
+      "Observation"
     ]
   },
   "Immunization.reaction.extension": "Extension",
@@ -3811,7 +3800,7 @@
   "Immunization.requester": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "Immunization.route": "CodeableConcept",
@@ -3822,7 +3811,7 @@
   "Immunization.vaccinationProtocol.authority": {
     "code": "Reference",
     "refType": [
-      "qicore-organization"
+      "Organization"
     ]
   },
   "Immunization.vaccinationProtocol.description": "string",
@@ -3848,7 +3837,7 @@
   "ImmunizationRecommendation.patient": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "ImmunizationRecommendation.recommendation": "BackboneElement",
@@ -3868,7 +3857,7 @@
   "ImmunizationRecommendation.recommendation.protocol.authority": {
     "code": "Reference",
     "refType": [
-      "qicore-organization"
+      "Organization"
     ]
   },
   "ImmunizationRecommendation.recommendation.protocol.description": "string",
@@ -3880,13 +3869,13 @@
   "ImmunizationRecommendation.recommendation.supportingImmunization": {
     "code": "Reference",
     "refType": [
-      "qicore-immunization"
+      "Immunization"
     ]
   },
   "ImmunizationRecommendation.recommendation.supportingPatientInformation": {
     "code": "Reference",
     "refType": [
-      "qicore-observation"
+      "Observation"
     ]
   },
   "ImmunizationRecommendation.recommendation.vaccineCode": "CodeableConcept",
@@ -3990,7 +3979,7 @@
   "List.entry.item": {
     "code": "Reference",
     "refType": [
-      "daf-diagnosticreport"
+      "Resource"
     ]
   },
   "List.entry.modifierExtension": "Extension",
@@ -4007,14 +3996,14 @@
   "List.source": {
     "code": "Reference",
     "refType": [
-      "daf-pract"
+      "Practitioner"
     ]
   },
   "List.status": "code",
   "List.subject": {
     "code": "Reference",
     "refType": [
-      "daf-patient"
+      "Patient"
     ]
   },
   "List.text": "Narrative",
@@ -4042,7 +4031,7 @@
   "Location.managingOrganization": {
     "code": "Reference",
     "refType": [
-      "qicore-organization"
+      "Organization"
     ]
   },
   "Location.meta": "Meta",
@@ -4052,7 +4041,7 @@
   "Location.partOf": {
     "code": "Reference",
     "refType": [
-      "qicore-location"
+      "Location"
     ]
   },
   "Location.physicalType": "CodeableConcept",
@@ -4107,7 +4096,7 @@
   "Medication.manufacturer": {
     "code": "Reference",
     "refType": [
-      "qicore-organization"
+      "Organization"
     ]
   },
   "Medication.meta": "Meta",
@@ -4121,7 +4110,7 @@
   "Medication.package.content.item": {
     "code": "Reference",
     "refType": [
-      "qicore-medication"
+      "Medication"
     ]
   },
   "Medication.package.content.modifierExtension": "Extension",
@@ -4145,7 +4134,7 @@
   "Medication.product.ingredient.item": {
     "code": "Reference",
     "refType": [
-      "qicore-substance"
+      "Substance"
     ]
   },
   "Medication.product.ingredient.modifierExtension": "Extension",
@@ -4155,7 +4144,7 @@
   "MedicationAdministration.device": {
     "code": "Reference",
     "refType": [
-      "qicore-device"
+      "Device"
     ]
   },
   "MedicationAdministration.dosage": "BackboneElement",
@@ -4180,7 +4169,7 @@
   "MedicationAdministration.encounter": {
     "code": "Reference",
     "refType": [
-      "qicore-encounter"
+      "Encounter"
     ]
   },
   "MedicationAdministration.extension": "Extension",
@@ -4192,7 +4181,7 @@
   "MedicationAdministration.medicationReference": {
     "code": "Reference",
     "refType": [
-      "qicore-medication"
+      "Medication"
     ]
   },
   "MedicationAdministration.meta": "Meta",
@@ -4201,19 +4190,19 @@
   "MedicationAdministration.patient": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "MedicationAdministration.practitioner": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "MedicationAdministration.prescription": {
     "code": "Reference",
     "refType": [
-      "qicore-medicationorder"
+      "MedicationOrder"
     ]
   },
   "MedicationAdministration.reasonGiven": "CodeableConcept",
@@ -4224,7 +4213,7 @@
   "MedicationDispense.authorizingPrescription": {
     "code": "Reference",
     "refType": [
-      "qicore-medicationorder"
+      "MedicationOrder"
     ]
   },
   "MedicationDispense.contained": "Resource",
@@ -4232,13 +4221,13 @@
   "MedicationDispense.destination": {
     "code": "Reference",
     "refType": [
-      "qicore-location"
+      "Location"
     ]
   },
   "MedicationDispense.dispenser": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "MedicationDispense.dosageInstruction": "BackboneElement",
@@ -4282,14 +4271,14 @@
   "MedicationDispense.patient": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "MedicationDispense.quantity": "Quantity",
   "MedicationDispense.receiver": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "MedicationDispense.status": "code",
@@ -4301,7 +4290,7 @@
   "MedicationDispense.substitution.responsibleParty": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "MedicationDispense.substitution.type": "CodeableConcept",
@@ -4320,7 +4309,7 @@
   "MedicationOrder.dispenseRequest.medicationReference": {
     "code": "Reference",
     "refType": [
-      "qicore-medication"
+      "Medication"
     ]
   },
   "MedicationOrder.dispenseRequest.modifierExtension": "Extension",
@@ -4353,7 +4342,7 @@
   "MedicationOrder.encounter": {
     "code": "Reference",
     "refType": [
-      "qicore-encounter"
+      "Encounter"
     ]
   },
   "MedicationOrder.extension": "Extension",
@@ -4365,7 +4354,7 @@
   "MedicationOrder.medicationReference": {
     "code": "Reference",
     "refType": [
-      "qicore-medication"
+      "Medication"
     ]
   },
   "MedicationOrder.meta": "Meta",
@@ -4374,13 +4363,13 @@
   "MedicationOrder.patient": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "MedicationOrder.prescriber": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "MedicationOrder.priorPrescription": {
@@ -4438,7 +4427,7 @@
   "MedicationStatement.informationSource": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "MedicationStatement.language": "code",
@@ -4446,7 +4435,7 @@
   "MedicationStatement.medicationReference": {
     "code": "Reference",
     "refType": [
-      "qicore-medication"
+      "Medication"
     ]
   },
   "MedicationStatement.meta": "Meta",
@@ -4455,14 +4444,14 @@
   "MedicationStatement.patient": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "MedicationStatement.reasonForUseCodeableConcept": "CodeableConcept",
   "MedicationStatement.reasonForUseReference": {
     "code": "Reference",
     "refType": [
-      "qicore-condition"
+      "Condition"
     ]
   },
   "MedicationStatement.reasonNotTaken": "CodeableConcept",
@@ -4731,7 +4720,7 @@
   "Observation.device": {
     "code": "Reference",
     "refType": [
-      "qicore-device"
+      "Device"
     ]
   },
   "Observation.effectiveDateTime": "dateTime",
@@ -4739,7 +4728,7 @@
   "Observation.encounter": {
     "code": "Reference",
     "refType": [
-      "qicore-encounter"
+      "Encounter"
     ]
   },
   "Observation.extension": "Extension",
@@ -4794,7 +4783,7 @@
   "Observation.performer": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "Observation.referenceRange": "BackboneElement",
@@ -4845,21 +4834,21 @@
   "Observation.related.target": {
     "code": "Reference",
     "refType": [
-      "qicore-observation"
+      "Observation"
     ]
   },
   "Observation.related.type": "code",
   "Observation.specimen": {
     "code": "Reference",
     "refType": [
-      "qicore-specimen"
+      "Specimen"
     ]
   },
   "Observation.status": "code",
   "Observation.subject": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "Observation.text": "Narrative",
@@ -5094,7 +5083,7 @@
   "Organization.partOf": {
     "code": "Reference",
     "refType": [
-      "qicore-organization"
+      "Organization"
     ]
   },
   "Organization.telecom": "ContactPoint",
@@ -5178,7 +5167,7 @@
   "Patient.careProvider": {
     "code": "Reference",
     "refType": [
-      "qicore-organization"
+      "Organization"
     ]
   },
   "Patient.communication": "BackboneElement",
@@ -5218,7 +5207,7 @@
   "Patient.contact.organization": {
     "code": "Reference",
     "refType": [
-      "qicore-organization"
+      "Organization"
     ]
   },
   "Patient.contact.period": "Period",
@@ -5327,14 +5316,14 @@
   "Patient.link.other": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "Patient.link.type": "code",
   "Patient.managingOrganization": {
     "code": "Reference",
     "refType": [
-      "qicore-organization"
+      "Organization"
     ]
   },
   "Patient.maritalStatus": "CodeableConcept",
@@ -5581,13 +5570,13 @@
   "Practitioner.practitionerRole.location": {
     "code": "Reference",
     "refType": [
-      "qicore-location"
+      "Location"
     ]
   },
   "Practitioner.practitionerRole.managingOrganization": {
     "code": "Reference",
     "refType": [
-      "qicore-organization"
+      "Organization"
     ]
   },
   "Practitioner.practitionerRole.modifierExtension": "Extension",
@@ -5606,7 +5595,7 @@
   "Practitioner.qualification.issuer": {
     "code": "Reference",
     "refType": [
-      "qicore-organization"
+      "Organization"
     ]
   },
   "Practitioner.qualification.modifierExtension": "Extension",
@@ -5632,7 +5621,7 @@
   "Procedure.encounter": {
     "code": "Reference",
     "refType": [
-      "qicore-encounter"
+      "Encounter"
     ]
   },
   "Procedure.extension": "Extension",
@@ -5643,7 +5632,7 @@
   "Procedure.focalDevice.manipulated": {
     "code": "Reference",
     "refType": [
-      "qicore-device"
+      "Device"
     ]
   },
   "Procedure.focalDevice.modifierExtension": "Extension",
@@ -5655,7 +5644,7 @@
   "Procedure.location": {
     "code": "Reference",
     "refType": [
-      "qicore-location"
+      "Location"
     ]
   },
   "Procedure.meta": "Meta",
@@ -5669,7 +5658,7 @@
   "Procedure.performer.actor": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "Procedure.performer.extension": "Extension",
@@ -5687,7 +5676,7 @@
   "Procedure.report": {
     "code": "Reference",
     "refType": [
-      "qicore-diagnosticreport"
+      "DiagnosticReport"
     ]
   },
   "Procedure.request": {
@@ -5700,7 +5689,7 @@
   "Procedure.subject": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "Procedure.text": "Narrative",
@@ -5718,7 +5707,7 @@
   "ProcedureRequest.encounter": {
     "code": "Reference",
     "refType": [
-      "qicore-encounter"
+      "Encounter"
     ]
   },
   "ProcedureRequest.extension": "Extension",
@@ -5733,13 +5722,13 @@
   "ProcedureRequest.orderer": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "ProcedureRequest.performer": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "ProcedureRequest.priority": "code",
@@ -5757,7 +5746,7 @@
   "ProcedureRequest.subject": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "ProcedureRequest.text": "Narrative",
@@ -6118,7 +6107,7 @@
   "QuestionnaireResponse.questionnaire": {
     "code": "Reference",
     "refType": [
-      "sdc-questionnaire"
+      "Questionnaire"
     ]
   },
   "QuestionnaireResponse.source": {
@@ -6154,7 +6143,7 @@
   "ReferralRequest.encounter": {
     "code": "Reference",
     "refType": [
-      "qicore-encounter"
+      "Encounter"
     ]
   },
   "ReferralRequest.extension": "Extension",
@@ -6168,7 +6157,7 @@
   "ReferralRequest.patient": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "ReferralRequest.priority": "CodeableConcept",
@@ -6176,13 +6165,13 @@
   "ReferralRequest.recipient": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "ReferralRequest.requester": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "ReferralRequest.serviceRequested": "CodeableConcept",
@@ -6211,7 +6200,7 @@
   "RelatedPerson.patient": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "RelatedPerson.period": "Period",
@@ -6398,7 +6387,7 @@
   "Specimen.collection.collector": {
     "code": "Reference",
     "refType": [
-      "qicore-practitioner"
+      "Practitioner"
     ]
   },
   "Specimen.collection.comment": "string",
@@ -6413,7 +6402,7 @@
   "Specimen.container.additiveReference": {
     "code": "Reference",
     "refType": [
-      "qicore-substance"
+      "Substance"
     ]
   },
   "Specimen.container.capacity": "Quantity",
@@ -6447,7 +6436,7 @@
   "Specimen.parent": {
     "code": "Reference",
     "refType": [
-      "qicore-specimen"
+      "Specimen"
     ]
   },
   "Specimen.receivedTime": "dateTime",
@@ -6455,7 +6444,7 @@
   "Specimen.subject": {
     "code": "Reference",
     "refType": [
-      "qicore-patient"
+      "Patient"
     ]
   },
   "Specimen.text": "Narrative",
@@ -6463,7 +6452,7 @@
   "Specimen.treatment.additive": {
     "code": "Reference",
     "refType": [
-      "qicore-substance"
+      "Substance"
     ]
   },
   "Specimen.treatment.description": "string",
@@ -6575,7 +6564,7 @@
   "Substance.ingredient.substance": {
     "code": "Reference",
     "refType": [
-      "qicore-substance"
+      "Substance"
     ]
   },
   "Substance.instance": "BackboneElement",

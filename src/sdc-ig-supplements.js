@@ -327,7 +327,7 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire,
   } else {
     if (code) {
       if (vsURL) {
-        const vsId = /^#(.*)/.test(vsURL) ? RegExp.$1 : null;
+        const vsId = /^#(.+)/.exec(vsURL)?.[1] ?? null;
         const isAnswerValueSet = vsId
           ? (r) => r.id === vsId && r.resourceType === 'ValueSet'
           : (r) => r.url === vsURL && r.resourceType === 'ValueSet';
