@@ -3,6 +3,9 @@
 
 let engine = {};
 const util = require("./utilities");
+// Cannot use util.hasOwnProperty directly because it triggers the error:
+// "Do not access Object.prototype method 'hasOwnProperty' from target object"
+const { hasOwnProperty } = util;
 
 
 /**
@@ -663,7 +666,7 @@ function getQItemByLinkIds(modelVersion, questionnaire, linkIds) {
   }
 
   // We use "hasOwnProperty" because we also cache undefined results for scores.
-  if (!Object.prototype.hasOwnProperty.call(linkIds2items, linkIdsKey)) {
+  if (!hasOwnProperty(linkIds2items, linkIdsKey)) {
     // If the result is not cached yet, we search for the questionnaire item.
     const topLinkId = linkIds[linkIds.length - 1];
 

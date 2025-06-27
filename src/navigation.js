@@ -1,4 +1,7 @@
 const util = require("./utilities");
+// Cannot use util.hasOwnProperty directly because it triggers the error:
+// "Do not access Object.prototype method 'hasOwnProperty' from target object"
+const { hasOwnProperty } = util;
 const { ResourceNode } = require('./types');
 
 var engine = {};
@@ -10,11 +13,10 @@ engine.children = function(coll){
       return acc;
     }
     if (typeof x.data === 'object' && x.data != null) {
-      let keys = Object.keys(x.data).filter( k => k !== 'resourceType');
-      for (let prop of keys) {
+      for (let prop in x.data) {
         if (prop.startsWith('_')) {
           const propWithoutUnderscore = prop.slice(1);
-          if (!keys.includes(propWithoutUnderscore)) {
+          if (!hasOwnProperty(x.data, propWithoutUnderscore)) {
             // If there is only a property that starts with an underscore
             // (e.g. _name = {id: 'someId'} is present but "name" is missing).
             // We have to create a node using the property name without
@@ -25,15 +27,13 @@ engine.children = function(coll){
             util.pushFn(acc, util.makeChildResNodes(x,
               propWithoutUnderscore, model));
           }
-        } else {
+        } else if (prop !== 'resourceType') {
           util.pushFn(acc, util.makeChildResNodes(x, prop, model));
         }
       }
     }
     else if (typeof x._data === 'object' && x._data != null) {
-      // remove any resourceType keys
-      let keys = Object.keys(x._data).filter( k => k !== 'resourceType');
-      for (let prop of keys) {
+      for (let prop in x._data) {
         util.pushFn(acc, util.makeChildResNodes(x, prop, model));
       }
     }

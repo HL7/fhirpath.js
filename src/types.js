@@ -1416,15 +1416,18 @@ class ResourceNode {
     let propName = this.propName;
 
     // Check if this is a choice type
-    if (this.parentResNode && this.model && this.fhirNodeDataType && propName.endsWith(this.fhirNodeDataType.charAt(0).toUpperCase() + this.fhirNodeDataType.substring(1))) {
-      if (this.model && this.model.choiceTypePaths[this.parentResNode?.path + '.' + propName.substring(0, propName.length - this.fhirNodeDataType.length)]) {
-        propName = propName.substring(0, propName.length - this.fhirNodeDataType.length);
-      }
+    if (this.parentResNode && this.model && this.fhirNodeDataType &&
+      propName.endsWith(this.fhirNodeDataType.charAt(0).toUpperCase() +
+        this.fhirNodeDataType.substring(1)) &&
+      this.model.choiceTypePaths[this.parentResNode?.path + '.' +
+        propName.substring(0, propName.length - this.fhirNodeDataType.length)]
+    ) {
+      propName = propName.substring(0, propName.length - this.fhirNodeDataType.length);
     }
 
-    let result = this.parentResNode ?
+    let result = (this.parentResNode ?
       this.parentResNode.fullPropertyName() + '.' + propName
-      : propName || this.path;
+      : propName) || this.path;
     if (this.index != null) {
       result += '[' + this.index + ']';
     }
