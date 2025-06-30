@@ -325,12 +325,17 @@ util.checkAllowAsync = function(ctx, fnName) {
 
 
 /**
- * Reference to the native Object.prototype.hasOwnProperty method, bound to Function.prototype.call.
- * This can be used to safely check if an object has a property as its own (not inherited),
- * avoiding issues if the object has a custom hasOwnProperty property.
+ * Reference to the native Object.prototype.hasOwnProperty method, bound to
+ * Function.prototype.call. This can be used to safely check if an object has
+ * a property as its own (not inherited), avoiding issues if the object has
+ * a custom hasOwnProperty property.
  *
  * Example usage:
- *   util.hasOwnProperty(obj, 'propertyName')
+ * // Cannot use util.hasOwnProperty directly because it triggers the error:
+ * // "Do not access Object.prototype method 'hasOwnProperty' from target object"
+ * const { hasOwnProperty } = require("./utilities");
+ * ...
+ * hasOwnProperty(obj, 'propertyName')
  *
  * @type {Function}
  */
