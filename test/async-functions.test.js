@@ -916,13 +916,20 @@ describe('Async functions', () => {
     const medicationDispenseResource107 = _.cloneDeep(medicationDispenseResource106);
     medicationDispenseResource107.id = 'med-107-0';
     medicationDispenseResource107.subject = {
-      "reference": "https://some-fhir-server/Patient/pat-107",
-      "display": "JIAN MCINTOSH"
+      "reference": "https://some-fhir-server/Patient/pat-107"
+    };
+    const medicationDispenseResource108 = _.cloneDeep(medicationDispenseResource106);
+    medicationDispenseResource108.id = 'med-108-0';
+    medicationDispenseResource108.subject = {
+      "reference": "https://some-fhir-server/Patient/pat-108"
     };
     const patientResource106 = require('./resources/patient-pat-106-0.json');
     const patientResource107 = _.cloneDeep(patientResource106);
     patientResource107.id = 'pat-107';
     patientResource107.deceasedDateTime = '2129';
+    const patientResource108 = _.cloneDeep(patientResource106);
+    patientResource108.id = 'pat-108';
+    patientResource108.deceasedDateTime = '2130';
 
     // ValueSet bundle resource for canonical URL resolution tests.
     const valueSetResource = {
@@ -961,6 +968,22 @@ describe('Async functions', () => {
         ['https://some-fhir-server/MedicationDispense/med-107-0', medicationDispenseResource107],
         ['https://some-fhir-server/Patient/pat-106', patientResource106],
         ['https://some-fhir-server/Patient/pat-107', patientResource107],
+        ['https://some-fhir-server/Patient/pat-108', null, {
+          "resourceType": "OperationOutcome",
+          "issue": [ {
+            "severity": "error",
+            "code": "processing",
+            "diagnostics": "Resource Patient/pat-108 is not known"
+          } ]
+        }],
+        // This impossible request should not be called, but is included to
+        // catch it in case it is called by mistake:
+        ['https://some-fhir-server/Patient?url=https%3A%2F%2Fsome-fhir-server%2FPatient%2Fpat-108', {
+          "resourceType": "Bundle",
+          "entry": [{
+            "resource": patientResource108
+          }]
+        }],
         [/https:\/\/some-fhir-server\/ValueSet\?url=http%3A%2F%2Fsome-canonical-value-set-url$/, valueSetResource],
         [/https:\/\/some-fhir-server\/ValueSet\?url=http%3A%2F%2Fsome-canonical-value-set-url&version=1.0$/, valueSetResource],
         [/https:\/\/some-fhir-server\/Questionnaire\?url=http%3A%2F%2Fsome-canonical-questionnaire-url&version=2.0$/, {
@@ -1013,6 +1036,13 @@ describe('Async functions', () => {
         medicationDispenseResource107,
         'MedicationDispense.subject.resolve().deceased.where($this is dateTime)',
         ['2129']
+      ],
+      [
+        [modelSTU3, modelR4, modelR5],
+        'Reference with absolute URL',
+        medicationDispenseResource108,
+        'MedicationDispense.subject.resolve().deceased.where($this is dateTime)',
+        []
       ],
       [
         [modelDSTU2, modelSTU3, modelR4],

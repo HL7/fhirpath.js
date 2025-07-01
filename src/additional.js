@@ -67,7 +67,7 @@ function requestResourceByCanonicalUrl(ctx, refType, url) {
     throw new Error('Option "fhirServerUrl" is not specified.');
   }
   const match = /^(https?:\/\/[^|]*)(\|(.*))?/.exec(url);
-  if (refType && match) {
+  if (refType && match && ctx.model.resourcesWithUrlParam[refType]) {
     const params = {url: match[1]};
     if (match[3]) {
       params.version = match[3];
@@ -113,13 +113,15 @@ const baseResourceTypes = {Resource: 1, DomainResource: 1};
  * server URL. Returns null if the resource cannot be resolved. If a fragment
  * is specified, it retrieves the contained resource by its ID.
  *
- * @param {Object} ctx - The execution context containing processedVars and model information.
+ * @param {Object} ctx - The execution context containing processedVars and
+ *  model information.
  * @param {ResourceNode} node - the current resource node.
  * @param {string|null|undefined} refType - The FHIR resource type to query,
  *  undefined or null.
  * @param {string} url - The URL of the resource to fetch.
  * @param {boolean} isCanonical - Indicates if the URL is a canonical URL.
- * @returns {Promise<Object|null>} A promise resolving to the resource object if found, or null.
+ * @returns {Promise<Object|null>} A promise resolving to the resource object
+ *  if found, or null.
  */
 function requestResourceByUrl(ctx, node, refType, url, isCanonical) {
   let promiseOfResource = null;

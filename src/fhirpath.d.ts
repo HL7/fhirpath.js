@@ -79,6 +79,14 @@ interface Model {
   };
 
   /**
+   * A hash map of FHIR resource types that support the 'url' search parameter
+   * to true values.
+   */
+  resourcesWithUrlParam: {
+    [path: string]: boolean
+  };
+
+  /**
    * Mapping paths to data types without elements,
    * e.g. Element and BackboneElement.
    */

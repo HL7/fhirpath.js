@@ -466,6 +466,7 @@ open browser on localhost:8080
   > wget http://hl7.org/fhir/profiles-types.json -O profiles-types.json
   > wget http://hl7.org/fhir/profiles-others.json -O profiles-others.json
   > wget http://hl7.org/fhir/profiles-resources.json -O profiles-resources.json
+  > wget https://hl7.org/fhir/search-parameters.json -O search-parameters.json
   ```
 * Create the new folder for the version you are importing
   ```

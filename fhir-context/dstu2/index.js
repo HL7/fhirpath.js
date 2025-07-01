@@ -1,4 +1,5 @@
-const updateWithGeneratedData = require('../general-additions');
+const { updateWithGeneratedData, arrToHash } = require('../general-additions');
+
 /**
  *  Exports the FHIR model data for DSTU2.  This is an internal structure that
  *  will likely evolve as more FHIR specific processing is added.
@@ -24,7 +25,12 @@ const modelInfo = {
   /**
    * Mapping paths to data types.
    */
-  path2Type: require('./path2Type.json')
+  path2Type: require('./path2Type.json'),
+  /**
+   * An array of FHIR resource types that support the 'url' search parameter.
+   * The data is loaded from the resourcesWithUrlParam.json file.
+   */
+  resourcesWithUrlParam: arrToHash(require('./resourcesWithUrlParam.json'))
 };
 
 // Update with generated data

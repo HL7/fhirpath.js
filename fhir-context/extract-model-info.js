@@ -192,6 +192,19 @@ for (let f of choiceTypeFiles) {
   visitNode(fData);
 }
 
+// Create a list of resource types that have the "url" search parameter.
+const resourcesWithUrlParam = new Set();
+JSON.parse(fs.readFileSync(path.join(fhirDefDir, 'search-parameters.json')))
+  .entry.forEach(({resource: searchParameter}) => {
+    if (searchParameter.code === 'url') {
+      // The search parameter with code "url" is defined for resources that have
+      // a canonical URL and some other resources.
+      [].concat(searchParameter.base).forEach((resType) => {
+        resourcesWithUrlParam.add(resType);
+      });
+    }
+  });
+
 // Output the results as JSON hash for ease of import and ease of checking
 // whether a path is a choice type path.
 // Since there are no nested objects, we can easily sort the output keys.
@@ -203,3 +216,5 @@ fs.writeFileSync(path.join(outputDir, 'type2Parent.json'),
   JSON.stringify(type2Parent, Object.keys(type2Parent).sort(), 2));
 fs.writeFileSync(path.join(outputDir, 'path2Type.json'),
   JSON.stringify(path2Type, [...Object.keys(path2Type).sort(), 'code', 'refType'], 2));
+fs.writeFileSync(path.join(outputDir, 'resourcesWithUrlParam.json'),
+  JSON.stringify([...resourcesWithUrlParam.values()].sort(), null, 2));
