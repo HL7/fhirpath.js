@@ -12,6 +12,15 @@ const testPatient = {
     },
     {
       family: "Smith",
+      _family: {
+        id: "smith-id",
+        extension: [
+          {
+            url: "http://hl7.org/fhir/StructureDefinition/humanname-own-prefix",
+            valueString: "VV"
+          }
+        ]
+      },
       given: ["Jeremy"],
     },
   ],
@@ -167,4 +176,53 @@ test("useContextFromExpressionResult", () => {
   expect(output[0].convertData()).toBe("Jane");
   expect(output[1].fullPropertyName()).toBe("Patient.contact[1].name.given[1]");
   expect(output[1].convertData()).toBe("Francis");
+});
+
+test("traceProcessingHasAccessToPrimitiveExtensionPropertyNames", () => {
+  let fhirData = testPatient;
+  let environment = {
+    resource: fhirData,
+    rootResource: fhirData,
+  };
+
+  let output = [];
+  let tracefunction = function (x, label) {
+    if (Array.isArray(x)) {
+      for (let item of x) {
+        output.push(item);
+      }
+    } else {
+      output.push(x);
+    }
+    return x;
+  };
+
+  let options = {
+    traceFn: tracefunction,
+    async: false,
+  };
+
+  let result = fhirpath.evaluate(
+    fhirData,
+    "select(Patient.name.skip(1).first().descendants().trace('output'))",
+    environment,
+    fhirpath_r4_model,
+    options
+  );
+
+  for (const element of output) {
+    let node = element;
+    if (node.fullPropertyName)
+      console.log(node.fullPropertyName(), JSON.stringify(node.convertData()));
+  }
+
+  expect(result).toBeDefined();
+  expect(output).toBeDefined();
+  expect(output.length).toBe(6);
+  expect(output[0].fullPropertyName()).toBe("Patient.name[1].family");
+  expect(output[1].fullPropertyName()).toBe("Patient.name[1].given[0]");
+  expect(output[2].fullPropertyName()).toBe("Patient.name[1].family.id");
+  expect(output[3].fullPropertyName()).toBe("Patient.name[1].family.extension[0]");
+  expect(output[4].fullPropertyName()).toBe("Patient.name[1].family.extension[0].url");
+  expect(output[5].fullPropertyName()).toBe("Patient.name[1].family.extension[0].value");
 });

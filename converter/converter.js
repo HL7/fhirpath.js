@@ -1,4 +1,7 @@
 const util = require('../src/utilities');
+// Cannot use util.hasOwnProperty directly because it triggers the error:
+// "Do not access Object.prototype method 'hasOwnProperty' from target object"
+const { hasOwnProperty } = util;
 const nodeUtil = require('util');
 const _ = require('lodash');
 
@@ -78,7 +81,7 @@ const transform = (node, model = null) => {
           if (model) {
             test.model = model;
           }
-          if (!Object.prototype.hasOwnProperty.call(test,'result') && !test.error) {
+          if (!hasOwnProperty(test,'result') && !test.error) {
             test.result = [];
           }
           if (!validateTest(test)) {

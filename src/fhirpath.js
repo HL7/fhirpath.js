@@ -31,6 +31,9 @@
 const {version} = require('../package.json');
 const parser = require("./parser");
 const util = require("./utilities");
+// Cannot use util.hasOwnProperty directly because it triggers the error:
+// "Do not access Object.prototype method 'hasOwnProperty' from target object"
+const { hasOwnProperty } = util;
 require("./polyfill");
 const constants = require('./constants');
 
@@ -559,7 +562,7 @@ function makeParam(ctx, parentData, type, param) {
 function doInvoke(ctx, fnName, data, rawParams){
   var invoc =
     ctx.userInvocationTable
-    && Object.prototype.hasOwnProperty.call(ctx.userInvocationTable, fnName)
+    && hasOwnProperty(ctx.userInvocationTable, fnName)
     && ctx.userInvocationTable?.[fnName]
     || engine.invocationTable[fnName]
     || data.length === 1 && data[0]?.invocationTable?.[fnName];

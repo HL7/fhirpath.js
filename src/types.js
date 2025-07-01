@@ -810,12 +810,24 @@ class FP_TimeBase extends FP_Type {
 
 
   /**
-   *  Creates a date object for the given timezone.  The returned date object
-   *  will have the specified date and time in the specified timezone.
-   * @param year...ms Just as in the Date constructor.
-   * @param timezoneOffset (optional) a string in the format (+-)HH:mm or Z, representing the
-   *  timezone offset.  If not provided, the local timzone will be assumed (as the
+   * Creates a date object for the given timezone.
+   *
+   * @param {number} year The full year designation is required for
+   *  cross-century date accuracy. If year is between 0 and 99 is used,
+   *  then year is assumed to be 1900 + year.
+   * @param {number} month The month as a number between 0 and 11 (January to
+   *  December).
+   * @param {number} day The date as a number between 1 and 31.
+   * @param {number} hour A number from 0 to 23 (midnight to 11pm) that
+   *  specifies the hour.
+   * @param {number} minutes A number from 0 to 59 that specifies the minutes.
+   * @param {number} seconds A number from 0 to 59 that specifies the seconds.
+   * @param ms A number from 0 to 999 that specifies the milliseconds.
+   * @param {string} timezoneOffset (optional) a string in the format (+-)HH:mm or Z, representing the
+   *  timezone offset.  If not provided, the local timezone will be assumed (as the
    *  Date constructor does).
+   * @returns {Date} a Date object representing the date and time in the
+   *  specified timezone.
    */
   _createDate(year, month, day, hour, minutes, seconds, ms, timezoneOffset) {
     var d = new Date(year, month, day, hour, minutes, seconds, ms);
@@ -826,7 +838,7 @@ class FP_TimeBase extends FP_Type {
       // @2018-11-01T-04:00 < @2018T-05:00
       var localTimezoneMinutes = d.getTimezoneOffset();
       var timezoneMinutes = 0; // if Z
-      if (timezoneOffset != 'Z') {
+      if (timezoneOffset !== 'Z') {
         var timezoneParts = timezoneOffset.split(':'); // (+-)hours:minutes
         var hours = parseInt(timezoneParts[0]);
         timezoneMinutes = parseInt(timezoneParts[1]);
@@ -840,6 +852,7 @@ class FP_TimeBase extends FP_Type {
     return d;
   }
 }
+
 
 /**
  *  A map from a FHIRPath time units to a function used to add that
@@ -999,7 +1012,7 @@ class FP_Time extends FP_TimeBase {
    *  whether a string is a valid DateTime, use FP_Time.checkString instead.
    */
   constructor(timeStr) {
-    if (timeStr[0] == 'T')
+    if (timeStr[0] === 'T')
       timeStr = timeStr.slice(1);
     super(timeStr);
   }
@@ -1418,9 +1431,21 @@ class ResourceNode {
    *  the resource.
    */
   fullPropertyName() {
-    let result = this.parentResNode ?
-      this.parentResNode.fullPropertyName() + '.' + this.propName
-      : this.propName || this.path;
+    let propName = this.propName;
+
+    // Check if this is a choice type
+    if (this.parentResNode && this.model && this.fhirNodeDataType &&
+      propName.endsWith(this.fhirNodeDataType.charAt(0).toUpperCase() +
+        this.fhirNodeDataType.substring(1)) &&
+      this.model.choiceTypePaths[this.parentResNode?.path + '.' +
+        propName.substring(0, propName.length - this.fhirNodeDataType.length)]
+    ) {
+      propName = propName.substring(0, propName.length - this.fhirNodeDataType.length);
+    }
+
+    let result = (this.parentResNode ?
+      this.parentResNode.fullPropertyName() + '.' + propName
+      : propName) || this.path;
     if (this.index != null) {
       result += '[' + this.index + ']';
     }
