@@ -43,6 +43,6 @@ const modelInfo = {
 };
 
 // Update with generated data
-updateWithGeneratedData(modelInfo)
+updateWithGeneratedData(modelInfo);
 
 module.exports = modelInfo;

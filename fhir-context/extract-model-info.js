@@ -1,5 +1,5 @@
-// Takes a directory of JSON FHIR definitions (DSTU2, STU3, R4 or R5) and extracts the information
-// about "choice types" (polymorphic fields).
+// Takes a directory of JSON FHIR definitions (DSTU2, STU3, R4, or R5) and
+// extracts the information needed to evaluate FHIRPath expressions.
 
 const path = require('path');
 const fs = require('fs');
@@ -192,7 +192,7 @@ for (let f of choiceTypeFiles) {
   visitNode(fData);
 }
 
-// Create a list of resource types that have the "url" search parameter.
+// Create a set of resource types that have the "url" search parameter.
 const resourcesWithUrlParam = new Set();
 JSON.parse(fs.readFileSync(path.join(fhirDefDir, 'search-parameters.json')))
   .entry.forEach(({resource: searchParameter}) => {
