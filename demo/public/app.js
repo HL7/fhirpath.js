@@ -33,6 +33,7 @@ const debounce = (func, delay) => {
 
 const pathNode = document.getElementById("path");
 const terminologyUrlNode = document.getElementById("terminologyUrl");
+const fhirServerUrlNode = document.getElementById("fhirServerUrl");
 const outNode = document.getElementById("output");
 let abortController;
 
@@ -46,12 +47,14 @@ function evaluate(){
     const signal = abortController.signal;
     const expr = pathNode.value;
     const terminologyUrl = terminologyUrlNode.value;
+    const fhirServerUrl = fhirServerUrlNode.value;
     if (expr.trim() !== '') {
       let res;
       let envVars = {};
       console.log('Expression:', pathNode.value);
       console.log('Model version:', window[modelName].version);
       console.log('Terminology server URL:', terminologyUrl);
+      console.log('FHIR server URL:', fhirServerUrl);
       getVariableLabels().forEach((item, index) => {
         const inputText = item.getAttribute('data-json');
         if (index === 0) {
@@ -66,7 +69,7 @@ function evaluate(){
         }
       });
       const result = fhirpath.evaluate(res, expr, envVars, window[modelName],
-        {terminologyUrl, async: true, signal});
+        {terminologyUrl, fhirServerUrl, async: true, signal});
       outNode.innerHTML = '<pre>Evaluation...</pre>';
       if (result instanceof Promise) {
         result.then(function (r) {
@@ -212,12 +215,14 @@ const modelNameElems = document.querySelectorAll('input[name="modelName"]');
 for (let i = 0, len = modelNameElems.length; i < len; ++i)
   modelNameElems[i].onchange = handleModelNameChange;
 
-terminologyUrlNode.addEventListener("keydown", function (event) {
-  if (event.key === "Enter") {
-    debounce(evaluate, 300)();
-  }
+[terminologyUrlNode, fhirServerUrlNode].forEach(nodeWithUrl => {
+  nodeWithUrl.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      debounce(evaluate, 300)();
+    }
+  });
+  nodeWithUrl.addEventListener("blur", debounce(evaluate, 300));
 });
-terminologyUrlNode.addEventListener("blur", debounce(evaluate, 300));
 
 
 /**
@@ -352,6 +357,7 @@ document.getElementById("copyUrl").addEventListener("click", () => {
       vars,
       model: modelName,
       terminologyUrl: terminologyUrlNode.value,
+      fhirServerUrl: fhirServerUrlNode.value,
       inputType: inputTypeBeforeChange
     }))}`;
   navigator.clipboard.writeText(shareUrl)
@@ -403,6 +409,11 @@ if (encAppState) {
   // Update terminology server Url
   if (appState?.terminologyUrl) {
     terminologyUrlNode.value = appState.terminologyUrl;
+  }
+
+  // Update FHIR server Url
+  if (appState?.fhirServerUrl) {
+    fhirServerUrlNode.value = appState.fhirServerUrl;
   }
 
   // Update input type

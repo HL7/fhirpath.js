@@ -77,6 +77,33 @@ interface Model {
   path2Type: {
     [path: string]: string;
   };
+
+  /**
+   * A hash map of FHIR resource types that support the 'url' search parameter
+   * to true values.
+   */
+  resourcesWithUrlParam: {
+    [path: string]: boolean
+  };
+
+  /**
+   * Mapping paths to data types without elements,
+   * e.g. Element and BackboneElement.
+   */
+  path2TypeWithoutElements: {
+    [path: string]: string;
+  },
+
+  /**
+   * Mapping paths to reference types.
+   * This is used to define a list of possible resource types that can be
+   * referenced by a reference at the specified path. If there is only one item
+   * in this list for a specified path, it can be used to resolve canonical URLs
+   * located at that path.
+   */
+  path2RefType: {
+    [path: string]: string[];
+  }
 }
 
 interface Options {

@@ -81,6 +81,11 @@ async function run(filename, options) {
         benny.cycle(),
         benny.complete(),
         benny.configure({
+          cases: {
+            initCount: 5,
+            maxTime: 15,
+            minSamples: 100,
+          },
           minDisplayPrecision: 2
         }),
         benny.save({ file: suite.filename, folder: __dirname + '/results', version: currentVersion }),

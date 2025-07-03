@@ -1,6 +1,9 @@
 const fhirpath = require('../src/fhirpath');
+const modelDSTU2 = require('../fhir-context/dstu2');
+const modelSTU3 = require('../fhir-context/stu3');
 const modelR4 = require('../fhir-context/r4');
 const modelR5 = require('../fhir-context/r5');
+const _ = require("lodash");
 const emptyResource = {};
 const observationResource = require('./resources/observation-example.json');
 const administrativeGenderVS = require('./resources/administrative-gender-valueset.json');
@@ -897,6 +900,230 @@ describe('Async functions', () => {
         expect(r).toEqual([true]);
         done();
       })
+    });
+
+  });
+
+
+  /**
+   * Test suite for the 'resolve' functionality in FHIRPath evaluation.
+   * This suite verifies that various forms of FHIR references (relative/absolute URLs, canonical, uri, etc.)
+   * are correctly resolved to their corresponding resources using asynchronous evaluation.
+   */
+  describe('resolve', () => {
+    // Load test resources and set up test data for MedicationDispense and Patient resources.
+    const medicationDispenseResource106 = require('./resources/medicationdispense-med-106-0.json');
+    const medicationDispenseResource107 = _.cloneDeep(medicationDispenseResource106);
+    medicationDispenseResource107.id = 'med-107-0';
+    medicationDispenseResource107.subject = {
+      "reference": "https://some-fhir-server/Patient/pat-107"
+    };
+    const medicationDispenseResource108 = _.cloneDeep(medicationDispenseResource106);
+    medicationDispenseResource108.id = 'med-108-0';
+    medicationDispenseResource108.subject = {
+      "reference": "https://some-fhir-server/Patient/pat-108"
+    };
+    const patientResource106 = require('./resources/patient-pat-106-0.json');
+    const patientResource107 = _.cloneDeep(patientResource106);
+    patientResource107.id = 'pat-107';
+    patientResource107.deceasedDateTime = '2129';
+    const patientResource108 = _.cloneDeep(patientResource106);
+    patientResource108.id = 'pat-108';
+    patientResource108.deceasedDateTime = '2130';
+
+    // ValueSet bundle resource for canonical URL resolution tests.
+    const valueSetResource = {
+      "resourceType": "Bundle",
+      "entry": [{
+        "resource": {
+          "resourceType": "ValueSet",
+          "url": "http://some-canonical-value-set-url"
+        }
+      }]
+    };
+
+    // Questionnaire resource with contained/nested questionnaires for fragment resolution tests.
+    const questionnaireWithContainedQ = {
+      "resourceType": "Questionnaire",
+      "url": "http://some-canonical-questionnaire-url",
+      "version": "1.0",
+      "derivedFrom": "#childQuestionnaire",
+      "contained": [{
+        "resourceType": "Questionnaire",
+        "id": "childQuestionnaire",
+        "derivedFrom": "#childOfChildQuestionnaire",
+        "contained": [{
+          "resourceType": "Questionnaire",
+          "id": "childOfChildQuestionnaire"
+        }]
+      }]
+    };
+
+    /**
+     * Sets up mock fetch results before each test to simulate FHIR server responses.
+     */
+    beforeEach(() => {
+      mockFetchResults([
+        ['https://some-fhir-server/MedicationDispense/med-106-0', medicationDispenseResource106],
+        ['https://some-fhir-server/MedicationDispense/med-107-0', medicationDispenseResource107],
+        ['https://some-fhir-server/Patient/pat-106', patientResource106],
+        ['https://some-fhir-server/Patient/pat-107', patientResource107],
+        ['https://some-fhir-server/Patient/pat-108', null, {
+          "resourceType": "OperationOutcome",
+          "issue": [ {
+            "severity": "error",
+            "code": "processing",
+            "diagnostics": "Resource Patient/pat-108 is not known"
+          } ]
+        }],
+        // This impossible request should not be called, but is included to
+        // catch it in case it is called by mistake:
+        ['https://some-fhir-server/Patient?url=https%3A%2F%2Fsome-fhir-server%2FPatient%2Fpat-108', {
+          "resourceType": "Bundle",
+          "entry": [{
+            "resource": patientResource108
+          }]
+        }],
+        [/https:\/\/some-fhir-server\/ValueSet\?url=http%3A%2F%2Fsome-canonical-value-set-url$/, valueSetResource],
+        [/https:\/\/some-fhir-server\/ValueSet\?url=http%3A%2F%2Fsome-canonical-value-set-url&version=1.0$/, valueSetResource],
+        [/https:\/\/some-fhir-server\/Questionnaire\?url=http%3A%2F%2Fsome-canonical-questionnaire-url&version=2.0$/, {
+          "resourceType": "Bundle",
+          "entry": [{
+            "resource": questionnaireWithContainedQ
+          }]
+        }],
+        ['http://some-canonical-url', null, {
+          "resourceType": "OperationOutcome",
+          "issue": [{
+            "severity": "error",
+            "code": "processing",
+            "diagnostics": "Additional diagnostic information about the issue."
+          }]
+        }]
+      ]);
+    });
+
+    /**
+     * Parameterized tests for various resolve scenarios.
+     * Each test case checks that the FHIRPath expression resolves the reference as expected.
+     */
+    [
+      // [models, description, resource, expression, expectedResult]
+      [
+        [modelDSTU2, modelSTU3, modelR4],
+        'String with relative URL',
+        {},
+        '\'MedicationDispense/med-106-0\'.resolve().medication.coding.where(system=\'357\').code',
+        ['00168022138']
+      ],
+      [
+        [modelDSTU2, modelSTU3, modelR4],
+        'String with absolute URL',
+        {},
+        '\'https://some-fhir-server/MedicationDispense/med-107-0\'.resolve().medication.coding.where(system=\'357\').code',
+        ['00168022138']
+      ],
+      [
+        [modelSTU3, modelR4, modelR5],
+        'Reference with relative URL',
+        medicationDispenseResource106,
+        'MedicationDispense.subject.resolve().deceased.where($this is dateTime)',
+        ['2128']
+      ],
+      [
+        [modelSTU3, modelR4, modelR5],
+        'Reference with absolute URL',
+        medicationDispenseResource107,
+        'MedicationDispense.subject.resolve().deceased.where($this is dateTime)',
+        ['2129']
+      ],
+      [
+        [modelSTU3, modelR4, modelR5],
+        'Reference with absolute URL',
+        medicationDispenseResource108,
+        'MedicationDispense.subject.resolve().deceased.where($this is dateTime)',
+        []
+      ],
+      [
+        [modelDSTU2, modelSTU3, modelR4],
+        'uri with relative URL',
+        {},
+        '%factory.uri(\'MedicationDispense/med-106-0\').resolve().medication.coding.where(system=\'357\').code',
+        ['00168022138']
+      ],
+      [
+        [modelDSTU2, modelSTU3, modelR4],
+        'uri with absolute URL',
+        {},
+        '%factory.uri(\'https://some-fhir-server/MedicationDispense/med-107-0\').resolve().medication.coding.where(system=\'357\').code',
+        ['00168022138']
+      ],
+      [
+        [modelR4, modelR5],
+        'canonical for a synthetic node as an empty collection',
+        {},
+        '%factory.canonical(\'http://some-canonical-url\').resolve()',
+        []
+      ],
+      [
+        [modelR4, modelR5],
+        'canonical for a node that resolves to a resource',
+        {
+          "resourceType": "CodeSystem",
+          "valueSet": "http://some-canonical-value-set-url",
+        },
+        'CodeSystem.valueSet.resolve() is ValueSet',
+        [true]
+      ],
+      [
+        [modelR4, modelR5],
+        'canonical with version and fragment',
+        {
+          "resourceType": "QuestionnaireResponse",
+          "questionnaire": "http://some-canonical-questionnaire-url|2.0#childQuestionnaire",
+        },
+        'QuestionnaireResponse.questionnaire.resolve().where($this is Questionnaire).id=\'childQuestionnaire\'',
+        [true]
+      ],
+      [
+        [modelR4, modelR5],
+        'canonical URL with a fragment only',
+        questionnaireWithContainedQ,
+        'Questionnaire.derivedFrom.resolve().where($this is Questionnaire).id=\'childQuestionnaire\'',
+        [true]
+      ],
+      [
+        [modelR4, modelR5],
+        'canonical URL with a fragment only for a nested resource that contains another resource',
+        questionnaireWithContainedQ,
+        'Questionnaire.derivedFrom.resolve().derivedFrom.resolve().where($this is Questionnaire).id=\'childOfChildQuestionnaire\'',
+        [true]
+      ]
+    ].forEach((testData) => {
+      // Extract models and test parameters for each test case.
+      const [models, dataType, resource, expression, res] = testData;
+
+      // Run the test for each FHIR model version.
+      models.forEach(model => {
+        it(`should resolve ${dataType} (${model.version.toUpperCase()})`, (done) => {
+          let result = fhirpath.evaluate(
+            resource,
+            `${expression}`,
+            {},
+            model,
+            {
+              async: true,
+              fhirServerUrl: "https://some-fhir-server"
+            }
+          );
+          expect(result instanceof Promise).toBe(true);
+          result.then((r) => {
+            expect(r).toEqual(res);
+            done();
+          });
+        });
+
+      });
     });
 
   });

@@ -3,6 +3,12 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.5.0] - 2025-07-01
+### Added
+- additional function `resolve()`.
+### Fixed
+- added descriptions for nested nodes that were missing in the DSTU2 model.
+
 ## [4.4.1] - 2025-06-18
 ### Fixed
 - Issues with the `children()` and `descendants()` functions, which returned

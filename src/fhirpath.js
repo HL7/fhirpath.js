@@ -69,6 +69,7 @@ const Factory = require('./factory');
 //   calling function if one of params is  empty return empty
 
 engine.invocationTable = {
+  resolve:      {fn: additional.resolveFn},
   memberOf:     {fn: additional.memberOf, arity: { 1: ['Any']} },
   empty:        {fn: existence.emptyFn},
   not:          {fn: existence.notFn},
@@ -778,6 +779,8 @@ function parse(path) {
  * @param {string} [options.terminologyUrl] - a URL that points to a FHIR
  *   RESTful API that is used to create %terminologies that implements
  *   the Terminology Service API.
+ * @param {string} [options.fhirServerUrl] - a URL that points to a FHIR
+ *   RESTful API that is used to query resources when using `resolve()`.
  * @param {AbortSignal} [options.signal] - an AbortSignal object that allows you
  *   to abort the asynchronous FHIRPath expression evaluation.
  */
@@ -815,6 +818,9 @@ function applyParsedPath(resource, parsedPath, envVars, model, options) {
   }
   if (options.terminologyUrl) {
     ctx.processedVars.terminologies = new Terminologies(options.terminologyUrl);
+  }
+  if (options.fhirServerUrl) {
+    ctx.processedVars.fhirServerUrl = options.fhirServerUrl;
   }
   ctx.processedVars.factory = Factory;
   if (options.signal) {
@@ -943,6 +949,8 @@ function resolveInternalTypes(val) {
  * @param {string} [options.terminologyUrl] - a URL that points to a FHIR
  *   RESTful API that is used to create %terminologies that implements
  *   the Terminology Service API.
+ * @param {string} [options.fhirServerUrl] - a URL that points to a FHIR
+ *   RESTful API that is used to query resources when using `resolve()`.
  * @param {AbortSignal} [options.signal] - an AbortSignal object that allows you
  *   to abort the asynchronous FHIRPath expression evaluation.
  */
@@ -975,6 +983,8 @@ function evaluate(fhirData, path, envVars, model, options) {
  * @param {string} [options.terminologyUrl] - a URL that points to a FHIR
  *   RESTful API that is used to create %terminologies that implements
  *   the Terminology Service API.
+ * @param {string} [options.fhirServerUrl] - a URL that points to a FHIR
+ *   RESTful API that is used to query resources when using `resolve()`.
  * @param {AbortSignal} [options.signal] - an AbortSignal object that allows you
  *   to abort the asynchronous FHIRPath expression evaluation. Passing a signal
  *   to compile() whose result is used more than once will cause abortion

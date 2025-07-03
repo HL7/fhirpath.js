@@ -1346,12 +1346,15 @@ class ResourceNode {
       let typeInfo;
 
       if (this.fhirNodeDataType) {
-        if (/^System\.(.*)$/.test(this.fhirNodeDataType)) {
-          typeInfo = new TypeInfo({namespace: TypeInfo.System, name: RegExp.$1});
+        const match = /^System\.(.*)$/.exec(this.fhirNodeDataType);
+        if (match) {
+          typeInfo = new TypeInfo({namespace: TypeInfo.System, name: match[1]});
         } else {
           typeInfo = new TypeInfo({
             namespace: TypeInfo.FHIR,
-            name: this.fhirNodeDataType
+            name: this.fhirNodeDataType,
+            // refType is a list of possible resource types that this reference may refer to.
+            refType: this.parentResNode && this.model?.path2RefType[this.parentResNode.path + '.' + this.propName] || null
           });
         }
       }
@@ -1366,6 +1369,21 @@ class ResourceNode {
 
   toJSON() {
     return toJSON(this.data);
+  }
+
+
+  /**
+   * Get the resource that contains this node.
+   * The node may be in contained resources.
+   *
+   * @returns {ResourceNode}
+   */
+  getParentResource() {
+    let node = this;
+    do {
+      node = node.parentResNode;
+    } while(node && !node.data?.resourceType);
+    return node;
   }
 
   /**
@@ -1459,9 +1477,12 @@ const availableSystemTypes = new Set();
  * (see http://hl7.org/fhirpath/#types-and-reflection)
  */
 class TypeInfo {
-  constructor({name, namespace}) {
+  constructor({name, namespace, refType = null}) {
     this.name = name;
     this.namespace = namespace;
+    if (refType) {
+      this.refType = refType;
+    }
   }
 
   // The "model" data object specific to a domain, e.g. R4.
@@ -1595,6 +1616,10 @@ TypeInfo.FhirCode = new TypeInfo({
   namespace: TypeInfo.FHIR, name: 'code'});
 TypeInfo.FhirConceptMap = new TypeInfo({
   namespace: TypeInfo.FHIR, name: 'ConceptMap'});
+TypeInfo.FhirReference = new TypeInfo({
+  namespace: TypeInfo.FHIR, name: 'Reference'});
+TypeInfo.FhirCanonical = new TypeInfo({
+  namespace: TypeInfo.FHIR, name: 'canonical'});
 
 /**
  * Creates new TypeInfo object for specified value in the System namespace.
