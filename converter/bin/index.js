@@ -5,16 +5,38 @@ const sourceDir = __dirname + '/../dataset/';
 // Directory for converter output(for YAML and JSON files)
 const destDir = __dirname + '/../../test/';
 
-// FHIR model used for test cases
-const model = 'r4';
 // Descriptions for file generation:
-// [<relative path to XML source file>, <relative path to YAML/JSON output file>, <download URL>]
+// [<relative path to XML source file>, <relative path to YAML/JSON output file>, <download URL>[, <FHIR model for test cases>]]
 const sources = [
-  ['fhir-r4.xml', 'cases/fhir-r4.yaml', 'https://raw.githubusercontent.com/HL7/FHIRPath/master/tests/r4/tests-fhir-r4.xml'],
-  ['input/observation-example.xml', 'resources/observation-example.json', 'https://raw.githubusercontent.com/HL7/FHIRPath/master/tests/r4/input/observation-example.xml'],
-  ['input/patient-example.xml', 'resources/patient-example.json', 'https://raw.githubusercontent.com/HL7/FHIRPath/master/tests/r4/input/patient-example.xml'],
-  ['input/questionnaire-example.xml', 'resources/questionnaire-example.json', 'https://raw.githubusercontent.com/HL7/FHIRPath/master/tests/r4/input/questionnaire-example.xml'],
-  ['input/valueset-example-expansion.xml', 'resources/valueset-example-expansion.json', 'https://raw.githubusercontent.com/HL7/FHIRPath/master/tests/r4/input/valueset-example-expansion.xml']
+  // FHIR R4 test cases
+  ['fhir-r4.xml', 'cases/fhir-r4.yaml', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r4/fhirpath/tests-fhir-r4.xml', 'r4'],
+  ['input-r4/appointment-examplereq.json', 'resources/r4/appointment-examplereq.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r4/appointment-examplereq.json'],
+  ['input-r4/codesystem-example.xml', 'resources/r4/codesystem-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r4/codesystem-example.xml'],
+  ['input-r4/explanationofbenefit-example.json', 'resources/r4/explanationofbenefit-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r4/explanationofbenefit-example.json'],
+  ['input-r4/observation-example.xml', 'resources/r4/observation-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r4/observation-example.xml'],
+  ['input-r4/parameters-example-types.xml', 'resources/r4/parameters-example-types.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r4/parameters-example-types.xml'],
+  ['input-r4/patient-container-example.json', 'resources/r4/patient-container-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r4/patient-container-example.json'],
+  ['input-r4/patient-example-period.xml', 'resources/r4/patient-example-period.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r4/patient-example-period.xml'],
+  ['input-r4/patient-example.xml', 'resources/r4/patient-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r4/patient-example.xml'],
+  ['input-r4/questionnaire-example.xml', 'resources/r4/questionnaire-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r4/questionnaire-example.xml'],
+  ['input-r4/valueset-example-expansion.xml', 'resources/r4/valueset-example-expansion.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r4/valueset-example-expansion.xml'],
+
+  // FHIR R5 test cases
+  ['fhir-r5.xml', 'cases/fhir-r5.yaml', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/fhirpath/tests-fhir-r5.xml', 'r5'],
+  ['input-r5/conceptmap-example.xml', 'resources/r5/conceptmap-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/conceptmap-example.xml'],
+  ['input-r5/observation-example.xml', 'resources/r5/observation-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/observation-example.xml'],
+  ['input-r5/patient-example.xml', 'resources/r5/patient-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/patient-example.xml'],
+  ['input-r5/valueset-example-expansion.xml', 'resources/r5/valueset-example-expansion.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/valueset-example-expansion.xml'],
+  ['input-r5/questionnaire-example.xml', 'resources/r5/questionnaire-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/questionnaire-example.xml'],
+  ['input-r5/explanationofbenefit-example.json', 'resources/r5/explanationofbenefit-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/explanationofbenefit-example.json'],
+  ['input-r5/appointment-examplereq.json', 'resources/r5/appointment-examplereq.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/appointment-examplereq.json'],
+  ['input-r5/codesystem-example.xml', 'resources/r5/codesystem-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/codesystem-example.xml'],
+  ['input-r5/parameters-example-types.xml', 'resources/r5/parameters-example-types.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/parameters-example-types.xml'],
+  ['input-r5/patient-example-period.xml', 'resources/r5/patient-example-period.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/patient-example-period.xml'],
+  ['input-r5/patient-container-example.json', 'resources/r5/patient-container-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/patient-container-example.json'],
+  ['input-r5/diagnosticreport-eric.json', 'resources/r5/diagnosticreport-eric.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/diagnosticreport-eric.json'],
+  // Can't convert this one:
+  // ['input-r5/ccda.xml', 'resources/r5/ccda.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/ccda.xml'],
 ];
 
 const commander = require('commander');
@@ -51,8 +73,8 @@ commander
     try {
       if (!cmd.skipDownload) {
         for (let i = 0; i < sources.length; i++) {
-          const [xmlFilename,, url] = sources[i];
-          await downloadFile(url, sourceDir + xmlFilename);
+          const [srcFilename,, url] = sources[i];
+          await downloadFile(url, sourceDir + srcFilename);
         }
       }
 
@@ -60,12 +82,12 @@ commander
       const testFiles = sources.filter(([,target]) => target.endsWith('.yaml'));
 
       for (let i = 0; i < resourceFiles.length; i++) {
-        const [xmlFilename, jsonFilename] = resourceFiles[i];
-        await convert.resourceXmlFileToJsonFile(sourceDir + xmlFilename, destDir + jsonFilename);
+        const [srcFilename, jsonFilename] = resourceFiles[i];
+        await convert.resourceXmlFileToJsonFile(sourceDir + srcFilename, destDir + jsonFilename);
       }
 
       for (let i = 0; i < testFiles.length; i++) {
-        const [xmlFilename, yamlFilename] = testFiles[i];
+        const [xmlFilename, yamlFilename,, model] = testFiles[i];
         await convert.testsXmlFileToYamlFile(sourceDir + xmlFilename, destDir + yamlFilename, model);
       }
     } catch(e) {

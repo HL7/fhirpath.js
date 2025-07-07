@@ -40,7 +40,7 @@ describe ('bin/fhirpath', function () {
   it ('should evaluate when given a file with a part of a resource', function() {
     checkOutput("bin/fhirpath -b QuestionnaireResponse.item "
       +"-e 'answer.value = 2 year' -m r4 -f '"
-      +__dirname+"/resources/questionnaire-part-example.json'", /true/g);
+      +__dirname+"/resources/r4/questionnaire-part-example.json'", /true/g);
   });
 
   it ('should accept a hash of variables', function() {

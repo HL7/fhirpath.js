@@ -160,7 +160,7 @@ tests:
     model: dstu2
 
   - desc: '** Check if the nested nodes in the DSTU2 model are of the correct type'
-    inputfile: questionnaire-example-DSTU2.json
+    inputfile: questionnaire-example.json
     expression: Questionnaire.group.group.question.group.question.concept.where($this is Coding).count() = 4
     result:
       - true

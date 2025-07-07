@@ -1,0 +1,128 @@
+<ConceptMap xmlns="http://hl7.org/fhir">
+  <id value="example-obs-map" />
+  <url value="http://example.org/ConceptMap/example-obs-map" />
+  <version value="0.1" />
+  <title value="Demo map from SNOMED/Loinc to/from local measure type mapping" />
+  <status value="draft" />
+  <targetCanonical value="http://example.org/ValueSet/local-measure-type" />
+  <group>
+    <source value="http://snomed.info/sct" />
+    <target value="http://example.org/CodeSystem/local-measure-type" />
+    <element>
+      <code value="75367002" />
+      <display value="Blood pressure" />
+      <target>
+        <code value="1000000008" />
+        <display value="BP -  Systolic blood pressure" />
+        <relationship value="source-is-narrower-than-target" />
+        <comment value="Blood pressure is split into multiple components in Example CodeSystem" />
+      </target>
+      <target>
+        <code value="1000000009" />
+        <display value="BP - Diastolic blood pressure" />
+        <relationship value="source-is-narrower-than-target" />
+        <comment value="Blood pressure is split into multiple components in Example CodeSystem" />
+      </target>
+      <target>
+        <code value="1000000009" />
+        <display value="BP - Diastolic blood pressure" />
+        <relationship value="source-is-narrower-than-target" />
+        <comment value="An intentionally duplicate mapping to test the invariant that a given source can only have one mapping to a given target" />
+      </target>
+    </element>
+    <element>
+      <code value="271649006" />
+      <display value="Systolic blood pressure" />
+      <target>
+        <code value="1000000008" />
+        <display value="BP -  Systolic blood pressure" />
+        <relationship value="equivalent" />
+      </target>
+    </element>
+    <element>
+      <code value="271650006" />
+      <display value="Diastolic blood pressure" />
+      <target>
+        <code value="1000000009" />
+        <display value="BP - Diastolic blood pressure" />
+        <relationship value="equivalent" />
+      </target>
+    </element>
+  </group>
+  <group>
+    <source value="http://example.org/CodeSystem/local-measure-type" />
+    <target value="http://snomed.info/sct" />
+    <element>
+      <code value="1000000008" />
+      <display value="BP -  Systolic blood pressure" />
+      <target>
+        <code value="75367002" />
+        <display value="Blood pressure" />
+        <relationship value="source-is-broader-than-target" />
+      </target>
+      <target>
+        <code value="271649006" />
+        <display value="Systolic blood pressure" />
+        <relationship value="equivalent" />
+      </target>
+    </element>
+    <element>
+      <code value="1000000009" />
+      <display value="BP - Diastolic blood pressure" />
+      <target>
+        <code value="75367002" />
+        <display value="Blood pressure" />
+        <relationship value="source-is-broader-than-target" />
+      </target>
+      <target>
+        <code value="271650006" />
+        <display value="Diastolic blood pressure" />
+        <relationship value="equivalent" />
+      </target>
+    </element>
+  </group>
+  <group>
+    <source value="http://example.org/CodeSystem/local-measure-type" />
+    <target value="http://loinc.org" />
+    <element>
+      <code value="1000000008" />
+      <display value="BP -  Systolic blood pressure" />
+      <target>
+        <code value="8480-6" />
+        <display value="Systolic blood pressure" />
+        <relationship value="equivalent" />
+      </target>
+    </element>
+    <element>
+      <code value="1000000009" />
+      <display value="BP - Diastolic blood pressure" />
+      <target>
+        <code value="8462-4" />
+        <display value="Diastolic blood pressure" />
+        <relationship value="equivalent" />
+      </target>
+    </element>
+  </group>
+  <group>
+    <source value="http://loinc.org" />
+    <target value="http://example.org/CodeSystem/local-measure-type" />
+    <element>
+      <code value="8480-6" />
+      <display value="Systolic blood pressure" />
+      <target>
+        <code value="1000000008" />
+        <display value="BP -  Systolic blood pressure" />
+        <relationship value="equivalent" />
+      </target>
+    </element>
+    <element>
+      <code value="8462-4" />
+      <display value="Diastolic blood pressure" />
+      <target>
+        <code value="1000000009" />
+        <display value="BP - Diastolic blood pressure" />
+        <relationship value="equivalent" />
+      </target>
+    </element>
+  </group>
+</ConceptMap>

@@ -1,7 +1,7 @@
 const fhirpath = require('../src/fhirpath');
 const fs   = require('fs');
 const _    = require('lodash');
-const resources = {};
+const cacheOfResources = {};
 
 const models = {
   'r5': require('../fhir-context/r5'),
@@ -20,27 +20,31 @@ function getFHIRModel(fhirVersion) {
   let rtn;
   if (fhirVersion) {
     rtn = models[fhirVersion];
-    if (!rtn)
-      throw new Error('No FHIR model available for version '+fhirVersion);
+    if (!rtn) {
+      console.error('No FHIR model available for version ' + fhirVersion);
+      throw new Error('No FHIR model available for version ' + fhirVersion);
+    }
   }
   return rtn;
 }
 
-function loadResource(filename, filePath) {
-  if (fs.existsSync(filePath)) {
-    resources[filename] = JSON.parse(fs.readFileSync(filePath));
-  } else {
-    throw new Error("Resource file doesn't exist");
+function loadResource(filePath) {
+  if (!_.has(cacheOfResources, filePath)) {
+    if (fs.existsSync(filePath)) {
+      cacheOfResources[filePath] = JSON.parse(fs.readFileSync(filePath));
+    } else {
+      console.error('Resource file doesn\'t exist: ' + filePath);
+      throw new Error('Resource file doesn\'t exist: ' + filePath);
+    }
   }
+
+  // Clone input file contents to avoid one test affecting another
+  return _.cloneDeep(cacheOfResources[filePath]);
 }
 
 const calcExpression = (expression, test, testResource) => {
   if (_.has(test, 'inputfile')) {
-    if(!_.has(resources, test.inputfile)) {
-      loadResource(test.inputfile, __dirname + '/resources/' + test.inputfile)
-    }
-    // Clone input file contents to avoid one test affecting another
-    testResource = _.cloneDeep(resources[test.inputfile]);
+    testResource = loadResource(__dirname + `/resources/${test.model || 'r4'}/` + test.inputfile);
   }
   let variables = {resource: testResource};
   if (test.context)

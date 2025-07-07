@@ -40,13 +40,23 @@ describe('Demo page', () => {
     });
   });
 
+  const questionnaireResponseExamples = {
+    R4: require(`../../resources/r4/weight-examples/questionnaire-response-R4.json`),
+    R5: require(`../../resources/r5/weight-examples/questionnaire-response-R5.json`)
+  };
+
+  const questionnaireExamples = {
+    R4: require(`../../resources/r4/weight-examples/questionnaire-R4.json`),
+    R5: require(`../../resources/r5/weight-examples/questionnaire-R5.json`)
+  };
+
   ['R4', 'R5'].forEach((fhirVersion) => {
     context('Questionnaire example', function() {
       it('should calculate score sum correctly ' , function() {
 
         cy.window()
           .then((win) => win.cm.setValue(
-            JSON.stringify(require(`../../resources/weight-examples/questionnaire-response-${fhirVersion}.json`), null, 2)
+            JSON.stringify(questionnaireResponseExamples[fhirVersion], null, 2)
           ));
 
         cy.get('#path').clear();
@@ -57,7 +67,7 @@ describe('Demo page', () => {
         cy.get('#variables input:last').type('questionnaire');
         cy.window()
           .then((win) => win.cm.setValue(
-            JSON.stringify(require(`../../resources/weight-examples/questionnaire-${fhirVersion}.json`), null, 2)
+            JSON.stringify(questionnaireExamples[fhirVersion], null, 2)
           ));
 
         cy.get('#output').should('have.text', '- 65432211\n')

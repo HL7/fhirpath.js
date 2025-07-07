@@ -3,6 +3,12 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.5.1] - 2025-07-07
+### Added
+- tests for the R5 model.
+### Fixed
+- updated tests for the R4 model.
+
 ## [4.5.0] - 2025-07-01
 ### Added
 - additional function `resolve()`.

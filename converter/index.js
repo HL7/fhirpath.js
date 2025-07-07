@@ -12,9 +12,14 @@ module.exports = {
    * @param {string} to - path to YAML file
    */
   resourceXmlFileToJsonFile: async (from, to) => {
-    const xmlData = await readFile(from);
-    const ymlData = await convert.resourceXmlStringToJsonString(xmlData);
-    await writeFile(to, ymlData);
+    const xmlData = (await readFile(from)).toString();
+    if (xmlData.startsWith('<') && !from.endsWith('.xml')) {
+      console.log('Incorrect file name, should end with *.xml: ', from);
+    }
+    const jsonData = from.endsWith('.xml') ?
+      await convert.resourceXmlStringToJsonString(xmlData)
+      : xmlData;
+    await writeFile(to, jsonData);
   },
 
 
