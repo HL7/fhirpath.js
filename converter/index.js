@@ -7,19 +7,23 @@ const writeFile = util.promisify(fs.writeFile);
 
 module.exports = {
   /**
-   * Converts XML resource to the YAML format
-   * @param {string} from - path to XML file
-   * @param {string} to - path to YAML file
+   * Converts an XML resource file to a JSON file. If the input file is not XML,
+   * it is assumed to be JSON and copied as is.
+   *
+   * @param {string} from - path to XML(or JSON) file.
+   * @param {string} to - path to JSON file
    */
   resourceXmlFileToJsonFile: async (from, to) => {
-    const xmlData = (await readFile(from)).toString();
-    if (xmlData.startsWith('<') && !from.endsWith('.xml')) {
+    const fileContent = (await readFile(from)).toString();
+    if (fileContent.startsWith('<') && !from.endsWith('.xml')) {
       console.log('Incorrect file name, should end with *.xml: ', from);
+    } else if (!fileContent.startsWith('<') && from.endsWith('.xml')) {
+      console.log('Incorrect file name, should end with *.json: ', from);
     }
-    const jsonData = from.endsWith('.xml') ?
-      await convert.resourceXmlStringToJsonString(xmlData)
-      : xmlData;
-    await writeFile(to, jsonData);
+    const resultJson = from.endsWith('.xml') ?
+      await convert.resourceXmlStringToJsonString(fileContent)
+      : fileContent;
+    await writeFile(to, resultJson);
   },
 
 
@@ -30,8 +34,8 @@ module.exports = {
    * @param {string} model - model name, e.g. 'r5', 'r4','stu3', 'dstu2'
    */
   testsXmlFileToYamlFile: async (from, to, model) => {
-    const xmlData = await readFile(from);
-    const ymlData = await convert.testsXmlStringToYamlString(xmlData, model);
-    await writeFile(to, ymlData);
+    const fileContent = await readFile(from);
+    const resultYaml = await convert.testsXmlStringToYamlString(fileContent, model);
+    await writeFile(to, resultYaml);
   }
 };

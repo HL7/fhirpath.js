@@ -6,7 +6,7 @@ const sourceDir = __dirname + '/../dataset/';
 const destDir = __dirname + '/../../test/';
 
 // Descriptions for file generation:
-// [<relative path to XML source file>, <relative path to YAML/JSON output file>, <download URL>[, <FHIR model for test cases>]]
+// [<relative path to XML/JSON source file>, <relative path to YAML/JSON output file>, <download URL>[, <FHIR model for test cases>]]
 const sources = [
   // FHIR R4 test cases
   ['fhir-r4.xml', 'cases/fhir-r4.yaml', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r4/fhirpath/tests-fhir-r4.xml', 'r4'],
@@ -37,7 +37,10 @@ const sources = [
   ['input-r5/diagnosticreport-eric.json', 'resources/r5/diagnosticreport-eric.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/diagnosticreport-eric.json'],
   // Can't convert this one:
   // ['input-r5/ccda.xml', 'resources/r5/ccda.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/ccda.xml'],
-];
+].map((item) => {
+  const [srcFilename, targetFilename, downloadUrl, model] = item;
+  return {srcFilename, targetFilename, downloadUrl, model}
+});
 
 const commander = require('commander');
 const convert = require('../index');
@@ -73,22 +76,22 @@ commander
     try {
       if (!cmd.skipDownload) {
         for (let i = 0; i < sources.length; i++) {
-          const [srcFilename,, url] = sources[i];
-          await downloadFile(url, sourceDir + srcFilename);
+          const item = sources[i];
+          await downloadFile(item.downloadUrl, sourceDir + item.srcFilename);
         }
       }
 
-      const resourceFiles = sources.filter(([,target]) => target.endsWith('.json'));
-      const testFiles = sources.filter(([,target]) => target.endsWith('.yaml'));
+      const resourceFiles = sources.filter((item) => item.targetFilename.endsWith('.json'));
+      const testFiles = sources.filter((item) => item.targetFilename.endsWith('.yaml'));
 
       for (let i = 0; i < resourceFiles.length; i++) {
-        const [srcFilename, jsonFilename] = resourceFiles[i];
-        await convert.resourceXmlFileToJsonFile(sourceDir + srcFilename, destDir + jsonFilename);
+        const item = resourceFiles[i];
+        await convert.resourceXmlFileToJsonFile(sourceDir + item.srcFilename, destDir + item.targetFilename);
       }
 
       for (let i = 0; i < testFiles.length; i++) {
-        const [xmlFilename, yamlFilename,, model] = testFiles[i];
-        await convert.testsXmlFileToYamlFile(sourceDir + xmlFilename, destDir + yamlFilename, model);
+        const item = testFiles[i];
+        await convert.testsXmlFileToYamlFile(sourceDir + item.srcFilename, destDir + item.targetFilename, item.model);
       }
     } catch(e) {
       console.error(e);
