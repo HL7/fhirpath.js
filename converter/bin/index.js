@@ -39,7 +39,7 @@ const sources = [
   // ['input-r5/ccda.xml', 'resources/r5/ccda.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/ccda.xml'],
 ].map((item) => {
   const [srcFilename, targetFilename, downloadUrl, model] = item;
-  return {srcFilename, targetFilename, downloadUrl, model}
+  return {srcFilename, targetFilename, downloadUrl, model};
 });
 
 const commander = require('commander');

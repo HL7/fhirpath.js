@@ -28,6 +28,18 @@ function getFHIRModel(fhirVersion) {
   return rtn;
 }
 
+/**
+ * Loads a JSON resource from the specified file path, caches it, and returns
+ * a deep clone.
+ *
+ * If the resource has already been loaded and cached, returns a deep clone of
+ * the cached object. If the file does not exist, logs an error and throws
+ * an exception. Cloning ensures that tests do not affect each other's data.
+ *
+ * @param {string} filePath - The path to the JSON resource file.
+ * @returns {Object} A deep clone of the loaded resource object.
+ * @throws {Error} If the resource file does not exist.
+ */
 function loadResource(filePath) {
   if (!_.has(cacheOfResources, filePath)) {
     if (fs.existsSync(filePath)) {
