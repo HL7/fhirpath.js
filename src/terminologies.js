@@ -182,11 +182,11 @@ class Terminologies {
         const {isCodeableConcept, isCoding, isCode} = getCodedType(ctx, codedColl);
         if (isCodeableConcept || isCoding || isCode) {
           const valueSet = util.valData(valueSetColl[0]);
-          const coded = util.valData(codedColl[0]);
+          let coded = util.valData(codedColl[0]);
           const requestUrl =
             `${self[0].terminologyUrl}/ValueSet/$validate-code`;
 
-          if (isActualValueSet || isCodeableConcept) {
+          if (isActualValueSet || isCodeableConcept && coded.coding.length !== 1) {
             // Workaround for the case where we don't have a system.
             // See discussion here:
             //  https://chat.fhir.org/#narrow/stream/179266-fhirpath/topic/Problem.20with.20the.20.22memberOf.22.20function.20and.20R4.20servers
@@ -237,7 +237,10 @@ class Terminologies {
                     }
                   );
                 });
-            } else if (isCoding) {
+            } else {
+              if (isCodeableConcept) {
+                coded = coded.coding[0];
+              }
               const queryParams = new URLSearchParams({
                 url: valueSet ?? '',
                 system: coded.system ?? '',

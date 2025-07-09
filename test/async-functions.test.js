@@ -678,7 +678,7 @@ describe('Async functions', () => {
 
     it('should work with CodeableConcept when async functions are enabled', (done) => {
       mockFetchResults([
-        [/ValueSet\/\$validate-code/, {
+        [{ url: '/ValueSet/$validate-code', body: '"system":"http://loinc.org"'}, {
           "resourceType": "Parameters",
           "parameter": [
             {
@@ -701,6 +701,35 @@ describe('Async functions', () => {
         done();
       })
     });
+
+
+    it('should use GET for CodeableConcept with a single Coding', (done) => {
+      mockFetchResults([
+        // ValueSet/$validate-code?url=http%3A%2F%2Fsome-valueset&system=system1&code=1
+        [/ValueSet\/\$validate-code.*&system=system1/, {
+          "resourceType": "Parameters",
+          "parameter": [
+            {
+              "name": "result",
+              "valueBoolean": true
+            }
+          ]
+        }]
+      ]);
+      let result = fhirpath.evaluate(
+        observationResource,
+        "%factory.CodeableConcept(%factory.Coding('system1', '1')).memberOf('http://some-valueset')",
+        {},
+        modelR4,
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([true]);
+        done();
+      })
+    });
+
 
 
     it('should work with "code" when async functions are enabled', (done) => {
