@@ -60,7 +60,7 @@ const mapper = {
 
 const castValue = (value, type) => {
   if (!mapper[type]) {
-    console.log(`Warning, unhandled data type: "${type}" for value: "${value}"`);
+    console.log(`Warning, unhandled data type "${type}", value "${value}" used as is.`);
     return value; // return as is if type is not handled
   }
   return mapper[type](value);
