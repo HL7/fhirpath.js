@@ -705,7 +705,6 @@ describe('Async functions', () => {
 
     it('should use GET for CodeableConcept with a single Coding', (done) => {
       mockFetchResults([
-        // ValueSet/$validate-code?url=http%3A%2F%2Fsome-valueset&system=system1&code=1
         [/ValueSet\/\$validate-code.*&system=system1/, {
           "resourceType": "Parameters",
           "parameter": [
