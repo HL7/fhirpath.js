@@ -36,7 +36,7 @@ engine.memberOf = function (coll, valueSetColl ) {
       }
       return Terminologies.validateVS.call(this,
         [terminologies], valueSetColl, coll, ''
-      ).then(params => {
+      )?.then(params => {
         return util.valData(params)?.parameter.find((p) => p.name === "result").valueBoolean;
       }, () => []);
     }
