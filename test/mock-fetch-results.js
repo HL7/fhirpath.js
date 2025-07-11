@@ -3,7 +3,7 @@ let fetchSpy;
 
 /**
  * Checks whether a string (in the first parameter) matches a regular expression,
- * substring or test function (in the second parameter).
+ * contains the substring or satisfies the test function (in the second parameter).
  * If the second parameter is not passed (no condition), returns true.
  * @param {string} str - string to check
  * @param {RegExp|string|Function|undefined} condition - regular expression,
@@ -20,9 +20,9 @@ function checkString(str, condition, options= {}) {
   } else if (condition instanceof RegExp) {
     return condition.test(str);
   } else if (typeof condition === 'string') {
-    return str &&
-      (options?.fullStringMatch ?
-        str === condition : str.indexOf(condition) !== -1)
+    return options?.fullStringMatch ?
+      str === condition
+      : (str !== null && str !== undefined && str.indexOf(condition) !== -1);
   } else if (condition instanceof Function) {
     return condition(str);
   } else {
@@ -56,7 +56,8 @@ function mockFetchResults(results, {timeout = 0} = {}) {
     (url, options) => new Promise((resolve) => {
       const mockedItem = results?.find(
         (r) => {
-          if (typeof r[0] === 'object' && (r[0].url || r[0].body || r[0].method)) {
+          if (typeof r[0] === 'object' && r[0] !== null && (r[0].url ||
+            r[0].body || r[0].method)) {
             return checkString(url, r[0]?.url) &&
               checkString(options.body, r[0]?.body) &&
               checkString(options.method ?? 'GET', r[0]?.method,
