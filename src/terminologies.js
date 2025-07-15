@@ -794,8 +794,8 @@ function getCodedType(ctx, codedColl) {
  * @param {string} resourceType - The expected FHIR resource type (e.g.,
  *  "ValueSet", "Parameters").
  * @returns {Promise<ResourceNode|null>|null} - A promise resolving to a ResourceNode
- *  if the resource type matches, or null if an error occurs or the resource
- *  type does not match.
+ *  if the resource type matches, or to null if an error occurs or the resource
+ *  type does not match; or null if the given response object is falsy.
  */
 function transformResponseToResource(ctx, response, resourceType) {
   return response?.then(obj => {
