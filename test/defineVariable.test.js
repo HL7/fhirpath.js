@@ -4,11 +4,11 @@ const _ = require("lodash");
 const input = {
   get patientExample() {
     // Clone input file contents to avoid one test affecting another
-    return _.cloneDeep(require("../test/resources/patient-example.json"));
+    return _.cloneDeep(require("../test/resources/r4/patient-example.json"));
   },
   get conceptMapExample() {
     // Clone input file contents to avoid one test affecting another
-    return _.cloneDeep(require("../test/resources/conceptmap-example.json"));
+    return _.cloneDeep(require("../test/resources/r4/conceptmap-example.json"));
   },
 };
 

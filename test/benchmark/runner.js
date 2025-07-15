@@ -4,8 +4,8 @@
  */
 const _ = require('lodash');
 const current_fhirpath = require('../../src/fhirpath');
-const minimumDataset = require('../resources/Minimum-Data-Set---version-3.0.R4.json');
-const patientExample = require('../resources/patient-example.json');
+const minimumDataset = require('../resources/r4/Minimum-Data-Set---version-3.0.R4.json');
+const patientExample = require('../resources/r4/patient-example.json');
 const current_r4_model = require('../../fhir-context/r4');
 const benny = require('benny');
 const open = require('open');

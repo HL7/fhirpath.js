@@ -17,6 +17,139 @@
   The test schema for this test suite is maintained in the FHIRPath specification repository:
   https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
  -->
+ <group name="defineVariable" description="defineVariable tests">
+
+	<test name="defineVariable1" description="simplest variable" inputfile="patient-example.xml"><expression>defineVariable('v1', 'value1').select(%v1)</expression><output type="string">value1</output></test>
+	<test name="defineVariable2" description="simple use of a variable" inputfile="patient-example.xml"><expression>defineVariable('n1', name.first()).select(%n1.given)</expression><output type="string">Peter</output><output type="string">James</output></test>
+	<test name="defineVariable3" description="simple use of a variable 2 selects" inputfile="patient-example.xml">
+		<expression>defineVariable('n1', name.first()).select(%n1.given).first()</expression>
+		<output type="string">Peter</output>
+	</test>
+	
+	<test name="defineVariable4" description="use of a variable in separate contexts" inputfile="patient-example.xml">
+		<!-- this example defines the same variable name in 2 different contexts
+  			 this shouldn't report an issue where the variable is being redefined (as it's not in the same context) -->
+		<expression>defineVariable('n1', name.first()).select(%n1.given) | defineVariable('n1', name.skip(1).first()).select(%n1.given)</expression>
+		<output type="string">Peter</output>
+		<output type="string">James</output>
+		<output type="string">Jim</output>		
+	</test>
+	
+	  <test name="defineVariable5" description="use of a variable in separate contexts defined in 2 but used in 1" inputfile="patient-example.xml">
+		<!-- this example defines the same variable name in 2 different contexts, 
+		     but only uses it in the second. This ensures that the first context doesn't remain when using it in another context -->
+		<expression>defineVariable('n1', name.first()).where(active.not()) | defineVariable('n1', name.skip(1).first()).select(%n1.given)</expression>
+		<output type="string">Jim</output>		
+	</test>
+	
+	<test name="defineVariable6" description="use of different variables in different contexts" inputfile="patient-example.xml">
+		<expression>defineVariable('n1', name.first()).select(id &amp; '-' &amp; %n1.given.join('|')) | defineVariable('n2', name.skip(1).first()).select(%n2.given)</expression>
+		<output type="string">example-Peter|James</output>
+		<output type="string">Jim</output>
+	</test>
+	
+	<test name="defineVariable7" description="2 vars, one unused" inputfile="patient-example.xml">
+		<expression>defineVariable('n1', name.first()).active | defineVariable('n2', name.skip(1).first()).select(%n2.given)</expression>
+		<output type="boolean">true</output>
+		<output type="string">Jim</output>		
+	</test>
+	
+	<test name="defineVariable8" description="CompositeVariableUse" inputfile="patient-example.xml">
+		<expression>defineVariable('v1', 'value1').select(%v1).trace('data').defineVariable('v2', 'value2').select($this &amp; ':' &amp; %v1 &amp; '-' &amp; %v2) | defineVariable('v3', 'value3').select(%v3)</expression>
+		<output type="string">value1:value1-value2</output>
+		<output type="string">value3</output>		
+	</test>
+	
+	<test name="defineVariable9" description="use of a variable outside context throws error" inputfile="patient-example.xml">
+		<!-- test with a variable that is not in the context that should throw an error -->
+		<expression invalid="semantic">defineVariable('n1', name.first()).active | defineVariable('n2', name.skip(1).first()).select(%n1.given)</expression>
+		<!-- toThrowError("Attempting to access an undefined environment variable: n1"); -->
+	</test>
+	
+	<test name="defineVariable10" description="use undefined variable throws error" inputfile="patient-example.xml">
+		<!-- test with a variable that is not in the context that should throw an error -->
+		<expression invalid="semantic">select(%fam.given)</expression>
+		<!-- toThrowError("Attempting to access an undefined environment variable: fam"); -->
+	</test>
+	
+	<test name="dvRedefiningVariableThrowsError" inputfile="patient-example.xml">
+		<expression invalid="semantic">defineVariable('v1').defineVariable('v1').select(%v1)</expression>
+		<!-- toThrowError("Variable %v1 already defined"); -->
+	</test>
+	
+	<test name="defineVariable12" description="defineVariable() could not be the first child" inputfile="patient-example.xml">
+		<!-- test with a variable that is not in the context that should throw an error -->
+		<expression invalid="semantic">Patient.name.defineVariable('n1', first()).active | Patient.name.defineVariable('n2', skip(1).first()).select(%n1.given)</expression>
+		<!-- toThrowError("Attempting to access an undefined environment variable: n1"); -->
+	</test>
+	
+	<test name="defineVariable13" description="sequence of variable definitions tweak" inputfile="patient-example.xml">
+		<expression>Patient.name.defineVariable('n2', skip(1).first()).defineVariable('res', %n2.given+%n2.given).select(%res)</expression>
+		<output type="string">JimJim</output>
+		<output type="string">JimJim</output>		
+		<output type="string">JimJim</output>		
+	</test>
+	
+	<test name="defineVariable14" description="sequence of variable definitions original" inputfile="patient-example.xml">
+		<!-- A variable defined based on another variable
+		     the duplicate JimJim values are removed due to the | operator -->
+		<expression>Patient.name.defineVariable('n1', first()).select(%n1).exists() | Patient.name.defineVariable('n2', skip(1).first()).defineVariable('res', %n2.given+%n2.given).select(%res)</expression>
+		<output type="boolean">true</output>
+		<output type="string">JimJim</output>
+	</test>
+	
+	<test name="defineVariable15" description="multi-tree vars valid" inputfile="patient-example.xml">
+		<expression>defineVariable('root', 'r1-').select(defineVariable('v1', 'v1').defineVariable('v2', 'v2').select(%v1 | %v2)).select(%root &amp; $this)</expression>
+		<output type="string">r1-v1</output>
+		<output type="string">r1-v2</output>
+	</test>
+	
+	<test name="defineVariable16" description="multi-tree vars exception" inputfile="patient-example.xml">
+		<expression invalid="semantic">defineVariable('root', 'r1-').select(defineVariable('v1', 'v1').defineVariable('v2', 'v2').select(%v1 | %v2)).select(%root &amp; $this &amp; %v1)</expression>
+		<!-- toThrowError("Attempting to access an undefined environment variable: v1"); -->
+	</test>
+	
+	<test name="dvCantOverwriteSystemVar" inputfile="patient-example.xml">
+		<expression invalid="semantic">defineVariable('context', 'oops')</expression>
+		<!-- toThrowError("Environment Variable %context already defined"); -->
+	</test>
+	
+	<test name="dvConceptMapExample" description="realistic example with conceptmap" inputfile="conceptmap-example.xml">
+		<expression>
+			group.select(
+				defineVariable('grp')
+				.element
+				.select(
+					defineVariable('ele')
+					.target
+					.select(%grp.source &amp; '|' &amp; %ele.code &amp; ' ' &amp; relationship &amp; ' ' &amp; %grp.target &amp; '|' &amp; code)
+				)
+			)
+			.trace('all')
+			.isDistinct()
+		</expression>
+		<output type="boolean">false</output>
+	</test>
+	
+	<test name="defineVariable19" skipStaticCheck='true' description='defineVariable in function parameters (1)' inputfile="patient-example.xml">
+		<!-- Static check is skipped as it can't verify the return type of dynamically named variable -->
+		<expression>defineVariable(defineVariable('param','ppp').select(%param), defineVariable('param','value').select(%param)).select(%ppp)</expression>
+		<output type="string">value</output>
+	</test>
+	
+	<test name="dvParametersDontColide" description='defineVariable in function parameters (2)' inputfile="patient-example.xml">
+		<expression>'aaa'.replace(defineVariable('param', 'aaa').select(%param), defineVariable('param','bbb').select(%param))</expression>
+		<output type="string">bbb</output>
+	</test>	
+	
+	<test name="dvUsageOutsideScopeThrows" description="use of a variable outside context throws error" inputfile="patient-example.xml">
+		<!-- test with a variable that is not in the context that should throw an error -->
+		<expression invalid="semantic">defineVariable('n1', 'v1').active | defineVariable('n2', 'v2').select(%n1)</expression>
+		<!-- toThrowError("Attempting to access an undefined environment variable: n1"); -->
+	</test>
+
+  </group>
+
   <group name="comments" description="Check various comment syntaxes">
 		<test name="testComment1" inputfile="patient-example.xml"><expression>2 + 2 // This is a single-line comment + 4</expression><output type="integer">4</output></test>
 		<test name="testComment2" inputfile="patient-example.xml"><expression>// This is a multi line comment using // that
@@ -440,7 +573,6 @@ Any text enclosed within is ignored
 		<test name="testBooleanLiteralToString" inputfile="patient-example.xml"><expression>true.toString()</expression><output type="string">true</output></test>
 		<test name="testQuantityLiteralWkToString" inputfile="patient-example.xml"><expression>1 'wk'.toString()</expression><output type="string">1 'wk'</output></test>
 		<test name="testQuantityLiteralWeekToString" inputfile="patient-example.xml"><expression>1 week.toString()</expression><output type="string">1 week</output></test>
-
 	</group>
 
 	<group name="testExists">
@@ -628,7 +760,7 @@ Any text enclosed within is ignored
 		<test name="testIif10" inputfile="patient-example.xml">
 		    <expression invalid="execution">('item1' | 'item2').iif(true, 'true-result', 'false-result')</expression>
 		</test>
-		
+<!-- Verify the input collection is being set as the iterator for the iif function (on the single item) -->
 <test name="testIif11" inputfile="patient-example.xml">
     <expression>('context').iif($this = 'context','true-result', 'false-result')</expression>
     <output type="string">true-result</output>
@@ -1438,7 +1570,7 @@ Any text enclosed within is ignored
 		<test name="Comparable1"><expression>1 'cm'.comparable(1 '[in_i]')</expression><output>true</output></test>
 		<test name="Comparable2"><expression>1 'cm'.comparable(1 '[s]')</expression><output>false</output></test>
 		<test name="Comparable3"><expression>1 'cm'.comparable(1 's')</expression><output>false</output></test>
- 	</group>
+	</group>
 
 	<group name="Precision">
 		<test name="PrecisionDecimal"><expression>1.58700.precision()</expression><output>5</output></test>
@@ -1474,11 +1606,8 @@ Any text enclosed within is ignored
     -->
 		<test name="testPolymorphicsA" inputfile="observation-example.xml"><expression>Observation.value.exists()</expression><output type="boolean">true</output></test>
 		<test name="testPolymorphicsB" inputfile="observation-example.xml"><expression invalid="semantic">Observation.valueQuantity.exists()</expression><output type="boolean">false</output></test>
-<!--
-	lenient polymorphic mode is not supported in R4
 		<modeTest mode="lenient/polymorphics" name="testPolymorphicsC" inputfile="observation-example.xml"><expression>Observation.valueQuantity.exists()</expression><output type="boolean">true</output></modeTest>
 		<modeTest mode="lenient/polymorphics" name="testPolymorphicsD" inputfile="observation-example.xml"><expression>Observation.valueString.exists()</expression><output type="boolean">false</output></modeTest>
--->		
   </group>
 
   <group name="index-part">
@@ -1496,7 +1625,6 @@ Any text enclosed within is ignored
 			<output type="boolean">true</output>
 		</test>
   </group>
-
 
 	<group name="testInheritance">
 		<test name="testFHIRPathIsFunction1" inputfile="patient-example.xml"><expression>Patient.gender.is(code)</expression><output type="boolean">true</output></test>
@@ -1525,9 +1653,14 @@ Any text enclosed within is ignored
 		<test name="testFHIRPathAsFunction24" inputfile="patient-example.xml"><expression invalid="execution">Patient.gender.ofType(string1)</expression></test>
 	</group>
 
-
 	<group name="miscEngineTests">
 		<test name="testContainedId" inputfile="patient-container-example.json"><expression>contained.id</expression><output type="id">1</output></test>
+		<test name="testMultipleResolve" inputfile="diagnosticreport-eric.json" mode="element"><expression>composition.exists() implies (composition.resolve().section.entry.reference.where(resolve() is Observation) in (result.reference | result.reference.resolve().hasMember.reference))</expression><output type="boolean">true</output></test>
 	</group>
 
+  <group name="cdaTests">
+		<test name="testHasTemplateId1" mode="cda" inputfile="ccda.xml"><expression>hasTemplateIdOf('http://hl7.org/cda/us/ccda/StructureDefinition/ContinuityofCareDocumentCCD')</expression><output type="boolean">true</output></test>
+		<test name="testHasTemplateId2" mode="cda" inputfile="ccda.xml"><expression>ClinicalDocument.hasTemplateIdOf('http://hl7.org/cda/us/ccda/StructureDefinition/ContinuityofCareDocumentCCD')</expression><output type="boolean">true</output></test>
+		<test name="testHasTemplateId3" mode="cda" inputfile="ccda.xml"><expression>recordTarget.patientRole.hasTemplateIdOf('http://hl7.org/cda/us/ccda/StructureDefinition/ContinuityofCareDocumentCCD')</expression><output type="boolean">false</output></test>
+	</group>
 </tests>

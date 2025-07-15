@@ -6,21 +6,21 @@ const input = {
   get questionnairePartExample() {
     // Clone input file contents to avoid one test affecting another
     return _.cloneDeep(
-      require('../test/resources/questionnaire-part-example.json')
+      require('../test/resources/r4/questionnaire-part-example.json')
     );
   },
 
   get questionnaireResponseExample() {
     // Clone input file contents to avoid one test affecting another
     return _.cloneDeep(
-      require('../test/resources/questionnaire-response-example.json')
+      require('../test/resources/r4/questionnaire-response-example.json')
     );
   },
 
   get quantityExample() {
     // Clone input file contents to avoid one test affecting another
     return _.cloneDeep(
-      require('../test/resources/quantity-example.json')
+      require('../test/resources/r4/quantity-example.json')
     );
   }
 }

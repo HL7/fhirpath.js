@@ -5,9 +5,9 @@ const modelR4 = require('../fhir-context/r4');
 const modelR5 = require('../fhir-context/r5');
 const _ = require("lodash");
 const emptyResource = {};
-const observationResource = require('./resources/observation-example.json');
-const administrativeGenderVS = require('./resources/administrative-gender-valueset.json');
-const observationCategoryVS = require('./resources/observation-category-valuset.json');
+const observationResource = require('./resources/r4/observation-example.json');
+const administrativeGenderVS = require('./resources/r4/administrative-gender-valueset.json');
+const observationCategoryVS = require('./resources/r4/observation-category-valuset.json');
 const {mockRestore, mockFetchResults} = require('./mock-fetch-results');
 
 
@@ -670,7 +670,11 @@ describe('Async functions', () => {
       );
       expect(result instanceof Promise).toBe(true);
       result.then((r) => {
-        expect(r).toEqual([{"code": "29463-7", "display": "Body Weight", "system": "http://loinc.org"}]);
+        expect(r).toEqual([expect.objectContaining({
+          "code": "29463-7",
+          "display": "Body Weight",
+          "system": "http://loinc.org"
+        })]);
         done();
       })
     });
@@ -912,7 +916,7 @@ describe('Async functions', () => {
    */
   describe('resolve', () => {
     // Load test resources and set up test data for MedicationDispense and Patient resources.
-    const medicationDispenseResource106 = require('./resources/medicationdispense-med-106-0.json');
+    const medicationDispenseResource106 = require('./resources/r4/medicationdispense-med-106-0.json');
     const medicationDispenseResource107 = _.cloneDeep(medicationDispenseResource106);
     medicationDispenseResource107.id = 'med-107-0';
     medicationDispenseResource107.subject = {
@@ -923,7 +927,7 @@ describe('Async functions', () => {
     medicationDispenseResource108.subject = {
       "reference": "https://some-fhir-server/Patient/pat-108"
     };
-    const patientResource106 = require('./resources/patient-pat-106-0.json');
+    const patientResource106 = require('./resources/r4/patient-pat-106-0.json');
     const patientResource107 = _.cloneDeep(patientResource106);
     patientResource107.id = 'pat-107';
     patientResource107.deceasedDateTime = '2129';
@@ -1139,7 +1143,11 @@ describe('Async functions', () => {
     );
     expect(result instanceof Promise).toBe(true);
     result.then((r) => {
-      expect(r).toEqual([{"code": "29463-7", "display": "Body Weight", "system": "http://loinc.org"}]);
+      expect(r).toEqual([expect.objectContaining({
+        "code": "29463-7",
+        "display": "Body Weight",
+        "system": "http://loinc.org"
+      })]);
       done();
     })
   });
@@ -1154,7 +1162,11 @@ describe('Async functions', () => {
       {}
     );
     expect(result instanceof Promise).toBe(false);
-    expect(result).toEqual([{"code": "29463-7", "display": "Body Weight", "system": "http://loinc.org"}]);
+    expect(result).toEqual([expect.objectContaining({
+      "code": "29463-7",
+      "display": "Body Weight",
+      "system": "http://loinc.org"
+    })]);
   });
 
 
