@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const questionnairePartExample = require('../resources/patient-example.json');
+const questionnairePartExample = require('../resources/r4/patient-example.json');
 
 module.exports = ({
                     options

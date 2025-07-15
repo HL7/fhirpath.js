@@ -1,0 +1,73 @@
+{
+  "resourceType": "Patient",
+  "_birthDate": {
+    "extension": [
+      {
+        "url": "http://hl7.org/fhir/StructureDefinition/patient-birthTime",
+        "valueDateTime": "1974-12-25T14:35:45-05:00"
+      }
+    ]
+  },
+  "_address": [
+    null,
+    {
+      "id": "someId"
+    }
+  ],
+  "name": [
+    {
+      "use": "official",
+      "family": "Chalmers",
+      "given": [
+        null,
+        "Peter",
+        "James"
+      ],
+      "_given": [
+        {
+          "id": "Jacomus1Id",
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/display",
+              "valueString" : "Jacomus1"
+            }
+          ]
+        },
+        null,
+        null,
+        {
+          "id": "Jacomus2Id",
+          "extension" : [
+            {
+              "url" : "http://hl7.org/fhir/StructureDefinition/display",
+              "valueString" : "Jacomus2"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "communication": [
+    {
+      "language": {
+        "coding": [
+          {
+            "system": "urn:ietf:bcp:47",
+            "code": "nl",
+            "display": "Dutch"
+          }
+        ]
+      },
+      "_preferred": {
+        "extension": [
+          {
+            "url": "test",
+            "_valueString": {
+              "id": "testing"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
