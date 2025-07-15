@@ -412,6 +412,52 @@ describe('Async functions', () => {
       expect(result).toEqual([]);
     });
 
+    it('should return an empty collection when a code does not have a value', () => {
+      mockFetchResults([
+        ['ValueSet?url=http%3A%2F%2Fhl7.org%2Ffhir%2FValueSet%2Fobservation-vitalsignresult', {
+          "resourceType": "Bundle",
+          "entry": [{
+            "resource": {
+              "resourceType": "ValueSet",
+              "url": "http://hl7.org/fhir/ValueSet/observation-vitalsignresult",
+              "compose": {
+                "include": [{
+                  "system": "http://loinc.org",
+                  "concept": [
+                    {"code": "85353-1"}, {"code": "9279-1"}, {"code": "8867-4"},
+                    {"code": "2708-6"}, {"code": "8310-5"}, {"code": "8302-2"},
+                    {"code": "9843-4"}, {"code": "29463-7"},
+                    {"code": "39156-5"}, {"code": "85354-9"},
+                    {"code": "8480-6"}, {"code": "8462-4"}, {"code": "8478-0"}
+                  ]
+                }]
+              }
+            }
+          }]
+        }]
+      ]);
+
+      let result = fhirpath.evaluate(
+        {
+          "resourceType": "Observation",
+          "code": {
+            "coding":
+              [{
+                "_code": {
+                  "id": "someCodeId"
+                }
+              }]
+          }
+        },
+        "%terminologies.validateVS('http://hl7.org/fhir/ValueSet/observation-vitalsignresult', Observation.code.coding.code)",
+        {},
+        modelR4,
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+      );
+
+      expect(result).toEqual([]);
+    });
+
 
     it('should throw an error when the async function is not allowed', () => {
       let result = () => fhirpath.evaluate(
@@ -682,7 +728,11 @@ describe('Async functions', () => {
 
     it('should work with CodeableConcept when async functions are enabled', (done) => {
       mockFetchResults([
-        [/ValueSet\/\$validate-code/, {
+        [{
+          url: '/ValueSet/$validate-code',
+          body: '"system":"http://loinc.org"',
+          method: 'POST'
+        }, {
           "resourceType": "Parameters",
           "parameter": [
             {
@@ -705,6 +755,79 @@ describe('Async functions', () => {
         done();
       })
     });
+
+
+    it('should use GET for CodeableConcept with a single Coding', (done) => {
+      mockFetchResults([
+        [{
+          url: /ValueSet\/\$validate-code.*&system=system1/,
+          method: 'GET'
+        }, {
+          "resourceType": "Parameters",
+          "parameter": [
+            {
+              "name": "result",
+              "valueBoolean": true
+            }
+          ]
+        }]
+      ]);
+      let result = fhirpath.evaluate(
+        observationResource,
+        "%factory.CodeableConcept(%factory.Coding('system1', '1')).memberOf('http://some-valueset')",
+        {},
+        modelR4,
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([true]);
+        done();
+      })
+    });
+
+    it('should work when Coding in a CodeableConcept has no system and code', () => {
+      mockFetchResults([]);
+      let result = fhirpath.evaluate(
+        {},
+        "%factory.CodeableConcept(%factory.Coding('', '', 'some display text')).memberOf('http://some-valueset')",
+        {},
+        modelR4,
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+      );
+      expect(result).toEqual([]);
+    });
+
+
+    it('should work when no Coding in a CodeableConcept', (done) => {
+      mockFetchResults([
+        [{
+          url: '/ValueSet/$validate-code',
+          body: '"valueUri":"http://some-valueset"',
+          method: 'POST'
+        }, null, {
+          "resourceType": "OperationOutcome",
+          "issue": [ {
+            "severity": "error",
+            "code": "processing",
+            "diagnostics": "HAPI-0899: No code, coding, or codeableConcept provided to validate"
+          } ]
+        }]
+      ]);
+      let result = fhirpath.evaluate(
+        {},
+        "%factory.CodeableConcept(Observation.code.coding).memberOf('http://some-valueset')",
+        {},
+        modelR4,
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([]);
+        done();
+      });
+    });
+
 
 
     it('should work with "code" when async functions are enabled', (done) => {

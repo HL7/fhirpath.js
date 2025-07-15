@@ -172,8 +172,12 @@ class Terminologies {
     const ctx = this;
     util.checkAllowAsync(ctx, 'validateVS');
 
-    if(valueSetColl.length === 1 && codedColl.length === 1 &&
-      checkParams(params)) {
+    const valueSet = valueSetColl.length === 1 && util.valData(valueSetColl[0]);
+    let coded = codedColl.length === 1 && util.valData(codedColl[0]);
+
+    // If valueSet or coded are empty, we can predict that the $validate-code
+    // operation will return an error.
+    if(valueSet && coded && checkParams(params)) {
       const vsTypeInfo = TypeInfo.fromValue(valueSetColl[0]);
       const isActualValueSet = vsTypeInfo.is(TypeInfo.FhirValueSet, ctx.model);
       const isValueSetUrl = vsTypeInfo.is(TypeInfo.FhirUri, ctx.model) ||
@@ -181,14 +185,15 @@ class Terminologies {
       if (isActualValueSet || isValueSetUrl) {
         const {isCodeableConcept, isCoding, isCode} = getCodedType(ctx, codedColl);
         if (isCodeableConcept || isCoding || isCode) {
-          const valueSet = util.valData(valueSetColl[0]);
-          const coded = util.valData(codedColl[0]);
           const requestUrl =
             `${self[0].terminologyUrl}/ValueSet/$validate-code`;
 
-          if (isActualValueSet || isCodeableConcept) {
-            // Workaround for the case where we don't have a system.
-            // See discussion here:
+          // Use a POST request if the passed valueSet is an actual ValueSet or
+          // the passed coded value is a CodeableConcept with more than one
+          // coding or no coding.
+          if (isActualValueSet || isCodeableConcept && coded.coding?.length !== 1) {
+            // getSystemFromVS() is a workaround for the case where we don't
+            // have a system. See discussion here:
             //  https://chat.fhir.org/#narrow/stream/179266-fhirpath/topic/Problem.20with.20the.20.22memberOf.22.20function.20and.20R4.20servers
             response = (isCode ?
               getSystemFromVS(ctx, self[0].terminologyUrl, valueSet)
@@ -218,7 +223,7 @@ class Terminologies {
                 }
               );
             });
-          } else  {
+          } else  { // Otherwise use a GET request.
             if (isCode) {
               // Workaround for the case where we don't have a system.
               // See discussion here:
@@ -237,18 +242,27 @@ class Terminologies {
                     }
                   );
                 });
-            } else if (isCoding) {
-              const queryParams = new URLSearchParams({
-                url: valueSet ?? '',
-                system: coded.system ?? '',
-                code: coded.code
-              });
-              response = util.fetchWithCache(
-                `${requestUrl}?${queryParams.toString() + (params ? '&' + params : '')}`,
-                {
-                  ...(ctx.signal ? {signal: ctx.signal} : {})
-                }
-              );
+            } else {
+              // If the coded value is a CodeableConcept with only one Coding
+              if (isCodeableConcept) {
+                coded = coded.coding[0];
+              }
+              // If the coded value is Coding and has system and code, we can
+              // use it in the request URL; otherwise, the $validate-code
+              // operation will return an error.
+              if (coded?.system && coded?.code) {
+                const queryParams = new URLSearchParams({
+                  url: valueSet,
+                  system: coded.system,
+                  code: coded.code
+                });
+                response = util.fetchWithCache(
+                  `${requestUrl}?${queryParams.toString() + (params ? '&' + params : '')}`,
+                  {
+                    ...(ctx.signal ? {signal: ctx.signal} : {})
+                  }
+                );
+              }
             }
           }
         }
@@ -779,19 +793,19 @@ function getCodedType(ctx, codedColl) {
  *  object or null.
  * @param {string} resourceType - The expected FHIR resource type (e.g.,
  *  "ValueSet", "Parameters").
- * @returns {Promise<ResourceNode|null>} - A promise resolving to a ResourceNode
- *  if the resource type matches, or null if an error occurs or the resource
- *  type does not match.
+ * @returns {Promise<ResourceNode|null>|null} - A promise resolving to a ResourceNode
+ *  if the resource type matches, or to null if an error occurs or the resource
+ *  type does not match; or null if the given response object is falsy.
  */
 function transformResponseToResource(ctx, response, resourceType) {
-  return response && response.then(obj => {
+  return response?.then(obj => {
     if (obj?.resourceType === resourceType) {
       return ResourceNode.makeResNode(obj, null, null, null, null, ctx.model);
     }
     // Throw an error if the resource type does not match - will cause the catch
     // function to be called.
     throw new Error('Unexpected resourceType in response: ' + obj?.resourceType);
-  }).catch(() => null);
+  }).catch(() => null) || null;
 }
 
 module.exports = Terminologies;
