@@ -52,10 +52,12 @@
             <label><input type="radio" name="modelName" value="fhirpath_stu3_model">STU3</label>
             <label><input type="radio" name="modelName" value="fhirpath_dstu2_model">DSTU2</label>
           </div>
-          <div>
-            Terminology server URL:
-            <input id="terminologyUrl" value = "" placeholder="type URL and press ENTER or move focus to another field to apply"/>
-          </div>
+          <label title="Used for %terminology">Terminology server URL:
+            <input id="terminologyUrl" value="" placeholder="type URL and press ENTER or move focus to another field to apply">
+          </label>
+          <label title="Used for the resolve() function">FHIR server URL:
+            <input id="fhirServerUrl" value="" placeholder="type URL and press ENTER or move focus to another field to apply"/>
+          </label>
           <div>
             Input format:
             <label><input type="radio" name="inputType" value="json" checked>JSON</label>

@@ -1,0 +1,34 @@
+{
+  "resourceType": "MedicationDispense",
+  "id": "med-106-0",
+  "identifier": [
+    {
+      "system": "357",
+      "value": "00168022138"
+    }
+  ],
+  "status": "completed",
+  "medicationCodeableConcept": {
+    "coding": [
+      {
+        "system": "357",
+        "code": "00168022138",
+        "display": "NEOMYCIN/POLYMYXIN/DEXAME"
+      },
+      {
+        "system": "GPI",
+        "code": "86309903324210",
+        "display": "NEOMYCIN/POLYMYXIN/DEXAME"
+      }
+    ],
+    "text": "NEOMYCIN/POLYMYXIN/DEXAME, Maxitrol Op Ont Eqv, SIG was translated"
+  },
+  "subject": {
+    "reference": "Patient/pat-106",
+    "display": "JIAN MCINTOSH"
+  },
+  "quantity": {
+    "value": 1
+  },
+  "whenPrepared": "2133-07-13T04:00:00.000Z"
+}

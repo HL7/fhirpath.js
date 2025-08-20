@@ -6,5 +6,8 @@ export const {
     choiceTypePaths,
     pathsDefinedElsewhere,
     type2Parent,
-    path2Type
+    path2Type,
+    resourcesWithUrlParam,
+    path2TypeWithoutElements,
+    path2RefType
 }: Model;

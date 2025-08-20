@@ -1,26 +1,54 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <tests name="FHIRPathTestSuite" description="FHIRPath Test Suite" reference="http://hl7.org/fhirpath|2.0.0">
 <!--
-The source of truth for this test suite is the R5 tests in the fhir-test-cases repository:
-https://github.com/FHIR/fhir-test-cases/blob/master/r5/fhirpath/tests-fhir-r5.xml
-Copies of this test suite are maintained for reference and distribution only in the following locations:
-https://github.com/FHIR/fhir-test-cases/blob/master/r4/fhirpath/tests-fhir-r4.xml
-https://github.com/HL7/FHIRPath/blob/master/tests/r4/tests-fhir-r4.xml
-https://github.com/HL7/FHIRPath/blob/master/tests/r5/tests-fhir-r5.xml
+  The source of truth for this test suite is the R5 tests in the fhir-test-cases repository:
+  https://github.com/FHIR/fhir-test-cases/blob/master/r5/fhirpath/tests-fhir-r5.xml
+  Copies of this test suite are maintained for reference and distribution only in the following locations:
+  https://github.com/FHIR/fhir-test-cases/blob/master/r4/fhirpath/tests-fhir-r4.xml
+  https://github.com/HL7/FHIRPath/blob/master/tests/r4/tests-fhir-r4.xml
+  https://github.com/HL7/FHIRPath/blob/master/tests/r5/tests-fhir-r5.xml
 
-The example data for this test suite consists of:
-patient-example.xml
-observation-example.xml
-questionnaire-example.xml
-valueset-example-expansion.xml
+  The example data for this test suite consists of:
+  patient-example.xml
+  observation-example.xml
+  questionnaire-example.xml
+  valueset-example-expansion.xml
 
-The test schema for this test suite is maintained in the FHIRPath specification repository:
-https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
--->
+  The test schema for this test suite is maintained in the FHIRPath specification repository:
+  https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
+ -->
+  <group name="comments" description="Check various comment syntaxes">
+		<test name="testComment1" inputfile="patient-example.xml"><expression>2 + 2 // This is a single-line comment + 4</expression><output type="integer">4</output></test>
+		<test name="testComment2" inputfile="patient-example.xml"><expression>// This is a multi line comment using // that
+  // should not fail during parsing
+  2+2</expression><output type="integer">4</output></test>
+		<test name="testComment3" inputfile="patient-example.xml"><expression>2 + 2 
+      /*
+This is a multi-line comment
+Any text enclosed within is ignored
++2
+*/</expression><output type="integer">4</output></test>
+		<test name="testComment4" inputfile="patient-example.xml"><expression>2 + 2 
+      /*
+This is a multi-line comment
+Any text enclosed within is ignored
+*/
++2</expression><output type="integer">6</output></test>
+		<test name="testComment5" inputfile="patient-example.xml"><expression>/*
+This is a multi-line comment
+Any text enclosed within is ignored
+*/
+2+2</expression><output type="integer">4</output></test>
+		<test name="testComment6" inputfile="patient-example.xml"><expression>2 // comment
+/ 2</expression><output type="decimal">1</output></test>
+		<test name="testComment7" inputfile="patient-example.xml"><expression invalid="syntax">2 + 2 /</expression></test>
+		<test name="testComment8" inputfile="patient-example.xml"><expression invalid="syntax">2 + 2 /* not finished</expression></test>    
+		<test name="testComment9" inputfile="patient-example.xml"><expression>2 + /* inline $@%^+ * */ 2 = 4</expression><output type="boolean">true</output></test>    
+  </group>
 	<group name="testMiscellaneousAccessorTests" description="Miscellaneous accessor tests">
 		<test name="testExtractBirthDate" description="Extract birthDate" inputfile="patient-example.xml" predicate="false">
 			<expression>birthDate</expression>
-			<output type="date">1974-12-25</output>
+			<output type="date">@1974-12-25</output>
 		</test>
 		<test name="testPatientHasBirthDate" description="patient has a birthDate" inputfile="patient-example.xml" predicate="true">
 			<expression>birthDate</expression>
@@ -192,7 +220,7 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		</test>
 
 		<!-- testBoolean(patient(), "Patient.name.given.first() = 'Peter'", true); -->
-		<test name="testLiteralString" inputfile="patient-example.xml">
+		<test name="testLiteralString1" inputfile="patient-example.xml">
 			<expression>Patient.name.given.first() = 'Peter'</expression>
 			<output type="boolean">true</output>
 		</test>
@@ -200,10 +228,10 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testLiteralInteger1" inputfile="patient-example.xml"><expression>1.convertsToInteger()</expression><output type="boolean">true</output></test>
 		<test name="testLiteralInteger0" inputfile="patient-example.xml"><expression>0.convertsToInteger()</expression><output type="boolean">true</output></test>
 		<test name="testLiteralIntegerNegative1" inputfile="patient-example.xml"><expression>(-1).convertsToInteger()</expression><output type="boolean">true</output></test>
-		<test name="testLiteralIntegerNegative1Invalid" inputfile="patient-example.xml"><expression invalid="true">-1.convertsToInteger()</expression></test>
+		<test name="testLiteralIntegerNegative1Invalid" inputfile="patient-example.xml"><expression invalid="execution">-1.convertsToInteger()</expression></test>
 		<test name="testLiteralIntegerMax" inputfile="patient-example.xml"><expression>2147483647.convertsToInteger()</expression><output type="boolean">true</output></test>
 
-		<test name="testLiteralString" inputfile="patient-example.xml"><expression>'test'.convertsToString()</expression><output type="boolean">true</output></test>
+		<test name="testLiteralString2" inputfile="patient-example.xml"><expression>'test'.convertsToString()</expression><output type="boolean">true</output></test>
 		<test name="testLiteralStringEscapes" inputfile="patient-example.xml"><expression>'\\\/\f\r\n\t\"\`\'\u002a'.convertsToString()</expression><output type="boolean">true</output></test>
 
 		<test name="testLiteralBooleanTrue" inputfile="patient-example.xml"><expression>true.convertsToBoolean()</expression><output type="boolean">true</output></test>
@@ -213,7 +241,7 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testLiteralDecimal01" inputfile="patient-example.xml"><expression>0.1.convertsToDecimal()</expression><output type="boolean">true</output></test>
 		<test name="testLiteralDecimal00" inputfile="patient-example.xml"><expression>0.0.convertsToDecimal()</expression><output type="boolean">true</output></test>
 		<test name="testLiteralDecimalNegative01" inputfile="patient-example.xml"><expression>(-0.1).convertsToDecimal()</expression><output type="boolean">true</output></test>
-		<test name="testLiteralDecimalNegative01Invalid" inputfile="patient-example.xml"><expression invalid="true">-0.1.convertsToDecimal()</expression></test>
+		<test name="testLiteralDecimalNegative01Invalid" inputfile="patient-example.xml"><expression invalid="execution">-0.1.convertsToDecimal()</expression></test>
 		<test name="testLiteralDecimalMax" inputfile="patient-example.xml"><expression>1234567890987654321.0.convertsToDecimal()</expression><output type="boolean">true</output></test>
 		<test name="testLiteralDecimalStep" inputfile="patient-example.xml"><expression>0.00000001.convertsToDecimal()</expression><output type="boolean">true</output></test>
 
@@ -235,8 +263,8 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testLiteralTimeMinute" inputfile="patient-example.xml"><expression>@T14:34.is(Time)</expression><output type="boolean">true</output></test>
 		<test name="testLiteralTimeSecond" inputfile="patient-example.xml"><expression>@T14:34:28.is(Time)</expression><output type="boolean">true</output></test>
 		<test name="testLiteralTimeMillisecond" inputfile="patient-example.xml"><expression>@T14:34:28.123.is(Time)</expression><output type="boolean">true</output></test>
-		<test name="testLiteralTimeUTC" inputfile="patient-example.xml"><expression invalid="true">@T14:34:28Z.is(Time)</expression></test>
-		<test name="testLiteralTimeTimezoneOffset" inputfile="patient-example.xml"><expression invalid="true">@T14:34:28+10:00.is(Time)</expression></test>
+		<test name="testLiteralTimeUTC" inputfile="patient-example.xml"><expression invalid="execution">@T14:34:28Z.is(Time)</expression></test>
+		<test name="testLiteralTimeTimezoneOffset" inputfile="patient-example.xml"><expression invalid="execution">@T14:34:28+10:00.is(Time)</expression></test>
 
 		<test name="testLiteralQuantityDecimal" inputfile="patient-example.xml"><expression>10.1 'mg'.convertsToQuantity()</expression><output type="boolean">true</output></test>
 		<test name="testLiteralQuantityInteger" inputfile="patient-example.xml"><expression>10 'mg'.convertsToQuantity()</expression><output type="boolean">true</output></test>
@@ -256,17 +284,19 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testLiteralDecimalGreaterThanZeroTrue" inputfile="observation-example.xml"><expression>Observation.value.value &gt; 0.0</expression><output type="boolean">true</output></test>
 		<test name="testLiteralDecimalGreaterThanIntegerTrue" inputfile="observation-example.xml"><expression>Observation.value.value &gt; 0</expression><output type="boolean">true</output></test>
 		<test name="testLiteralDecimalLessThanInteger" inputfile="observation-example.xml"><expression>Observation.value.value &lt; 190</expression><output type="boolean">true</output></test>
-		<test name="testLiteralDecimalLessThanInvalid" inputfile="observation-example.xml"><expression invalid="semantic">Observation.value.value &lt; 'test'</expression><!-- no output - empty set --></test>
+		<test name="testLiteralDecimalLessThanInvalid" inputfile="observation-example.xml"><expression invalid="execution">Observation.value.value &lt; 'test'</expression><!-- no output - empty set --></test>
 
 		<test name="testDateEqual" inputfile="patient-example.xml"><expression>Patient.birthDate = @1974-12-25</expression><output type="boolean">true</output></test>
 		<test name="testDateNotEqual" inputfile="patient-example.xml"><expression>Patient.birthDate != @1974-12-25T12:34:00</expression></test>
-		<test name="testDateNotEqualTimezoneOffsetBefore" inputfile="patient-example.xml"><expression>Patient.birthDate != @1974-12-25T12:34:00-10:00</expression><output type="boolean">true</output></test>
-		<test name="testDateNotEqualTimezoneOffsetAfter" inputfile="patient-example.xml"><expression>Patient.birthDate != @1974-12-25T12:34:00+10:00</expression><output type="boolean">true</output></test>
-		<test name="testDateNotEqualUTC" inputfile="patient-example.xml"><expression>Patient.birthDate != @1974-12-25T12:34:00Z</expression><output type="boolean">true</output></test>
+		<test name="testDateNotEqualTimezoneOffsetBefore" inputfile="patient-example.xml"><expression>Patient.birthDate != @1974-12-25T12:34:00-10:00</expression></test>
+		<test name="testDateNotEqualTimezoneOffsetAfter" inputfile="patient-example.xml"><expression>Patient.birthDate != @1974-12-25T12:34:00+10:00</expression></test>
+		<test name="testDateNotEqualUTC" inputfile="patient-example.xml"><expression>Patient.birthDate != @1974-12-25T12:34:00Z</expression></test>
 		<test name="testDateNotEqualTimeSecond" inputfile="patient-example.xml"><expression>Patient.birthDate != @T12:14:15</expression><output type="boolean">true</output></test>
 		<test name="testDateNotEqualTimeMinute" inputfile="patient-example.xml"><expression>Patient.birthDate != @T12:14</expression><output type="boolean">true</output></test>
 		<test name="testDateNotEqualToday" inputfile="patient-example.xml"><expression>Patient.birthDate &lt; today()</expression><output type="boolean">true</output></test>
-		<test name="testDateTimeGreaterThanDate" inputfile="patient-example.xml"><expression>now() &gt; Patient.birthDate</expression><output type="boolean">true</output></test>
+		<test name="testDateTimeGreaterThanDate1" inputfile="patient-example.xml"><expression>now() &gt; Patient.birthDate</expression><output type="boolean">true</output></test>
+		<test name="testDateGreaterThanDate" inputfile="patient-example.xml"><expression>today() &gt; Patient.birthDate</expression><output type="boolean">true</output></test>
+		<test name="testDateTimeGreaterThanDate2" inputfile="patient-example.xml"><expression>now() &gt; today()</expression></test>
 
 		<test name="testLiteralDateTimeTZGreater" inputfile="patient-example.xml"><expression>@2017-11-05T01:30:00.0-04:00 > @2017-11-05T01:15:00.0-05:00</expression><output type="boolean">false</output></test>
 		<test name="testLiteralDateTimeTZLess" inputfile="patient-example.xml"><expression>@2017-11-05T01:30:00.0-04:00 &lt; @2017-11-05T01:15:00.0-05:00</expression><output type="boolean">true</output></test>
@@ -290,11 +320,12 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testNotEmpty" inputfile="patient-example.xml"><expression>Patient.name.empty().not()</expression><output type="boolean">true</output></test>
 		<test name="testEmpty" inputfile="patient-example.xml"><expression>Patient.link.empty()</expression><output type="boolean">true</output></test>
 
+		<test name="testLiteralNotOnEmpty" inputfile="patient-example.xml"><expression>{}.not().empty()</expression><output type="boolean">true</output></test>
 		<test name="testLiteralNotTrue" inputfile="patient-example.xml"><expression>true.not() = false</expression><output type="boolean">true</output></test>
 		<test name="testLiteralNotFalse" inputfile="patient-example.xml"><expression>false.not() = true</expression><output type="boolean">true</output></test>
-		<test name="testIntegerBooleanNotTrue" inputfile="patient-example.xml"><expression>(0).not() = true</expression><output type="boolean">true</output></test>
+		<test name="testIntegerBooleanNotTrue" inputfile="patient-example.xml"><expression>(0).not() = false</expression><output type="boolean">true</output></test>
 		<test name="testIntegerBooleanNotFalse" inputfile="patient-example.xml"><expression>(1).not() = false</expression><output type="boolean">true</output></test>
-		<test name="testNotInvalid" inputfile="patient-example.xml"><expression invalid="semantic">(1|2).not() = false</expression></test>
+		<test name="testNotInvalid" inputfile="patient-example.xml"><expression invalid="execution">(1|2).not() = false</expression></test>
 	</group>
 
 	<group name="testTypes">
@@ -371,8 +402,10 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testDecimalLiteralToQuantity" inputfile="patient-example.xml"><expression>1.0.toQuantity() = 1.0 '1'</expression><output type="boolean">true</output></test>
 		<test name="testStringIntegerLiteralToQuantity" inputfile="patient-example.xml"><expression>'1'.toQuantity()</expression><output type="Quantity">1 '1'</output></test>
 		<test name="testStringQuantityLiteralToQuantity" inputfile="patient-example.xml"><expression>'1 day'.toQuantity() = 1 day</expression><output type="boolean">true</output></test>
-		<test name="testStringQuantityDayLiteralToQuantity" inputfile="patient-example.xml"><expression>'1 day'.toQuantity() = 1 '{day}'</expression><output type="boolean">true</output></test>
-		<test name="testStringQuantityWeekLiteralToQuantity" inputfile="patient-example.xml"><expression>'1 \'wk\''.toQuantity() = 1 'wk'</expression><output type="boolean">true</output></test>
+		<test name="testStringQuantityDayLiteralToQuantity" inputfile="patient-example.xml"><expression>'1 day'.toQuantity() = 1 'd'</expression><output type="boolean">true</output></test>
+		<test name="testStringQuantityWeekLiteralToQuantity" inputfile="patient-example.xml"><expression>'1 \'wk\''.toQuantity() = 1 week</expression><output type="boolean">true</output></test>
+		<test name="testStringQuantityMonthLiteralToQuantity" inputFile="patient-example.xml"><expression>'1 \'mo\''.toQuantity() = 1 month</expression></test>
+		<test name="testStringQuantityYearLiteralToQuantity" inputFile="patient-example.xml"><expression>'1 \'a\''.toQuantity() = 1 year</expression></test>
 		<test name="testStringDecimalLiteralToQuantity" inputfile="patient-example.xml"><expression>'1.0'.toQuantity() ~ 1 '1'</expression><output type="boolean">true</output></test>
 
 		<test name="testIntegerLiteralConvertsToBoolean" inputfile="patient-example.xml"><expression>1.convertsToBoolean()</expression><output type="boolean">true</output></test>
@@ -406,16 +439,17 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testStringLiteralToString" inputfile="patient-example.xml"><expression>'true'.toString()</expression><output type="string">true</output></test>
 		<test name="testBooleanLiteralToString" inputfile="patient-example.xml"><expression>true.toString()</expression><output type="string">true</output></test>
 		<test name="testQuantityLiteralWkToString" inputfile="patient-example.xml"><expression>1 'wk'.toString()</expression><output type="string">1 'wk'</output></test>
-		<test name="testQuantityLiteralWeekToString" inputfile="patient-example.xml"><expression>1 week.toString()</expression><output type="string">1 'week'</output></test>
+		<test name="testQuantityLiteralWeekToString" inputfile="patient-example.xml"><expression>1 week.toString()</expression><output type="string">1 week</output></test>
 
 	</group>
 
 	<group name="testExists">
-		<test inputfile="patient-example.xml"><expression>Patient.name.exists()</expression><output type="boolean">true</output></test>
-		<test inputfile="patient-example.xml"><expression>Patient.name.exists(use = 'nickname')</expression><output type="boolean">false</output></test>
-		<test inputfile="patient-example.xml"><expression>Patient.name.exists(use = 'official')</expression><output type="boolean">true</output></test>
-		<test inputfile="patient-example.xml"><expression>Patient.maritalStatus.coding.exists(code = 'P' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus')
+		<test name="testExists1" inputfile="patient-example.xml"><expression>Patient.name.exists()</expression><output type="boolean">true</output></test>
+		<test name="testExists2" inputfile="patient-example.xml"><expression>Patient.name.exists(use = 'nickname')</expression><output type="boolean">false</output></test>
+		<test name="testExists3" inputfile="patient-example.xml"><expression>Patient.name.exists(use = 'official')</expression><output type="boolean">true</output></test>
+		<test name="testExists4" inputfile="patient-example.xml"><expression>Patient.maritalStatus.coding.exists(code = 'P' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus')
 			or Patient.maritalStatus.coding.exists(code = 'A' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus')</expression><output type="boolean">false</output></test>
+		<test name="testExists5" inputfile="patient-example.xml"><expression>(1 | 2).exists()</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testAll">
@@ -428,6 +462,7 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 	<group name="testSubSetOf">
 		<test name="testSubSetOf1" inputfile="patient-example.xml"><expression>Patient.name.first().subsetOf($this.name)</expression><output type="boolean">true</output></test>
 		<test name="testSubSetOf2" inputfile="patient-example.xml"><expression>Patient.name.subsetOf($this.name.first()).not()</expression><output type="boolean">true</output></test>
+		<test name="testSubSetOf3" inputfile="explanationofbenefit-example.json"><expression>supportingInfo.where(category.coding.code = 'additionalbodysite').sequence.subsetOf($this.item.informationSequence)</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testSuperSetOf">
@@ -499,6 +534,7 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 	<group name="testSelect">
 		<test name="testSelect1" inputfile="patient-example.xml"><expression>Patient.name.select(given).count() = 5</expression><output type="boolean">true</output></test>
 		<test name="testSelect2" inputfile="patient-example.xml"><expression>Patient.name.select(given | family).count() = 7 </expression><output type="boolean">true</output></test>
+		<test name="testSelect3" inputfile="patient-example.xml"><expression>name.select(use.contains('i')).count()</expression><output type="integer">3</output></test> <!-- three booleans, all false -->
 	</group>
 
 	<group name="testRepeat">
@@ -506,6 +542,7 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testRepeat2" inputfile="questionnaire-example.xml"><expression>Questionnaire.repeat(item).code.count() = 11</expression><output type="boolean">true</output></test>
 		<test name="testRepeat3" inputfile="questionnaire-example.xml"><expression>Questionnaire.descendants().code.count() = 23</expression><output type="boolean">true</output></test>
 		<test name="testRepeat4" inputfile="questionnaire-example.xml"><expression>Questionnaire.children().code.count() = 2</expression><output type="boolean">true</output></test>
+		<test name="testRepeat5" inputfile="patient-example.xml"><expression>Patient.name.repeat('test')</expression><output type="string">test</output></test>
 	</group>
 
 	<group name="testAggregate">
@@ -522,7 +559,7 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 
 	<group name="testSingle">
 		<test name="testSingle1" inputfile="patient-example.xml"><expression>Patient.name.first().single().exists()</expression><output type="boolean">true</output></test>
-		<test name="testSingle2" inputfile="patient-example.xml"><expression	invalid="semantic">Patient.name.single().exists()</expression></test>
+		<test name="testSingle2" inputfile="patient-example.xml"><expression invalid="execution">Patient.name.single().exists()</expression></test>
 	</group>
 
 	<group name="testFirstLast">
@@ -557,6 +594,45 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testIif2" inputfile="patient-example.xml"><expression>iif(Patient.name.empty(), 'unnamed', 'named') = 'named'</expression><output type="boolean">true</output></test>
 		<test name="testIif3" inputfile="patient-example.xml"><expression>iif(true, true, (1 | 2).toString())</expression><output type="boolean">true</output></test>
 		<test name="testIif4" inputfile="patient-example.xml"><expression>iif(false, (1 | 2).toString(), true)</expression><output type="boolean">true</output></test>
+		
+			<!-- optional false criteria -->
+		<test name="testIif5" inputfile="patient-example.xml">
+		    <expression>iif(false, 'true-result').empty()</expression>
+		    <output type="boolean">true</output>
+		</test>
+
+		<!-- Non boolean criteria -->
+		<test name="testIif6" inputfile="patient-example.xml">
+		    <expression mode="strict" invalid="semantic">iif('non boolean criteria', 'true-result', 'true-result')</expression>
+		</test>
+
+		<!-- No input collection -->
+		<test name="testIif7" inputfile="patient-example.xml">
+		    <expression>{}.iif(true, 'true-result', 'false-result')</expression>
+		    <output type="string">true-result</output>
+		</test>
+
+		<!-- Single item input collection -->
+		<test name="testIif8" inputfile="patient-example.xml">
+		    <expression>('item').iif(true, 'true-result', 'false-result')</expression>
+		    <output type="string">true-result</output>
+		</test>
+
+		<!-- Single item input collection $this verification-->
+		<test name="testIif9" inputfile="patient-example.xml">
+		    <expression>('context').iif(true, select($this), 'false-result')</expression>
+		    <output type="string">context</output>
+		</test>
+
+		<!-- Multiple item collection -->
+		<test name="testIif10" inputfile="patient-example.xml">
+		    <expression invalid="execution">('item1' | 'item2').iif(true, 'true-result', 'false-result')</expression>
+		</test>
+		
+<test name="testIif11" inputfile="patient-example.xml">
+    <expression>('context').iif($this = 'context','true-result', 'false-result')</expression>
+    <output type="string">true-result</output>
+</test>
 	</group>
 
 	<group name="testToInteger">
@@ -594,12 +670,24 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testToChars1" inputfile="patient-example.xml"><expression>'t2'.toChars() = 't' | '2'</expression><output type="boolean">true</output></test>
 	</group>
 
+	<group name="testIndexOf">
+		<test name="testIndexOf1" inputfile="patient-example.xml"><expression>'LogicalModel-Person'.indexOf('-')</expression><output type="integer">12</output></test>
+		<test name="testIndexOf2" inputfile="patient-example.xml"><expression>'LogicalModel-Person'.indexOf('z')</expression><output type="integer">-1</output></test>
+		<test name="testIndexOf3" inputfile="patient-example.xml"><expression>'LogicalModel-Person'.indexOf('')</expression><output type="integer">0</output></test>
+		<test name="testIndexOf5" inputfile="patient-example.xml"><expression>'LogicalModel-Person'.indexOf({}).empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testIndexOf4" inputfile="patient-example.xml"><expression>{}.indexOf('-').empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testIndexOf6" inputfile="patient-example.xml"><expression>{}.indexOf({}).empty() = true</expression><output type="boolean">true</output></test>
+	</group>
+
 	<group name="testSubstring">
 		<test name="testSubstring1" inputfile="patient-example.xml"><expression>'12345'.substring(2) = '345'</expression><output type="boolean">true</output></test>
 		<test name="testSubstring2" inputfile="patient-example.xml"><expression>'12345'.substring(2,1) = '3'</expression><output type="boolean">true</output></test>
 		<test name="testSubstring3" inputfile="patient-example.xml"><expression>'12345'.substring(2,5) = '345'</expression><output type="boolean">true</output></test>
 		<test name="testSubstring4" inputfile="patient-example.xml"><expression>'12345'.substring(25).empty()</expression><output type="boolean">true</output></test>
 		<test name="testSubstring5" inputfile="patient-example.xml"><expression>'12345'.substring(-1).empty()</expression><output type="boolean">true</output></test>
+		<test name="testSubstring7" inputfile="patient-example.xml"><expression>'LogicalModel-Person'.substring(0, 12)</expression><output type="string">LogicalModel</output></test>
+		<test name="testSubstring8" inputfile="patient-example.xml"><expression>'LogicalModel-Person'.substring(0, 'LogicalModel-Person'.indexOf('-'))</expression><output type="string">LogicalModel</output></test>
+		<test name="testSubstring9" inputfile="patient-example.xml"><expression>{}.substring(25).empty() = true</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testStartsWith">
@@ -610,6 +698,11 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testStartsWith5" inputfile="patient-example.xml"><expression>'12345'.startsWith('12345') = true</expression><output type="boolean">true</output></test>
 		<test name="testStartsWith6" inputfile="patient-example.xml"><expression>'12345'.startsWith('123456') = false</expression><output type="boolean">true</output></test>
 		<test name="testStartsWith7" inputfile="patient-example.xml"><expression>'12345'.startsWith('') = true</expression><output type="boolean">true</output></test>
+		<test name="testStartsWith8" inputfile="patient-example.xml"><expression>{}.startsWith('1').empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testStartsWith9" inputfile="patient-example.xml"><expression>{}.startsWith('').empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testStartsWith10" inputfile="patient-example.xml"><expression>''.startsWith('') = true</expression><output type="boolean">true</output></test>
+		<test name="testStartsWith11" inputfile="patient-example.xml"><expression>{}.startsWith('').exists() = false</expression><output type="boolean">true</output></test>
+		<test name="testStartsWithNonString1" inputfile="appointment-examplereq.json"><expression invalid="semantic">Appointment.identifier.startsWith('rand')</expression></test>
 	</group>
 
 	<group name="testEndsWith">
@@ -620,6 +713,9 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testEndsWith5" inputfile="patient-example.xml"><expression>'12345'.endsWith('12345') = true</expression><output type="boolean">true</output></test>
 		<test name="testEndsWith6" inputfile="patient-example.xml"><expression>'12345'.endsWith('012345') = false</expression><output type="boolean">true</output></test>
 		<test name="testEndsWith7" inputfile="patient-example.xml"><expression>'12345'.endsWith('') = true</expression><output type="boolean">true</output></test>
+		<test name="testEndsWith8" inputfile="patient-example.xml"><expression>{}.endsWith('1').empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testEndsWith9" inputfile="patient-example.xml"><expression>{}.endsWith('').empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testEndsWithNonString1" inputfile="appointment-examplereq.json"><expression invalid="semantic">Appointment.identifier.endsWith('rand')</expression></test>
 	</group>
 
 	<group name="testContainsString">
@@ -630,6 +726,48 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testContainsString5" inputfile="patient-example.xml"><expression>'12345'.contains('12345') = true</expression><output type="boolean">true</output></test>
 		<test name="testContainsString6" inputfile="patient-example.xml"><expression>'12345'.contains('012345') = false</expression><output type="boolean">true</output></test>
 		<test name="testContainsString7" inputfile="patient-example.xml"><expression>'12345'.contains('') = true</expression><output type="boolean">true</output></test>
+		<test name="testContainsString8" inputfile="patient-example.xml"><expression>{}.contains('a').empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testContainsString9" inputfile="patient-example.xml"><expression>{}.contains('').empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testContainsNonString1" inputfile="appointment-examplereq.json"><expression invalid="semantic">Appointment.identifier.contains('rand')</expression></test>
+	</group>
+
+	<group name="testMatches">
+		<test name="testMatchesCaseSensitive1"><expression>'FHIR'.matches('FHIR')</expression><output type="boolean">true</output></test>
+		<test name="testMatchesCaseSensitive2"><expression>'FHIR'.matches('fhir')</expression><output type="boolean">false</output></test>
+		<test name="testMatchesEmpty"><expression>'FHIR'.matches({}).empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testMatchesEmpty2"><expression>{}.matches('FHIR').empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testMatchesEmpty3"><expression>{}.matches({}).empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testMatchesSingleLineMode1"><expression>'A
+			B'.matches('A.*B')</expression><output type="boolean">true</output></test>
+		<test name="testMatchesWithinUrl1"><expression>'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matches('library')</expression><output type="boolean">false</output></test>
+		<test name="testMatchesWithinUrl2"><expression>'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matches('Library')</expression><output type="boolean">true</output></test>
+		<test name="testMatchesWithinUrl3"><expression>'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matches('^Library$')</expression><output type="boolean">false</output></test>
+		<test name="testMatchesWithinUrl1a"><expression>'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matches('.*Library.*')</expression><output type="boolean">true</output></test>
+		<test name="testMatchesWithinUrl4"><expression>'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matches('Measure')</expression><output type="boolean">false</output></test>
+		<test name="testMatchesFullWithinUrl1"><expression>'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('library')</expression><output type="boolean">false</output></test>
+		<test name="testMatchesFullWithinUrl3"><expression>'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('Library')</expression><output type="boolean">false</output></test>
+		<test name="testMatchesFullWithinUrl4"><expression>'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('^Library$')</expression><output type="boolean">false</output></test>
+		<test name="testMatchesFullWithinUrl1a"><expression>'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('.*Library.*')</expression><output type="boolean">true</output></test>
+		<test name="testMatchesFullWithinUrl2"><expression>'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('Measure')</expression><output type="boolean">false</output></test>
+<!--		<test name="testMatchesUnicodeCharacters"><expression>'🔥🔥🔥'.matches('🔥+')</expression><output type="boolean">true</output></test> -->
+	</group>
+	<group name="testReplaceMatches">
+		<test name="testReplaceMatches1" inputfile="patient-example.xml"><expression>'123456'.replaceMatches('234', 'X')</expression><output type="string">1X56</output></test>
+		<test name="testReplaceMatches2" inputfile="patient-example.xml"><expression>'abc'.replaceMatches('', 'x')</expression><output type="string">abc</output></test>
+		<test name="testReplaceMatches3" inputfile="patient-example.xml"><expression>'123456'.replaceMatches('234', '')</expression><output type="string">156</output></test>
+		<test name="testReplaceMatches4" inputfile="patient-example.xml"><expression>{}.replaceMatches('234', 'X').empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testReplaceMatches5" inputfile="patient-example.xml"><expression>'123'.replaceMatches({}, 'X').empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testReplaceMatches6" inputfile="patient-example.xml"><expression>'123'.replaceMatches('2', {}).empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testReplaceMatches7" inputfile="patient-example.xml"><expression>'abc123'.replaceMatches('[0-9]', '-')</expression><output type="string">abc---</output></test>
+	</group>
+
+	<group name="testReplace">
+		<test name="testReplace1" inputfile="patient-example.xml"><expression>'123456'.replace('234', 'X')</expression><output type="string">1X56</output></test>
+		<test name="testReplace2" inputfile="patient-example.xml"><expression>'abc'.replace('', 'x')</expression><output type="string">xaxbxcx</output></test>
+		<test name="testReplace3" inputfile="patient-example.xml"><expression>'123456'.replace('234', '')</expression><output type="string">156</output></test>
+		<test name="testReplace4" inputfile="patient-example.xml"><expression>{}.replace('234', 'X').empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testReplace5" inputfile="patient-example.xml"><expression>'123'.replace({}, 'X').empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testReplace6" inputfile="patient-example.xml"><expression>'123'.replace('2', {}).empty() = true</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testLength">
@@ -638,40 +776,46 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testLength3" inputfile="patient-example.xml"><expression>'123'.length() = 3</expression><output type="boolean">true</output></test>
 		<test name="testLength4" inputfile="patient-example.xml"><expression>'1'.length() = 1</expression><output type="boolean">true</output></test>
 		<test name="testLength5" inputfile="patient-example.xml"><expression>''.length() = 0</expression><output type="boolean">true</output></test>
+		<test name="testLength6" inputfile="patient-example.xml"><expression>{}.length().empty() = true</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testEncodeDecode">
-		<test inputfile="patient-example.xml"><expression>'test'.encode('base64')</expression><output type="string">dGVzdA==</output></test>
-		<test inputfile="patient-example.xml"><expression>'test'.encode('hex')</expression><output type="string">74657374</output></test>
-		<test inputfile="patient-example.xml"><expression>'subjects?_d'.encode('base64')</expression><output type="string">c3ViamVjdHM/X2Q=</output></test>
-		<test inputfile="patient-example.xml"><expression>'subjects?_d'.encode('urlbase64')</expression><output type="string">c3ViamVjdHM_X2Q=</output></test>
+		<test name="testEncodeBase64A" version="2.1.0" inputfile="patient-example.xml"><expression>'test'.encode('base64')</expression><output type="string">dGVzdA==</output></test>
+		<test name="testEncodeHex" version="2.1.0" inputfile="patient-example.xml"><expression>'test'.encode('hex')</expression><output type="string">74657374</output></test>
+		<test name="testEncodeBase64B" version="2.1.0" inputfile="patient-example.xml"><expression>'subjects?_d'.encode('base64')</expression><output type="string">c3ViamVjdHM/X2Q=</output></test>
+		<test name="testEncodeUrlBase64" version="2.1.0" inputfile="patient-example.xml"><expression>'subjects?_d'.encode('urlbase64')</expression><output type="string">c3ViamVjdHM_X2Q=</output></test>
 
-		<test inputfile="patient-example.xml"><expression>'dGVzdA=='.decode('base64')</expression><output type="string">test</output></test>
-		<test inputfile="patient-example.xml"><expression>'74657374'.decode('hex')</expression><output type="string">test</output></test>
-		<test inputfile="patient-example.xml"><expression>'c3ViamVjdHM/X2Q='.decode('base64')</expression><output type="string">subjects?_d</output></test>
-		<test inputfile="patient-example.xml"><expression>'c3ViamVjdHM_X2Q='.decode('urlbase64')</expression><output type="string">subjects?_d</output></test>
+		<test name="testDecodeBase64A" version="2.1.0" inputfile="patient-example.xml"><expression>'dGVzdA=='.decode('base64')</expression><output type="string">test</output></test>
+		<test name="testDecodeHex" version="2.1.0" inputfile="patient-example.xml"><expression>'74657374'.decode('hex')</expression><output type="string">test</output></test>
+		<test name="testDecodeBase64B" version="2.1.0" inputfile="patient-example.xml"><expression>'c3ViamVjdHM/X2Q='.decode('base64')</expression><output type="string">subjects?_d</output></test>
+		<test name="testDecodeUrlBase64" version="2.1.0" inputfile="patient-example.xml"><expression>'c3ViamVjdHM_X2Q='.decode('urlbase64')</expression><output type="string">subjects?_d</output></test>
 	</group>
 
-	<group name="testExcapeUnescape">
-		<test inputfile="patient-example.xml"><expression>'"1&lt;2"'.escape('html')</expression><output type="string">&amp;quot;1&amp;lt;2&amp;quot;</output></test>
-		<test inputfile="patient-example.xml"><expression>'"1&lt;2"'.escape('json')</expression><output type="string">\"1&lt;2\"</output></test>
-		<test inputfile="patient-example.xml"><expression>'&amp;quot;1&amp;lt;2&amp;quot;'.unescape('html')</expression><output type="string">"1&lt;2"</output></test>
-		<test inputfile="patient-example.xml"><expression>'\"1&lt;2\"'.unescape('json')</expression><output type="string">"1&lt;2"</output></test>
+	<group name="testEscapeUnescape">
+		<test name="testEscapeHtml" version="2.1.0" inputfile="patient-example.xml"><expression>'"1&lt;2"'.escape('html')</expression><output type="string">&amp;quot;1&amp;lt;2&amp;quot;</output></test>
+		<test name="testEscapeJson" version="2.1.0" inputfile="patient-example.xml"><expression>'"1&lt;2"'.escape('json')</expression><output type="string">\"1&lt;2\"</output></test>
+		<test name="testUnescapeHtml" version="2.1.0" inputfile="patient-example.xml"><expression>'&amp;quot;1&amp;lt;2&amp;quot;'.unescape('html')</expression><output type="string">"1&lt;2"</output></test>
+		<test name="testUnescapeJson" version="2.1.0" inputfile="patient-example.xml"><expression>'\"1&lt;2\"'.unescape('json')</expression><output type="string">"1&lt;2"</output></test>
 	</group>
 
 	<group name="testTrim">
-		<test inputfile="patient-example.xml"><expression>'123456'.trim().length() = 6</expression><output type="boolean">true</output></test>
-		<test inputfile="patient-example.xml"><expression>'123 456'.trim().length() = 7</expression><output type="boolean">true</output></test>
-		<test inputfile="patient-example.xml"><expression>' 123456 '.trim().length() = 6</expression><output type="boolean">true</output></test>
-		<test inputfile="patient-example.xml"><expression>'  '.trim().length() = 0</expression><output type="boolean">true</output></test>
+		<test name="testTrim1" version="2.1.0" inputfile="patient-example.xml"><expression>'123456'.trim().length() = 6</expression><output type="boolean">true</output></test>
+		<test name="testTrim2" version="2.1.0" inputfile="patient-example.xml"><expression>'123 456'.trim().length() = 7</expression><output type="boolean">true</output></test>
+		<test name="testTrim3" version="2.1.0" inputfile="patient-example.xml"><expression>' 123456 '.trim().length() = 6</expression><output type="boolean">true</output></test>
+		<test name="testTrim4" version="2.1.0" inputfile="patient-example.xml"><expression>'  '.trim().length() = 0</expression><output type="boolean">true</output></test>
+		<test name="testTrim5" version="2.1.0" inputfile="patient-example.xml"><expression>{}.trim().empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testTrim6" version="2.1.0" inputfile="patient-example.xml"><expression>'      '.trim() = ''</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testSplit">
-		<test inputfile="patient-example.xml"><expression>'Peter,James,Jim,Peter,James'.split(',').count() = 5</expression><output type="boolean">true</output></test>
-	</group>
+		<test name="testSplit1" version="2.1.0" inputfile="patient-example.xml"><expression>'Peter,James,Jim,Peter,James'.split(',').count() = 5</expression><output type="boolean">true</output></test>
+		<test name="testSplit2" version="2.1.0" inputfile="patient-example.xml"><expression>'A,,C'.split(',').join(',') = 'A,,C'</expression><output type="boolean">true</output></test>
+		<test name="testSplit3" version="2.1.0" inputfile="patient-example.xml"><expression>'[stop]ONE[stop][stop]TWO[stop][stop][stop]THREE[stop][stop]'.split('[stop]').trace('n').count() = 9</expression><output type="boolean">true</output></test>
+		<test name="testSplit4" version="2.1.0" inputfile="patient-example.xml"><expression>'[stop]ONE[stop][stop]TWO[stop][stop][stop]THREE[stop][stop]'.split('[stop]').join('[stop]')</expression><output type="string">[stop]ONE[stop][stop]TWO[stop][stop][stop]THREE[stop][stop]</output></test>
+  </group>
 
 	<group name="testJoin">
-		<test inputfile="patient-example.xml"><expression>name.given.join(',')</expression><output type="string">Peter,James,Jim,Peter,James</output></test>
+		<test name="testJoin" version="2.1.0" inputfile="patient-example.xml"><expression>name.given.join(',')</expression><output type="string">Peter,James,Jim,Peter,James</output></test>
 	</group>
 
 	<group name="testTrace">
@@ -689,6 +833,19 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testNow2" inputfile="patient-example.xml"><expression>now().toString().length() > 10</expression><output type="boolean">true</output></test>
 	</group>
 
+	<group name="testSort">
+		<test name="testSort1" inputfile="patient-example.xml"><expression>(1 | 2 | 3).sort() = (1 | 2 | 3)</expression><output type="boolean">true</output></test>
+		<test name="testSort2" inputfile="patient-example.xml"><expression>(3 | 2 | 1).sort() = (1 | 2 | 3)</expression><output type="boolean">true</output></test>
+		<test name="testSort3" inputfile="patient-example.xml"><expression>(1 | 2 | 3).sort($this) = (1 | 2 | 3)</expression><output type="boolean">true</output></test>
+		<test name="testSort4" inputfile="patient-example.xml"><expression>(3 | 2 | 1).sort($this) = (1 | 2 | 3)</expression><output type="boolean">true</output></test>
+		<test name="testSort5" inputfile="patient-example.xml"><expression>(1 | 2 | 3).sort(-$this) = (3 | 2 | 1)</expression><output type="boolean">true</output></test>
+		<test name="testSort6" inputfile="patient-example.xml"><expression>('a' | 'b' | 'c').sort($this) = ('a' | 'b' | 'c')</expression><output type="boolean">true</output></test>
+		<test name="testSort7" inputfile="patient-example.xml"><expression>('c' | 'b' | 'a').sort($this) = ('a' | 'b' | 'c')</expression><output type="boolean">true</output></test>
+		<test name="testSort8" inputfile="patient-example.xml"><expression>('a' | 'b' | 'c').sort(-$this) = ('c' | 'b' | 'a')</expression><output type="boolean">true</output></test>
+		<test name="testSort9" inputfile="patient-example.xml"><expression>Patient.name[0].given.sort() = ('James' | 'Peter')</expression><output type="boolean">true</output></test>
+		<test name="testSort10" inputfile="patient-example.xml"><expression>Patient.name.sort(-family, -given.first()).first().use = 'usual'</expression><output type="boolean">true</output></test>
+	</group>
+
 	<group name="testEquality">
 		<test name="testEquality1" inputfile="patient-example.xml"><expression>1 = 1</expression><output type="boolean">true</output></test>
 		<test name="testEquality2" inputfile="patient-example.xml"><expression>{} = {}</expression></test>
@@ -696,7 +853,7 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testEquality4" inputfile="patient-example.xml"><expression>(1) = (1)</expression><output type="boolean">true</output></test>
 		<test name="testEquality5" inputfile="patient-example.xml"><expression>(1 | 2) = (1 | 2)</expression><output type="boolean">true</output></test>
 		<test name="testEquality6" inputfile="patient-example.xml"><expression>(1 | 2 | 3) = (1 | 2 | 3)</expression><output type="boolean">true</output></test>
-		<test name="testEquality7" inputfile="patient-example.xml"><expression>(1 | 1) = (1 | 2 | {})</expression></test>
+		<test name="testEquality7" inputfile="patient-example.xml"><expression>(1 | 1) = (1 | 2 | {})</expression><output type="boolean">false</output></test>
 		<test name="testEquality8" inputfile="patient-example.xml"><expression>1 = 2</expression><output type="boolean">false</output></test>
 		<test name="testEquality9" inputfile="patient-example.xml"><expression>'a' = 'a'</expression><output type="boolean">true</output></test>
 		<test name="testEquality10" inputfile="patient-example.xml"><expression>'a' = 'A'</expression><output type="boolean">false</output></test>
@@ -742,8 +899,8 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testNEquality19" inputfile="patient-example.xml"><expression>name != name</expression><output type="boolean">false</output></test>
 		<test name="testNEquality20" inputfile="patient-example.xml"><expression>name.take(2) != name.take(2).first() | name.take(2).last()</expression><output type="boolean">false</output></test>
 		<test name="testNEquality21" inputfile="patient-example.xml"><expression>name.take(2) != name.take(2).last() | name.take(2).first()</expression><output type="boolean">true</output></test>
-		<test name="testNEquality22" inputfile="patient-example.xml"><expression>1.2 / 1.8 != 0.6666667</expression><output type="boolean">true</output></test>
-		<test name="testNEquality23" inputfile="patient-example.xml"><expression>1.2 / 1.8 != 0.67</expression><output type="boolean">true</output></test>
+		<test name="testNEquality22" inputfile="patient-example.xml"><expression>(1.2 / 1.8).round(2) != 0.6666667</expression><output type="boolean">true</output></test>
+		<test name="testNEquality23" inputfile="patient-example.xml"><expression>(1.2 / 1.8).round(2) != 0.67</expression><output type="boolean">false</output></test>
 		<test name="testNEquality24" inputfile="observation-example.xml"><expression>Observation.value != 185 'kg'</expression><output type="boolean">true</output></test>
 	</group>
 
@@ -770,6 +927,8 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testEquivalent20" inputfile="patient-example.xml"><expression>name.take(2).given ~ name.take(2).first().given | name.take(2).last().given</expression><output type="boolean">true</output></test>
 		<test name="testEquivalent21" inputfile="patient-example.xml"><expression>name.take(2).given ~ name.take(2).last().given | name.take(2).first().given</expression><output type="boolean">true</output></test>
 		<test name="testEquivalent22" inputfile="observation-example.xml"><expression>Observation.value ~ 185 '[lb_av]'</expression><output type="boolean">true</output></test>
+		<test name="testEquivalent23" inputfile="observation-example.xml"><expression>(1 | 2 | 3) ~ (1 | 2 | 3)</expression><output type="boolean">true</output></test>
+		<test name="testEquivalent23" inputfile="observation-example.xml"><expression>(1 | 2 | 3) ~ (3 | 2 | 1)</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testNotEquivalent">
@@ -821,8 +980,8 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testLessThan21" inputfile="patient-example.xml"><expression>@T12:00:01 &lt; @T12:00:00</expression><output type="boolean">false</output></test>
 		<test name="testLessThan22" inputfile="observation-example.xml"><expression>Observation.value &lt; 200 '[lb_av]'</expression><output type="boolean">true</output></test>
 		<test name="testLessThan23" inputfile="patient-example.xml"><expression>@2018-03 &lt; @2018-03-01</expression></test>
-		<test name="testLessThan24" inputfile="patient-example.xml"><expression>@2018-03-01T10 &lt; @2018-03-01T10:30</expression></test>
-		<test name="testLessThan25" inputfile="patient-example.xml"><expression>@T10 &lt; @T10:30</expression></test>
+		<test name="testLessThan24" inputfile="patient-example.xml"><expression>@2018-03-01T10:30 &lt; @2018-03-01T10:30:00</expression></test>
+		<test name="testLessThan25" inputfile="patient-example.xml"><expression>@T10:30 &lt; @T10:30:00</expression></test>
 		<test name="testLessThan26" inputfile="patient-example.xml"><expression>@2018-03-01T10:30:00 &lt; @2018-03-01T10:30:00.0</expression><output type="boolean">false</output></test>
 		<test name="testLessThan27" inputfile="patient-example.xml"><expression>@T10:30:00 &lt; @T10:30:00.0</expression><output type="boolean">false</output></test>
 	</group>
@@ -851,8 +1010,8 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testLessOrEqual21" inputfile="patient-example.xml"><expression>@T12:00:01 &lt;= @T12:00:00</expression><output type="boolean">false</output></test>
 		<test name="testLessOrEqual22" inputfile="observation-example.xml"><expression>Observation.value &lt;= 200 '[lb_av]'</expression><output type="boolean">true</output></test>
 		<test name="testLessOrEqual23" inputfile="patient-example.xml"><expression>@2018-03 &lt;= @2018-03-01</expression></test>
-		<test name="testLessOrEqual24" inputfile="patient-example.xml"><expression>@2018-03-01T10 &lt;= @2018-03-01T10:30</expression></test>
-		<test name="testLessOrEqual25" inputfile="patient-example.xml"><expression>@T10 &lt;= @T10:30</expression></test>
+		<test name="testLessOrEqual24" inputfile="patient-example.xml"><expression>@2018-03-01T10:30 &lt;= @2018-03-01T10:30:00</expression></test>
+		<test name="testLessOrEqual25" inputfile="patient-example.xml"><expression>@T10:30 &lt;= @T10:30:00</expression></test>
 		<test name="testLessOrEqual26" inputfile="patient-example.xml"><expression>@2018-03-01T10:30:00  &lt;= @2018-03-01T10:30:00.0</expression><output type="boolean">true</output></test>
 		<test name="testLessOrEqual27" inputfile="patient-example.xml"><expression>@T10:30:00 &lt;= @T10:30:00.0</expression><output type="boolean">true</output></test>
 	</group>
@@ -881,8 +1040,8 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testGreatorOrEqual21" inputfile="patient-example.xml"><expression>@T12:00:01 >= @T12:00:00</expression><output type="boolean">true</output></test>
 		<test name="testGreatorOrEqual22" inputfile="observation-example.xml"><expression>Observation.value &gt;= 100 '[lb_av]'</expression><output type="boolean">true</output></test>
 		<test name="testGreatorOrEqual23" inputfile="patient-example.xml"><expression>@2018-03 >= @2018-03-01</expression></test>
-		<test name="testGreatorOrEqual24" inputfile="patient-example.xml"><expression>@2018-03-01T10 >= @2018-03-01T10:30</expression></test>
-		<test name="testGreatorOrEqual25" inputfile="patient-example.xml"><expression>@T10 >= @T10:30</expression></test>
+		<test name="testGreatorOrEqual24" inputfile="patient-example.xml"><expression>@2018-03-01T10:30 >= @2018-03-01T10:30:00</expression></test>
+		<test name="testGreatorOrEqual25" inputfile="patient-example.xml"><expression>@T10:30 >= @T10:30:00</expression></test>
 		<test name="testGreatorOrEqual26" inputfile="patient-example.xml"><expression>@2018-03-01T10:30:00 >= @2018-03-01T10:30:00.0</expression><output type="boolean">true</output></test>
 		<test name="testGreatorOrEqual27" inputfile="patient-example.xml"><expression>@T10:30:00 >= @T10:30:00.0</expression><output type="boolean">true</output></test>
 	</group>
@@ -911,10 +1070,16 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testGreaterThan21" inputfile="patient-example.xml"><expression>@T12:00:01 > @T12:00:00</expression><output type="boolean">true</output></test>
 		<test name="testGreaterThan22" inputfile="observation-example.xml"><expression>Observation.value &gt; 100 '[lb_av]'</expression><output type="boolean">true</output></test>
 		<test name="testGreaterThan23" inputfile="patient-example.xml"><expression>@2018-03 > @2018-03-01</expression></test>
-		<test name="testGreaterThan24" inputfile="patient-example.xml"><expression>@2018-03-01T10 > @2018-03-01T10:30</expression></test>
-		<test name="testGreaterThan25" inputfile="patient-example.xml"><expression>@T10 > @T10:30</expression></test>
+		<test name="testGreaterThan24" inputfile="patient-example.xml"><expression>@2018-03-01T10:30 > @2018-03-01T10:30:00</expression></test>
+		<test name="testGreaterThan25" inputfile="patient-example.xml"><expression>@T10:30 > @T10:30:00</expression></test>
 		<test name="testGreaterThan26" inputfile="patient-example.xml"><expression>@2018-03-01T10:30:00 > @2018-03-01T10:30:00.0</expression><output type="boolean">false</output></test>
 		<test name="testGreaterThan27" inputfile="patient-example.xml"><expression>@T10:30:00 > @T10:30:00.0</expression><output type="boolean">false</output></test>
+	</group>
+
+  <group name="testCombine()">
+		<test name="testCombine1" inputfile="codesystem-example.xml"><expression>concept.code.combine($this.descendants().concept.code).isDistinct()</expression><output type="boolean">false</output></test>
+		<test name="testCombine2" inputfile="patient-example.xml"><expression>name.given.combine(name.family).exclude('Jim')</expression><output type="string">Peter</output><output type="string">James</output><output type="string">Peter</output><output type="string">James</output><output type="string">Chalmers</output><output type="string">Windsor</output></test>
+		<test name="testCombine3" inputfile="patient-example.xml"><expression>name.given.combine($this.name.family).exclude('Jim')</expression><output type="string">Peter</output><output type="string">James</output><output type="string">Peter</output><output type="string">James</output><output type="string">Chalmers</output><output type="string">Windsor</output></test>
 	</group>
 
 	<group name="testUnion">
@@ -926,6 +1091,9 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testUnion6" inputfile="patient-example.xml"><expression>(1 | 2).combine(2).count() = 3</expression><output type="boolean">true</output></test> <!-- do not merge duplicates -->
 		<test name="testUnion7" inputfile="patient-example.xml"><expression>1.combine(1).count() = 2</expression><output type="boolean">true</output></test> <!-- do not merge duplicates -->
 		<test name="testUnion8" inputfile="patient-example.xml"><expression>1.combine(1).union(2).count() = 2</expression><output type="boolean">true</output></test> <!-- do not merge duplicates -->
+		<test name="testUnion9" inputfile="patient-example.xml"><expression>name.select(use | given).count()</expression><output type="integer">8</output></test>
+		<test name="testUnion10" inputfile="patient-example.xml"><expression>name.select(use.union($this.given)).count()</expression><output type="integer">8</output></test>
+		<test name="testUnion11" inputfile="patient-example.xml"><expression>name.select(use.union(given)).count()</expression><output type="integer">8</output></test>
 	</group>
 
 	<group name="testIntersect">
@@ -1009,20 +1177,47 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testPlus2" inputfile="patient-example.xml"><expression>1 + 0 = 1</expression><output type="boolean">true</output></test>
 		<test name="testPlus3" inputfile="patient-example.xml"><expression>1.2 + 1.8 = 3.0</expression><output type="boolean">true</output></test>
 		<test name="testPlus4" inputfile="patient-example.xml"><expression>'a'+'b' = 'ab'</expression><output type="boolean">true</output></test>
+   
+    <test name="testPlusDate1" inputfile="patient-example.xml"><expression>@1973-12-25 + 7 days</expression>                             <output type="date">@1974-01-01</output></test>
+    <test name="testPlusDate2" inputfile="patient-example.xml"><expression>@1973-12-25 + 7.7 days</expression>                           <output type="date">@1974-01-01</output></test>
+    <test name="testPlusDate3" inputfile="patient-example.xml"><expression>@1973-12-25T00:00:00.000+10:00 + 7 days</expression>          <output type="dateTime">@1974-01-01T00:00:00.000+10:00</output></test>
+    <test name="testPlusDate4" inputfile="patient-example.xml"><expression>@1973-12-25T00:00:00.000+10:00 + 7.7 days</expression>        <output type="dateTime">@1974-01-01T00:00:00.000+10:00</output></test>
+    <test name="testPlusDate5" inputfile="patient-example.xml"><expression>@1973-12-25T00:00:00.000+10:00 + 1 second</expression>       <output type="dateTime">@1973-12-25T00:00:01.000+10:00</output></test>
+    <test name="testPlusDate6" inputfile="patient-example.xml"><expression>@1973-12-25T00:00:00.000+10:00 + 10 millisecond</expression> <output type="dateTime">@1973-12-25T00:00:00.010+10:00</output></test>
+    <test name="testPlusDate7" inputfile="patient-example.xml"><expression>@1973-12-25T00:00:00.000+10:00 + 1 minute</expression>       <output type="dateTime">@1973-12-25T00:01:00.000+10:00</output></test>
+    <test name="testPlusDate8" inputfile="patient-example.xml"><expression>@1973-12-25T00:00:00.000+10:00 + 1 hour</expression>         <output type="dateTime">@1973-12-25T01:00:00.000+10:00</output></test>
+    <test name="testPlusDate9" inputfile="patient-example.xml"><expression>@1973-12-25 + 1 day</expression>                             <output type="date">@1973-12-26</output></test>
+    <test name="testPlusDate10" inputfile="patient-example.xml"><expression>@1973-12-25 + 1 month</expression>                           <output type="date">@1974-01-25</output></test>
+    <test name="testPlusDate11" inputfile="patient-example.xml"><expression>@1973-12-25 + 1 week</expression>                            <output type="date">@1974-01-01</output></test>
+    <test name="testPlusDate12" inputfile="patient-example.xml"><expression>@1973-12-25 + 1 year</expression>                            <output type="date">@1974-12-25</output></test>
+    <test name="testPlusDate13" inputfile="patient-example.xml"><expression>@1973-12-25 + 1 'd'</expression>                              <output type="date">@1973-12-26</output></test>
+    <test name="testPlusDate14" inputfile="patient-example.xml"><expression invalid="execution">@1973-12-25 + 1 'mo'</expression>        </test>
+    <test name="testPlusDate15" inputfile="patient-example.xml"><expression>@1973-12-25 + 1 'wk'</expression>                            <output type="date">@1974-01-01</output></test>
+    <test name="testPlusDate16" inputfile="patient-example.xml"><expression invalid="execution">@1973-12-25 + 1 'a'</expression>        </test>
+    <test name="testPlusDate17" inputfile="patient-example.xml"><expression invalid="execution">@1975-12-25 + 1 'a'</expression>        </test>
+    <test name="testPlusDate18" inputfile="patient-example.xml"><expression>@1973-12-25T00:00:00.000+10:00 + 1 's'</expression>           <output type="dateTime">@1973-12-25T00:00:01.000+10:00</output></test>
+    <test name="testPlusDate19" inputfile="patient-example.xml"><expression>@1973-12-25T00:00:00.000+10:00 + 0.1 's'</expression>         <output type="dateTime">@1973-12-25T00:00:00.000+10:00</output></test>
+    <test name="testPlusDate20" inputfile="patient-example.xml"><expression>@1973-12-25T00:00:00.000+10:00 + 10 'ms'</expression>         <output type="dateTime">@1973-12-25T00:00:00.010+10:00</output></test>
+    <test name="testPlusDate21" inputfile="patient-example.xml"><expression>@1973-12-25T00:00:00.000+10:00 + 1 'min'</expression>         <output type="dateTime">@1973-12-25T00:01:00.000+10:00</output></test>
+    <test name="testPlusDate22" inputfile="patient-example.xml"><expression>@1973-12-25T00:00:00.000+10:00 + 1 'h'</expression>           <output type="dateTime">@1973-12-25T01:00:00.000+10:00</output></test>
+    
+    <test name="testPlus6" inputfile="patient-example.xml"><expression invalid="semantic">@1974-12-25 + 7</expression></test>
 	</group>
 
 	<group name="testConcatenate">
 		<test name="testConcatenate1" inputfile="patient-example.xml"><expression>'a' &amp; 'b' = 'ab'</expression><output type="boolean">true</output></test>
 		<test name="testConcatenate2" inputfile="patient-example.xml"><expression>'1' &amp; {} = '1'</expression><output type="boolean">true</output></test>
 		<test name="testConcatenate3" inputfile="patient-example.xml"><expression>{} &amp; 'b' = 'b'</expression><output type="boolean">true</output></test>
-		<test name="testConcatenate4" inputfile="patient-example.xml"><expression invalid="semantic">(1 | 2 | 3) &amp; 'b' = '1,2,3b'</expression></test>
+		<test name="testConcatenate4" inputfile="patient-example.xml"><expression invalid="execution">(1 | 2 | 3) &amp; 'b' = '1,2,3b'</expression></test>
 	</group>
 
 	<group name="testMinus">
 		<test name="testMinus1" inputfile="patient-example.xml"><expression>1 - 1 = 0</expression><output type="boolean">true</output></test>
 		<test name="testMinus2" inputfile="patient-example.xml"><expression>1 - 0 = 1</expression><output type="boolean">true</output></test>
 		<test name="testMinus3" inputfile="patient-example.xml"><expression>1.8 - 1.2 = 0.6</expression><output type="boolean">true</output></test>
-		<test name="testMinus4" inputfile="patient-example.xml"><expression invalid="semantic">'a'-'b' = 'ab'</expression></test>
+		<test name="testMinus4" inputfile="patient-example.xml"><expression invalid="execution">'a'-'b' = 'ab'</expression></test>
+		<test name="testMinus5" inputfile="patient-example.xml"><expression>@1974-12-25 - 1 'month'</expression><output type="date">@1974-11-25</output></test>
+    <test name="testMinus6" inputfile="patient-example.xml"><expression invalid="execution">@1974-12-25 - 1 'cm'</expression></test>
 	</group>
 
 	<group name="testMultiply">
@@ -1036,7 +1231,7 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testDivide2" inputfile="patient-example.xml"><expression>4 / 2 = 2</expression><output type="boolean">true</output></test>
 		<test name="testDivide3" inputfile="patient-example.xml"><expression>4.0 / 2.0 = 2.0</expression><output type="boolean">true</output></test>
 		<test name="testDivide4" inputfile="patient-example.xml"><expression>1 / 2 = 0.5</expression><output type="boolean">true</output></test>
-		<test name="testDivide5" inputfile="patient-example.xml"><expression>1.2 / 1.8 = 0.66666667</expression><output type="boolean">true</output></test>
+		<test name="testDivide5" inputfile="patient-example.xml"><expression>(1.2 / 1.8).round(2) = 0.67</expression><output type="boolean">true</output></test>
 		<test name="testDivide6" inputfile="patient-example.xml"><expression>1 / 0</expression></test>
 	</group>
 
@@ -1058,7 +1253,7 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 
 	<group name="testRound">
 		<test name="testRound1" inputfile="patient-example.xml"><expression>1.round() = 1</expression><output type="boolean">true</output></test>
-		<test name="testRound2" inputfile="patient-example.xml"><expression>3.14159.round(3) = 2</expression><output type="boolean">true</output></test>
+		<test name="testRound2" inputfile="patient-example.xml"><expression>3.14159.round(3) = 3.142</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testSqrt">
@@ -1081,6 +1276,7 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 	<group name="testExp">
 		<test name="testExp1" inputfile="patient-example.xml"><expression>0.exp() = 1</expression><output type="boolean">true</output></test>
 		<test name="testExp2" inputfile="patient-example.xml"><expression>(-0.0).exp() = 1</expression><output type="boolean">true</output></test>
+		<test name="testExp3" inputfile="patient-example.xml"><expression>{}.exp().empty() = true</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testFloor">
@@ -1113,13 +1309,15 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 
 	<group name="testPrecedence">
 		<test name="testPrecedence1" description="test unary precedence" inputfile="patient-example.xml">
-			<expression invalid="semantic">-1.convertsToInteger()</expression>
+			<expression invalid="execution">-1.convertsToInteger()</expression>
 			<!-- should error because unary does not work on boolean: -(1.convertsToInteger()) -->
 		</test>
 
 		<test name="testPrecedence2" inputfile="patient-example.xml"><expression>1+2*3+4 = 11</expression><output type="boolean">true</output></test>
 		<test name="testPrecedence3" inputfile="patient-example.xml"><expression>1 > 2 is Boolean</expression><output type="boolean">true</output></test>
 		<test name="testPrecedence4" inputfile="patient-example.xml"><expression>1 | 1 is Integer</expression><output type="boolean">true</output></test>
+		<test name="testPrecedence5" inputfile="observation-example.xml"><expression>true and '0215' in ('0215' | '0216')</expression><output type="boolean">true</output></test>
+		<test name="testPrecedence6" inputfile="observation-example.xml"><expression>category.exists(coding.exists(system = 'http://terminology.hl7.org/CodeSystem/observation-category' and code.trace('c') in ('vital-signs' | 'vital-signs2').trace('codes')))</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testVariables">
@@ -1137,7 +1335,9 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 
 	<group name="testType">
 		<test name="testType1" inputfile="patient-example.xml"><expression>1.type().namespace = 'System'</expression><output type="boolean">true</output></test>
-		<test name="testType2" inputfile="patient-example.xml"><expression>1.type().name = 'Integer'</expression><output type="boolean">true</output></test>
+		<test name="testType1a" inputfile="patient-example.xml"><expression>1.type().name = 'Integer'</expression><output type="boolean">true</output></test>
+		<test name="testType2" inputfile="patient-example.xml"><expression>'1'.type().namespace = 'System'</expression><output type="boolean">true</output></test>
+		<test name="testType2a" inputfile="patient-example.xml"><expression>'1'.type().name = 'String'</expression><output type="boolean">true</output></test>
 		<test name="testType3" inputfile="patient-example.xml"><expression>true.type().namespace = 'System'</expression><output type="boolean">true</output></test>
 		<test name="testType4" inputfile="patient-example.xml"><expression>true.type().name = 'Boolean'</expression><output type="boolean">true</output></test>
 		<test name="testType5" inputfile="patient-example.xml"><expression>true.is(Boolean)</expression><output type="boolean">true</output></test>
@@ -1159,12 +1359,93 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test name="testType21" inputfile="patient-example.xml"><expression>Patient.ofType(FHIR.Patient).type().name</expression><output type="string">Patient</output></test>
 		<test name="testType22" inputfile="patient-example.xml"><expression>Patient.is(System.Patient).not()</expression><output type="boolean">true</output></test>
 		<test name="testType23" inputfile="patient-example.xml"><expression>Patient.ofType(FHIR.`Patient`).type().name</expression><output type="string">Patient</output></test>
+
+		<test name="testTypeA1" inputfile="parameters-example-types.xml"><expression>Parameters.parameter[0].value.is(FHIR.string)</expression><output type="boolean">true</output></test>
+		<test name="testTypeA2" inputfile="parameters-example-types.xml"><expression>Parameters.parameter[1].value.is(FHIR.integer)</expression><output type="boolean">true</output></test>
+		<test name="testTypeA3" inputfile="parameters-example-types.xml"><expression>Parameters.parameter[2].value.is(FHIR.uuid)</expression><output type="boolean">true</output></test>
+		<test name="testTypeA4" inputfile="parameters-example-types.xml"><expression>Parameters.parameter[2].value.is(FHIR.uri)</expression><output type="boolean">true</output></test>
+		<test name="testTypeA" inputfile="parameters-example-types.xml"><expression>Parameters.parameter[3].value.is(FHIR.decimal)</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testConformsTo">
 		<test name="testConformsTo1" inputfile="patient-example.xml"><expression>conformsTo('http://hl7.org/fhir/StructureDefinition/Patient')</expression><output type="boolean">true</output></test>
 		<test name="testConformsTo2" inputfile="patient-example.xml"><expression>conformsTo('http://hl7.org/fhir/StructureDefinition/Person')</expression><output type="boolean">false</output></test>
-		<test name="testConformsTo3" inputfile="patient-example.xml"><expression invalid="true">conformsTo('http://trash')</expression></test>
+		<test name="testConformsTo3" inputfile="patient-example.xml"><expression invalid="execution">conformsTo('http://trash')</expression></test>
+	</group>
+
+	<group name="LowBoundary">
+		<test name="LowBoundaryDecimalDefault"><expression>1.587.lowBoundary()</expression><output>1.58650000</output></test>
+		<test name="LowBoundaryDecimal1"><expression>1.587.lowBoundary(6)</expression><output>1.586500</output></test>
+		<test name="LowBoundaryDecimal2"><expression>1.587.lowBoundary(2)</expression><output>1.58</output></test>
+		<test name="LowBoundaryDecimal3"><expression>1.587.lowBoundary(-1)</expression></test>
+		<test name="LowBoundaryDecimal4"><expression>1.587.lowBoundary(0)</expression><output>1</output></test>
+		<test name="LowBoundaryDecimal5"><expression>1.587.lowBoundary(32)</expression></test>
+
+		<test name="LowBoundaryNegDecimalDefault"><expression>(-1.587).lowBoundary()</expression><output>-1.58750000</output></test>
+		<test name="LowBoundaryNegDecimal1"><expression>(-1.587).lowBoundary(6)</expression><output>-1.587500</output></test>
+		<test name="LowBoundaryNegDecimal2"><expression>(-1.587).lowBoundary(2)</expression><output>-1.59</output></test>
+		<test name="LowBoundaryNegDecimal3"><expression>(-1.587).lowBoundary(-1)</expression></test>
+		<test name="LowBoundaryNegDecimal4"><expression>(-1.587).lowBoundary(0)</expression><output>-2</output></test>
+		<test name="LowBoundaryNegDecimal5"><expression>(-1.587).lowBoundary(32)</expression></test>
+
+		<test name="LowBoundaryDecimal6"><expression>1.587.lowBoundary(39)</expression></test>
+		<test name="LowBoundaryDecimal7"><expression>1.toDecimal().lowBoundary()</expression><output>0.50000000</output></test>
+		<test name="LowBoundaryDecimal8"><expression>1.lowBoundary(0)</expression><output>0</output></test>
+		<test name="LowBoundaryDecimal9"><expression>1.lowBoundary(5)</expression><output>0.50000</output></test>
+		<test name="LowBoundaryDecimal10"><expression>12.587.lowBoundary(2)</expression><output>12.58</output></test>
+		<test name="LowBoundaryDecimal11"><expression>12.500.lowBoundary(4)</expression><output>12.4995</output></test>
+		<test name="LowBoundaryDecimal12"><expression>120.lowBoundary(2)</expression><output>119.50</output></test>
+		<test name="LowBoundaryDecimal13"><expression>(-120).lowBoundary(2)</expression><output>-120.50</output></test>
+		<test name="LowBoundaryDecimal14"><expression>0.0034.lowBoundary(1)</expression><output>0.0</output></test>
+		<test name="LowBoundaryDecimal15"><expression>(-0.0034).lowBoundary(1)</expression><output>-0.0</output></test>
+
+		<test name="LowBoundaryQuantity"><expression>1.587 'cm'.lowBoundary(8)</expression><output>1.58650000 'cm'</output></test>
+		<test name="LowBoundaryDateMonth"><expression>@2014.lowBoundary(6)</expression><output>@2014-01</output></test>
+		<test name="LowBoundaryDateTimeMillisecond1"><expression>@2014-01-01T08.lowBoundary(17)</expression><output>@2014-01-01T08:00:00.000+14:00</output></test>
+		<test name="LowBoundaryDateTimeMillisecond2"><expression>@2014-01-01T08:05+08:00.lowBoundary(17)</expression><output>@2014-01-01T08:05:00.000+08:00</output></test>
+		<test name="LowBoundaryDateTimeMillisecond3"><expression>@2014-01-01T08.lowBoundary(8)</expression><output>@2014-01-01</output></test>
+		<test name="LowBoundaryTimeMillisecond"><expression>@T10:30.lowBoundary(9)</expression><output>@T10:30:00.000</output></test>
+	</group>
+
+	<group name="HighBoundary">
+		<test name="HighBoundaryDecimalDefault"><expression>1.587.highBoundary()</expression><output>1.58750000</output></test> 
+		<test name="HighBoundaryDecimal1"><expression>1.587.highBoundary(2)</expression><output>1.59</output></test> 
+		<test name="HighBoundaryDecimal2"><expression>1.587.highBoundary(6)</expression><output>1.587500</output></test> 
+		<test name="HighBoundaryDecimal3"><expression>1.587.highBoundary(-1)</expression></test> 
+		<test name="HighBoundaryDecimal4"><expression>(-1.587).highBoundary()</expression><output>-1.58650000</output></test> 
+		<test name="HighBoundaryDecimal5"><expression>(-1.587).highBoundary(2)</expression><output>-1.58</output></test> 
+		<test name="HighBoundaryDecimal6"><expression>(-1.587).highBoundary(6)</expression><output>-1.586500</output></test> 
+		<test name="HighBoundaryDecimal7"><expression>1.587.highBoundary(39)</expression></test> 
+		<test name="HighBoundaryDecimal8"><expression>1.highBoundary()</expression><output>1.50000000</output></test> 
+		<test name="HighBoundaryDecimal9"><expression>1.highBoundary(0)</expression><output>2</output></test> 
+		<test name="HighBoundaryDecimal10"><expression>1.highBoundary(5)</expression><output>1.50000</output></test> 
+		<test name="HighBoundaryDecimal11"><expression>12.587.highBoundary(2)</expression><output>12.59</output></test> 
+		<test name="HighBoundaryDecimal12"><expression>12.500.highBoundary(4)</expression><output>12.5005</output></test> 
+		<test name="HighBoundaryDecimal13"><expression>120.highBoundary(2)</expression><output>120.50</output></test> 
+		<test name="HighBoundaryDecimal14"><expression>-120.highBoundary(2)</expression><output>-120.50</output></test> 
+		<test name="HighBoundaryDecimal15"><expression>0.0034.highBoundary(1)</expression><output>0.0</output></test> 
+		<test name="HighBoundaryDecimal16"><expression>-0.0034.highBoundary(1)</expression><output>0.0</output></test> 
+		<test name="HighBoundaryDecimal"><expression>1.587.highBoundary(8)</expression><output>1.58750000</output></test>
+		<test name="HighBoundaryQuantity"><expression>1.587 'm'.highBoundary(8)</expression><output>1.58750000 'm'</output></test>
+		<test name="HighBoundaryDateMonth"><expression>@2014.highBoundary(6)</expression><output>@2014-12</output></test>
+		<test name="HighBoundaryDateTimeMillisecond1"><expression>@2014-01-01T08.highBoundary(17)</expression><output>@2014-01-01T08:00:59.999-12:00</output></test> <!-- because T08 is not legal in FHIR - must be converted to 08:00 internally first -->
+		<test name="HighBoundaryDateTimeMillisecond2"><expression>@2014-01-01T08:05-05:00.highBoundary(17)</expression><output>@2014-01-01T08:05:59.999-05:00</output></test> <!-- because T08 is not legal in FHIR - must be converted to 08:00 internally first -->
+		<test name="HighBoundaryDateTimeMillisecond3"><expression>@2014-01-01T08.highBoundary(17)</expression><output>@2014-01-01T08:00:59.999-12:00</output></test> <!-- because T08 is not legal in FHIR - must be converted to 08:00 internally first -->
+		<test name="HighBoundaryTimeMillisecond">	<expression>@T10:30.highBoundary(9)</expression><output>@T10:30:59.999</output></test>
+	</group>
+
+  <group name="Comparable">
+		<test name="Comparable1"><expression>1 'cm'.comparable(1 '[in_i]')</expression><output>true</output></test>
+		<test name="Comparable2"><expression>1 'cm'.comparable(1 '[s]')</expression><output>false</output></test>
+		<test name="Comparable3"><expression>1 'cm'.comparable(1 's')</expression><output>false</output></test>
+ 	</group>
+
+	<group name="Precision">
+		<test name="PrecisionDecimal"><expression>1.58700.precision()</expression><output>5</output></test>
+		<test name="PrecisionYear"><expression>@2014.precision()</expression><output>4</output></test>
+		<test name="PrecisionDateTimeMilliseconds"><expression>@2014-01-05T10:30:00.000.precision()</expression><output>17</output></test>
+		<test name="PrecisionTimeMinutes"><expression>@T10:30.precision()</expression><output>4</output></test>
+		<test name="PrecisionTimeMilliseconds"><expression>@T10:30:00.000.precision()</expression><output>9</output></test>
 	</group>
 
 <!--
@@ -1174,8 +1455,79 @@ https://github.com/HL7/FHIRPath/blob/master/tests/testSchema.xsd
 		<test inputfile="patient-example.xml"><expression	invalid="true">contained.select(('#'+id in %resource.descendants().reference).not()).empty()");
 	</group>
 -->
-	<group name="from-Zulip">
-		<test inputfile="patient-example.xml"><expression>(true and 'foo').empty()</expression><output type="boolean">true</output></test>
-		<test inputfile="patient-example.xml"><expression>(true | 'foo').allTrue()</expression><output type="boolean">false</output></test>
+	<group name="from-Zulip" reference="http://hl7.org/fhirpath/#singleton-evaluation-of-collections">
+		<notes>These tests are based on the discussion here: https://chat.fhir.org/#narrow/stream/179266-fhirpath/topic/Singleton.20Evaluation.20of.20Collections
+		In particular, per Singleton Evaluation of Collections, if an argument does not implicitly convert to a boolean, it is considered true if there is a single element, empty otherwise, so `true and 'foo'` evaluates to `true`, which is not empty,
+		but `true | 'foo'` is a collection, which results in an error because `'foo'` cannot be converted to a boolean for consideration in `allTrue()`.</notes>
+		<test name="from-zulip-1" inputfile="patient-example.xml"><expression>(true and 'foo').empty()</expression><output type="boolean">false</output></test>
+		<test name="from-zulip-2" inputfile="patient-example.xml"><expression invalid="execution">(true | 'foo').allTrue()</expression><output type="boolean">false</output></test>
 	</group>
+
+  <group name="polymorphics">
+    <!--
+      The way FHIRpath works, it treats polymorphic values e.g. Observation.value[x] as
+      Observation.value. This catches people out - they often write Observation.valueString.
+
+      For this reason, some engines have a non-strict mode where this is allowed, but it's not
+      technical conformant. While this might change in the future, it's not legal in strict mode.
+      these tests test this out.
+    -->
+		<test name="testPolymorphicsA" inputfile="observation-example.xml"><expression>Observation.value.exists()</expression><output type="boolean">true</output></test>
+		<test name="testPolymorphicsB" inputfile="observation-example.xml"><expression invalid="semantic">Observation.valueQuantity.exists()</expression><output type="boolean">false</output></test>
+<!--
+	lenient polymorphic mode is not supported in R4
+		<modeTest mode="lenient/polymorphics" name="testPolymorphicsC" inputfile="observation-example.xml"><expression>Observation.valueQuantity.exists()</expression><output type="boolean">true</output></modeTest>
+		<modeTest mode="lenient/polymorphics" name="testPolymorphicsD" inputfile="observation-example.xml"><expression>Observation.valueString.exists()</expression><output type="boolean">false</output></modeTest>
+-->		
+  </group>
+
+  <group name="index-part">
+		<test name="testIndex" inputfile="patient-example.xml"><expression>Patient.telecom.select(iif(value='(03) 3410 5613', $index, {} ))</expression><output type="integer">2</output></test>
+  </group>
+
+
+  <group name="period">
+		<test name="testPeriodInvariantOld" inputfile="patient-example-period.xml">
+		  <expression>Patient.identifier.period.all(start.hasValue().not() or end.hasValue().not() or (start &lt;= end))</expression>
+			<output type="boolean">false</output>
+		</test>
+		<test name="testPeriodInvariantNew" inputfile="patient-example-period.xml">
+		  <expression>Patient.identifier.period.all(start.empty() or end.empty() or (start.lowBoundary() &lt; end.highBoundary()))</expression>
+			<output type="boolean">true</output>
+		</test>
+  </group>
+
+
+	<group name="testInheritance">
+		<test name="testFHIRPathIsFunction1" inputfile="patient-example.xml"><expression>Patient.gender.is(code)</expression><output type="boolean">true</output></test>
+		<test name="testFHIRPathIsFunction2" inputfile="patient-example.xml"><expression>Patient.gender.is(string)</expression><output type="boolean">true</output></test>
+		<test name="testFHIRPathIsFunction3" inputfile="patient-example.xml"><expression>Patient.gender.is(id)</expression><output type="boolean">false</output></test>
+		<test name="testFHIRPathIsFunction4" inputfile="questionnaire-example.xml"><expression>Questionnaire.url.is(uri)</expression><output type="boolean">true</output></test>
+		<test name="testFHIRPathIsFunction5" inputfile="questionnaire-example.xml"><expression>Questionnaire.url.is(url)</expression><output type="boolean">false</output></test>
+		<test name="testFHIRPathIsFunction6" inputfile="valueset-example-expansion.xml"><expression>ValueSet.version.is(string)</expression><output type="boolean">true</output></test>
+		<test name="testFHIRPathIsFunction7" inputfile="valueset-example-expansion.xml"><expression>ValueSet.version.is(code)</expression><output type="boolean">false</output></test>
+		<test name="testFHIRPathIsFunction8" inputfile="observation-example.xml"><expression>Observation.extension('http://example.com/fhir/StructureDefinition/patient-age').value is Age</expression><output type="boolean">true</output></test>
+		<test name="testFHIRPathIsFunction9" inputfile="observation-example.xml"><expression>Observation.extension('http://example.com/fhir/StructureDefinition/patient-age').value is Quantity</expression><output type="boolean">true</output></test>
+		<test name="testFHIRPathIsFunction10" inputfile="observation-example.xml"><expression>Observation.extension('http://example.com/fhir/StructureDefinition/patient-age').value is Duration</expression><output type="boolean">false</output></test>
+		<test name="testFHIRPathAsFunction11" inputfile="patient-example.xml"><expression>Patient.gender.as(string)</expression></test>
+		<test name="testFHIRPathAsFunction12" inputfile="patient-example.xml"><expression>Patient.gender.as(code)</expression><output type="code">male</output></test>
+		<test name="testFHIRPathAsFunction13" inputfile="patient-example.xml"><expression>Patient.gender.as(id)</expression></test>
+		<test name="testFHIRPathAsFunction14" inputfile="valueset-example-expansion.xml"><expression>ValueSet.version.as(string)</expression><output type="string">20150622</output></test>
+		<test name="testFHIRPathAsFunction15" inputfile="valueset-example-expansion.xml"><expression>ValueSet.version.as(code)</expression></test>
+		<test name="testFHIRPathAsFunction16" inputfile="patient-example.xml"><expression>Patient.gender.ofType(string)</expression></test>
+		<test name="testFHIRPathAsFunction17" inputfile="patient-example.xml"><expression>Patient.gender.ofType(code)</expression><output type="code">male</output></test>
+		<test name="testFHIRPathAsFunction18" inputfile="patient-example.xml"><expression>Patient.gender.ofType(id)</expression></test>
+		<test name="testFHIRPathAsFunction19" inputfile="valueset-example-expansion.xml"><expression>ValueSet.version.ofType(string)</expression><output type="string">20150622</output></test>
+		<test name="testFHIRPathAsFunction20" inputfile="valueset-example-expansion.xml"><expression>ValueSet.version.ofType(code)</expression></test>
+		<test name="testFHIRPathAsFunction21" inputfile="patient-example.xml"><expression invalid="execution">Patient.name.as(HumanName).use</expression></test>
+		<test name="testFHIRPathAsFunction22" inputfile="patient-example.xml"><expression>Patient.name.ofType(HumanName).use</expression><output type="code">official</output><output type="code">usual</output><output type="code">maiden</output></test>
+		<test name="testFHIRPathAsFunction23" inputfile="patient-example.xml"><expression invalid="execution">Patient.gender.as(string1)</expression></test>
+		<test name="testFHIRPathAsFunction24" inputfile="patient-example.xml"><expression invalid="execution">Patient.gender.ofType(string1)</expression></test>
+	</group>
+
+
+	<group name="miscEngineTests">
+		<test name="testContainedId" inputfile="patient-container-example.json"><expression>contained.id</expression><output type="id">1</output></test>
+	</group>
+
 </tests>

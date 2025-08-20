@@ -1,4 +1,4 @@
-const updateWithGeneratedData = require('../general-additions');
+const { updateWithGeneratedData, arrToHash } = require('../general-additions');
 
 /**
  *  Exports the FHIR model data for R4.  This is an internal structure that
@@ -34,10 +34,15 @@ const modelInfo = {
   /**
    * Mapping paths to data types.
    */
-  path2Type: require('./path2Type.json')
+  path2Type: require('./path2Type.json'),
+  /**
+   * A hash with FHIR resource types that support the 'url' search parameter.
+   * The data is loaded from the resourcesWithUrlParam.json file.
+   */
+  resourcesWithUrlParam: arrToHash(require('./resourcesWithUrlParam.json'))
 };
 
 // Update with generated data
-updateWithGeneratedData(modelInfo)
+updateWithGeneratedData(modelInfo);
 
 module.exports = modelInfo;

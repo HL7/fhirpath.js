@@ -3,6 +3,9 @@
 
 let engine = {};
 const util = require("./utilities");
+// Cannot use util.hasOwnProperty directly because it triggers the error:
+// "Do not access Object.prototype method 'hasOwnProperty' from target object"
+const { hasOwnProperty } = util;
 
 
 /**
@@ -327,7 +330,7 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire,
   } else {
     if (code) {
       if (vsURL) {
-        const vsId = /^#(.*)/.test(vsURL) ? RegExp.$1 : null;
+        const vsId = /^#(.+)/.exec(vsURL)?.[1] ?? null;
         const isAnswerValueSet = vsId
           ? (r) => r.id === vsId && r.resourceType === 'ValueSet'
           : (r) => r.url === vsURL && r.resourceType === 'ValueSet';
@@ -663,7 +666,7 @@ function getQItemByLinkIds(modelVersion, questionnaire, linkIds) {
   }
 
   // We use "hasOwnProperty" because we also cache undefined results for scores.
-  if (!Object.prototype.hasOwnProperty.call(linkIds2items, linkIdsKey)) {
+  if (!hasOwnProperty(linkIds2items, linkIdsKey)) {
     // If the result is not cached yet, we search for the questionnaire item.
     const topLinkId = linkIds[linkIds.length - 1];
 

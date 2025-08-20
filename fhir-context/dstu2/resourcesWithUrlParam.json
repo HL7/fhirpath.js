@@ -1,0 +1,13 @@
+[
+  "ConceptMap",
+  "Conformance",
+  "DataElement",
+  "Device",
+  "ImplementationGuide",
+  "OperationDefinition",
+  "SearchParameter",
+  "StructureDefinition",
+  "Subscription",
+  "TestScript",
+  "ValueSet"
+]

@@ -1,0 +1,144 @@
+{
+  "resourceType": "ConceptMap",
+  "id": "example-obs-map",
+  "url": "http://example.org/ConceptMap/example-obs-map",
+  "version": "0.1",
+  "title": "Demo map from SNOMED/Loinc to/from local measure type mapping",
+  "status": "draft",
+  "targetCanonical": "http://example.org/ValueSet/local-measure-type",
+  "group": [
+    {
+      "source": "http://snomed.info/sct",
+      "target": "http://example.org/CodeSystem/local-measure-type",
+      "element": [
+        {
+          "code": "75367002",
+          "display": "Blood pressure",
+          "target": [
+            {
+              "code": "1000000008",
+              "display": "BP -  Systolic blood pressure",
+              "comment": "Blood pressure is split into multiple components in Example CodeSystem"
+            },
+            {
+              "code": "1000000009",
+              "display": "BP - Diastolic blood pressure",
+              "comment": "Blood pressure is split into multiple components in Example CodeSystem"
+            },
+            {
+              "code": "1000000009",
+              "display": "BP - Diastolic blood pressure",
+              "comment": "An intentionally duplicate mapping to test the invariant that a given source can only have one mapping to a given target"
+            }
+          ]
+        },
+        {
+          "code": "271649006",
+          "display": "Systolic blood pressure",
+          "target": [
+            {
+              "code": "1000000008",
+              "display": "BP -  Systolic blood pressure"
+            }
+          ]
+        },
+        {
+          "code": "271650006",
+          "display": "Diastolic blood pressure",
+          "target": [
+            {
+              "code": "1000000009",
+              "display": "BP - Diastolic blood pressure"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "source": "http://example.org/CodeSystem/local-measure-type",
+      "target": "http://snomed.info/sct",
+      "element": [
+        {
+          "code": "1000000008",
+          "display": "BP -  Systolic blood pressure",
+          "target": [
+            {
+              "code": "75367002",
+              "display": "Blood pressure"
+            },
+            {
+              "code": "271649006",
+              "display": "Systolic blood pressure"
+            }
+          ]
+        },
+        {
+          "code": "1000000009",
+          "display": "BP - Diastolic blood pressure",
+          "target": [
+            {
+              "code": "75367002",
+              "display": "Blood pressure"
+            },
+            {
+              "code": "271650006",
+              "display": "Diastolic blood pressure"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "source": "http://example.org/CodeSystem/local-measure-type",
+      "target": "http://loinc.org",
+      "element": [
+        {
+          "code": "1000000008",
+          "display": "BP -  Systolic blood pressure",
+          "target": [
+            {
+              "code": "8480-6",
+              "display": "Systolic blood pressure"
+            }
+          ]
+        },
+        {
+          "code": "1000000009",
+          "display": "BP - Diastolic blood pressure",
+          "target": [
+            {
+              "code": "8462-4",
+              "display": "Diastolic blood pressure"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "source": "http://loinc.org",
+      "target": "http://example.org/CodeSystem/local-measure-type",
+      "element": [
+        {
+          "code": "8480-6",
+          "display": "Systolic blood pressure",
+          "target": [
+            {
+              "code": "1000000008",
+              "display": "BP -  Systolic blood pressure"
+            }
+          ]
+        },
+        {
+          "code": "8462-4",
+          "display": "Diastolic blood pressure",
+          "target": [
+            {
+              "code": "1000000009",
+              "display": "BP - Diastolic blood pressure"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

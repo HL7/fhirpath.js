@@ -1,4 +1,7 @@
 const util = require('../src/utilities');
+// Cannot use util.hasOwnProperty directly because it triggers the error:
+// "Do not access Object.prototype method 'hasOwnProperty' from target object"
+const { hasOwnProperty } = util;
 const nodeUtil = require('util');
 const _ = require('lodash');
 
@@ -45,13 +48,23 @@ function validateTest(test) {
 const mapper = {
   boolean: (v) => v === 'true',
   integer: (v) => Number(v),
+  decimal: (v) => Number(v),
   string: _.identity,
-  date: _.identity,
+  date: (v) => (/^@(.*)/.exec(v)?.[1] || ''),
+  dateTime: (v) => (/^@(.*)/.exec(v)?.[1] || ''),
+  time: (v) => (/^@T(.*)/.exec(v)?.[1] || ''),
   code: _.identity,
+  id: _.identity,
   Quantity: _.identity
 };
 
-const castValue = (value, type) => mapper[type](value);
+const castValue = (value, type) => {
+  if (!mapper[type]) {
+    console.log(`Warning, unhandled data type "${type}", value "${value}" used as is.`);
+    return value; // return as is if type is not handled
+  }
+  return mapper[type](value);
+};
 
 /**
  * Converts Object representing test cases from XML to Object that can be serialized to YAML
@@ -78,7 +91,7 @@ const transform = (node, model = null) => {
           if (model) {
             test.model = model;
           }
-          if (!Object.prototype.hasOwnProperty.call(test,'result') && !test.error) {
+          if (!hasOwnProperty(test,'result') && !test.error) {
             test.result = [];
           }
           if (!validateTest(test)) {
@@ -105,7 +118,29 @@ const transform = (node, model = null) => {
         return updated;
       }
       case 'output':
-        return { ...acc, result: node[key].map(({ '$': { type }, '_': value = '' }) => castValue(value, type)) };
+        return {
+          ...acc,
+          result: node[key].map((item) => {
+            let type = item['$']?.['type'];
+            const value = item['_'] ?? '';
+            if (!type) {
+              if (/^[+-]?\d+(\.\d+)?$/.test(value)) {
+                type = 'decimal';
+              } else if (/^[+-]?\d+(\.\d+)?\s\S+$/.test(value)) {
+                type = 'Quantity';
+              } else if (/^(true|false)$/.test(value)) {
+                type = 'boolean';
+              } else if (/^@T/.test(value)) {
+                type = 'time';
+              } else if (/^@/.test(value)) {
+                type = 'dateTime';
+              } else {
+                console.log('Warning, output node doesn\'t have type: ', acc, item['_']);
+              }
+            }
+            return castValue(value, type);
+          })
+        };
       default:
         console.log('Warning, unhandled node');
         return acc;
@@ -120,7 +155,19 @@ module.exports = {
    * @returns {string}
    */
   resourceXmlStringToJsonString: async (xmlData) => {
-    return fhir.xmlToJson(xmlData).replace(/\t/g, '  ');
+    return fhir.xmlToJson(
+      // Remove comment from XML data, because xmlToJson converts this XML comment:
+      //   <!--   use FHIR code system for male / female   -->
+      //   <gender value="male"/>
+      //
+      // to this JSON:
+      //   "_gender": {
+      //     "fhir_comments": [
+      //       "   use FHIR code system for male / female   "
+      //     ]
+      //   },
+      xmlData.replaceAll(/<!--[\s\S]*?-->/g, "")
+    ).replace(/\t/g, '  ');
   },
   /**
    * Serializes an XML test cases to YAML

@@ -1,0 +1,24 @@
+{
+  "resourceType": "Parameters",
+  "id": "example-types",
+  "parameter": [
+    {
+      "name": "string",
+      "valueString": "string"
+    },
+    {
+      "name": "integer",
+      "valueInteger": 1
+    },
+    {
+      "name": "uuid",
+      "valueUuid": {
+        "value": "urn:uuid:79a14950-442c-11ed-b878-0242ac120002"
+      }
+    },
+    {
+      "name": "decimal",
+      "valueDecimal": 1.0
+    }
+  ]
+}

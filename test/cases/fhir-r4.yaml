@@ -1,4 +1,57 @@
 tests:
+  - 'group: Check various comment syntaxes':
+      - desc: '** testComment1'
+        inputfile: patient-example.json
+        expression: 2 + 2 // This is a single-line comment + 4
+        result:
+          - 4
+        model: r4
+      - desc: '** testComment2'
+        inputfile: patient-example.json
+        expression: "// This is a multi line comment using // that\r\n  // should not fail during parsing\r\n  2+2"
+        result:
+          - 4
+        model: r4
+      - desc: '** testComment3'
+        inputfile: patient-example.json
+        expression: "2 + 2 \r\n      /*\r\nThis is a multi-line comment\r\nAny text enclosed within is ignored\r\n+2\r\n*/"
+        result:
+          - 4
+        model: r4
+      - desc: '** testComment4'
+        inputfile: patient-example.json
+        expression: "2 + 2 \r\n      /*\r\nThis is a multi-line comment\r\nAny text enclosed within is ignored\r\n*/\r\n+2"
+        result:
+          - 6
+        model: r4
+      - desc: '** testComment5'
+        inputfile: patient-example.json
+        expression: "/*\r\nThis is a multi-line comment\r\nAny text enclosed within is ignored\r\n*/\r\n2+2"
+        result:
+          - 4
+        model: r4
+      - desc: '** testComment6'
+        inputfile: patient-example.json
+        expression: "2 // comment\r\n/ 2"
+        result:
+          - 1
+        model: r4
+      - desc: '** testComment7'
+        inputfile: patient-example.json
+        expression: 2 + 2 /
+        error: true
+        model: r4
+      - desc: '** testComment8'
+        inputfile: patient-example.json
+        expression: 2 + 2 /* not finished
+        error: true
+        model: r4
+      - desc: '** testComment9'
+        inputfile: patient-example.json
+        expression: 2 + /* inline $@%^+ * */ 2 = 4
+        result:
+          - true
+        model: r4
   - 'group: Miscellaneous accessor tests':
       - desc: '** Extract birthDate'
         inputfile: patient-example.json
@@ -184,7 +237,7 @@ tests:
         result:
           - true
         model: r4
-      - desc: '** testLiteralString'
+      - desc: '** testLiteralString1'
         inputfile: patient-example.json
         expression: Patient.name.given.first() = 'Peter'
         result:
@@ -219,7 +272,7 @@ tests:
         result:
           - true
         model: r4
-      - desc: '** testLiteralString'
+      - desc: '** testLiteralString2'
         inputfile: patient-example.json
         expression: '''test''.convertsToString()'
         result:
@@ -505,24 +558,18 @@ tests:
       - desc: '** testDateNotEqualTimezoneOffsetBefore'
         inputfile: patient-example.json
         expression: 'Patient.birthDate != @1974-12-25T12:34:00-10:00'
-        result:
-          - true
         model: r4
-        disable: true
+        result: []
       - desc: '** testDateNotEqualTimezoneOffsetAfter'
         inputfile: patient-example.json
         expression: 'Patient.birthDate != @1974-12-25T12:34:00+10:00'
-        result:
-          - true
         model: r4
-        disable: true
+        result: []
       - desc: '** testDateNotEqualUTC'
         inputfile: patient-example.json
         expression: 'Patient.birthDate != @1974-12-25T12:34:00Z'
-        result:
-          - true
         model: r4
-        disable: true
+        result: []
       - desc: '** testDateNotEqualTimeSecond'
         inputfile: patient-example.json
         expression: 'Patient.birthDate != @T12:14:15'
@@ -541,12 +588,23 @@ tests:
         result:
           - true
         model: r4
-      - desc: '** testDateTimeGreaterThanDate'
+      - desc: '** testDateTimeGreaterThanDate1'
         inputfile: patient-example.json
         expression: now() > Patient.birthDate
         result:
           - true
         model: r4
+      - desc: '** testDateGreaterThanDate'
+        inputfile: patient-example.json
+        expression: today() > Patient.birthDate
+        result:
+          - true
+        model: r4
+      - desc: '** testDateTimeGreaterThanDate2'
+        inputfile: patient-example.json
+        expression: now() > today()
+        model: r4
+        result: []
       - desc: '** testLiteralDateTimeTZGreater'
         inputfile: patient-example.json
         expression: '@2017-11-05T01:30:00.0-04:00 > @2017-11-05T01:15:00.0-05:00'
@@ -616,6 +674,12 @@ tests:
         result:
           - true
         model: r4
+      - desc: '** testLiteralNotOnEmpty'
+        inputfile: patient-example.json
+        expression: '{}.not().empty()'
+        result:
+          - true
+        model: r4
       - desc: '** testLiteralNotTrue'
         inputfile: patient-example.json
         expression: true.not() = false
@@ -630,11 +694,10 @@ tests:
         model: r4
       - desc: '** testIntegerBooleanNotTrue'
         inputfile: patient-example.json
-        expression: (0).not() = true
+        expression: (0).not() = false
         result:
           - true
         model: r4
-        disable: true
       - desc: '** testIntegerBooleanNotFalse'
         inputfile: patient-example.json
         expression: (1).not() = false
@@ -1039,17 +1102,26 @@ tests:
         model: r4
       - desc: '** testStringQuantityDayLiteralToQuantity'
         inputfile: patient-example.json
-        expression: '''1 day''.toQuantity() = 1 ''{day}'''
+        expression: '''1 day''.toQuantity() = 1 ''d'''
         result:
           - true
         model: r4
         disable: true
       - desc: '** testStringQuantityWeekLiteralToQuantity'
         inputfile: patient-example.json
-        expression: '''1 \''wk\''''.toQuantity() = 1 ''wk'''
+        expression: '''1 \''wk\''''.toQuantity() = 1 week'
         result:
           - true
         model: r4
+        disable: true
+      - desc: '** testStringQuantityMonthLiteralToQuantity'
+        expression: '''1 \''mo\''''.toQuantity() = 1 month'
+        model: r4
+        result: []
+      - desc: '** testStringQuantityYearLiteralToQuantity'
+        expression: '''1 \''a\''''.toQuantity() = 1 year'
+        model: r4
+        result: []
       - desc: '** testStringDecimalLiteralToQuantity'
         inputfile: patient-example.json
         expression: '''1.0''.toQuantity() ~ 1 ''1'''
@@ -1228,33 +1300,38 @@ tests:
         inputfile: patient-example.json
         expression: 1 week.toString()
         result:
-          - 1 'week'
+          - 1 week
         model: r4
-        disable: true
   - 'group: testExists':
-      - desc: '** test'
+      - desc: '** testExists1'
         inputfile: patient-example.json
         expression: Patient.name.exists()
         result:
           - true
         model: r4
-      - desc: '** test'
+      - desc: '** testExists2'
         inputfile: patient-example.json
         expression: Patient.name.exists(use = 'nickname')
         result:
           - false
         model: r4
-      - desc: '** test'
+      - desc: '** testExists3'
         inputfile: patient-example.json
         expression: Patient.name.exists(use = 'official')
         result:
           - true
         model: r4
-      - desc: '** test'
+      - desc: '** testExists4'
         inputfile: patient-example.json
-        expression: "Patient.maritalStatus.coding.exists(code = 'P' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus')\n\t\t\tor Patient.maritalStatus.coding.exists(code = 'A' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus')"
+        expression: "Patient.maritalStatus.coding.exists(code = 'P' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus')\r\n\t\t\tor Patient.maritalStatus.coding.exists(code = 'A' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus')"
         result:
           - false
+        model: r4
+      - desc: '** testExists5'
+        inputfile: patient-example.json
+        expression: (1 | 2).exists()
+        result:
+          - true
         model: r4
   - 'group: testAll':
       - desc: '** testAllTrue1'
@@ -1291,6 +1368,14 @@ tests:
       - desc: '** testSubSetOf2'
         inputfile: patient-example.json
         expression: Patient.name.subsetOf($this.name.first()).not()
+        result:
+          - true
+        model: r4
+      - desc: '** testSubSetOf3'
+        inputfile: explanationofbenefit-example.json
+        expression: >-
+          supportingInfo.where(category.coding.code =
+          'additionalbodysite').sequence.subsetOf($this.item.informationSequence)
         result:
           - true
         model: r4
@@ -1516,6 +1601,12 @@ tests:
         result:
           - true
         model: r4
+      - desc: '** testSelect3'
+        inputfile: patient-example.json
+        expression: name.select(use.contains('i')).count()
+        result:
+          - 3
+        model: r4
   - 'group: testRepeat':
       - desc: '** testRepeat1'
         inputfile: valueset-example-expansion.json
@@ -1540,6 +1631,12 @@ tests:
         expression: Questionnaire.children().code.count() = 2
         result:
           - true
+        model: r4
+      - desc: '** testRepeat5'
+        inputfile: patient-example.json
+        expression: Patient.name.repeat('test')
+        result:
+          - test
         model: r4
   - 'group: testAggregate':
       - desc: '** testAggregate1'
@@ -1714,6 +1811,48 @@ tests:
         result:
           - true
         model: r4
+      - desc: '** testIif5'
+        inputfile: patient-example.json
+        expression: 'iif(false, ''true-result'').empty()'
+        result:
+          - true
+        model: r4
+      - desc: '** testIif6'
+        inputfile: patient-example.json
+        expression: 'iif(''non boolean criteria'', ''true-result'', ''true-result'')'
+        error: true
+        model: r4
+        disable: true
+      - desc: '** testIif7'
+        inputfile: patient-example.json
+        expression: '{}.iif(true, ''true-result'', ''false-result'')'
+        result:
+          - true-result
+        model: r4
+      - desc: '** testIif8'
+        inputfile: patient-example.json
+        expression: '(''item'').iif(true, ''true-result'', ''false-result'')'
+        result:
+          - true-result
+        model: r4
+      - desc: '** testIif9'
+        inputfile: patient-example.json
+        expression: '(''context'').iif(true, select($this), ''false-result'')'
+        result:
+          - context
+        model: r4
+      - desc: '** testIif10'
+        inputfile: patient-example.json
+        expression: '(''item1'' | ''item2'').iif(true, ''true-result'', ''false-result'')'
+        error: true
+        model: r4
+        disable: true
+      - desc: '** testIif11'
+        inputfile: patient-example.json
+        expression: '(''context'').iif($this = ''context'',''true-result'', ''false-result'')'
+        result:
+          - true-result
+        model: r4
   - 'group: testToInteger':
       - desc: '** testToInteger1'
         inputfile: patient-example.json
@@ -1840,6 +1979,43 @@ tests:
         result:
           - true
         model: r4
+  - 'group: testIndexOf':
+      - desc: '** testIndexOf1'
+        inputfile: patient-example.json
+        expression: '''LogicalModel-Person''.indexOf(''-'')'
+        result:
+          - 12
+        model: r4
+      - desc: '** testIndexOf2'
+        inputfile: patient-example.json
+        expression: '''LogicalModel-Person''.indexOf(''z'')'
+        result:
+          - -1
+        model: r4
+      - desc: '** testIndexOf3'
+        inputfile: patient-example.json
+        expression: '''LogicalModel-Person''.indexOf('''')'
+        result:
+          - 0
+        model: r4
+      - desc: '** testIndexOf5'
+        inputfile: patient-example.json
+        expression: '''LogicalModel-Person''.indexOf({}).empty() = true'
+        result:
+          - true
+        model: r4
+      - desc: '** testIndexOf4'
+        inputfile: patient-example.json
+        expression: '{}.indexOf(''-'').empty() = true'
+        result:
+          - true
+        model: r4
+      - desc: '** testIndexOf6'
+        inputfile: patient-example.json
+        expression: '{}.indexOf({}).empty() = true'
+        result:
+          - true
+        model: r4
   - 'group: testSubstring':
       - desc: '** testSubstring1'
         inputfile: patient-example.json
@@ -1868,6 +2044,24 @@ tests:
       - desc: '** testSubstring5'
         inputfile: patient-example.json
         expression: '''12345''.substring(-1).empty()'
+        result:
+          - true
+        model: r4
+      - desc: '** testSubstring7'
+        inputfile: patient-example.json
+        expression: '''LogicalModel-Person''.substring(0, 12)'
+        result:
+          - LogicalModel
+        model: r4
+      - desc: '** testSubstring8'
+        inputfile: patient-example.json
+        expression: '''LogicalModel-Person''.substring(0, ''LogicalModel-Person''.indexOf(''-''))'
+        result:
+          - LogicalModel
+        model: r4
+      - desc: '** testSubstring9'
+        inputfile: patient-example.json
+        expression: '{}.substring(25).empty() = true'
         result:
           - true
         model: r4
@@ -1914,6 +2108,35 @@ tests:
         result:
           - true
         model: r4
+      - desc: '** testStartsWith8'
+        inputfile: patient-example.json
+        expression: '{}.startsWith(''1'').empty() = true'
+        result:
+          - true
+        model: r4
+      - desc: '** testStartsWith9'
+        inputfile: patient-example.json
+        expression: '{}.startsWith('''').empty() = true'
+        result:
+          - true
+        model: r4
+      - desc: '** testStartsWith10'
+        inputfile: patient-example.json
+        expression: '''''.startsWith('''') = true'
+        result:
+          - true
+        model: r4
+      - desc: '** testStartsWith11'
+        inputfile: patient-example.json
+        expression: '{}.startsWith('''').exists() = false'
+        result:
+          - true
+        model: r4
+      - desc: '** testStartsWithNonString1'
+        inputfile: appointment-examplereq.json
+        expression: Appointment.identifier.startsWith('rand')
+        error: true
+        model: r4
   - 'group: testEndsWith':
       - desc: '** testEndsWith1'
         inputfile: patient-example.json
@@ -1956,6 +2179,23 @@ tests:
         expression: '''12345''.endsWith('''') = true'
         result:
           - true
+        model: r4
+      - desc: '** testEndsWith8'
+        inputfile: patient-example.json
+        expression: '{}.endsWith(''1'').empty() = true'
+        result:
+          - true
+        model: r4
+      - desc: '** testEndsWith9'
+        inputfile: patient-example.json
+        expression: '{}.endsWith('''').empty() = true'
+        result:
+          - true
+        model: r4
+      - desc: '** testEndsWithNonString1'
+        inputfile: appointment-examplereq.json
+        expression: Appointment.identifier.endsWith('rand')
+        error: true
         model: r4
   - 'group: testContainsString':
       - desc: '** testContainsString1'
@@ -2000,6 +2240,200 @@ tests:
         result:
           - true
         model: r4
+      - desc: '** testContainsString8'
+        inputfile: patient-example.json
+        expression: '{}.contains(''a'').empty() = true'
+        result:
+          - true
+        model: r4
+      - desc: '** testContainsString9'
+        inputfile: patient-example.json
+        expression: '{}.contains('''').empty() = true'
+        result:
+          - true
+        model: r4
+      - desc: '** testContainsNonString1'
+        inputfile: appointment-examplereq.json
+        expression: Appointment.identifier.contains('rand')
+        error: true
+        model: r4
+  - 'group: testMatches':
+      - desc: '** testMatchesCaseSensitive1'
+        expression: '''FHIR''.matches(''FHIR'')'
+        result:
+          - true
+        model: r4
+      - desc: '** testMatchesCaseSensitive2'
+        expression: '''FHIR''.matches(''fhir'')'
+        result:
+          - false
+        model: r4
+      - desc: '** testMatchesEmpty'
+        expression: '''FHIR''.matches({}).empty() = true'
+        result:
+          - true
+        model: r4
+      - desc: '** testMatchesEmpty2'
+        expression: '{}.matches(''FHIR'').empty() = true'
+        result:
+          - true
+        model: r4
+      - desc: '** testMatchesEmpty3'
+        expression: '{}.matches({}).empty() = true'
+        result:
+          - true
+        model: r4
+      - desc: '** testMatchesSingleLineMode1'
+        expression: "'A\r\n\t\t\tB'.matches('A.*B')"
+        result:
+          - true
+        model: r4
+      - desc: '** testMatchesWithinUrl1'
+        expression: >-
+          'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matches('library')
+        result:
+          - false
+        model: r4
+      - desc: '** testMatchesWithinUrl2'
+        expression: >-
+          'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matches('Library')
+        result:
+          - true
+        model: r4
+      - desc: '** testMatchesWithinUrl3'
+        expression: >-
+          'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matches('^Library$')
+        result:
+          - false
+        model: r4
+      - desc: '** testMatchesWithinUrl1a'
+        expression: >-
+          'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matches('.*Library.*')
+        result:
+          - true
+        model: r4
+      - desc: '** testMatchesWithinUrl4'
+        expression: >-
+          'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matches('Measure')
+        result:
+          - false
+        model: r4
+      - desc: '** testMatchesFullWithinUrl1'
+        expression: >-
+          'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('library')
+        result:
+          - false
+        model: r4
+        disable: true
+      - desc: '** testMatchesFullWithinUrl3'
+        expression: >-
+          'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('Library')
+        result:
+          - false
+        model: r4
+        disable: true
+      - desc: '** testMatchesFullWithinUrl4'
+        expression: >-
+          'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('^Library$')
+        result:
+          - false
+        model: r4
+        disable: true
+      - desc: '** testMatchesFullWithinUrl1a'
+        expression: >-
+          'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('.*Library.*')
+        result:
+          - true
+        model: r4
+        disable: true
+      - desc: '** testMatchesFullWithinUrl2'
+        expression: >-
+          'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('Measure')
+        result:
+          - false
+        model: r4
+        disable: true
+  - 'group: testReplaceMatches':
+      - desc: '** testReplaceMatches1'
+        inputfile: patient-example.json
+        expression: '''123456''.replaceMatches(''234'', ''X'')'
+        result:
+          - 1X56
+        model: r4
+      - desc: '** testReplaceMatches2'
+        inputfile: patient-example.json
+        expression: '''abc''.replaceMatches('''', ''x'')'
+        result:
+          - abc
+        model: r4
+        disable: true
+      - desc: '** testReplaceMatches3'
+        inputfile: patient-example.json
+        expression: '''123456''.replaceMatches(''234'', '''')'
+        result:
+          - '156'
+        model: r4
+      - desc: '** testReplaceMatches4'
+        inputfile: patient-example.json
+        expression: '{}.replaceMatches(''234'', ''X'').empty() = true'
+        result:
+          - true
+        model: r4
+      - desc: '** testReplaceMatches5'
+        inputfile: patient-example.json
+        expression: '''123''.replaceMatches({}, ''X'').empty() = true'
+        result:
+          - true
+        model: r4
+      - desc: '** testReplaceMatches6'
+        inputfile: patient-example.json
+        expression: '''123''.replaceMatches(''2'', {}).empty() = true'
+        result:
+          - true
+        model: r4
+      - desc: '** testReplaceMatches7'
+        inputfile: patient-example.json
+        expression: '''abc123''.replaceMatches(''[0-9]'', ''-'')'
+        result:
+          - abc---
+        model: r4
+  - 'group: testReplace':
+      - desc: '** testReplace1'
+        inputfile: patient-example.json
+        expression: '''123456''.replace(''234'', ''X'')'
+        result:
+          - 1X56
+        model: r4
+      - desc: '** testReplace2'
+        inputfile: patient-example.json
+        expression: '''abc''.replace('''', ''x'')'
+        result:
+          - xaxbxcx
+        model: r4
+      - desc: '** testReplace3'
+        inputfile: patient-example.json
+        expression: '''123456''.replace(''234'', '''')'
+        result:
+          - '156'
+        model: r4
+      - desc: '** testReplace4'
+        inputfile: patient-example.json
+        expression: '{}.replace(''234'', ''X'').empty() = true'
+        result:
+          - true
+        model: r4
+      - desc: '** testReplace5'
+        inputfile: patient-example.json
+        expression: '''123''.replace({}, ''X'').empty() = true'
+        result:
+          - true
+        model: r4
+      - desc: '** testReplace6'
+        inputfile: patient-example.json
+        expression: '''123''.replace(''2'', {}).empty() = true'
+        result:
+          - true
+        model: r4
   - 'group: testLength':
       - desc: '** testLength1'
         inputfile: patient-example.json
@@ -2031,75 +2465,81 @@ tests:
         result:
           - true
         model: r4
+      - desc: '** testLength6'
+        inputfile: patient-example.json
+        expression: '{}.length().empty() = true'
+        result:
+          - true
+        model: r4
   - 'group: testEncodeDecode':
-      - desc: '** test'
+      - desc: '** testEncodeBase64A'
         inputfile: patient-example.json
         expression: '''test''.encode(''base64'')'
         result:
           - dGVzdA==
         model: r4
-      - desc: '** test'
+      - desc: '** testEncodeHex'
         inputfile: patient-example.json
         expression: '''test''.encode(''hex'')'
         result:
           - '74657374'
         model: r4
-      - desc: '** test'
+      - desc: '** testEncodeBase64B'
         inputfile: patient-example.json
         expression: '''subjects?_d''.encode(''base64'')'
         result:
           - c3ViamVjdHM/X2Q=
         model: r4
-      - desc: '** test'
+      - desc: '** testEncodeUrlBase64'
         inputfile: patient-example.json
         expression: '''subjects?_d''.encode(''urlbase64'')'
         result:
           - c3ViamVjdHM_X2Q=
         model: r4
-      - desc: '** test'
+      - desc: '** testDecodeBase64A'
         inputfile: patient-example.json
         expression: '''dGVzdA==''.decode(''base64'')'
         result:
           - test
         model: r4
-      - desc: '** test'
+      - desc: '** testDecodeHex'
         inputfile: patient-example.json
         expression: '''74657374''.decode(''hex'')'
         result:
           - test
         model: r4
-      - desc: '** test'
+      - desc: '** testDecodeBase64B'
         inputfile: patient-example.json
         expression: '''c3ViamVjdHM/X2Q=''.decode(''base64'')'
         result:
           - subjects?_d
         model: r4
-      - desc: '** test'
+      - desc: '** testDecodeUrlBase64'
         inputfile: patient-example.json
         expression: '''c3ViamVjdHM_X2Q=''.decode(''urlbase64'')'
         result:
           - subjects?_d
         model: r4
-  - 'group: testExcapeUnescape':
-      - desc: '** test'
+  - 'group: testEscapeUnescape':
+      - desc: '** testEscapeHtml'
         inputfile: patient-example.json
         expression: '''"1<2"''.escape(''html'')'
         result:
           - '&quot;1&lt;2&quot;'
         model: r4
-      - desc: '** test'
+      - desc: '** testEscapeJson'
         inputfile: patient-example.json
         expression: '''"1<2"''.escape(''json'')'
         result:
           - \"1<2\"
         model: r4
-      - desc: '** test'
+      - desc: '** testUnescapeHtml'
         inputfile: patient-example.json
         expression: '''&quot;1&lt;2&quot;''.unescape(''html'')'
         result:
           - '"1<2"'
         model: r4
-      - desc: '** test'
+      - desc: '** testUnescapeJson'
         inputfile: patient-example.json
         expression: '''\"1<2\"''.unescape(''json'')'
         result:
@@ -2107,39 +2547,72 @@ tests:
         model: r4
     disable: true
   - 'group: testTrim':
-      - desc: '** test'
+      - desc: '** testTrim1'
         inputfile: patient-example.json
         expression: '''123456''.trim().length() = 6'
         result:
           - true
         model: r4
-      - desc: '** test'
+      - desc: '** testTrim2'
         inputfile: patient-example.json
         expression: '''123 456''.trim().length() = 7'
         result:
           - true
         model: r4
-      - desc: '** test'
+      - desc: '** testTrim3'
         inputfile: patient-example.json
         expression: ''' 123456 ''.trim().length() = 6'
         result:
           - true
         model: r4
-      - desc: '** test'
+      - desc: '** testTrim4'
         inputfile: patient-example.json
         expression: '''  ''.trim().length() = 0'
         result:
           - true
         model: r4
+      - desc: '** testTrim5'
+        inputfile: patient-example.json
+        expression: '{}.trim().empty() = true'
+        result:
+          - true
+        model: r4
+      - desc: '** testTrim6'
+        inputfile: patient-example.json
+        expression: '''      ''.trim() = '''''
+        result:
+          - true
+        model: r4
   - 'group: testSplit':
-      - desc: '** test'
+      - desc: '** testSplit1'
         inputfile: patient-example.json
         expression: '''Peter,James,Jim,Peter,James''.split('','').count() = 5'
         result:
           - true
         model: r4
+      - desc: '** testSplit2'
+        inputfile: patient-example.json
+        expression: '''A,,C''.split('','').join('','') = ''A,,C'''
+        result:
+          - true
+        model: r4
+      - desc: '** testSplit3'
+        inputfile: patient-example.json
+        expression: >-
+          '[stop]ONE[stop][stop]TWO[stop][stop][stop]THREE[stop][stop]'.split('[stop]').trace('n').count()
+          = 9
+        result:
+          - true
+        model: r4
+      - desc: '** testSplit4'
+        inputfile: patient-example.json
+        expression: >-
+          '[stop]ONE[stop][stop]TWO[stop][stop][stop]THREE[stop][stop]'.split('[stop]').join('[stop]')
+        result:
+          - '[stop]ONE[stop][stop]TWO[stop][stop][stop]THREE[stop][stop]'
+        model: r4
   - 'group: testJoin':
-      - desc: '** test'
+      - desc: '** testJoin'
         inputfile: patient-example.json
         expression: 'name.given.join('','')'
         result:
@@ -2184,6 +2657,68 @@ tests:
         result:
           - true
         model: r4
+  - 'group: testSort':
+      - desc: '** testSort1'
+        inputfile: patient-example.json
+        expression: (1 | 2 | 3).sort() = (1 | 2 | 3)
+        result:
+          - true
+        model: r4
+      - desc: '** testSort2'
+        inputfile: patient-example.json
+        expression: (3 | 2 | 1).sort() = (1 | 2 | 3)
+        result:
+          - true
+        model: r4
+      - desc: '** testSort3'
+        inputfile: patient-example.json
+        expression: (1 | 2 | 3).sort($this) = (1 | 2 | 3)
+        result:
+          - true
+        model: r4
+      - desc: '** testSort4'
+        inputfile: patient-example.json
+        expression: (3 | 2 | 1).sort($this) = (1 | 2 | 3)
+        result:
+          - true
+        model: r4
+      - desc: '** testSort5'
+        inputfile: patient-example.json
+        expression: (1 | 2 | 3).sort(-$this) = (3 | 2 | 1)
+        result:
+          - true
+        model: r4
+      - desc: '** testSort6'
+        inputfile: patient-example.json
+        expression: ('a' | 'b' | 'c').sort($this) = ('a' | 'b' | 'c')
+        result:
+          - true
+        model: r4
+      - desc: '** testSort7'
+        inputfile: patient-example.json
+        expression: ('c' | 'b' | 'a').sort($this) = ('a' | 'b' | 'c')
+        result:
+          - true
+        model: r4
+      - desc: '** testSort8'
+        inputfile: patient-example.json
+        expression: ('a' | 'b' | 'c').sort(-$this) = ('c' | 'b' | 'a')
+        result:
+          - true
+        model: r4
+      - desc: '** testSort9'
+        inputfile: patient-example.json
+        expression: 'Patient.name[0].given.sort() = (''James'' | ''Peter'')'
+        result:
+          - true
+        model: r4
+      - desc: '** testSort10'
+        inputfile: patient-example.json
+        expression: 'Patient.name.sort(-family, -given.first()).first().use = ''usual'''
+        result:
+          - true
+        model: r4
+    disable: true
   - 'group: testEquality':
       - desc: '** testEquality1'
         inputfile: patient-example.json
@@ -2222,9 +2757,9 @@ tests:
       - desc: '** testEquality7'
         inputfile: patient-example.json
         expression: '(1 | 1) = (1 | 2 | {})'
+        result:
+          - false
         model: r4
-        result: []
-        disable: true
       - desc: '** testEquality8'
         inputfile: patient-example.json
         expression: 1 = 2
@@ -2477,15 +3012,15 @@ tests:
         model: r4
       - desc: '** testNEquality22'
         inputfile: patient-example.json
-        expression: 1.2 / 1.8 != 0.6666667
+        expression: (1.2 / 1.8).round(2) != 0.6666667
         result:
           - true
         model: r4
       - desc: '** testNEquality23'
         inputfile: patient-example.json
-        expression: 1.2 / 1.8 != 0.67
+        expression: (1.2 / 1.8).round(2) != 0.67
         result:
-          - true
+          - false
         model: r4
       - desc: '** testNEquality24'
         inputfile: observation-example.json
@@ -2632,6 +3167,19 @@ tests:
         result:
           - true
         model: r4
+      - desc: '** testEquivalent23'
+        inputfile: observation-example.json
+        expression: (1 | 2 | 3) ~ (1 | 2 | 3)
+        result:
+          - true
+        model: r4
+      - desc: '** testEquivalent23'
+        inputfile: observation-example.json
+        expression: (1 | 2 | 3) ~ (3 | 2 | 1)
+        result:
+          - true
+        model: r4
+        disable: true
   - 'group: testNotEquivalent':
       - desc: '** testNotEquivalent1'
         inputfile: patient-example.json
@@ -2911,12 +3459,12 @@ tests:
         result: []
       - desc: '** testLessThan24'
         inputfile: patient-example.json
-        expression: '@2018-03-01T10 < @2018-03-01T10:30'
+        expression: '@2018-03-01T10:30 < @2018-03-01T10:30:00'
         model: r4
         result: []
       - desc: '** testLessThan25'
         inputfile: patient-example.json
-        expression: '@T10 < @T10:30'
+        expression: '@T10:30 < @T10:30:00'
         model: r4
         result: []
       - desc: '** testLessThan26'
@@ -3071,12 +3619,12 @@ tests:
         result: []
       - desc: '** testLessOrEqual24'
         inputfile: patient-example.json
-        expression: '@2018-03-01T10 <= @2018-03-01T10:30'
+        expression: '@2018-03-01T10:30 <= @2018-03-01T10:30:00'
         model: r4
         result: []
       - desc: '** testLessOrEqual25'
         inputfile: patient-example.json
-        expression: '@T10 <= @T10:30'
+        expression: '@T10:30 <= @T10:30:00'
         model: r4
         result: []
       - desc: '** testLessOrEqual26'
@@ -3231,12 +3779,12 @@ tests:
         result: []
       - desc: '** testGreatorOrEqual24'
         inputfile: patient-example.json
-        expression: '@2018-03-01T10 >= @2018-03-01T10:30'
+        expression: '@2018-03-01T10:30 >= @2018-03-01T10:30:00'
         model: r4
         result: []
       - desc: '** testGreatorOrEqual25'
         inputfile: patient-example.json
-        expression: '@T10 >= @T10:30'
+        expression: '@T10:30 >= @T10:30:00'
         model: r4
         result: []
       - desc: '** testGreatorOrEqual26'
@@ -3391,12 +3939,12 @@ tests:
         result: []
       - desc: '** testGreaterThan24'
         inputfile: patient-example.json
-        expression: '@2018-03-01T10 > @2018-03-01T10:30'
+        expression: '@2018-03-01T10:30 > @2018-03-01T10:30:00'
         model: r4
         result: []
       - desc: '** testGreaterThan25'
         inputfile: patient-example.json
-        expression: '@T10 > @T10:30'
+        expression: '@T10:30 > @T10:30:00'
         model: r4
         result: []
       - desc: '** testGreaterThan26'
@@ -3410,6 +3958,35 @@ tests:
         expression: '@T10:30:00 > @T10:30:00.0'
         result:
           - false
+        model: r4
+  - 'group: testCombine()':
+      - desc: '** testCombine1'
+        inputfile: codesystem-example.json
+        expression: concept.code.combine($this.descendants().concept.code).isDistinct()
+        result:
+          - false
+        model: r4
+      - desc: '** testCombine2'
+        inputfile: patient-example.json
+        expression: name.given.combine(name.family).exclude('Jim')
+        result:
+          - Peter
+          - James
+          - Peter
+          - James
+          - Chalmers
+          - Windsor
+        model: r4
+      - desc: '** testCombine3'
+        inputfile: patient-example.json
+        expression: name.given.combine($this.name.family).exclude('Jim')
+        result:
+          - Peter
+          - James
+          - Peter
+          - James
+          - Chalmers
+          - Windsor
         model: r4
   - 'group: testUnion':
       - desc: '** testUnion1'
@@ -3459,6 +4036,24 @@ tests:
         expression: 1.combine(1).union(2).count() = 2
         result:
           - true
+        model: r4
+      - desc: '** testUnion9'
+        inputfile: patient-example.json
+        expression: name.select(use | given).count()
+        result:
+          - 8
+        model: r4
+      - desc: '** testUnion10'
+        inputfile: patient-example.json
+        expression: name.select(use.union($this.given)).count()
+        result:
+          - 8
+        model: r4
+      - desc: '** testUnion11'
+        inputfile: patient-example.json
+        expression: name.select(use.union(given)).count()
+        result:
+          - 8
         model: r4
   - 'group: testIntersect':
       - desc: '** testIntersect1'
@@ -3805,6 +4400,145 @@ tests:
         result:
           - true
         model: r4
+      - desc: '** testPlusDate1'
+        inputfile: patient-example.json
+        expression: '@1973-12-25 + 7 days'
+        result:
+          - '1974-01-01'
+        model: r4
+      - desc: '** testPlusDate2'
+        inputfile: patient-example.json
+        expression: '@1973-12-25 + 7.7 days'
+        result:
+          - '1974-01-01'
+        model: r4
+      - desc: '** testPlusDate3'
+        inputfile: patient-example.json
+        expression: '@1973-12-25T00:00:00.000+10:00 + 7 days'
+        result:
+          - '1974-01-01T00:00:00.000+10:00'
+        model: r4
+      - desc: '** testPlusDate4'
+        inputfile: patient-example.json
+        expression: '@1973-12-25T00:00:00.000+10:00 + 7.7 days'
+        result:
+          - '1974-01-01T00:00:00.000+10:00'
+        model: r4
+      - desc: '** testPlusDate5'
+        inputfile: patient-example.json
+        expression: '@1973-12-25T00:00:00.000+10:00 + 1 second'
+        result:
+          - '1973-12-25T00:00:01.000+10:00'
+        model: r4
+      - desc: '** testPlusDate6'
+        inputfile: patient-example.json
+        expression: '@1973-12-25T00:00:00.000+10:00 + 10 millisecond'
+        result:
+          - '1973-12-25T00:00:00.010+10:00'
+        model: r4
+      - desc: '** testPlusDate7'
+        inputfile: patient-example.json
+        expression: '@1973-12-25T00:00:00.000+10:00 + 1 minute'
+        result:
+          - '1973-12-25T00:01:00.000+10:00'
+        model: r4
+      - desc: '** testPlusDate8'
+        inputfile: patient-example.json
+        expression: '@1973-12-25T00:00:00.000+10:00 + 1 hour'
+        result:
+          - '1973-12-25T01:00:00.000+10:00'
+        model: r4
+      - desc: '** testPlusDate9'
+        inputfile: patient-example.json
+        expression: '@1973-12-25 + 1 day'
+        result:
+          - '1973-12-26'
+        model: r4
+      - desc: '** testPlusDate10'
+        inputfile: patient-example.json
+        expression: '@1973-12-25 + 1 month'
+        result:
+          - '1974-01-25'
+        model: r4
+      - desc: '** testPlusDate11'
+        inputfile: patient-example.json
+        expression: '@1973-12-25 + 1 week'
+        result:
+          - '1974-01-01'
+        model: r4
+      - desc: '** testPlusDate12'
+        inputfile: patient-example.json
+        expression: '@1973-12-25 + 1 year'
+        result:
+          - '1974-12-25'
+        model: r4
+      - desc: '** testPlusDate13'
+        inputfile: patient-example.json
+        expression: '@1973-12-25 + 1 ''d'''
+        result:
+          - '1973-12-26'
+        model: r4
+        disable: true
+      - desc: '** testPlusDate14'
+        inputfile: patient-example.json
+        expression: '@1973-12-25 + 1 ''mo'''
+        error: true
+        model: r4
+      - desc: '** testPlusDate15'
+        inputfile: patient-example.json
+        expression: '@1973-12-25 + 1 ''wk'''
+        result:
+          - '1974-01-01'
+        model: r4
+        disable: true
+      - desc: '** testPlusDate16'
+        inputfile: patient-example.json
+        expression: '@1973-12-25 + 1 ''a'''
+        error: true
+        model: r4
+      - desc: '** testPlusDate17'
+        inputfile: patient-example.json
+        expression: '@1975-12-25 + 1 ''a'''
+        error: true
+        model: r4
+      - desc: '** testPlusDate18'
+        inputfile: patient-example.json
+        expression: '@1973-12-25T00:00:00.000+10:00 + 1 ''s'''
+        result:
+          - '1973-12-25T00:00:01.000+10:00'
+        model: r4
+      - desc: '** testPlusDate19'
+        inputfile: patient-example.json
+        expression: '@1973-12-25T00:00:00.000+10:00 + 0.1 ''s'''
+        result:
+          - '1973-12-25T00:00:00.000+10:00'
+        model: r4
+        disable: true
+      - desc: '** testPlusDate20'
+        inputfile: patient-example.json
+        expression: '@1973-12-25T00:00:00.000+10:00 + 10 ''ms'''
+        result:
+          - '1973-12-25T00:00:00.010+10:00'
+        model: r4
+      - desc: '** testPlusDate21'
+        inputfile: patient-example.json
+        expression: '@1973-12-25T00:00:00.000+10:00 + 1 ''min'''
+        result:
+          - '1973-12-25T00:01:00.000+10:00'
+        model: r4
+        disable: true
+      - desc: '** testPlusDate22'
+        inputfile: patient-example.json
+        expression: '@1973-12-25T00:00:00.000+10:00 + 1 ''h'''
+        result:
+          - '1973-12-25T01:00:00.000+10:00'
+        model: r4
+        disable: true
+      - desc: '** testPlus6'
+        inputfile: patient-example.json
+        expression: '@1974-12-25 + 7'
+        error: true
+        model: r4
   - 'group: testConcatenate':
       - desc: '** testConcatenate1'
         inputfile: patient-example.json
@@ -3853,6 +4587,18 @@ tests:
         expression: '''a''-''b'' = ''ab'''
         error: true
         model: r4
+      - desc: '** testMinus5'
+        inputfile: patient-example.json
+        expression: '@1974-12-25 - 1 ''month'''
+        result:
+          - '1974-11-25'
+        model: r4
+        disable: true
+      - desc: '** testMinus6'
+        inputfile: patient-example.json
+        expression: '@1974-12-25 - 1 ''cm'''
+        error: true
+        model: r4
   - 'group: testMultiply':
       - desc: '** testMultiply1'
         inputfile: patient-example.json
@@ -3899,7 +4645,7 @@ tests:
         model: r4
       - desc: '** testDivide5'
         inputfile: patient-example.json
-        expression: 1.2 / 1.8 = 0.66666667
+        expression: (1.2 / 1.8).round(2) = 0.67
         result:
           - true
         model: r4
@@ -3977,11 +4723,10 @@ tests:
         model: r4
       - desc: '** testRound2'
         inputfile: patient-example.json
-        expression: 3.14159.round(3) = 2
+        expression: 3.14159.round(3) = 3.142
         result:
           - true
         model: r4
-        disable: true
   - 'group: testSqrt':
       - desc: '** testSqrt1'
         inputfile: patient-example.json
@@ -4042,6 +4787,12 @@ tests:
       - desc: '** testExp2'
         inputfile: patient-example.json
         expression: (-0.0).exp() = 1
+        result:
+          - true
+        model: r4
+      - desc: '** testExp3'
+        inputfile: patient-example.json
+        expression: '{}.exp().empty() = true'
         result:
           - true
         model: r4
@@ -4153,6 +4904,21 @@ tests:
           - true
         model: r4
         disable: true
+      - desc: '** testPrecedence5'
+        inputfile: observation-example.json
+        expression: true and '0215' in ('0215' | '0216')
+        result:
+          - true
+        model: r4
+      - desc: '** testPrecedence6'
+        inputfile: observation-example.json
+        expression: >-
+          category.exists(coding.exists(system =
+          'http://terminology.hl7.org/CodeSystem/observation-category' and
+          code.trace('c') in ('vital-signs' | 'vital-signs2').trace('codes')))
+        result:
+          - true
+        model: r4
   - 'group: testVariables':
       - desc: '** testVariables1'
         inputfile: patient-example.json
@@ -4212,9 +4978,21 @@ tests:
         result:
           - true
         model: r4
-      - desc: '** testType2'
+      - desc: '** testType1a'
         inputfile: patient-example.json
         expression: 1.type().name = 'Integer'
+        result:
+          - true
+        model: r4
+      - desc: '** testType2'
+        inputfile: patient-example.json
+        expression: '''1''.type().namespace = ''System'''
+        result:
+          - true
+        model: r4
+      - desc: '** testType2a'
+        inputfile: patient-example.json
+        expression: '''1''.type().name = ''String'''
         result:
           - true
         model: r4
@@ -4345,6 +5123,36 @@ tests:
         result:
           - Patient
         model: r4
+      - desc: '** testTypeA1'
+        inputfile: parameters-example-types.json
+        expression: 'Parameters.parameter[0].value.is(FHIR.string)'
+        result:
+          - true
+        model: r4
+      - desc: '** testTypeA2'
+        inputfile: parameters-example-types.json
+        expression: 'Parameters.parameter[1].value.is(FHIR.integer)'
+        result:
+          - true
+        model: r4
+      - desc: '** testTypeA3'
+        inputfile: parameters-example-types.json
+        expression: 'Parameters.parameter[2].value.is(FHIR.uuid)'
+        result:
+          - true
+        model: r4
+      - desc: '** testTypeA4'
+        inputfile: parameters-example-types.json
+        expression: 'Parameters.parameter[2].value.is(FHIR.uri)'
+        result:
+          - true
+        model: r4
+      - desc: '** testTypeA'
+        inputfile: parameters-example-types.json
+        expression: 'Parameters.parameter[3].value.is(FHIR.decimal)'
+        result:
+          - true
+        model: r4
   - 'group: testConformsTo':
       - desc: '** testConformsTo1'
         inputfile: patient-example.json
@@ -4364,17 +5172,511 @@ tests:
         error: true
         model: r4
     disable: true
-  - 'group: from-Zulip':
-      - desc: '** test'
-        inputfile: patient-example.json
-        expression: (true and 'foo').empty()
+  - 'group: LowBoundary':
+      - desc: '** LowBoundaryDecimalDefault'
+        expression: 1.587.lowBoundary()
+        result:
+          - 1.5865
+        model: r4
+      - desc: '** LowBoundaryDecimal1'
+        expression: 1.587.lowBoundary(6)
+        result:
+          - 1.5865
+        model: r4
+      - desc: '** LowBoundaryDecimal2'
+        expression: 1.587.lowBoundary(2)
+        result:
+          - 1.58
+        model: r4
+      - desc: '** LowBoundaryDecimal3'
+        expression: 1.587.lowBoundary(-1)
+        model: r4
+        result: []
+      - desc: '** LowBoundaryDecimal4'
+        expression: 1.587.lowBoundary(0)
+        result:
+          - 1
+        model: r4
+      - desc: '** LowBoundaryDecimal5'
+        expression: 1.587.lowBoundary(32)
+        model: r4
+        result: []
+      - desc: '** LowBoundaryNegDecimalDefault'
+        expression: (-1.587).lowBoundary()
+        result:
+          - -1.5875
+        model: r4
+      - desc: '** LowBoundaryNegDecimal1'
+        expression: (-1.587).lowBoundary(6)
+        result:
+          - -1.5875
+        model: r4
+      - desc: '** LowBoundaryNegDecimal2'
+        expression: (-1.587).lowBoundary(2)
+        result:
+          - -1.59
+        model: r4
+      - desc: '** LowBoundaryNegDecimal3'
+        expression: (-1.587).lowBoundary(-1)
+        model: r4
+        result: []
+      - desc: '** LowBoundaryNegDecimal4'
+        expression: (-1.587).lowBoundary(0)
+        result:
+          - -2
+        model: r4
+      - desc: '** LowBoundaryNegDecimal5'
+        expression: (-1.587).lowBoundary(32)
+        model: r4
+        result: []
+      - desc: '** LowBoundaryDecimal6'
+        expression: 1.587.lowBoundary(39)
+        model: r4
+        result: []
+      - desc: '** LowBoundaryDecimal7'
+        expression: 1.toDecimal().lowBoundary()
+        result:
+          - 0.5
+        model: r4
+      - desc: '** LowBoundaryDecimal8'
+        expression: 1.lowBoundary(0)
+        result:
+          - 0
+        model: r4
+      - desc: '** LowBoundaryDecimal9'
+        expression: 1.lowBoundary(5)
+        result:
+          - 0.5
+        model: r4
+      - desc: '** LowBoundaryDecimal10'
+        expression: 12.587.lowBoundary(2)
+        result:
+          - 12.58
+        model: r4
+      - desc: '** LowBoundaryDecimal11'
+        expression: 12.500.lowBoundary(4)
+        result:
+          - 12.4995
+        model: r4
+      - desc: '** LowBoundaryDecimal12'
+        expression: 120.lowBoundary(2)
+        result:
+          - 119.5
+        model: r4
+      - desc: '** LowBoundaryDecimal13'
+        expression: (-120).lowBoundary(2)
+        result:
+          - -120.5
+        model: r4
+      - desc: '** LowBoundaryDecimal14'
+        expression: 0.0034.lowBoundary(1)
+        result:
+          - 0
+        model: r4
+      - desc: '** LowBoundaryDecimal15'
+        expression: (-0.0034).lowBoundary(1)
+        result:
+          - -0.0
+        model: r4
+      - desc: '** LowBoundaryQuantity'
+        expression: 1.587 'cm'.lowBoundary(8)
+        result:
+          - 1.58650000 'cm'
+        model: r4
+      - desc: '** LowBoundaryDateMonth'
+        expression: '@2014.lowBoundary(6)'
+        result:
+          - 2014-01
+        model: r4
+      - desc: '** LowBoundaryDateTimeMillisecond1'
+        expression: '@2014-01-01T08.lowBoundary(17)'
+        result:
+          - '2014-01-01T08:00:00.000+14:00'
+        model: r4
+      - desc: '** LowBoundaryDateTimeMillisecond2'
+        expression: '@2014-01-01T08:05+08:00.lowBoundary(17)'
+        result:
+          - '2014-01-01T08:05:00.000+08:00'
+        model: r4
+      - desc: '** LowBoundaryDateTimeMillisecond3'
+        expression: '@2014-01-01T08.lowBoundary(8)'
+        result:
+          - '2014-01-01'
+        model: r4
+      - desc: '** LowBoundaryTimeMillisecond'
+        expression: '@T10:30.lowBoundary(9)'
+        result:
+          - '10:30:00.000'
+        model: r4
+    disable: true
+  - 'group: HighBoundary':
+      - desc: '** HighBoundaryDecimalDefault'
+        expression: 1.587.highBoundary()
+        result:
+          - 1.5875
+        model: r4
+      - desc: '** HighBoundaryDecimal1'
+        expression: 1.587.highBoundary(2)
+        result:
+          - 1.59
+        model: r4
+      - desc: '** HighBoundaryDecimal2'
+        expression: 1.587.highBoundary(6)
+        result:
+          - 1.5875
+        model: r4
+      - desc: '** HighBoundaryDecimal3'
+        expression: 1.587.highBoundary(-1)
+        model: r4
+        result: []
+      - desc: '** HighBoundaryDecimal4'
+        expression: (-1.587).highBoundary()
+        result:
+          - -1.5865
+        model: r4
+      - desc: '** HighBoundaryDecimal5'
+        expression: (-1.587).highBoundary(2)
+        result:
+          - -1.58
+        model: r4
+      - desc: '** HighBoundaryDecimal6'
+        expression: (-1.587).highBoundary(6)
+        result:
+          - -1.5865
+        model: r4
+      - desc: '** HighBoundaryDecimal7'
+        expression: 1.587.highBoundary(39)
+        model: r4
+        result: []
+      - desc: '** HighBoundaryDecimal8'
+        expression: 1.highBoundary()
+        result:
+          - 1.5
+        model: r4
+      - desc: '** HighBoundaryDecimal9'
+        expression: 1.highBoundary(0)
+        result:
+          - 2
+        model: r4
+      - desc: '** HighBoundaryDecimal10'
+        expression: 1.highBoundary(5)
+        result:
+          - 1.5
+        model: r4
+      - desc: '** HighBoundaryDecimal11'
+        expression: 12.587.highBoundary(2)
+        result:
+          - 12.59
+        model: r4
+      - desc: '** HighBoundaryDecimal12'
+        expression: 12.500.highBoundary(4)
+        result:
+          - 12.5005
+        model: r4
+      - desc: '** HighBoundaryDecimal13'
+        expression: 120.highBoundary(2)
+        result:
+          - 120.5
+        model: r4
+      - desc: '** HighBoundaryDecimal14'
+        expression: '-120.highBoundary(2)'
+        result:
+          - -120.5
+        model: r4
+      - desc: '** HighBoundaryDecimal15'
+        expression: 0.0034.highBoundary(1)
+        result:
+          - 0
+        model: r4
+      - desc: '** HighBoundaryDecimal16'
+        expression: '-0.0034.highBoundary(1)'
+        result:
+          - 0
+        model: r4
+      - desc: '** HighBoundaryDecimal'
+        expression: 1.587.highBoundary(8)
+        result:
+          - 1.5875
+        model: r4
+      - desc: '** HighBoundaryQuantity'
+        expression: 1.587 'm'.highBoundary(8)
+        result:
+          - 1.58750000 'm'
+        model: r4
+      - desc: '** HighBoundaryDateMonth'
+        expression: '@2014.highBoundary(6)'
+        result:
+          - 2014-12
+        model: r4
+      - desc: '** HighBoundaryDateTimeMillisecond1'
+        expression: '@2014-01-01T08.highBoundary(17)'
+        result:
+          - '2014-01-01T08:00:59.999-12:00'
+        model: r4
+      - desc: '** HighBoundaryDateTimeMillisecond2'
+        expression: '@2014-01-01T08:05-05:00.highBoundary(17)'
+        result:
+          - '2014-01-01T08:05:59.999-05:00'
+        model: r4
+      - desc: '** HighBoundaryDateTimeMillisecond3'
+        expression: '@2014-01-01T08.highBoundary(17)'
+        result:
+          - '2014-01-01T08:00:59.999-12:00'
+        model: r4
+      - desc: '** HighBoundaryTimeMillisecond'
+        expression: '@T10:30.highBoundary(9)'
+        result:
+          - '10:30:59.999'
+        model: r4
+    disable: true
+  - 'group: Comparable':
+      - desc: '** Comparable1'
+        expression: '1 ''cm''.comparable(1 ''[in_i]'')'
         result:
           - true
         model: r4
-      - desc: '** test'
-        inputfile: patient-example.json
-        expression: (true | 'foo').allTrue()
+      - desc: '** Comparable2'
+        expression: '1 ''cm''.comparable(1 ''[s]'')'
+        result:
+          - false
+        model: r4
+      - desc: '** Comparable3'
+        expression: 1 'cm'.comparable(1 's')
         result:
           - false
         model: r4
     disable: true
+  - 'group: Precision':
+      - desc: '** PrecisionDecimal'
+        expression: 1.58700.precision()
+        result:
+          - 5
+        model: r4
+      - desc: '** PrecisionYear'
+        expression: '@2014.precision()'
+        result:
+          - 4
+        model: r4
+      - desc: '** PrecisionDateTimeMilliseconds'
+        expression: '@2014-01-05T10:30:00.000.precision()'
+        result:
+          - 17
+        model: r4
+      - desc: '** PrecisionTimeMinutes'
+        expression: '@T10:30.precision()'
+        result:
+          - 4
+        model: r4
+      - desc: '** PrecisionTimeMilliseconds'
+        expression: '@T10:30:00.000.precision()'
+        result:
+          - 9
+        model: r4
+    disable: true
+  - 'group: from-Zulip':
+      - desc: '** from-zulip-1'
+        inputfile: patient-example.json
+        expression: (true and 'foo').empty()
+        result:
+          - false
+        model: r4
+      - desc: '** from-zulip-2'
+        inputfile: patient-example.json
+        expression: (true | 'foo').allTrue()
+        error: true
+        result:
+          - false
+        model: r4
+  - 'group: polymorphics':
+      - desc: '** testPolymorphicsA'
+        inputfile: observation-example.json
+        expression: Observation.value.exists()
+        result:
+          - true
+        model: r4
+      - desc: '** testPolymorphicsB'
+        inputfile: observation-example.json
+        expression: Observation.valueQuantity.exists()
+        error: true
+        result:
+          - false
+        model: r4
+        disable: true
+  - 'group: index-part':
+      - desc: '** testIndex'
+        inputfile: patient-example.json
+        expression: 'Patient.telecom.select(iif(value=''(03) 3410 5613'', $index, {} ))'
+        result:
+          - 2
+        model: r4
+  - 'group: period':
+      - desc: '** testPeriodInvariantOld'
+        inputfile: patient-example-period.json
+        expression: >-
+          Patient.identifier.period.all(start.hasValue().not() or
+          end.hasValue().not() or (start <= end))
+        result:
+          - false
+        model: r4
+      - desc: '** testPeriodInvariantNew'
+        inputfile: patient-example-period.json
+        expression: >-
+          Patient.identifier.period.all(start.empty() or end.empty() or
+          (start.lowBoundary() < end.highBoundary()))
+        result:
+          - true
+        model: r4
+        disable: true
+  - 'group: testInheritance':
+      - desc: '** testFHIRPathIsFunction1'
+        inputfile: patient-example.json
+        expression: Patient.gender.is(code)
+        result:
+          - true
+        model: r4
+      - desc: '** testFHIRPathIsFunction2'
+        inputfile: patient-example.json
+        expression: Patient.gender.is(string)
+        result:
+          - true
+        model: r4
+      - desc: '** testFHIRPathIsFunction3'
+        inputfile: patient-example.json
+        expression: Patient.gender.is(id)
+        result:
+          - false
+        model: r4
+      - desc: '** testFHIRPathIsFunction4'
+        inputfile: questionnaire-example.json
+        expression: Questionnaire.url.is(uri)
+        result:
+          - true
+        model: r4
+      - desc: '** testFHIRPathIsFunction5'
+        inputfile: questionnaire-example.json
+        expression: Questionnaire.url.is(url)
+        result:
+          - false
+        model: r4
+      - desc: '** testFHIRPathIsFunction6'
+        inputfile: valueset-example-expansion.json
+        expression: ValueSet.version.is(string)
+        result:
+          - true
+        model: r4
+      - desc: '** testFHIRPathIsFunction7'
+        inputfile: valueset-example-expansion.json
+        expression: ValueSet.version.is(code)
+        result:
+          - false
+        model: r4
+      - desc: '** testFHIRPathIsFunction8'
+        inputfile: observation-example.json
+        expression: >-
+          Observation.extension('http://example.com/fhir/StructureDefinition/patient-age').value
+          is Age
+        result:
+          - true
+        model: r4
+      - desc: '** testFHIRPathIsFunction9'
+        inputfile: observation-example.json
+        expression: >-
+          Observation.extension('http://example.com/fhir/StructureDefinition/patient-age').value
+          is Quantity
+        result:
+          - true
+        model: r4
+      - desc: '** testFHIRPathIsFunction10'
+        inputfile: observation-example.json
+        expression: >-
+          Observation.extension('http://example.com/fhir/StructureDefinition/patient-age').value
+          is Duration
+        result:
+          - false
+        model: r4
+      - desc: '** testFHIRPathAsFunction11'
+        inputfile: patient-example.json
+        expression: Patient.gender.as(string)
+        model: r4
+        result: []
+        disable: true
+      - desc: '** testFHIRPathAsFunction12'
+        inputfile: patient-example.json
+        expression: Patient.gender.as(code)
+        result:
+          - male
+        model: r4
+      - desc: '** testFHIRPathAsFunction13'
+        inputfile: patient-example.json
+        expression: Patient.gender.as(id)
+        model: r4
+        result: []
+      - desc: '** testFHIRPathAsFunction14'
+        inputfile: valueset-example-expansion.json
+        expression: ValueSet.version.as(string)
+        result:
+          - '20150622'
+        model: r4
+      - desc: '** testFHIRPathAsFunction15'
+        inputfile: valueset-example-expansion.json
+        expression: ValueSet.version.as(code)
+        model: r4
+        result: []
+      - desc: '** testFHIRPathAsFunction16'
+        inputfile: patient-example.json
+        expression: Patient.gender.ofType(string)
+        model: r4
+        result: []
+        disable: true
+      - desc: '** testFHIRPathAsFunction17'
+        inputfile: patient-example.json
+        expression: Patient.gender.ofType(code)
+        result:
+          - male
+        model: r4
+      - desc: '** testFHIRPathAsFunction18'
+        inputfile: patient-example.json
+        expression: Patient.gender.ofType(id)
+        model: r4
+        result: []
+      - desc: '** testFHIRPathAsFunction19'
+        inputfile: valueset-example-expansion.json
+        expression: ValueSet.version.ofType(string)
+        result:
+          - '20150622'
+        model: r4
+      - desc: '** testFHIRPathAsFunction20'
+        inputfile: valueset-example-expansion.json
+        expression: ValueSet.version.ofType(code)
+        model: r4
+        result: []
+      - desc: '** testFHIRPathAsFunction21'
+        inputfile: patient-example.json
+        expression: Patient.name.as(HumanName).use
+        error: true
+        model: r4
+      - desc: '** testFHIRPathAsFunction22'
+        inputfile: patient-example.json
+        expression: Patient.name.ofType(HumanName).use
+        result:
+          - official
+          - usual
+          - maiden
+        model: r4
+      - desc: '** testFHIRPathAsFunction23'
+        inputfile: patient-example.json
+        expression: Patient.gender.as(string1)
+        error: true
+        model: r4
+      - desc: '** testFHIRPathAsFunction24'
+        inputfile: patient-example.json
+        expression: Patient.gender.ofType(string1)
+        error: true
+        model: r4
+  - 'group: miscEngineTests':
+      - desc: '** testContainedId'
+        inputfile: patient-container-example.json
+        expression: contained.id
+        result:
+          - '1'
+        model: r4

@@ -1,8 +1,9 @@
-// Takes a directory of JSON FHIR definitions (DSTU2, STU3, R4 or R5) and extracts the information
-// about "choice types" (polymorphic fields).
+// Takes a directory of JSON FHIR definitions (DSTU2, STU3, R4, or R5) and
+// extracts the information needed to evaluate FHIRPath expressions.
 
 const path = require('path');
 const fs = require('fs');
+const util = require('../src/utilities');
 
 const args = require('yargs')
   .nargs('fhirDefDir', 1)
@@ -31,13 +32,44 @@ let path2Type = {};
  * Adds mapping from property path to data type.
  * @param {string} path - property path.
  * @param {string} code - data type code.
+ * @param {string} typeDesc - type description object.
  */
-function addPath2Type(path, code) {
-  if (path.indexOf('.') !== -1) {
-    if (/http:\/\/hl7\.org\/fhirpath\/(.*)/.test(code)) {
-      path2Type[path] = RegExp.$1;
+function addPath2Type(path, code, typeDesc) {
+  // TODO: LF-3344 - should we check if path is already defined?
+  //  E.g. ... && !path2Type[path]
+  if (code && path.indexOf('.') !== -1) {
+    if (code.toLowerCase() === 'reference' || code.toLowerCase() === 'canonical') {
+      const refType = util.arraify(typeDesc.targetProfile || typeDesc.profile).reduce((res, url) => {
+        const match =
+          /http:\/\/hl7.org\/fhir\/StructureDefinition\/([A-Z][A-Za-z]+)/.exec(url);
+        if (match) {
+          res.push(match[1]);
+        } else {
+          console.log(
+            `Warning: unhandled Profile on ${path}:`,
+            '-', url, (path2Type[path]?.refType ?
+              `(using value from another node: ${
+                path2Type[path].refType.join(',')
+              })`
+              : ''));
+        }
+        return res;
+      }, []);
+      if (refType.length > 0 || !path2Type[path]) {
+        path2Type[path] = {
+          code,
+          // For Reference and canonical types, we need to extract the target profile
+          // to determine the type of the reference.
+          refType
+        };
+      }
     } else {
-      path2Type[path] = code;
+      const match = /http:\/\/hl7\.org\/fhirpath\/(.*)/.exec(code);
+      if (match) {
+        path2Type[path] = match[1];
+      } else {
+        path2Type[path] = code;
+      }
     }
   }
 }
@@ -114,10 +146,17 @@ for (let f of choiceTypeFiles) {
         name2Path[n.name] = n.path;
       }
       if (n.path && n.nameReference) {
-        // we use previously saved path by name
-        pathsDefinedElsewhere[n.path] = name2Path[n.nameReference];
+        if (name2Path[n.nameReference]) {
+          // we use previously saved path by name
+          pathsDefinedElsewhere[n.path] = name2Path[n.nameReference];
+        } else if (!pathsDefinedElsewhere[n.path]) {
+          throw new Error('Unhandled nameReference');
+        }
       }
 
+      // TODO: LF-3344 - To eliminate unnecessary extra data from model, we can
+      //  try adding an additional condition:
+      //   ... && (!n.base || n.base?.path === n.path)
       if (n.path && n.type) {
         if (n.path.match(/\[x\]$/)) {
           const prefix = n.path.slice(0, -3);
@@ -126,7 +165,7 @@ for (let f of choiceTypeFiles) {
           let types = n.type.map(t => {
             const typeCode = getTypeCode(t);
             const suffix = typeCode[0].toUpperCase() + typeCode.slice(1);
-            addPath2Type(prefix + suffix, typeCode);
+            addPath2Type(prefix + suffix, typeCode, t);
             return suffix;
           });
           // Remove the [x] from end of the path and store only unique "types"
@@ -134,7 +173,7 @@ for (let f of choiceTypeFiles) {
         } else {
           const typeDesc = n.type[0];
           // Obtaining FHIR Definition Data in the normal way
-          addPath2Type(n.path, getTypeCode(typeDesc));
+          addPath2Type(n.path, getTypeCode(typeDesc), typeDesc);
         }
       }
       else {
@@ -153,6 +192,19 @@ for (let f of choiceTypeFiles) {
   visitNode(fData);
 }
 
+// Create a set of resource types that have the "url" search parameter.
+const resourcesWithUrlParam = new Set();
+JSON.parse(fs.readFileSync(path.join(fhirDefDir, 'search-parameters.json')))
+  .entry.forEach(({resource: searchParameter}) => {
+    if (searchParameter.code === 'url') {
+      // The search parameter with code "url" is defined for resources that have
+      // a canonical URL and some other resources.
+      [].concat(searchParameter.base).forEach((resType) => {
+        resourcesWithUrlParam.add(resType);
+      });
+    }
+  });
+
 // Output the results as JSON hash for ease of import and ease of checking
 // whether a path is a choice type path.
 // Since there are no nested objects, we can easily sort the output keys.
@@ -163,4 +215,6 @@ fs.writeFileSync(path.join(outputDir, 'pathsDefinedElsewhere.json'),
 fs.writeFileSync(path.join(outputDir, 'type2Parent.json'),
   JSON.stringify(type2Parent, Object.keys(type2Parent).sort(), 2));
 fs.writeFileSync(path.join(outputDir, 'path2Type.json'),
-  JSON.stringify(path2Type, Object.keys(path2Type).sort(), 2));
+  JSON.stringify(path2Type, [...Object.keys(path2Type).sort(), 'code', 'refType'], 2));
+fs.writeFileSync(path.join(outputDir, 'resourcesWithUrlParam.json'),
+  JSON.stringify([...resourcesWithUrlParam.values()].sort(), null, 2));

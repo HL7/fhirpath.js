@@ -4,7 +4,7 @@
   <group name="Patient tests">
     <test name="extract birthDate" inputfile="resource-example.xml" predicate="false">
       <expression>birthDate</expression>
-      <output type="date">1974-12-25</output>
+      <output type="date">@1974-12-25</output>
     </test>
     <test
       name="patient has a birthDate" inputfile="resource-example.xml" predicate="true">

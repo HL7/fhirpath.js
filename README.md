@@ -86,13 +86,13 @@ where:
           an exception,
         * true or similar to true - return Promise, only for asynchronous functions,
         * "always" - return Promise always.
-    * options.terminologyUrl - a URL that points to a FHIR RESTful API that is
-      used to create %terminologies that implements the Terminology Service API.
     * options.terminologyUrl - a URL that points to a terminology server. This
       URL is used to initialize %terminologies, as defined in the FHIR FHIRPath
       [Terminology Service API](https://www.hl7.org/fhir/fhirpath.html#txapi).
       See the [Implementation Status](#implementation-status) section for the
       currently supported %terminologies APIs.
+    * options.fhirServerUrl - a URL pointing to a FHIR RESTful API server that
+      is used to `resolve()` resources.
     * options.signal - an AbortSignal object that allows you to abort the
       asynchronous FHIRPath expression evaluation.
 
@@ -466,6 +466,7 @@ open browser on localhost:8080
   > wget http://hl7.org/fhir/profiles-types.json -O profiles-types.json
   > wget http://hl7.org/fhir/profiles-others.json -O profiles-others.json
   > wget http://hl7.org/fhir/profiles-resources.json -O profiles-resources.json
+  > wget https://hl7.org/fhir/search-parameters.json -O search-parameters.json
   ```
 * Create the new folder for the version you are importing
   ```
