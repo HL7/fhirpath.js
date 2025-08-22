@@ -173,7 +173,7 @@ interface Options {
     userInvocationTable?: UserInvocationTable,
     terminologyUrl?: string,
     signal?: AbortSignal,
-    debugger?: (ctx: any, parentData: ResourceNode[], result: ResourceNode[], node: any) => void,
+    debugger?: (ctx: any, focus: ResourceNode[], result: ResourceNode[], node: any) => void,
 }
 
 interface NoAsyncOptions extends Options {
