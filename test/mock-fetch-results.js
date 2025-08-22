@@ -34,6 +34,30 @@ function checkString(str, condition, options= {}) {
 
 
 /**
+ * Checks whether the provided condition is satisfied for the given object.
+ * If the condition is undefined, returns true.
+ * If the condition is a function, calls it with the object and returns its result.
+ * Otherwise, reports an error.
+ *
+ * @param {Object} obj - The object to check.
+ * @param {Function|undefined} condition - The condition function to test the object, or undefined.
+ * @returns {boolean} True if the condition is satisfied or not provided.
+ * @throws {Error} If the condition is not a function or undefined.
+ */
+function checkObject(obj, condition) {
+  if (condition === undefined) {
+    return true;
+  } else if (condition instanceof Function) {
+    return condition(obj);
+  } else {
+    reportError(
+      `Condition must be a function, but got ${typeof condition}`
+    );
+  }
+}
+
+
+/**
  * Mocks fetch requests.
  * @param {Array} results - an array of fetch response descriptions, each item
  * of which is an array with a RegExp for a URL, URL substring, or test function
@@ -57,9 +81,10 @@ function mockFetchResults(results, {timeout = 0} = {}) {
       const mockedItem = results?.find(
         (r) => {
           if (typeof r[0] === 'object' && r[0] !== null && (r[0].url ||
-            r[0].body || r[0].method)) {
+            r[0].body || r[0].method || r[0].headers)) {
             return checkString(url, r[0]?.url) &&
               checkString(options.body, r[0]?.body) &&
+              checkObject(options.headers, r[0]?.headers) &&
               checkString(options.method ?? 'GET', r[0]?.method,
                 {fullStringMatch: true});
           } else {
@@ -67,11 +92,11 @@ function mockFetchResults(results, {timeout = 0} = {}) {
           }
         }
       );
-      const optionHeaders = new Headers(options?.headers);
+      const optionHeaders = options?.headers;
       if (
-        optionHeaders.get('Accept') !== 'application/fhir+json; charset=utf-8' ||
+        optionHeaders?.get('Accept') !== 'application/fhir+json; charset=utf-8' ||
         options?.method === 'POST' &&
-        optionHeaders.get('Content-Type') !== 'application/fhir+json; charset=utf-8'
+        optionHeaders?.get('Content-Type') !== 'application/fhir+json; charset=utf-8'
       ) {
         reportError('Unexpected request header.');
       }

@@ -783,6 +783,11 @@ function parse(path) {
  *   RESTful API that is used to query resources when using `resolve()`.
  * @param {AbortSignal} [options.signal] - an AbortSignal object that allows you
  *   to abort the asynchronous FHIRPath expression evaluation.
+ * @param {Object} [options.httpHeaders] - an object with HTTP headers to be
+ *   used when making requests to the FHIR server. The property names of this
+ *   object are server URLs, and the values are objects whose property names are
+ *   HTTP header names and whose values are their values.
+ * @returns {Array} - an array of results of the FHIRPath expression evaluation.
  */
 function applyParsedPath(resource, parsedPath, envVars, model, options) {
   constants.reset();
@@ -834,6 +839,14 @@ function applyParsedPath(resource, parsedPath, envVars, model, options) {
         'Evaluation of the expression was aborted before it started.');
     }
   }
+  if (options.httpHeaders) {
+    ctx.httpHeaders = options.httpHeaders;
+    if (!ctx.async) {
+      throw new Error(
+        'The "httpHeaders" option is only supported for asynchronous functions.');
+    }
+  }
+
   const res = engine.doEval(ctx, dataRoot, parsedPath.children[0]);
   return res instanceof Promise
     ? res.then(r => {
@@ -953,6 +966,11 @@ function resolveInternalTypes(val) {
  *   RESTful API that is used to query resources when using `resolve()`.
  * @param {AbortSignal} [options.signal] - an AbortSignal object that allows you
  *   to abort the asynchronous FHIRPath expression evaluation.
+ * @param {Object} [options.httpHeaders] - an object with HTTP headers to be
+ *   used when making requests to the FHIR server. The property names of this
+ *   object are server URLs, and the values are objects whose property names are
+ *   HTTP header names and whose values are their values.
+ * @returns {Array} - an array of results of the FHIRPath expression evaluation.
  */
 function evaluate(fhirData, path, envVars, model, options) {
   return compile(path, model, options)(fhirData, envVars);
@@ -989,6 +1007,10 @@ function evaluate(fhirData, path, envVars, model, options) {
  *   to abort the asynchronous FHIRPath expression evaluation. Passing a signal
  *   to compile() whose result is used more than once will cause abortion
  *   problems.
+ * @param {Object} [options.httpHeaders] - an object with HTTP headers to be
+ *   used when making requests to the FHIR server. The property names of this
+ *   object are server URLs, and the values are objects whose property names are
+ *   HTTP header names and whose values are their values.
  */
 function compile(path, model, options) {
   options = {

@@ -112,6 +112,7 @@ interface Options {
     userInvocationTable?: UserInvocationTable,
     terminologyUrl?: string,
     signal?: AbortSignal
+    httpHeaders?: Record<string, string>
 }
 
 interface NoAsyncOptions extends Options {
