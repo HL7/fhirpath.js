@@ -973,7 +973,7 @@ function resolveInternalTypes(val) {
  * @returns {Array} - an array of results of the FHIRPath expression evaluation.
  */
 function evaluate(fhirData, path, envVars, model, options) {
-  return compile(path, model, options)(fhirData, envVars);
+  return _compile(path, model, options)(fhirData, envVars);
 }
 
 /**
@@ -1003,16 +1003,36 @@ function evaluate(fhirData, path, envVars, model, options) {
  *   the Terminology Service API.
  * @param {string} [options.fhirServerUrl] - a URL that points to a FHIR
  *   RESTful API that is used to query resources when using `resolve()`.
- * @param {AbortSignal} [options.signal] - an AbortSignal object that allows you
- *   to abort the asynchronous FHIRPath expression evaluation. Passing a signal
- *   to compile() whose result is used more than once will cause abortion
- *   problems.
  * @param {Object} [options.httpHeaders] - an object with HTTP headers to be
  *   used when making requests to the FHIR server. The property names of this
  *   object are server URLs, and the values are objects whose property names are
  *   HTTP header names and whose values are their values.
  */
 function compile(path, model, options) {
+  if (options?.signal) {
+    throw new Error(
+      'Passing a signal to compile() whose result is used more than once is' +
+      ' not allowed. If you need to abort the evaluation of the compiled' +
+      ' expression, you should pass the signal option to the function that is' +
+      ' returned by compile().');
+  }
+  return _compile(path, model, options);
+}
+
+/**
+ * Internal function to compile a FHIRPath expression into an evaluator function.
+ * Handles parsing, option normalization, user invocation table wrapping, and base path logic.
+ * Returns a function that evaluates the parsed FHIRPath expression on provided FHIR data.
+ *
+ * @param {string|object} path - FHIRPath expression as a string or an object
+ *  with base and expression (see compile() description).
+ * @param {object} model - The model object specific to the FHIR domain (e.g., R4).
+ * @param {object} options - Compilation options, including resolveInternalTypes,
+ *  userInvocationTable, etc. (see compile() description).
+ * @returns {Function} - A function that takes FHIR data, environment variables,
+ *  and additional options, and returns the evaluation result.
+ */
+function _compile(path, model, options) {
   options = {
     resolveInternalTypes: true,
     ... options

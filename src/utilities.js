@@ -247,8 +247,11 @@ const defaultGetHeaders = {
 
 /**
  * Fetches a resource from the given URL with caching and context-based options.
- * Applies context-specific HTTP headers and signal, merges with provided options,
- * and caches the response for a set duration to avoid redundant network requests.
+ * Applies context-specific HTTP headers and signal passed to evaluation
+ * function (e.g., fhirpath.evaluate() or function that is the result of
+ * fhirpath.compile()), merged with the parameters provided in a particular
+ * call of the fetchWithCache() function, performs the fetch request, and caches
+ * the response for a set duration to avoid redundant network requests.
  * Automatically applies default FHIR headers based on the request method.
  * Cleans up expired cache entries before making a new request.
  * Handles JSON and text responses, rejecting on error or non-OK status.
