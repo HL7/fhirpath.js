@@ -270,7 +270,8 @@ util.fetchWithCache = function(url, ctx, options) {
   // applied to the request.
   if (ctx.httpHeaders) {
     const urlWithHeaders = Object.keys(ctx.httpHeaders)
-      .find(i => url.startsWith(i));
+      .find(i =>
+        (new RegExp('^' + util.escapeStringForRegExp(i) + '\\b').test(i)));
 
     if (urlWithHeaders) {
       const commonHeaders = ctx.httpHeaders[urlWithHeaders];
