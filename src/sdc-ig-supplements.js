@@ -425,20 +425,17 @@ function getWeightFromTerminologyCodeSet(ctx, code, system) {
   const codeSystemExt = ctx.model?.score.extensionURI;
 
   const terminologyUrl = getTerminologyUrl(ctx);
-  const fetchOptions = {
-    ...(ctx.signal ? {signal: ctx.signal} : {})
-  };
   return util.fetchWithCache(`${terminologyUrl}/CodeSystem?` + new URLSearchParams({
     url: system,
     ...(scorePropertyUri ? {_elements: 'property'}: {})
-  }).toString(), fetchOptions)
+  }).toString(), ctx)
     .then(bundle => {
       if (scorePropertyUri) {
         const scorePropertyCode = getPropertyCode(bundle?.entry?.[0]?.resource?.property, scorePropertyUri);
         if (scorePropertyCode) {
           return util.fetchWithCache(`${terminologyUrl}/CodeSystem/$lookup?` + new URLSearchParams({
             code, system, property: scorePropertyCode
-          }).toString(), fetchOptions)
+          }).toString(), ctx)
             .then((parameters) => {
               return parameters.parameter
                 .find(p => p.name === 'property' && p.part
