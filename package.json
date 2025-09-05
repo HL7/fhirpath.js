@@ -32,7 +32,7 @@
     "lodash": "^4.17.21",
     "open": "^8.4.0",
     "rimraf": "^3.0.0",
-    "tmp": "0.0.33",
+    "tmp": "^0.2.5",
     "tsd": "^0.31.1",
     "webpack": "^5.11.1",
     "webpack-bundle-analyzer": "^4.4.2",
