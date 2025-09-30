@@ -71,7 +71,6 @@ var parse = function (path) {
           PathListener.prototype[p] = function (ctx) {
             let node = enterNode(ctx, nodeType);
             const opSymbol = ctx.children[1].symbol;
-            node.operator = opSymbol.text;
             node.text = opSymbol.text;
             // position information is for the operator itself, not it's arguments
             node.start = { line: opSymbol.line, column: opSymbol.column + 1 };
