@@ -403,11 +403,7 @@ engine.NumberLiteral = function(ctx, parentData, node) {
 };
 
 engine.LongNumberLiteral = function(ctx, parentData, node) {
-  const t = node.text;
-  // ensure there IS an L on the end before trimming it off
-  // if should always be there due to grammar, but this is just a safety check
-  const numeric = t.endsWith('L') ? t.slice(0, -1) : t;
-  return [BigInt(numeric)];
+  return [BigInt(node.text.slice(0, -1))];
 };
 
 engine.Identifier = function(ctx, parentData, node) {
