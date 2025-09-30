@@ -122,6 +122,12 @@ interface ResourceNode {
    */
   index: number | undefined;
   
+  /**
+   * The raw name of the property
+   * e.g. `family` in `Patient.name[0].family`
+   *      or `valueString` in `Patient.name[1].family.extension[0].value` 
+   *      (has the type suffix on it for choice type properties)
+   */
   propName: string | undefined;
 
   /**
