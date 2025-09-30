@@ -154,7 +154,7 @@ interface ResourceNode {
   /**
    * The FHIR model used for this node
    */
-  model : fhirpath.Model;
+  model : Model;
  
   /**
    * Retrieve any type information if available
