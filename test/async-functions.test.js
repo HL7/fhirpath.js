@@ -401,6 +401,45 @@ describe('Async functions', () => {
     });
 
 
+    it('should use custom headers ', (done) => {
+      mockFetchResults([
+        [{
+          url: /code=29463-7/,
+          headers: (h) => h?.get('Authorization') === 'some auth value'
+        }, {
+          "resourceType": "Parameters",
+          "parameter": [
+            {
+              "name": "result",
+              "valueBoolean": true
+            }
+          ]
+        }]
+      ]);
+
+      let result = fhirpath.evaluate(
+        observationResource,
+        "%terminologies.validateVS('http://hl7.org/fhir/ValueSet/observation-vitalsignresult', Observation.code.coding[0]).parameter.value",
+        {},
+        modelR4,
+        {
+          async: true,
+          terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4",
+          httpHeaders: {
+            "https://lforms-fhir.nlm.nih.gov/baseR4": {
+              Authorization: 'some auth value'
+            }
+          }
+        }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([true]);
+        done();
+      })
+    });
+
+
     it('should return an empty result if the params parameter is not a valid URL encoded string', () => {
       let result = fhirpath.evaluate(
         observationResource,

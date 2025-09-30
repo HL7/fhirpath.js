@@ -74,7 +74,8 @@ function requestResourceByCanonicalUrl(ctx, refType, url) {
     }
     return  util.fetchWithCache(
       urlJoin(fhirServerUrl, refType) + '?' +
-      new URLSearchParams(params).toString()
+      new URLSearchParams(params).toString(),
+      ctx
     ).then((bundle) => {
       // Assuming the bundle contains a single resource.
       return bundle.entry?.[0]?.resource ?? null;
@@ -136,12 +137,12 @@ function requestResourceByUrl(ctx, node, refType, url, isCanonical) {
       }
     } else if (refType) {
       // If the reference is an absolute URL, we can use it directly.
-      promiseOfResource = util.fetchWithCache(url).catch(
+      promiseOfResource = util.fetchWithCache(url, ctx).catch(
         // If the reference can be a canonical URL of specified type,
         // we can use this type to resolve it.
         () => requestResourceByCanonicalUrl(ctx, refType, url));
     } else {
-      promiseOfResource = util.fetchWithCache(url);
+      promiseOfResource = util.fetchWithCache(url, ctx);
     }
   } else {
     const match = /([A-Za-z]*)\//.exec(url);
@@ -156,7 +157,7 @@ function requestResourceByUrl(ctx, node, refType, url, isCanonical) {
       if (!fhirServerUrl) {
         throw new Error('Option "fhirServerUrl" is not specified.');
       }
-      promiseOfResource = util.fetchWithCache(urlJoin(fhirServerUrl, url));
+      promiseOfResource = util.fetchWithCache(urlJoin(fhirServerUrl, url), ctx);
     } else if (!url && fragment && node instanceof ResourceNode) {
       promiseOfResource = Promise.resolve(node.getParentResource());
     }

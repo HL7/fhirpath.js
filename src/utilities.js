@@ -237,36 +237,83 @@ const requestCache = {};
 // Duration of data storage in cache.
 const requestCacheStorageTime = 3600000; // 1 hour = 60 * 60 * 1000
 
-const defaultPostHeaders = new Headers({
+const defaultPostHeaders = {
   'Accept': 'application/fhir+json; charset=utf-8',
   'Content-Type': 'application/fhir+json; charset=utf-8'
-});
-const defaultGetHeaders = new Headers({
+};
+const defaultGetHeaders = {
   'Accept': 'application/fhir+json; charset=utf-8'
-});
+};
 
 /**
- * fetch() wrapper for caching server responses.
- * @param {string} url - a URL of the resource you want to fetch.
- * @param {object} [options] - optional object containing any custom settings
- *  that you want to apply to the request.
- * @return {Promise}
+ * Fetches a resource from the given URL with caching and context-based options.
+ * Applies context-specific HTTP headers and signal passed to evaluation
+ * function (e.g., fhirpath.evaluate() or function that is the result of
+ * fhirpath.compile()), merged with the parameters provided in a particular
+ * call of the fetchWithCache() function, performs the fetch request, and caches
+ * the response for a set duration to avoid redundant network requests.
+ * Automatically applies default FHIR headers based on the request method.
+ * Cleans up expired cache entries before making a new request.
+ * Handles JSON and text responses, rejecting on error or non-OK status.
+ *
+ * @param {string} url - The URL of the resource to fetch.
+ * @param {Object} ctx - Context object, may contain httpHeaders and signal.
+ * @param {Object} [options] - Optional fetch options (method, headers, etc.).
+ * @returns {Promise<Object|string>} - A promise resolving to the fetched
+ *  resource or rejecting with error/text.
  */
-util.fetchWithCache = function(url, options) {
+util.fetchWithCache = function(url, ctx, options) {
+  // Apply the context's HTTP headers if they are provided.
+  // The context may have a property "httpHeaders" that is an object
+  // with keys as FHIR server URLs and values as objects with HTTP headers.
+  // If the URL starts with one of the keys, the corresponding headers will be
+  // applied to the request.
+  if (ctx.httpHeaders) {
+    const urlWithHeaders = Object.keys(ctx.httpHeaders)
+      .find(i =>
+        (new RegExp('^' + util.escapeStringForRegExp(i) + '\\b').test(i)));
+
+    if (urlWithHeaders) {
+      const commonHeaders = ctx.httpHeaders[urlWithHeaders];
+      if (commonHeaders) {
+        if (options) {
+          // If options already has headers, merge them with the common headers.
+          options.headers = {
+            ...commonHeaders,
+            ...options.headers,
+          };
+        } else {
+          // If options is not provided, create a new object with common headers.
+          options = {
+            headers: commonHeaders
+          };
+        }
+      }
+    }
+  }
+
+  if (ctx.signal) {
+    if (options) {
+      options.signal = ctx.signal;
+    } else {
+      options = { signal: ctx.signal };
+    }
+  }
+
   const requestKey = [
     url, options ? util.toJSON(options) : ''
   ].join('|');
 
-  // If the options object does not have headers, set default headers based on
-  // the request method.
-  if (!options?.headers) {
-    const headers = options?.method === 'POST' ?
-      defaultPostHeaders : defaultGetHeaders;
-    options = {
-      ...options,
-      headers
-    };
-  }
+  // Apply default headers based on the request method.
+  const defaultHeaders = options?.method === 'POST' ?
+    defaultPostHeaders : defaultGetHeaders;
+  options = {
+    ...options,
+    headers: new Headers({
+      ...defaultHeaders,
+      ...(options?.headers || {})
+    })
+  };
 
   const timestamp = Date.now();
   for (const key in requestCache) {

@@ -3,6 +3,12 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.6.0] - 2025-08-21
+### Added
+- the ability to pass HTTP headers in requests to FHIR servers, which can be
+  used for authorization obtained via a third-party library (see fhirclient
+  example in docs/auth.md).
+
 ## [4.5.1] - 2025-07-09
 ### Added
 - tests for the R5 model.

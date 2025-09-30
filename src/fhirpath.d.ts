@@ -180,6 +180,7 @@ interface Options {
     terminologyUrl?: string,
     signal?: AbortSignal,
     debugger?: (ctx: any, focus: ResourceNode[], result: ResourceNode[], node: any) => void,
+    httpHeaders?: Record<string, string>
 }
 
 interface NoAsyncOptions extends Options {

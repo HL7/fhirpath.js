@@ -70,9 +70,7 @@ class Terminologies {
       if (typeInfo.is(TypeInfo.FhirUri, ctx.model) || typeInfo.is(TypeInfo.SystemString, ctx.model)) {
         response = util.fetchWithCache(
           `${self[0].terminologyUrl}/ValueSet/$expand?url=${encodeURIComponent(valueSet)}${params ? '&' + params : ''}`,
-          {
-            ...(ctx.signal ? {signal: ctx.signal} : {})
-          }
+          ctx
         );
       } else if (typeInfo.is(TypeInfo.FhirValueSet, ctx.model)) {
         const parameters = [{
@@ -80,9 +78,8 @@ class Terminologies {
           "resource": valueSet
         }, ...toFhirParameters(params)];
 
-        response = util.fetchWithCache(`${self[0].terminologyUrl}/ValueSet/$expand`, {
+        response = util.fetchWithCache(`${self[0].terminologyUrl}/ValueSet/$expand`, ctx, {
           method: 'POST',
-          ...(ctx.signal ? {signal: ctx.signal} : {}),
           body: util.toJSON({
             "resourceType": "Parameters",
             "parameter": parameters
@@ -132,10 +129,9 @@ class Terminologies {
           ]
         };
         response = util.fetchWithCache(
-          `${self[0].terminologyUrl}/CodeSystem/$lookup`, {
+          `${self[0].terminologyUrl}/CodeSystem/$lookup`, ctx, {
             method: "POST",
-            body: util.toJSON(parameters),
-            ...(ctx.signal ? {signal: ctx.signal} : {})
+            body: util.toJSON(parameters)
           }
         );
       }
@@ -216,10 +212,9 @@ class Terminologies {
                 ]
               };
               return util.fetchWithCache(
-                requestUrl, {
+                requestUrl, ctx, {
                   method: "POST",
-                  body: util.toJSON(parameters),
-                  ...(ctx.signal ? {signal: ctx.signal} : {})
+                  body: util.toJSON(parameters)
                 }
               );
             });
@@ -237,9 +232,7 @@ class Terminologies {
                   });
                   return util.fetchWithCache(
                     `${requestUrl}?${queryParams2.toString() + (params ? '&' + params : '')}`,
-                    {
-                      ...(ctx.signal ? {signal: ctx.signal} : {})
-                    }
+                    ctx
                   );
                 });
             } else {
@@ -258,9 +251,7 @@ class Terminologies {
                 });
                 response = util.fetchWithCache(
                   `${requestUrl}?${queryParams.toString() + (params ? '&' + params : '')}`,
-                  {
-                    ...(ctx.signal ? {signal: ctx.signal} : {})
-                  }
+                  ctx
                 );
               }
             }
@@ -329,10 +320,9 @@ class Terminologies {
             ]
           };
           response = util.fetchWithCache(
-            requestUrl, {
+            requestUrl, ctx, {
               method: "POST",
-              body: util.toJSON(parameters),
-              ...(ctx.signal ? {signal: ctx.signal} : {})
+              body: util.toJSON(parameters)
             }
           );
         }
@@ -412,10 +402,9 @@ class Terminologies {
             ]
           };
           response = util.fetchWithCache(
-            requestUrl, {
+            requestUrl, ctx, {
               method: "POST",
               body: util.toJSON(parameters),
-              ...(ctx.signal ? {signal: ctx.signal} : {})
             }
           );
         }
@@ -491,10 +480,9 @@ class Terminologies {
             ]
           };
           response = util.fetchWithCache(
-            requestUrl, {
+            requestUrl, ctx, {
               method: "POST",
-              body: util.toJSON(parameters),
-              ...(ctx.signal ? {signal: ctx.signal} : {})
+              body: util.toJSON(parameters)
             }
           );
         }
@@ -550,9 +538,7 @@ function getSystemFromVS(ctx, terminologyUrl, valueSet) {
     typeof valueSet === 'string' ?
       util.fetchWithCache(
         `${terminologyUrl}/ValueSet?${queryParams.toString()}`,
-        {
-          ...(ctx.signal ? {signal: ctx.signal} : {})
-        }
+        ctx
       ).then(
         (bundle) =>
           bundle?.entry?.length === 1 ? bundle.entry[0].resource : null

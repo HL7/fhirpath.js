@@ -93,8 +93,21 @@ where:
       currently supported %terminologies APIs.
     * options.fhirServerUrl - a URL pointing to a FHIR RESTful API server that
       is used to `resolve()` resources.
-    * options.signal - an AbortSignal object that allows you to abort the
-      asynchronous FHIRPath expression evaluation.
+    * options.signal - an AbortSignal object that allows you to [abort the
+      asynchronous FHIRPath expression evaluation](docs/abort.md).
+    * options.httpHeaders - an object with HTTP headers that will be used
+      when making requests to FHIR servers (e.g. for terminology servers).
+      The object has the following structure:
+      ```
+      {
+        <server base url>: {
+          <header name>: <header value>,
+          ...
+        },
+        ...
+      }
+      ```
+      See [authentication to FHIR servers](docs/auth.md).
 
 Note:  The resource will be modified by this function to add type information.
 
@@ -184,22 +197,6 @@ This option may also be passed to compile function:
 const path = fhirpath.compile(
   expression, model, {resolveInternalTypes: false}
 );
-```
-
-But passing the `signal` option to compile() whose result is used more than once
-will cause abortion problems. If you need to abort the evaluation of the compiled
-expression, you should pass the signal option to the function that is returned
-by compile():
-
-```js
-const path = fhirpath.compile(
-  expression, model, {async: true}
-);
-const abortController = new AbortController();
-const signal = abortController.signal;
-let res = path(resource, environment, {signal});
-// Abort the evaluation of the compiled expression
-abortController.abort();
 ```
 
 If at some point you decide to convert all values which have internal types to
