@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.7.0] - 2025-10-02
+### Added
+- the ability to add a debug tracing hook, as well as some improvements to the
+  fhirpath parser for reading location information.
+
 ## [4.6.0] - 2025-08-21
 ### Added
 - the ability to pass HTTP headers in requests to FHIR servers, which can be

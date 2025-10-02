@@ -58,7 +58,7 @@ function debugTracer(traceOutput) {
       debugTraceVal.focusVar?.push(val);
     }
 
-    if (ctx.$index != undefined) {
+    if (ctx.$index !== undefined) {
       debugTraceVal.index = ctx.$index;
     }
     if (ctx.$this || ctx.dataRoot) {
@@ -290,12 +290,6 @@ test("testDebugTrace_PropertyWalking", () => {
     debugger: debugTracer(traceOutput),
   };
   let results = fhirpath.evaluate(patientExample, expression, {}, fhirpath_r4_model, options);
-  console.log(JSON.stringify(results, null, 2));
-  let logData = [];
-  for (let traceData of traceOutput) {
-    logData.push(formatTrace(expression, traceData));
-  }
-  console.log(logData);
 
   // Check the actual results (the annotated results are in the last trace output)
   expect(results.length).toBe(1);
@@ -322,7 +316,7 @@ test("testDebugTrace_PropertyWalking", () => {
     const vFocus = traceData.focusVar[0];
     const vResult = traceData.values[0];
 
-    if (n == 2) {
+    if (n === 2) {
       // tostring
       expect(vFocus.valueType).toBe("date");
       expect(vFocus.resourcePath).toBe("Patient.birthDate");
@@ -333,7 +327,7 @@ test("testDebugTrace_PropertyWalking", () => {
       expect(vResult.rawData).toBe("1974-12-25");
     }
 
-    if (n == 3) {
+    if (n === 3) {
       // constant 0
       expect(vFocus.valueType).toBe("Patient");
       expect(vFocus.resourcePath).toBe("Patient");
@@ -343,7 +337,7 @@ test("testDebugTrace_PropertyWalking", () => {
       expect(vResult.rawData).toBe(0);
     }
 
-    if (n == 4) {
+    if (n === 4) {
       // constant 4
       expect(vFocus.valueType).toBe("Patient");
       expect(vFocus.resourcePath).toBe("Patient");
@@ -353,7 +347,7 @@ test("testDebugTrace_PropertyWalking", () => {
       expect(vResult.rawData).toBe(4);
     }
 
-    if (n == 5) {
+    if (n === 5) {
       // substring
       expect(vFocus.valueType).toBe("String");
       expect(vFocus.resourcePath).toBe(undefined);
@@ -381,12 +375,6 @@ test("testDebugTrace_PropertyAndFunctionCalls", () => {
     debugger: debugTracer(traceOutput),
   };
   let results = fhirpath.evaluate(patientExample, expression, {}, fhirpath_r4_model, options);
-  console.log(JSON.stringify(results, null, 2));
-  let logData = [];
-  for (let traceData of traceOutput) {
-    logData.push(formatTrace(expression, traceData));
-  }
-  console.log(logData);
 
   // Check the actual results
   expect(results.length).toBe(1);
@@ -409,7 +397,7 @@ test("testDebugTrace_PropertyAndFunctionCalls", () => {
     const vFocus = traceData.focusVar[0];
     const vResult = traceData.values[0];
 
-    if (n == 2) {
+    if (n === 2) {
       // the context and results of the constant 'am' call
       expect(vFocus.valueType).toBe("Patient");
       expect(vFocus.resourcePath).toBe("Patient");
@@ -419,7 +407,7 @@ test("testDebugTrace_PropertyAndFunctionCalls", () => {
       expect(vResult.rawData).toBe("am");
     }
 
-    if (n == 3) {
+    if (n === 3) {
       // the context and results of indexOf call
       expect(vFocus.valueType).toBe("String");
       expect(vFocus.resourcePath).toBe("Patient.id");
@@ -447,12 +435,6 @@ test("testDebugTrace_Aggregate", () => {
     debugger: debugTracer(traceOutput),
   };
   let results = fhirpath.evaluate(patientExample, expression, {}, fhirpath_r4_model, options);
-  console.log(JSON.stringify(results, null, 2));
-  let logData = [];
-  for (let traceData of traceOutput) {
-    logData.push(formatTrace(expression, traceData));
-  }
-  console.log(logData);
 
   // Check the actual results (the annotated results are in the last trace output)
   expect(results.length).toBe(1);
@@ -479,7 +461,7 @@ test("testDebugTrace_Aggregate", () => {
   for (let n = 0; n < traceOutput.length; n++) {
     const traceData = traceOutput[n];
     
-    if (n == 2) {
+    if (n === 2) {
       // the results of the | operator
       const vThis = traceData.thisVar[0];
       const vFocus = traceData.focusVar[0];
@@ -496,9 +478,8 @@ test("testDebugTrace_Aggregate", () => {
       expect(vResult2.valueType).toBe("Number");
     }
     
-    if (n == 3) {
+    if (n === 3) {
       // the results of the constant "0" for the init expression
-      const vThis = traceData.thisVar[0];
       const vFocus = traceData.focusVar[0];
       const vResult = traceData.values[0];
       expect(vFocus.valueType).toBe("Patient");
@@ -526,12 +507,6 @@ test("testDebugTrace_Operator", () => {
     debugger: debugTracer(traceOutput),
   };
   let results = fhirpath.evaluate(patientExample, expression, {}, fhirpath_r4_model, options);
-  console.log(JSON.stringify(results, null, 2));
-  let logData = [];
-  for (let traceData of traceOutput) {
-    logData.push(formatTrace(expression, traceData));
-  }
-  console.log(logData);
 
   // Check the actual results
   expect(results.length).toBe(1);
@@ -555,7 +530,7 @@ test("testDebugTrace_Operator", () => {
     const vFocus = traceData.focusVar[0];
     const vResult = traceData.values[0];
 
-    if (n == 2) {
+    if (n === 2) {
       // the context and results of toString call
       expect(vFocus.valueType).toBe("String");
       expect(vFocus.resourcePath).toBe("Patient.id");
@@ -583,12 +558,6 @@ test("testDebugTrace_WhereClause", () => {
     debugger: debugTracer(traceOutput),
   };
   let results = fhirpath.evaluate(patientExample, expression, {}, fhirpath_r4_model, options);
-  console.log(JSON.stringify(results, null, 2));
-  let logData = [];
-  for (let traceData of traceOutput) {
-    logData.push(formatTrace(expression, traceData));
-  }
-  console.log(logData);
 
   // Check the actual results
   expect(results.length).toBe(3);
@@ -648,7 +617,7 @@ test("testDebugTrace_WhereClause", () => {
     const vResult = traceData.values[0];
     const vThis = traceData.thisVar[0];
 
-    if (n == 0) {
+    if (n === 0) {
       // name
       expect(vThis.valueType).toBe("Patient");
       expect(vThis.resourcePath).toBe("Patient");
@@ -684,7 +653,7 @@ test("testDebugTrace_WhereClause", () => {
       expect(traceData.index).toBe(2);
     }
 
-    if (n == 22) {
+    if (n === 22) {
       // Where clause result
       expect(vThis.valueType).toBe("Patient");
       expect(vThis.resourcePath).toBe("Patient");
@@ -696,7 +665,7 @@ test("testDebugTrace_WhereClause", () => {
       expect(vResult.resourcePath).toBe("Patient.name[0]");
     }
 
-    if (n == 23) {
+    if (n === 23) {
       // The final given property navigator
       expect(vThis.valueType).toBe("Patient");
       expect(vThis.resourcePath).toBe("Patient");
@@ -723,12 +692,6 @@ test("testDebugTrace_ConstantValues", () => {
     debugger: debugTracer(traceOutput),
   };
   let results = fhirpath.evaluate(patientExample, expression, {}, fhirpath_r4_model, options);
-  console.log(JSON.stringify(results, null, 2));
-  let logData = [];
-  for (let traceData of traceOutput) {
-    logData.push(formatTrace(expression, traceData));
-  }
-  console.log(logData);
 
   // Check the actual results
   expect(results.length).toBe(1);
@@ -759,12 +722,6 @@ test("testDebugTrace_GroupedOr", () => {
     debugger: debugTracer(traceOutput),
   };
   let results = fhirpath.evaluate(patientExample, expression, {}, fhirpath_r4_model, options);
-  console.log(JSON.stringify(results, null, 2));
-  let logData = [];
-  for (let traceData of traceOutput) {
-    logData.push(formatTrace(expression, traceData));
-  }
-  console.log(logData);
 
   // Check the actual results
   expect(results.length).toBe(1);

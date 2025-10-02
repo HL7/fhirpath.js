@@ -208,7 +208,7 @@ var parse = function (path) {
             const extConstContext = ctx.children[0];
             // first child is the TerminalNode for the '%'
             const valueContext = extConstContext.children[1];
-            if (valueContext.ruleIndex == Parser.RULE_identifier) {
+            if (valueContext.ruleIndex === Parser.RULE_identifier) {
               // this is an identifier
               // it has children of several types
               const idTerminalNode = valueContext.children[0];
@@ -260,7 +260,7 @@ var parse = function (path) {
             // Note: doesn't handle the delimited text cases correctly in the engine later on
             if (parent && ctx.ruleIndex === Parser.RULE_expression) {
               if (ctx.parentCtx?.ruleIndex === Parser.RULE_paramList) {
-                  parent.text = ctx.getText();
+                parent.text = ctx.getText();
               }
             }
           };
@@ -281,7 +281,7 @@ var parse = function (path) {
           };
           break;
         default:
-          PathListener.prototype[p] = function (ctx) {
+          PathListener.prototype[p] = function () {
             parentStack.pop();
           };
           break;
