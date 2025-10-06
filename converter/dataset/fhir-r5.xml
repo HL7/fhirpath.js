@@ -262,6 +262,7 @@ Any text enclosed within is ignored
 		<!-- testWrong(observation(), "Observation.valueQuantity.unit"); -->
 		<test name="testPolymorphismB" inputfile="observation-example.xml" mode="strict">
 			<expression invalid="semantic">Observation.valueQuantity.unit</expression>
+			<output type="string">lbs</output>
 		</test>
 
 		<!-- testBoolean(observation(), "Observation.value.is(Quantity)", true); -->
@@ -535,10 +536,10 @@ Any text enclosed within is ignored
 		<test name="testDecimalLiteralToQuantity" inputfile="patient-example.xml"><expression>1.0.toQuantity() = 1.0 '1'</expression><output type="boolean">true</output></test>
 		<test name="testStringIntegerLiteralToQuantity" inputfile="patient-example.xml"><expression>'1'.toQuantity()</expression><output type="Quantity">1 '1'</output></test>
 		<test name="testStringQuantityLiteralToQuantity" inputfile="patient-example.xml"><expression>'1 day'.toQuantity() = 1 day</expression><output type="boolean">true</output></test>
-		<test name="testStringQuantityDayLiteralToQuantity" inputfile="patient-example.xml"><expression>'1 day'.toQuantity() = 1 'd'</expression><output type="boolean">true</output></test>
+		<test name="testStringQuantityDayLiteralToQuantity" inputfile="patient-example.xml" description="Contested: calendar day units are not equal to ucum day units"><expression>'1 day'.toQuantity() = 1 'd'</expression><output type="boolean">true</output></test>
 		<test name="testStringQuantityWeekLiteralToQuantity" inputfile="patient-example.xml"><expression>'1 \'wk\''.toQuantity() = 1 week</expression><output type="boolean">true</output></test>
-		<test name="testStringQuantityMonthLiteralToQuantity" inputFile="patient-example.xml"><expression>'1 \'mo\''.toQuantity() = 1 month</expression></test>
-		<test name="testStringQuantityYearLiteralToQuantity" inputFile="patient-example.xml"><expression>'1 \'a\''.toQuantity() = 1 year</expression></test>
+		<test name="testStringQuantityMonthLiteralToQuantity" inputfile="patient-example.xml"><expression>'1 \'mo\''.toQuantity() = 1 month</expression></test>
+		<test name="testStringQuantityYearLiteralToQuantity" inputfile="patient-example.xml"><expression>'1 \'a\''.toQuantity() = 1 year</expression></test>
 		<test name="testStringDecimalLiteralToQuantity" inputfile="patient-example.xml"><expression>'1.0'.toQuantity() ~ 1 '1'</expression><output type="boolean">true</output></test>
 
 		<test name="testIntegerLiteralConvertsToBoolean" inputfile="patient-example.xml"><expression>1.convertsToBoolean()</expression><output type="boolean">true</output></test>
@@ -734,8 +735,9 @@ Any text enclosed within is ignored
 		</test>
 
 		<!-- Non boolean criteria -->
-		<test name="testIif6" inputfile="patient-example.xml">
-		    <expression mode="strict" invalid="semantic">iif('non boolean criteria', 'true-result', 'true-result')</expression>
+		<test name="testIif6" inputfile="patient-example.xml" description="Contested: nothing in the spec about what to do with non-boolean criteria - mixed results from engines">
+		    <expression mode="strict" invalid="semantic">iif('non boolean criteria', 'true-result', 'false-result')</expression>
+		    <output type="string">true-result</output>
 		</test>
 
 		<!-- No input collection -->
@@ -760,11 +762,16 @@ Any text enclosed within is ignored
 		<test name="testIif10" inputfile="patient-example.xml">
 		    <expression invalid="execution">('item1' | 'item2').iif(true, 'true-result', 'false-result')</expression>
 		</test>
-<!-- Verify the input collection is being set as the iterator for the iif function (on the single item) -->
-<test name="testIif11" inputfile="patient-example.xml">
-    <expression>('context').iif($this = 'context','true-result', 'false-result')</expression>
-    <output type="string">true-result</output>
-</test>
+    <!-- Verify the input collection is being set as the iterator for the iif function (on the single item) -->
+		<test name="testIif11" inputfile="patient-example.xml">
+				<expression>('context').iif($this = 'context','true-result', 'false-result')</expression>
+				<output type="string">true-result</output>
+		</test>
+		<test name="testIif12" inputfile="patient-example-name.xml">
+				<expression>Patient.name.first().iif(text.exists(), text, family+given.first())</expression>
+				<output type="string">Pater J Chalmers</output>
+		</test>
+
 	</group>
 
 	<group name="testToInteger">
@@ -820,6 +827,10 @@ Any text enclosed within is ignored
 		<test name="testSubstring7" inputfile="patient-example.xml"><expression>'LogicalModel-Person'.substring(0, 12)</expression><output type="string">LogicalModel</output></test>
 		<test name="testSubstring8" inputfile="patient-example.xml"><expression>'LogicalModel-Person'.substring(0, 'LogicalModel-Person'.indexOf('-'))</expression><output type="string">LogicalModel</output></test>
 		<test name="testSubstring9" inputfile="patient-example.xml"><expression>{}.substring(25).empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testSubstring10" inputfile="patient-example.xml"><expression>Patient.name.family.first().select(substring(2, length()-5))</expression><output type="string">alm</output></test>
+		<test name="testSubstring10a" inputfile="patient-example.xml"><expression invalid="semantic">Patient.name.family.first().substring(2, length()-5)</expression></test>
+		<test name="testSubstring11" inputfile="patient-example.xml"><expression>{}.substring({}).empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testSubstring12" inputfile="patient-example.xml"><expression>'string'.substring({}).empty() = true</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testStartsWith">
@@ -834,6 +845,8 @@ Any text enclosed within is ignored
 		<test name="testStartsWith9" inputfile="patient-example.xml"><expression>{}.startsWith('').empty() = true</expression><output type="boolean">true</output></test>
 		<test name="testStartsWith10" inputfile="patient-example.xml"><expression>''.startsWith('') = true</expression><output type="boolean">true</output></test>
 		<test name="testStartsWith11" inputfile="patient-example.xml"><expression>{}.startsWith('').exists() = false</expression><output type="boolean">true</output></test>
+		<test name="testStartsWith12" inputfile="patient-example.xml"><expression>'987654321'.select(startsWith(length().toString()))</expression><output type="boolean">true</output></test>
+		<test name="testStartsWith12a" inputfile="patient-example.xml"><expression invalid="semantic">'987654321'.startsWith(length().toString())</expression></test>
 		<test name="testStartsWithNonString1" inputfile="appointment-examplereq.json"><expression invalid="semantic">Appointment.identifier.startsWith('rand')</expression></test>
 	</group>
 
@@ -847,6 +860,8 @@ Any text enclosed within is ignored
 		<test name="testEndsWith7" inputfile="patient-example.xml"><expression>'12345'.endsWith('') = true</expression><output type="boolean">true</output></test>
 		<test name="testEndsWith8" inputfile="patient-example.xml"><expression>{}.endsWith('1').empty() = true</expression><output type="boolean">true</output></test>
 		<test name="testEndsWith9" inputfile="patient-example.xml"><expression>{}.endsWith('').empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testEndsWith10" inputfile="patient-example.xml"><expression>'123456789'.select(endsWith(length().toString()))</expression><output type="boolean">true</output></test>
+		<test name="testEndsWith10a" inputfile="patient-example.xml"><expression invalid="semantic">'123456789'.endsWith(length().toString())</expression></test>
 		<test name="testEndsWithNonString1" inputfile="appointment-examplereq.json"><expression invalid="semantic">Appointment.identifier.endsWith('rand')</expression></test>
 	</group>
 
@@ -860,6 +875,8 @@ Any text enclosed within is ignored
 		<test name="testContainsString7" inputfile="patient-example.xml"><expression>'12345'.contains('') = true</expression><output type="boolean">true</output></test>
 		<test name="testContainsString8" inputfile="patient-example.xml"><expression>{}.contains('a').empty() = true</expression><output type="boolean">true</output></test>
 		<test name="testContainsString9" inputfile="patient-example.xml"><expression>{}.contains('').empty() = true</expression><output type="boolean">true</output></test>
+		<test name="testContainsString10" inputfile="patient-example.xml"><expression>'123456789'.select(contains(length().toString()))</expression><output type="boolean">true</output></test>
+		<test name="testContainsString10a" inputfile="patient-example.xml"><expression invalid="semantic">'123456789'.contains(length().toString())</expression></test>
 		<test name="testContainsNonString1" inputfile="appointment-examplereq.json"><expression invalid="semantic">Appointment.identifier.contains('rand')</expression></test>
 	</group>
 
@@ -966,16 +983,16 @@ Any text enclosed within is ignored
 	</group>
 
 	<group name="testSort">
-		<test name="testSort1" inputfile="patient-example.xml"><expression>(1 | 2 | 3).sort() = (1 | 2 | 3)</expression><output type="boolean">true</output></test>
-		<test name="testSort2" inputfile="patient-example.xml"><expression>(3 | 2 | 1).sort() = (1 | 2 | 3)</expression><output type="boolean">true</output></test>
-		<test name="testSort3" inputfile="patient-example.xml"><expression>(1 | 2 | 3).sort($this) = (1 | 2 | 3)</expression><output type="boolean">true</output></test>
-		<test name="testSort4" inputfile="patient-example.xml"><expression>(3 | 2 | 1).sort($this) = (1 | 2 | 3)</expression><output type="boolean">true</output></test>
-		<test name="testSort5" inputfile="patient-example.xml"><expression>(1 | 2 | 3).sort(-$this) = (3 | 2 | 1)</expression><output type="boolean">true</output></test>
-		<test name="testSort6" inputfile="patient-example.xml"><expression>('a' | 'b' | 'c').sort($this) = ('a' | 'b' | 'c')</expression><output type="boolean">true</output></test>
-		<test name="testSort7" inputfile="patient-example.xml"><expression>('c' | 'b' | 'a').sort($this) = ('a' | 'b' | 'c')</expression><output type="boolean">true</output></test>
-		<test name="testSort8" inputfile="patient-example.xml"><expression>('a' | 'b' | 'c').sort(-$this) = ('c' | 'b' | 'a')</expression><output type="boolean">true</output></test>
-		<test name="testSort9" inputfile="patient-example.xml"><expression>Patient.name[0].given.sort() = ('James' | 'Peter')</expression><output type="boolean">true</output></test>
-		<test name="testSort10" inputfile="patient-example.xml"><expression>Patient.name.sort(-family, -given.first()).first().use = 'usual'</expression><output type="boolean">true</output></test>
+		<test name="testSort1" inputfile="patient-example.xml" description="Prototype definition - not part of spec yet"><expression>(1 | 2 | 3).sort() = (1 | 2 | 3)</expression><output type="boolean">true</output></test>
+		<test name="testSort2" inputfile="patient-example.xml" description="Prototype definition - not part of spec yet"><expression>(3 | 2 | 1).sort() = (1 | 2 | 3)</expression><output type="boolean">true</output></test>
+		<test name="testSort3" inputfile="patient-example.xml" description="Prototype definition - not part of spec yet"><expression>(1 | 2 | 3).sort($this) = (1 | 2 | 3)</expression><output type="boolean">true</output></test>
+		<test name="testSort4" inputfile="patient-example.xml" description="Prototype definition - not part of spec yet"><expression>(3 | 2 | 1).sort($this) = (1 | 2 | 3)</expression><output type="boolean">true</output></test>
+		<test name="testSort5" inputfile="patient-example.xml" description="Prototype definition - not part of spec yet"><expression>(1 | 2 | 3).sort(-$this) = (3 | 2 | 1)</expression><output type="boolean">true</output></test>
+		<test name="testSort6" inputfile="patient-example.xml" description="Prototype definition - not part of spec yet"><expression>('a' | 'b' | 'c').sort($this) = ('a' | 'b' | 'c')</expression><output type="boolean">true</output></test>
+		<test name="testSort7" inputfile="patient-example.xml" description="Prototype definition - not part of spec yet"><expression>('c' | 'b' | 'a').sort($this) = ('a' | 'b' | 'c')</expression><output type="boolean">true</output></test>
+		<test name="testSort8" inputfile="patient-example.xml" description="Prototype definition - not part of spec yet"><expression>('a' | 'b' | 'c').sort(-$this) = ('c' | 'b' | 'a')</expression><output type="boolean">true</output></test>
+		<test name="testSort9" inputfile="patient-example.xml" description="Prototype definition - not part of spec yet"><expression>Patient.name[0].given.sort() = ('James' | 'Peter')</expression><output type="boolean">true</output></test>
+		<test name="testSort10" inputfile="patient-example.xml" description="Prototype definition - not part of spec yet"><expression>Patient.name.sort(-family, -given.first()).first().use = 'usual'</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testEquality">
@@ -1001,7 +1018,7 @@ Any text enclosed within is ignored
 		<test name="testEquality20" inputfile="patient-example.xml"><expression>@2012-04-15T15:00:00 = @2012-04-15T10:00:00</expression><output type="boolean">false</output></test>
 		<test name="testEquality21" inputfile="patient-example.xml"><expression>@2012-04-15T15:30:31 = @2012-04-15T15:30:31.0</expression><output type="boolean">true</output></test>
 		<test name="testEquality22" inputfile="patient-example.xml"><expression>@2012-04-15T15:30:31 = @2012-04-15T15:30:31.1</expression><output type="boolean">false</output></test>
-		<test name="testEquality23" inputfile="patient-example.xml"><expression>@2012-04-15T15:00:00Z = @2012-04-15T10:00:00</expression></test>
+		<test name="testEquality23" inputfile="patient-example.xml" description="This could be impacted by the timezone of the engine running the test"><expression>@2012-04-15T15:00:00Z = @2012-04-15T10:00:00</expression></test>
 		<test name="testEquality24" inputfile="patient-example.xml"><expression>@2012-04-15T15:00:00+02:00 = @2012-04-15T16:00:00+03:00</expression><output type="boolean">true</output></test>
 		<test name="testEquality25" inputfile="patient-example.xml"><expression>name = name</expression><output type="boolean">true</output></test>
 		<test name="testEquality26" inputfile="patient-example.xml"><expression>name.take(2) = name.take(2).first() | name.take(2).last()</expression><output type="boolean">true</output></test>
@@ -1060,7 +1077,7 @@ Any text enclosed within is ignored
 		<test name="testEquivalent21" inputfile="patient-example.xml"><expression>name.take(2).given ~ name.take(2).last().given | name.take(2).first().given</expression><output type="boolean">true</output></test>
 		<test name="testEquivalent22" inputfile="observation-example.xml"><expression>Observation.value ~ 185 '[lb_av]'</expression><output type="boolean">true</output></test>
 		<test name="testEquivalent23" inputfile="observation-example.xml"><expression>(1 | 2 | 3) ~ (1 | 2 | 3)</expression><output type="boolean">true</output></test>
-		<test name="testEquivalent23" inputfile="observation-example.xml"><expression>(1 | 2 | 3) ~ (3 | 2 | 1)</expression><output type="boolean">true</output></test>
+		<test name="testEquivalent24" inputfile="observation-example.xml"><expression>(1 | 2 | 3) ~ (3 | 2 | 1)</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testNotEquivalent">
@@ -1116,6 +1133,9 @@ Any text enclosed within is ignored
 		<test name="testLessThan25" inputfile="patient-example.xml"><expression>@T10:30 &lt; @T10:30:00</expression></test>
 		<test name="testLessThan26" inputfile="patient-example.xml"><expression>@2018-03-01T10:30:00 &lt; @2018-03-01T10:30:00.0</expression><output type="boolean">false</output></test>
 		<test name="testLessThan27" inputfile="patient-example.xml"><expression>@T10:30:00 &lt; @T10:30:00.0</expression><output type="boolean">false</output></test>
+		<test name="testLessThanEmpty1" inputfile="patient-example.xml"><expression>1 &lt; {}</expression></test>
+		<test name="testLessThanEmpty2" inputfile="patient-example.xml"><expression>{} &lt; 1</expression></test>
+		<test name="testLessThanEmpty3" inputfile="patient-example.xml"><expression>{} &lt; {}</expression></test>
 	</group>
 
 	<group name="testLessOrEqual">
@@ -1146,6 +1166,9 @@ Any text enclosed within is ignored
 		<test name="testLessOrEqual25" inputfile="patient-example.xml"><expression>@T10:30 &lt;= @T10:30:00</expression></test>
 		<test name="testLessOrEqual26" inputfile="patient-example.xml"><expression>@2018-03-01T10:30:00  &lt;= @2018-03-01T10:30:00.0</expression><output type="boolean">true</output></test>
 		<test name="testLessOrEqual27" inputfile="patient-example.xml"><expression>@T10:30:00 &lt;= @T10:30:00.0</expression><output type="boolean">true</output></test>
+		<test name="testLessOrEqualEmpty1" inputfile="patient-example.xml"><expression>1 &lt;= {}</expression></test>
+		<test name="testLessOrEqualEmpty2" inputfile="patient-example.xml"><expression>{} &lt;= 1</expression></test>
+		<test name="testLessOrEqualEmpty3" inputfile="patient-example.xml"><expression>{} &lt;= {}</expression></test>
 	</group>
 
 	<group name="testGreatorOrEqual">
@@ -1176,6 +1199,9 @@ Any text enclosed within is ignored
 		<test name="testGreatorOrEqual25" inputfile="patient-example.xml"><expression>@T10:30 >= @T10:30:00</expression></test>
 		<test name="testGreatorOrEqual26" inputfile="patient-example.xml"><expression>@2018-03-01T10:30:00 >= @2018-03-01T10:30:00.0</expression><output type="boolean">true</output></test>
 		<test name="testGreatorOrEqual27" inputfile="patient-example.xml"><expression>@T10:30:00 >= @T10:30:00.0</expression><output type="boolean">true</output></test>
+		<test name="testGreatorOrEqualEmpty1" inputfile="patient-example.xml"><expression>1 >= {}</expression></test>
+		<test name="testGreatorOrEqualEmpty2" inputfile="patient-example.xml"><expression>{} >= 1</expression></test>
+		<test name="testGreatorOrEqualEmpty3" inputfile="patient-example.xml"><expression>{} >= {}</expression></test>
 	</group>
 
 	<group name="testGreaterThan">
@@ -1206,6 +1232,9 @@ Any text enclosed within is ignored
 		<test name="testGreaterThan25" inputfile="patient-example.xml"><expression>@T10:30 > @T10:30:00</expression></test>
 		<test name="testGreaterThan26" inputfile="patient-example.xml"><expression>@2018-03-01T10:30:00 > @2018-03-01T10:30:00.0</expression><output type="boolean">false</output></test>
 		<test name="testGreaterThan27" inputfile="patient-example.xml"><expression>@T10:30:00 > @T10:30:00.0</expression><output type="boolean">false</output></test>
+		<test name="testGreaterThanEmpty1" inputfile="patient-example.xml"><expression>1 > {}</expression></test>
+		<test name="testGreaterThanEmpty2" inputfile="patient-example.xml"><expression>{} > 1</expression></test>
+		<test name="testGreaterThanEmpty3" inputfile="patient-example.xml"><expression>{} > {}</expression></test>
 	</group>
 
   <group name="testCombine()">
@@ -1226,6 +1255,10 @@ Any text enclosed within is ignored
 		<test name="testUnion9" inputfile="patient-example.xml"><expression>name.select(use | given).count()</expression><output type="integer">8</output></test>
 		<test name="testUnion10" inputfile="patient-example.xml"><expression>name.select(use.union($this.given)).count()</expression><output type="integer">8</output></test>
 		<test name="testUnion11" inputfile="patient-example.xml"><expression>name.select(use.union(given)).count()</expression><output type="integer">8</output></test>
+		<test name="testUnion12" inputfile="patient-example.xml"><expression>true | Patient.name.given.first()</expression>
+			<output type="boolean">true</output>
+			<output type="string">Peter</output>
+		</test> <!-- merge duplicates -->
 	</group>
 
 	<group name="testIntersect">
@@ -1247,6 +1280,10 @@ Any text enclosed within is ignored
 		<test name="testIn2" inputfile="patient-example.xml"><expression>1 in (2 | 3)</expression><output type="boolean">false</output></test>
 		<test name="testIn3" inputfile="patient-example.xml"><expression>'a' in ('a' | 'c' | 'd')</expression><output type="boolean">true</output></test>
 		<test name="testIn4" inputfile="patient-example.xml"><expression>'b' in ('a' | 'c' | 'd')</expression><output type="boolean">false</output></test>
+		<test name="testIn5" inputfile="patient-example.xml"><expression invalid="execution">('a' | 'c' | 'd') in 'b'</expression></test>
+		<test name="testInEmptyCollection" inputfile="patient-example.xml"><expression>1 in {}</expression><output type="boolean">false</output></test>
+		<test name="testInEmptyValue" inputfile="patient-example.xml"><expression>{} in (1 | 2 | 3)</expression></test>
+		<test name="testInEmptyBoth" inputfile="patient-example.xml"><expression>{} in {}</expression></test>
 	</group>
 
 	<group name="testContainsCollection">
@@ -1254,6 +1291,11 @@ Any text enclosed within is ignored
 		<test name="testContainsCollection2" inputfile="patient-example.xml"><expression>(2 | 3) contains 1 </expression><output type="boolean">false</output></test>
 		<test name="testContainsCollection3" inputfile="patient-example.xml"><expression>('a' | 'c' | 'd') contains 'a'</expression><output type="boolean">true</output></test>
 		<test name="testContainsCollection4" inputfile="patient-example.xml"><expression>('a' | 'c' | 'd') contains 'b'</expression><output type="boolean">false</output></test>
+		<test name="testContainsCollectionEmpty1" inputfile="patient-example.xml"><expression>{} contains 1</expression><output type="boolean">false</output></test>
+		<test name="testContainsCollectionEmpty2" inputfile="patient-example.xml"><expression>{} contains 'value'</expression><output type="boolean">false</output></test>
+		<test name="testContainsCollectionEmpty3" inputfile="patient-example.xml"><expression>{} contains true</expression><output type="boolean">false</output></test>
+		<test name="testContainsCollectionEmpty4" inputfile="patient-example.xml"><expression>{} contains {}</expression></test>
+		<test name="testContainsCollectionEmptyDateTime" inputfile="patient-example.xml"><expression>{} contains @2023-01-01</expression><output type="boolean">false</output></test>
 	</group>
 
 	<group name="testBooleanLogicAnd">
@@ -1309,6 +1351,7 @@ Any text enclosed within is ignored
 		<test name="testPlus2" inputfile="patient-example.xml"><expression>1 + 0 = 1</expression><output type="boolean">true</output></test>
 		<test name="testPlus3" inputfile="patient-example.xml"><expression>1.2 + 1.8 = 3.0</expression><output type="boolean">true</output></test>
 		<test name="testPlus4" inputfile="patient-example.xml"><expression>'a'+'b' = 'ab'</expression><output type="boolean">true</output></test>
+		<test name="testPlus5" inputfile="patient-example.xml"><expression>'a'+{}</expression></test>
    
     <test name="testPlusDate1" inputfile="patient-example.xml"><expression>@1973-12-25 + 7 days</expression>                             <output type="date">@1974-01-01</output></test>
     <test name="testPlusDate2" inputfile="patient-example.xml"><expression>@1973-12-25 + 7.7 days</expression>                           <output type="date">@1974-01-01</output></test>
@@ -1328,12 +1371,19 @@ Any text enclosed within is ignored
     <test name="testPlusDate16" inputfile="patient-example.xml"><expression invalid="execution">@1973-12-25 + 1 'a'</expression>        </test>
     <test name="testPlusDate17" inputfile="patient-example.xml"><expression invalid="execution">@1975-12-25 + 1 'a'</expression>        </test>
     <test name="testPlusDate18" inputfile="patient-example.xml"><expression>@1973-12-25T00:00:00.000+10:00 + 1 's'</expression>           <output type="dateTime">@1973-12-25T00:00:01.000+10:00</output></test>
-    <test name="testPlusDate19" inputfile="patient-example.xml"><expression>@1973-12-25T00:00:00.000+10:00 + 0.1 's'</expression>         <output type="dateTime">@1973-12-25T00:00:00.000+10:00</output></test>
+    <test name="testPlusDate19" inputfile="patient-example.xml"><expression>@1973-12-25T00:00:00.000+10:00 + 0.1 's'</expression>         <output type="dateTime">@1973-12-25T00:00:00.100+10:00</output></test>
     <test name="testPlusDate20" inputfile="patient-example.xml"><expression>@1973-12-25T00:00:00.000+10:00 + 10 'ms'</expression>         <output type="dateTime">@1973-12-25T00:00:00.010+10:00</output></test>
     <test name="testPlusDate21" inputfile="patient-example.xml"><expression>@1973-12-25T00:00:00.000+10:00 + 1 'min'</expression>         <output type="dateTime">@1973-12-25T00:01:00.000+10:00</output></test>
     <test name="testPlusDate22" inputfile="patient-example.xml"><expression>@1973-12-25T00:00:00.000+10:00 + 1 'h'</expression>           <output type="dateTime">@1973-12-25T01:00:00.000+10:00</output></test>
     
     <test name="testPlus6" inputfile="patient-example.xml"><expression invalid="semantic">@1974-12-25 + 7</expression></test>
+
+		<test name="testPlusTime1" inputfile="patient-example.xml"><expression>@T01:00:00 + 2 hours</expression><output type="time">@T03:00:00</output></test>
+		<test name="testPlusTime2" inputfile="patient-example.xml"><expression>@T23:00:00 + 2 hours</expression><output type="time">@T01:00:00</output></test>
+		<test name="testPlusTime3" inputfile="patient-example.xml"><expression>@T23:00:00 + 50 hours</expression><output type="time">@T01:00:00</output></test>
+		<test name="testPlusEmpty1" inputfile="patient-example.xml"><expression>1 + {}</expression></test>
+		<test name="testPlusEmpty2" inputfile="patient-example.xml"><expression>{} + 1</expression></test>
+		<test name="testPlusEmpty3" inputfile="patient-example.xml"><expression>{} + {}</expression></test>
 	</group>
 
 	<group name="testConcatenate">
@@ -1348,14 +1398,23 @@ Any text enclosed within is ignored
 		<test name="testMinus2" inputfile="patient-example.xml"><expression>1 - 0 = 1</expression><output type="boolean">true</output></test>
 		<test name="testMinus3" inputfile="patient-example.xml"><expression>1.8 - 1.2 = 0.6</expression><output type="boolean">true</output></test>
 		<test name="testMinus4" inputfile="patient-example.xml"><expression invalid="execution">'a'-'b' = 'ab'</expression></test>
-		<test name="testMinus5" inputfile="patient-example.xml"><expression>@1974-12-25 - 1 'month'</expression><output type="date">@1974-11-25</output></test>
-    <test name="testMinus6" inputfile="patient-example.xml"><expression invalid="execution">@1974-12-25 - 1 'cm'</expression></test>
+		<test name="testMinus5" inputfile="patient-example.xml" description="Contested: single quotes are ucum units, which are not applicable to date arithmetic"><expression>@1974-12-25 - 1 'month'</expression><output type="date">@1974-11-25</output></test>
+		<!-- Should we have another rule here to check that the 1 'month' (which declares ucum units, though the correct ucum unit is 'mo') -->
+    	<test name="testMinus6" inputfile="patient-example.xml"><expression invalid="execution">@1974-12-25 - 1 'cm'</expression></test>
+		<test name="testMinus7" inputfile="patient-example.xml"><expression>@T00:30:00 - 1 hour</expression><output type="time">@T23:30:00</output></test>
+		<test name="testMinus8" inputfile="patient-example.xml"><expression>@T01:00:00 - 2 hours</expression><output type="time">@T23:00:00</output></test>
+		<test name="testMinusEmpty1" inputfile="patient-example.xml"><expression>1 - {}</expression></test>
+		<test name="testMinusEmpty2" inputfile="patient-example.xml"><expression>{} - 1</expression></test>
+		<test name="testMinusEmpty3" inputfile="patient-example.xml"><expression>{} - {}</expression></test>
 	</group>
 
 	<group name="testMultiply">
 		<test name="testMultiply1" inputfile="patient-example.xml"><expression>1 * 1 = 1</expression><output type="boolean">true</output></test>
 		<test name="testMultiply2" inputfile="patient-example.xml"><expression>1 * 0 = 0</expression><output type="boolean">true</output></test>
 		<test name="testMultiply3" inputfile="patient-example.xml"><expression>1.2 * 1.8 = 2.16</expression><output type="boolean">true</output></test>
+		<test name="testMultiplyEmpty1" inputfile="patient-example.xml"><expression>1 * {}</expression></test>
+		<test name="testMultiplyEmpty2" inputfile="patient-example.xml"><expression>{} * 1</expression></test>
+		<test name="testMultiplyEmpty3" inputfile="patient-example.xml"><expression>{} * {}</expression></test>
 	</group>
 
 	<group name="testDivide">
@@ -1365,6 +1424,9 @@ Any text enclosed within is ignored
 		<test name="testDivide4" inputfile="patient-example.xml"><expression>1 / 2 = 0.5</expression><output type="boolean">true</output></test>
 		<test name="testDivide5" inputfile="patient-example.xml"><expression>(1.2 / 1.8).round(2) = 0.67</expression><output type="boolean">true</output></test>
 		<test name="testDivide6" inputfile="patient-example.xml"><expression>1 / 0</expression></test>
+		<test name="testDivideEmpty1" inputfile="patient-example.xml"><expression>1 / {}</expression></test>
+		<test name="testDivideEmpty2" inputfile="patient-example.xml"><expression>{} / 1</expression></test>
+		<test name="testDivideEmpty3" inputfile="patient-example.xml"><expression>{} / {}</expression></test>
 	</group>
 
 	<group name="testDiv">
@@ -1373,6 +1435,9 @@ Any text enclosed within is ignored
 		<test name="testDiv3" inputfile="patient-example.xml"><expression>5 div 2 = 2</expression><output type="boolean">true</output></test>
 		<test name="testDiv4" inputfile="patient-example.xml"><expression>2.2 div 1.8 = 1</expression><output type="boolean">true</output></test>
 		<test name="testDiv5" inputfile="patient-example.xml"><expression>5 div 0</expression></test>
+		<test name="testDivEmpty1" inputfile="patient-example.xml"><expression>1 div {}</expression></test>
+		<test name="testDivEmpty2" inputfile="patient-example.xml"><expression>{} div 1</expression></test>
+		<test name="testDivEmpty3" inputfile="patient-example.xml"><expression>{} div {}</expression></test>
 	</group>
 
 	<group name="testMod">
@@ -1381,28 +1446,35 @@ Any text enclosed within is ignored
 		<test name="testMod3" inputfile="patient-example.xml"><expression>5 mod 2 = 1</expression><output type="boolean">true</output></test>
 		<test name="testMod4" inputfile="patient-example.xml"><expression>2.2 mod 1.8 = 0.4</expression><output type="boolean">true</output></test>
 		<test name="testMod5" inputfile="patient-example.xml"><expression>5 mod 0</expression></test>
+		<test name="testModEmpty1" inputfile="patient-example.xml"><expression>1 mod {}</expression></test>
+		<test name="testModEmpty2" inputfile="patient-example.xml"><expression>{} mod 1</expression></test>
+		<test name="testModEmpty3" inputfile="patient-example.xml"><expression>{} mod {}</expression></test>
 	</group>
 
 	<group name="testRound">
 		<test name="testRound1" inputfile="patient-example.xml"><expression>1.round() = 1</expression><output type="boolean">true</output></test>
 		<test name="testRound2" inputfile="patient-example.xml"><expression>3.14159.round(3) = 3.142</expression><output type="boolean">true</output></test>
+		<test name="testRoundEmpty" inputfile="patient-example.xml"><expression>{}.round().empty()</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testSqrt">
 		<test name="testSqrt1" inputfile="patient-example.xml"><expression>81.sqrt() = 9.0</expression><output type="boolean">true</output></test>
 		<test name="testSqrt2" inputfile="patient-example.xml"><expression>(-1).sqrt()</expression></test>
+		<test name="testSqrtEmpty" inputfile="patient-example.xml"><expression>{}.sqrt().empty()</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testAbs">
 		<test name="testAbs1" inputfile="patient-example.xml"><expression>(-5).abs() = 5</expression><output type="boolean">true</output></test>
 		<test name="testAbs2" inputfile="patient-example.xml"><expression>(-5.5).abs() = 5.5</expression><output type="boolean">true</output></test>
 		<test name="testAbs3" inputfile="patient-example.xml"><expression>(-5.5 'mg').abs() = 5.5 'mg'</expression><output type="boolean">true</output></test>
+		<test name="testAbsEmpty" inputfile="patient-example.xml"><expression>{}.abs().empty()</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testCeiling">
 		<test name="testCeiling1" inputfile="patient-example.xml"><expression>1.ceiling() = 1</expression><output type="boolean">true</output></test>
 		<test name="testCeiling2" inputfile="patient-example.xml"><expression>(-1.1).ceiling() = -1</expression><output type="boolean">true</output></test>
 		<test name="testCeiling3" inputfile="patient-example.xml"><expression>1.1.ceiling() = 2</expression><output type="boolean">true</output></test>
+		<test name="testCeilingEmpty" inputfile="patient-example.xml"><expression>{}.ceiling().empty()</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testExp">
@@ -1415,28 +1487,37 @@ Any text enclosed within is ignored
 		<test name="testFloor1" inputfile="patient-example.xml"><expression>1.floor() = 1</expression><output type="boolean">true</output></test>
 		<test name="testFloor2" inputfile="patient-example.xml"><expression>2.1.floor() = 2</expression><output type="boolean">true</output></test>
 		<test name="testFloor3" inputfile="patient-example.xml"><expression>(-2.1).floor() = -3</expression><output type="boolean">true</output></test>
+		<test name="testFloorEmpty" inputfile="patient-example.xml"><expression>{}.floor().empty()</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testLn">
 		<test name="testLn1" inputfile="patient-example.xml"><expression>1.ln() = 0.0</expression><output type="boolean">true</output></test>
 		<test name="testLn2" inputfile="patient-example.xml"><expression>1.0.ln() = 0.0</expression><output type="boolean">true</output></test>
+		<test name="testLnEmpty" inputfile="patient-example.xml"><expression>{}.ln().empty()</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testLog">
 		<test name="testLog1" inputfile="patient-example.xml"><expression>16.log(2) = 4.0</expression><output type="boolean">true</output></test>
 		<test name="testLog2" inputfile="patient-example.xml"><expression>100.0.log(10.0) = 2.0</expression><output type="boolean">true</output></test>
+		<test name="testLogEmpty" inputfile="patient-example.xml"><expression>{}.log(10).empty()</expression><output type="boolean">true</output></test>
+		<test name="testLogEmpty2" inputfile="patient-example.xml"><expression>{}.log({}).empty()</expression><output type="boolean">true</output></test>
+		<test name="testLogEmpty3" inputfile="patient-example.xml"><expression>16.log({}).empty()</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testPower">
 		<test name="testPower1" inputfile="patient-example.xml"><expression>2.power(3) = 8</expression><output type="boolean">true</output></test>
 		<test name="testPower2" inputfile="patient-example.xml"><expression>2.5.power(2) = 6.25</expression><output type="boolean">true</output></test>
 		<test name="testPower3" inputfile="patient-example.xml"><expression>(-1).power(0.5)</expression></test>
+		<test name="testPowerEmpty" inputfile="patient-example.xml"><expression>{}.power(2).empty()</expression><output type="boolean">true</output></test>
+		<test name="testPowerEmpty2" inputfile="patient-example.xml"><expression>{}.power({}).empty()</expression><output type="boolean">true</output></test>
+		<test name="testPowerEmpty3" inputfile="patient-example.xml"><expression>2.5.power({}).empty()</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testTruncate">
 		<test name="testTruncate1" inputfile="patient-example.xml"><expression>101.truncate() = 101</expression><output type="boolean">true</output></test>
 		<test name="testTruncate2" inputfile="patient-example.xml"><expression>1.00000001.truncate() = 1</expression><output type="boolean">true</output></test>
 		<test name="testTruncate3" inputfile="patient-example.xml"><expression>(-1.56).truncate() = -1</expression><output type="boolean">true</output></test>
+		<test name="testTruncateEmpty" inputfile="patient-example.xml"><expression>{}.truncate().empty()</expression><output type="boolean">true</output></test>
 	</group>
 
 	<group name="testPrecedence">
@@ -1489,7 +1570,7 @@ Any text enclosed within is ignored
 		<test name="testType19" inputfile="patient-example.xml"><expression>Patient.is(FHIR.`Patient`)</expression><output type="boolean">true</output></test>
 		<test name="testType20" inputfile="patient-example.xml"><expression>Patient.ofType(Patient).type().name</expression><output type="string">Patient</output></test>
 		<test name="testType21" inputfile="patient-example.xml"><expression>Patient.ofType(FHIR.Patient).type().name</expression><output type="string">Patient</output></test>
-		<test name="testType22" inputfile="patient-example.xml"><expression>Patient.is(System.Patient).not()</expression><output type="boolean">true</output></test>
+		<test name="testType22" description="Note: Some systems may return an error due to failing to resolve System.Patient" inputfile="patient-example.xml"><expression>Patient.is(System.Patient).not()</expression><output type="boolean">true</output></test>
 		<test name="testType23" inputfile="patient-example.xml"><expression>Patient.ofType(FHIR.`Patient`).type().name</expression><output type="string">Patient</output></test>
 
 		<test name="testTypeA1" inputfile="parameters-example-types.xml"><expression>Parameters.parameter[0].value.is(FHIR.string)</expression><output type="boolean">true</output></test>
@@ -1506,78 +1587,79 @@ Any text enclosed within is ignored
 	</group>
 
 	<group name="LowBoundary">
-		<test name="LowBoundaryDecimalDefault"><expression>1.587.lowBoundary()</expression><output>1.58650000</output></test>
-		<test name="LowBoundaryDecimal1"><expression>1.587.lowBoundary(6)</expression><output>1.586500</output></test>
-		<test name="LowBoundaryDecimal2"><expression>1.587.lowBoundary(2)</expression><output>1.58</output></test>
+		<test name="LowBoundaryDecimalDefault"><expression>1.587.lowBoundary()</expression><output type="decimal">1.58650000</output></test>
+		<test name="LowBoundaryDecimal1"><expression>1.587.lowBoundary(6)</expression><output type="decimal">1.586500</output></test>
+		<test name="LowBoundaryDecimal2"><expression>1.587.lowBoundary(2)</expression><output type="decimal">1.58</output></test>
 		<test name="LowBoundaryDecimal3"><expression>1.587.lowBoundary(-1)</expression></test>
-		<test name="LowBoundaryDecimal4"><expression>1.587.lowBoundary(0)</expression><output>1</output></test>
+		<test name="LowBoundaryDecimal4"><expression>1.587.lowBoundary(0)</expression><output type="decimal">1</output></test>
 		<test name="LowBoundaryDecimal5"><expression>1.587.lowBoundary(32)</expression></test>
 
-		<test name="LowBoundaryNegDecimalDefault"><expression>(-1.587).lowBoundary()</expression><output>-1.58750000</output></test>
-		<test name="LowBoundaryNegDecimal1"><expression>(-1.587).lowBoundary(6)</expression><output>-1.587500</output></test>
-		<test name="LowBoundaryNegDecimal2"><expression>(-1.587).lowBoundary(2)</expression><output>-1.59</output></test>
+		<test name="LowBoundaryNegDecimalDefault"><expression>(-1.587).lowBoundary()</expression><output type="decimal">-1.58750000</output></test>
+		<test name="LowBoundaryNegDecimal1"><expression>(-1.587).lowBoundary(6)</expression><output type="decimal">-1.587500</output></test>
+		<test name="LowBoundaryNegDecimal2"><expression>(-1.587).lowBoundary(2)</expression><output type="decimal">-1.59</output></test>
 		<test name="LowBoundaryNegDecimal3"><expression>(-1.587).lowBoundary(-1)</expression></test>
-		<test name="LowBoundaryNegDecimal4"><expression>(-1.587).lowBoundary(0)</expression><output>-2</output></test>
+		<test name="LowBoundaryNegDecimal4"><expression>(-1.587).lowBoundary(0)</expression><output type="decimal">-2</output></test>
 		<test name="LowBoundaryNegDecimal5"><expression>(-1.587).lowBoundary(32)</expression></test>
 
 		<test name="LowBoundaryDecimal6"><expression>1.587.lowBoundary(39)</expression></test>
-		<test name="LowBoundaryDecimal7"><expression>1.toDecimal().lowBoundary()</expression><output>0.50000000</output></test>
-		<test name="LowBoundaryDecimal8"><expression>1.lowBoundary(0)</expression><output>0</output></test>
-		<test name="LowBoundaryDecimal9"><expression>1.lowBoundary(5)</expression><output>0.50000</output></test>
-		<test name="LowBoundaryDecimal10"><expression>12.587.lowBoundary(2)</expression><output>12.58</output></test>
-		<test name="LowBoundaryDecimal11"><expression>12.500.lowBoundary(4)</expression><output>12.4995</output></test>
-		<test name="LowBoundaryDecimal12"><expression>120.lowBoundary(2)</expression><output>119.50</output></test>
-		<test name="LowBoundaryDecimal13"><expression>(-120).lowBoundary(2)</expression><output>-120.50</output></test>
-		<test name="LowBoundaryDecimal14"><expression>0.0034.lowBoundary(1)</expression><output>0.0</output></test>
-		<test name="LowBoundaryDecimal15"><expression>(-0.0034).lowBoundary(1)</expression><output>-0.0</output></test>
+		<test name="LowBoundaryDecimal7"><expression>1.toDecimal().lowBoundary()</expression><output type="decimal">0.50000000</output></test>
+		<test name="LowBoundaryDecimal8"><expression>1.lowBoundary(0)</expression><output type="decimal">0</output></test>
+		<test name="LowBoundaryDecimal9"><expression>1.lowBoundary(5)</expression><output type="decimal">0.50000</output></test>
+		<test name="LowBoundaryDecimal10"><expression>12.587.lowBoundary(2)</expression><output type="decimal">12.58</output></test>
+		<test name="LowBoundaryDecimal11"><expression>12.500.lowBoundary(4)</expression><output type="decimal">12.4995</output></test>
+		<test name="LowBoundaryDecimal12"><expression>120.lowBoundary(2)</expression><output type="decimal">119.50</output></test>
+		<test name="LowBoundaryDecimal13"><expression>(-120).lowBoundary(2)</expression><output type="decimal">-120.50</output></test>
+		<test name="LowBoundaryDecimal14"><expression>0.0034.lowBoundary(1)</expression><output type="decimal">0.0</output></test>
+		<test name="LowBoundaryDecimal15"><expression>(-0.0034).lowBoundary(1)</expression><output type="decimal">-0.0</output></test>
 
-		<test name="LowBoundaryQuantity"><expression>1.587 'cm'.lowBoundary(8)</expression><output>1.58650000 'cm'</output></test>
-		<test name="LowBoundaryDateMonth"><expression>@2014.lowBoundary(6)</expression><output>@2014-01</output></test>
-		<test name="LowBoundaryDateTimeMillisecond1"><expression>@2014-01-01T08.lowBoundary(17)</expression><output>@2014-01-01T08:00:00.000+14:00</output></test>
-		<test name="LowBoundaryDateTimeMillisecond2"><expression>@2014-01-01T08:05+08:00.lowBoundary(17)</expression><output>@2014-01-01T08:05:00.000+08:00</output></test>
-		<test name="LowBoundaryDateTimeMillisecond3"><expression>@2014-01-01T08.lowBoundary(8)</expression><output>@2014-01-01</output></test>
-		<test name="LowBoundaryTimeMillisecond"><expression>@T10:30.lowBoundary(9)</expression><output>@T10:30:00.000</output></test>
+		<test name="LowBoundaryQuantity"><expression>1.587 'cm'.lowBoundary(8)</expression><output type="Quantity">1.58650000 'cm'</output></test>
+		<test name="LowBoundaryDateMonth"><expression>@2014.lowBoundary(6)</expression><output type="dateTime">@2014-01</output></test>
+		<test name="LowBoundaryDateTimeMillisecond1"><expression>@2014-01-01T08.lowBoundary(17)</expression><output type="dateTime">@2014-01-01T08:00:00.000+14:00</output></test>
+		<test name="LowBoundaryDateTimeMillisecond2"><expression>@2014-01-01T08:05+08:00.lowBoundary(17)</expression><output type="dateTime">@2014-01-01T08:05:00.000+08:00</output></test>
+		<test name="LowBoundaryDateTimeMillisecond3"><expression>@2014-01-01T08.lowBoundary(8)</expression><output type="dateTime">@2014-01-01</output></test>
+		<test name="LowBoundaryTimeMillisecond"><expression>@T10:30.lowBoundary(9)</expression><output type="time">@T10:30:00.000</output></test>
 	</group>
 
 	<group name="HighBoundary">
-		<test name="HighBoundaryDecimalDefault"><expression>1.587.highBoundary()</expression><output>1.58750000</output></test> 
-		<test name="HighBoundaryDecimal1"><expression>1.587.highBoundary(2)</expression><output>1.59</output></test> 
-		<test name="HighBoundaryDecimal2"><expression>1.587.highBoundary(6)</expression><output>1.587500</output></test> 
+		<test name="HighBoundaryDecimalDefault"><expression>1.587.highBoundary()</expression><output type="decimal">1.58750000</output></test> 
+		<test name="HighBoundaryDecimal1"><expression>1.587.highBoundary(2)</expression><output type="decimal">1.59</output></test> 
+		<test name="HighBoundaryDecimal2"><expression>1.587.highBoundary(6)</expression><output type="decimal">1.587500</output></test> 
 		<test name="HighBoundaryDecimal3"><expression>1.587.highBoundary(-1)</expression></test> 
-		<test name="HighBoundaryDecimal4"><expression>(-1.587).highBoundary()</expression><output>-1.58650000</output></test> 
-		<test name="HighBoundaryDecimal5"><expression>(-1.587).highBoundary(2)</expression><output>-1.58</output></test> 
-		<test name="HighBoundaryDecimal6"><expression>(-1.587).highBoundary(6)</expression><output>-1.586500</output></test> 
+		<test name="HighBoundaryDecimal4"><expression>(-1.587).highBoundary()</expression><output type="decimal">-1.58650000</output></test> 
+		<test name="HighBoundaryDecimal5"><expression>(-1.587).highBoundary(2)</expression><output type="decimal">-1.58</output></test> 
+		<test name="HighBoundaryDecimal6"><expression>(-1.587).highBoundary(6)</expression><output type="decimal">-1.586500</output></test> 
 		<test name="HighBoundaryDecimal7"><expression>1.587.highBoundary(39)</expression></test> 
-		<test name="HighBoundaryDecimal8"><expression>1.highBoundary()</expression><output>1.50000000</output></test> 
-		<test name="HighBoundaryDecimal9"><expression>1.highBoundary(0)</expression><output>2</output></test> 
-		<test name="HighBoundaryDecimal10"><expression>1.highBoundary(5)</expression><output>1.50000</output></test> 
-		<test name="HighBoundaryDecimal11"><expression>12.587.highBoundary(2)</expression><output>12.59</output></test> 
-		<test name="HighBoundaryDecimal12"><expression>12.500.highBoundary(4)</expression><output>12.5005</output></test> 
-		<test name="HighBoundaryDecimal13"><expression>120.highBoundary(2)</expression><output>120.50</output></test> 
-		<test name="HighBoundaryDecimal14"><expression>-120.highBoundary(2)</expression><output>-120.50</output></test> 
-		<test name="HighBoundaryDecimal15"><expression>0.0034.highBoundary(1)</expression><output>0.0</output></test> 
-		<test name="HighBoundaryDecimal16"><expression>-0.0034.highBoundary(1)</expression><output>0.0</output></test> 
-		<test name="HighBoundaryDecimal"><expression>1.587.highBoundary(8)</expression><output>1.58750000</output></test>
-		<test name="HighBoundaryQuantity"><expression>1.587 'm'.highBoundary(8)</expression><output>1.58750000 'm'</output></test>
-		<test name="HighBoundaryDateMonth"><expression>@2014.highBoundary(6)</expression><output>@2014-12</output></test>
-		<test name="HighBoundaryDateTimeMillisecond1"><expression>@2014-01-01T08.highBoundary(17)</expression><output>@2014-01-01T08:00:59.999-12:00</output></test> <!-- because T08 is not legal in FHIR - must be converted to 08:00 internally first -->
-		<test name="HighBoundaryDateTimeMillisecond2"><expression>@2014-01-01T08:05-05:00.highBoundary(17)</expression><output>@2014-01-01T08:05:59.999-05:00</output></test> <!-- because T08 is not legal in FHIR - must be converted to 08:00 internally first -->
-		<test name="HighBoundaryDateTimeMillisecond3"><expression>@2014-01-01T08.highBoundary(17)</expression><output>@2014-01-01T08:00:59.999-12:00</output></test> <!-- because T08 is not legal in FHIR - must be converted to 08:00 internally first -->
-		<test name="HighBoundaryTimeMillisecond">	<expression>@T10:30.highBoundary(9)</expression><output>@T10:30:59.999</output></test>
+		<test name="HighBoundaryDecimal8"><expression>1.highBoundary()</expression><output type="decimal">1.50000000</output></test> 
+		<test name="HighBoundaryDecimal9"><expression>1.highBoundary(0)</expression><output type="decimal">2</output></test> 
+		<test name="HighBoundaryDecimal10"><expression>1.highBoundary(5)</expression><output type="decimal">1.50000</output></test> 
+		<test name="HighBoundaryDecimal11"><expression>12.587.highBoundary(2)</expression><output type="decimal">12.59</output></test> 
+		<test name="HighBoundaryDecimal12"><expression>12.500.highBoundary(4)</expression><output type="decimal">12.5005</output></test> 
+		<test name="HighBoundaryDecimal13"><expression>120.highBoundary(2)</expression><output type="decimal">120.50</output></test> 
+		<test name="HighBoundaryDecimal14"><expression>-120.highBoundary(2)</expression><output type="decimal">-120.50</output></test> 
+		<test name="HighBoundaryDecimal15"><expression>0.0034.highBoundary(1)</expression><output type="decimal">0.0</output></test> 
+		<test name="HighBoundaryDecimal16"><expression>-0.0034.highBoundary(1)</expression><output type="decimal">0.0</output></test> 
+		<test name="HighBoundaryDecimal"><expression>1.587.highBoundary(8)</expression><output type="decimal">1.58750000</output></test>
+		<test name="HighBoundaryQuantity"><expression>1.587 'm'.highBoundary(8)</expression><output type="Quantity">1.58750000 'm'</output></test>
+		<test name="HighBoundaryDateMonth"><expression>@2014.highBoundary(6)</expression><output type="dateTime">@2014-12</output></test>
+		<test name="HighBoundaryDateTimeMillisecond1"><expression>@2014-01-01T08.highBoundary(17)</expression><output type="dateTime">@2014-01-01T08:00:59.999-12:00</output></test> <!-- because T08 is not legal in FHIR - must be converted to 08:00 internally first -->
+		<test name="HighBoundaryDateTimeMillisecond2"><expression>@2014-01-01T08:05-05:00.highBoundary(17)</expression><output type="dateTime">@2014-01-01T08:05:59.999-05:00</output></test> <!-- because T08 is not legal in FHIR - must be converted to 08:00 internally first -->
+		<test name="HighBoundaryDateTimeMillisecond3"><expression>@2014-01-01T08.highBoundary(17)</expression><output type="dateTime">@2014-01-01T08:00:59.999-12:00</output></test> <!-- because T08 is not legal in FHIR - must be converted to 08:00 internally first -->
+		<test name="HighBoundaryTimeMillisecond">	<expression>@T10:30.highBoundary(9)</expression><output type="time">@T10:30:59.999</output></test>
 	</group>
 
   <group name="Comparable">
-		<test name="Comparable1"><expression>1 'cm'.comparable(1 '[in_i]')</expression><output>true</output></test>
-		<test name="Comparable2"><expression>1 'cm'.comparable(1 '[s]')</expression><output>false</output></test>
-		<test name="Comparable3"><expression>1 'cm'.comparable(1 's')</expression><output>false</output></test>
+		<test name="Comparable1"><expression>1 'cm'.comparable(1 '[in_i]')</expression><output type="boolean">true</output></test>
+		<test name="Comparable2"><expression>1 'cm'.comparable(1 '[s]')</expression><output type="boolean">false</output></test>
+		<test name="Comparable3"><expression>1 'cm'.comparable(1 's')</expression><output type="boolean">false</output></test>
 	</group>
 
 	<group name="Precision">
-		<test name="PrecisionDecimal"><expression>1.58700.precision()</expression><output>5</output></test>
-		<test name="PrecisionYear"><expression>@2014.precision()</expression><output>4</output></test>
-		<test name="PrecisionDateTimeMilliseconds"><expression>@2014-01-05T10:30:00.000.precision()</expression><output>17</output></test>
-		<test name="PrecisionTimeMinutes"><expression>@T10:30.precision()</expression><output>4</output></test>
-		<test name="PrecisionTimeMilliseconds"><expression>@T10:30:00.000.precision()</expression><output>9</output></test>
+		<test name="PrecisionDecimal"><expression>1.58700.precision()</expression><output type="integer">5</output></test>
+		<test name="PrecisionYear"><expression>@2014.precision()</expression><output type="integer">4</output></test>
+		<test name="PrecisionDateTimeMilliseconds"><expression>@2014-01-05T10:30:00.000.precision()</expression><output type="integer">17</output></test>
+		<test name="PrecisionTimeMinutes"><expression>@T10:30.precision()</expression><output type="integer">4</output></test>
+		<test name="PrecisionTimeMilliseconds"><expression>@T10:30:00.000.precision()</expression><output type="integer">9</output></test>
+		<test name="PrecisionEmpty" inputfile="patient-example.xml"><expression>{}.precision().empty()</expression><output type="boolean">true</output></test>
 	</group>
 
 <!--
@@ -1637,12 +1719,12 @@ Any text enclosed within is ignored
 		<test name="testFHIRPathIsFunction8" inputfile="observation-example.xml"><expression>Observation.extension('http://example.com/fhir/StructureDefinition/patient-age').value is Age</expression><output type="boolean">true</output></test>
 		<test name="testFHIRPathIsFunction9" inputfile="observation-example.xml"><expression>Observation.extension('http://example.com/fhir/StructureDefinition/patient-age').value is Quantity</expression><output type="boolean">true</output></test>
 		<test name="testFHIRPathIsFunction10" inputfile="observation-example.xml"><expression>Observation.extension('http://example.com/fhir/StructureDefinition/patient-age').value is Duration</expression><output type="boolean">false</output></test>
-		<test name="testFHIRPathAsFunction11" inputfile="patient-example.xml"><expression>Patient.gender.as(string)</expression></test>
+		<test name="testFHIRPathAsFunction11" inputfile="patient-example.xml" description="Contested: code type is a subtype of string"><expression>Patient.gender.as(string)</expression></test>
 		<test name="testFHIRPathAsFunction12" inputfile="patient-example.xml"><expression>Patient.gender.as(code)</expression><output type="code">male</output></test>
 		<test name="testFHIRPathAsFunction13" inputfile="patient-example.xml"><expression>Patient.gender.as(id)</expression></test>
 		<test name="testFHIRPathAsFunction14" inputfile="valueset-example-expansion.xml"><expression>ValueSet.version.as(string)</expression><output type="string">20150622</output></test>
 		<test name="testFHIRPathAsFunction15" inputfile="valueset-example-expansion.xml"><expression>ValueSet.version.as(code)</expression></test>
-		<test name="testFHIRPathAsFunction16" inputfile="patient-example.xml"><expression>Patient.gender.ofType(string)</expression></test>
+		<test name="testFHIRPathAsFunction16" inputfile="patient-example.xml" description="Contested: code type is a subtype of string"><expression>Patient.gender.ofType(string)</expression></test>
 		<test name="testFHIRPathAsFunction17" inputfile="patient-example.xml"><expression>Patient.gender.ofType(code)</expression><output type="code">male</output></test>
 		<test name="testFHIRPathAsFunction18" inputfile="patient-example.xml"><expression>Patient.gender.ofType(id)</expression></test>
 		<test name="testFHIRPathAsFunction19" inputfile="valueset-example-expansion.xml"><expression>ValueSet.version.ofType(string)</expression><output type="string">20150622</output></test>
@@ -1655,12 +1737,28 @@ Any text enclosed within is ignored
 
 	<group name="miscEngineTests">
 		<test name="testContainedId" inputfile="patient-container-example.json"><expression>contained.id</expression><output type="id">1</output></test>
-		<test name="testMultipleResolve" inputfile="diagnosticreport-eric.json" mode="element"><expression>composition.exists() implies (composition.resolve().section.entry.reference.where(resolve() is Observation) in (result.reference | result.reference.resolve().hasMember.reference))</expression><output type="boolean">true</output></test>
+		<test name="testMultipleResolve" inputfile="diagnosticreport-eric.json" mode="element">
+			<expression>
+			composition.exists() 
+			implies 
+			(
+				composition.resolve().section.entry.reference.where(resolve() is Observation)
+				.where($this in (%resource.result.reference | %resource.result.reference.resolve().hasMember.reference)).exists()
+			)
+			</expression>
+			<output type="boolean">true</output>
+		</test>
 	</group>
 
   <group name="cdaTests">
 		<test name="testHasTemplateId1" mode="cda" inputfile="ccda.xml"><expression>hasTemplateIdOf('http://hl7.org/cda/us/ccda/StructureDefinition/ContinuityofCareDocumentCCD')</expression><output type="boolean">true</output></test>
 		<test name="testHasTemplateId2" mode="cda" inputfile="ccda.xml"><expression>ClinicalDocument.hasTemplateIdOf('http://hl7.org/cda/us/ccda/StructureDefinition/ContinuityofCareDocumentCCD')</expression><output type="boolean">true</output></test>
 		<test name="testHasTemplateId3" mode="cda" inputfile="ccda.xml"><expression>recordTarget.patientRole.hasTemplateIdOf('http://hl7.org/cda/us/ccda/StructureDefinition/ContinuityofCareDocumentCCD')</expression><output type="boolean">false</output></test>
+	</group>
+
+	<group name="TerminologyTests">
+	  <test name="txTest01" mode="tx" inputfile="patient-example.xml"><expression>%terminologies.expand('http://hl7.org/fhir/ValueSet/administrative-gender').expansion.contains.count()</expression><output type="integer">4</output></test>
+	  <test name="txTest02" mode="tx" inputfile="patient-example.xml"><expression>%terminologies.validateVS('http://hl7.org/fhir/ValueSet/administrative-gender', $this.gender).parameter.where(name = 'result').value</expression><output type="boolean">true</output></test>
+	  <test name="txTest03" mode="tx" inputfile="patient-example.xml"><expression>%terminologies.translate('http://hl7.org/fhir/ConceptMap/cm-address-use-v2', $this.address.use).parameter.where(name = 'match').part.where(name = 'concept').value.code</expression><output type="code">H</output></test>
 	</group>
 </tests>

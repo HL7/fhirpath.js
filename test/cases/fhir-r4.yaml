@@ -1115,10 +1115,12 @@ tests:
         model: r4
         disable: true
       - desc: '** testStringQuantityMonthLiteralToQuantity'
+        inputfile: patient-example.json
         expression: '''1 \''mo\''''.toQuantity() = 1 month'
         model: r4
         result: []
       - desc: '** testStringQuantityYearLiteralToQuantity'
+        inputfile: patient-example.json
         expression: '''1 \''a\''''.toQuantity() = 1 year'
         model: r4
         result: []
@@ -5445,7 +5447,6 @@ tests:
         result:
           - false
         model: r4
-    disable: true
   - 'group: Precision':
       - desc: '** PrecisionDecimal'
         expression: 1.58700.precision()
