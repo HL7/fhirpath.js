@@ -192,6 +192,39 @@ class FP_Quantity extends FP_Type {
     return this.value - convResult.toVal;
   }
 
+
+  /**
+   *  Returns true if this quantity can be compared with otherQuantity, false
+   *  otherwise.
+   *  @param {FP_Quantity} otherQuantity
+   *  @return {boolean}
+   */
+  comparable(otherQuantity) {
+    if (this.unit === otherQuantity.unit) {
+      return true;
+    }
+
+    const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
+    const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
+
+    if (
+      !thisUnitInSeconds !== !otherUnitInSeconds &&
+      (thisUnitInSeconds > 1 || otherUnitInSeconds > 1)
+    ) {
+      // If one of the operands is a calendar duration greater than seconds and
+      // another one is not a calendar duration, return false result.
+      // For example, 1 year.comparable(1 'a') should return false.
+      return false;
+    }
+
+    const ucumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(this.unit),
+      otherUcumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit),
+      convResult = ucumUtils.convertUnitTo(otherUcumUnitCode, otherQuantity.value, ucumUnitCode);
+
+    return convResult.status === 'succeeded';
+  }
+
+
   /**
    *  Adds a quantity to this quantity.
    * @param {FP_Quantity} otherQuantity a quantity to be added to this quantity.

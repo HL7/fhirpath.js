@@ -2,9 +2,7 @@
 
 const util = require("./utilities");
 const { deepEqual } = require('./deep-equal');
-const types = require('./types');
-const FP_Type = types.FP_Type;
-const FP_DateTime = types.FP_DateTime;
+const { FP_Type, FP_DateTime, FP_Quantity } = require('./types');
 
 var engine = {};
 
@@ -127,6 +125,26 @@ engine.gte = function(a, b){
     return compare === null ? [] : compare >= 0;
   }
   return a0 >= b0;
+};
+
+
+/**
+ * Determines if two operands are singleton quantities and are comparable.
+ *
+ * @param {any[]} a - The first operand, expected to be an array with a single value.
+ * @param {any[]} b - The second operand, expected to be an array with a single value.
+ * @returns {[boolean]} - Returns an array containing `true` if both operands are
+ *   instances of FP_Quantity and are comparable, otherwise returns `[false]`.
+ */
+engine.comparable = function(a, b){
+  util.assertOnlyOne(a, "Singleton was expected");
+  util.assertOnlyOne(b, "Singleton was expected");
+  const a0 = util.valDataConverted(a[0]);
+  const b0 = util.valDataConverted(b[0]);
+  if (a0 instanceof FP_Quantity && b0 instanceof FP_Quantity) {
+    return [a0.comparable(b0)];
+  }
+  return [false];
 };
 
 

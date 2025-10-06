@@ -179,6 +179,7 @@ engine.invocationTable = {
   ">":          {fn: equality.gt,   arity: {2: ["Any", "Any"]}, nullable: true},
   "<=":         {fn: equality.lte,  arity: {2: ["Any", "Any"]}, nullable: true},
   ">=":         {fn: equality.gte,  arity: {2: ["Any", "Any"]}, nullable: true},
+  "comparable": {fn: equality.comparable, arity: {1: ["Any"]}},
   "containsOp": {fn: collections.contains,   arity: {2: ["Any", "Any"]}},
   "inOp":       {fn: collections.in,  arity: {2: ["Any", "Any"]}},
   "isOp":       {fn: types.isFn,  arity: {2: ["Any", "TypeSpecifier"]}},
