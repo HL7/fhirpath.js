@@ -6,6 +6,9 @@ This log documents significant changes for each release.  This project follows
 ## [4.7.0] - 2025-10-03
 ### Added
 - function `comparable(quantity) : boolean`.
+### Fixed
+- implicit conversion from Integer/Decimal to Quantity for comparison
+  operators.
 
 ## [4.6.0] - 2025-08-21
 ### Added

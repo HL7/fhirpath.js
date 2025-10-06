@@ -55,8 +55,17 @@ function typecheck(a, b){
     let lClass = getClassForComparison(a);
     let rClass = getClassForComparison(b);
     if (lClass !== rClass) {
-      util.raiseError('Type of "' + a + '" (' + lClass.name + ') did not match type of "' +
-        b + '" (' + rClass.name + ')', 'InequalityExpression');
+      // Implicit conversion of numbers to quantities.
+      // See:
+      //  https://hl7.org/fhirpath/#conversion
+      if (lClass === Number && rClass === FP_Quantity) {
+        a = new FP_Quantity(a, "'1'");
+      } else if (lClass === FP_Quantity && rClass === Number) {
+        b = new FP_Quantity(b, "'1'");
+      } else {
+        util.raiseError('Type of "' + a + '" (' + lClass.name + ') did not match type of "' +
+          b + '" (' + rClass.name + ')', 'InequalityExpression');
+      }
     }
   }
   return [a, b];
@@ -139,8 +148,20 @@ engine.gte = function(a, b){
 engine.comparable = function(a, b){
   util.assertOnlyOne(a, "Singleton was expected");
   util.assertOnlyOne(b, "Singleton was expected");
-  const a0 = util.valDataConverted(a[0]);
-  const b0 = util.valDataConverted(b[0]);
+  let a0 = util.valDataConverted(a[0]);
+  let b0 = util.valDataConverted(b[0]);
+  // Comparable is only defined for quantities, but numbers are implicitly
+  // converted to quantities with unit '1'.
+  // See:
+  //  https://hl7.org/fhir/fhirpath.html#fn-comparable
+  //  https://hl7.org/fhirpath/#conversion
+  if (typeof a0 === 'number') {
+    a0 = new FP_Quantity(a0, "'1'");
+  }
+  if (typeof b0 === 'number') {
+    b0 = new FP_Quantity(b0, "'1'");
+  }
+
   if (a0 instanceof FP_Quantity && b0 instanceof FP_Quantity) {
     return [a0.comparable(b0)];
   }

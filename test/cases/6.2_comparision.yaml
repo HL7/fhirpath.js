@@ -173,16 +173,28 @@ tests:
       result: [true]
     - expression: 1001 'g' < 1 'kg'
       result: [false]
+    - expression: 2 '1' > 1
+      result: [true]
+    - expression: 2 > 1 '1'
+      result: [true]
+    - expression: 1 '1' < 2
+      result: [true]
+    - expression: 1 < 2 '1'
+      result: [true]
     - expression: 1 'kg'.comparable(999 'g')
       result: [true]
     - expression: 1 year.comparable(1 second)
       result: [true]
     - expression: 1 'kg'.comparable(1 's')
       result: [false]
-    # Per the current specification, the function can return true only for quantities
-    # See https://hl7.org/fhir/fhirpath.html#fn-comparable
+    # Per the current specification, the function can return true only for
+    # quantities, but numbers are implicitly converted to quantities with unit
+    # '1'.
+    # See:
+    #  https://hl7.org/fhir/fhirpath.html#fn-comparable
+    #  https://hl7.org/fhirpath/#conversion
     - expression: 1.comparable(2)
-      result: [false]
+      result: [true]
     - expression: 1 'something'.comparable(2 'something')
       result: [true]
     - expression: 1 'something'.comparable(2 'something else')
