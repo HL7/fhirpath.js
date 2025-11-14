@@ -72,7 +72,7 @@ describe("defineVariable", () => {
     let expr = "defineVariable('n1', name.first()).active | defineVariable('n2', name.skip(1).first()).select(%n1.given)";
     expect(() => {
       fhirpath.evaluate(input.patientExample, expr, r4_model); 
-    }).toThrowError("Attempting to access an undefined environment variable: n1");
+    }).toThrow("Attempting to access an undefined environment variable: n1");
   });
 
   it("use undefined variable throws error", () => {
@@ -80,14 +80,14 @@ describe("defineVariable", () => {
     let expr = "select(%fam.given)";
     expect(() => {
       fhirpath.evaluate(input.patientExample, expr, r4_model); 
-    }).toThrowError("Attempting to access an undefined environment variable: fam");
+    }).toThrow("Attempting to access an undefined environment variable: fam");
   });
 
   it("redefining variable throws error", () => {
     let expr = "defineVariable('v1').defineVariable('v1').select(%v1)";
     expect(() => {
       fhirpath.evaluate(input.patientExample, expr, r4_model); 
-    }).toThrowError("Variable %v1 already defined");
+    }).toThrow("Variable %v1 already defined");
   });
 
   // Yury's tests
@@ -96,7 +96,7 @@ describe("defineVariable", () => {
     let expr = "Patient.name.defineVariable('n1', first()).active | Patient.name.defineVariable('n2', skip(1).first()).select(%n1.given)";
     expect(() => {
       fhirpath.evaluate(input.patientExample, expr, r4_model); 
-    }).toThrowError("Attempting to access an undefined environment variable: n1");
+    }).toThrow("Attempting to access an undefined environment variable: n1");
   });
 
   it("sequence of variable definitions tweak", () => {
@@ -125,7 +125,7 @@ describe("defineVariable", () => {
     let expr = "defineVariable('root', 'r1-').select(defineVariable('v1', 'v1').defineVariable('v2', 'v2').select(%v1 | %v2)).select(%root & $this & %v1)";
     expect(() => {
       fhirpath.evaluate(input.patientExample, expr, r4_model); 
-    }).toThrowError("Attempting to access an undefined environment variable: v1");
+    }).toThrow("Attempting to access an undefined environment variable: v1");
   });
 
   it('defineVariable with compile success', () => {
@@ -139,14 +139,14 @@ describe("defineVariable", () => {
     let expr = "defineVariable('root', 'r1-').select(defineVariable('v1', 'v1').defineVariable('v2', 'v2').select(%v1 | %v2)).select(%root & $this & %v1)";
     let f = fhirpath.compile(expr, r4_model);
     expect(() => { f(input.patientExample); })
-      .toThrowError("Attempting to access an undefined environment variable: v1");
+      .toThrow("Attempting to access an undefined environment variable: v1");
   });
 
   it('defineVariable cant overwrite an environment var', () => {
     let expr = "defineVariable('context', 'oops')";
     let f = fhirpath.compile(expr, r4_model);
     expect(() => { f(input.patientExample); })
-      .toThrowError("Environment Variable %context already defined");
+      .toThrow("Environment Variable %context already defined");
   });
 
   it("realistic example with conceptmap", () => {

@@ -251,14 +251,14 @@ engine.intdiv = function(x, y){
       return x / y;
     }
     if (typeof y == "number") {
-      return Math.floor(Number(x) / y);
+      return Math.trunc(Number(x) / y);
     }
   } else if(typeof x == "number") {
     if (typeof y == "number") {
-      return Math.floor(x / y);
+      return Math.trunc(x / y);
     }
     if (typeof y == 'bigint') {
-      return Math.floor(x / Number(y));
+      return Math.trunc(x / Number(y));
     }
   }
 };
