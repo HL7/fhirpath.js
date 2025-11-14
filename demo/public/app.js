@@ -125,7 +125,7 @@ function handleInputTypeChange(event) {
       cm.setOption('mode', 'javascript');
       cm.setOption('json', 'true');
       if (yamlVal) {
-        cm.setValue(fhirpath.util.toJSON(yaml.safeLoad(yamlVal), 2));
+        cm.setValue(fhirpath.util.toJSON(yaml.load(yamlVal), 2));
       }
     }
     else { // yaml
@@ -179,7 +179,7 @@ function updateCurrentVariable() {
   const selected = document.querySelector('#variables label.selected');
   const editorText = cm.getValue();
   if (cm.getOption('mode') === 'yaml') {
-    selected.setAttribute('data-json', editorText ? fhirpath.util.toJSON(yaml.safeLoad(cm.getValue()), 2) : '');
+    selected.setAttribute('data-json', editorText ? fhirpath.util.toJSON(yaml.load(cm.getValue()), 2) : '');
   } else {
     selected.setAttribute('data-json', editorText);
   }
