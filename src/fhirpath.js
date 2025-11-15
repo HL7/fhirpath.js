@@ -217,7 +217,7 @@ engine.TermExpression = function(ctx, parentData, node) {
 };
 
 engine.PolarityExpression = function(ctx, parentData, node) {
-  var sign = node.terminalNodeText[0]; // either - or + per grammar
+  var sign = node.text; // either - or + per grammar
   var rtn = engine.doEval(ctx,parentData, node.children[0]);
   if (rtn.length !== 1) {  // not yet in spec, but per Bryn Rhodes
     throw new Error('Unary ' + sign +
@@ -233,7 +233,11 @@ engine.PolarityExpression = function(ctx, parentData, node) {
       rtn[0] = new FP_Quantity(-rtn[0].value, rtn[0].unit);
     }
   } else {
-    throw new Error('Unary ' + sign + ' can only be applied to a number or Quantity.');
+    let msg = 'Unary ' + sign + ' can only be applied to a number or Quantity.';
+    if (node.start) {
+      msg += ' (at ' + node.start.line + ':' + node.start.column + ')';
+    }
+    throw new Error(msg);
   }
 
   return rtn;
@@ -262,15 +266,11 @@ engine.TypeSpecifier = function(ctx, parentData, node) {
 
 engine.ExternalConstantTerm = function(ctx, parentData, node) {
   let varName;
-  const extConstant = node.children[0];
-  // externalConstant(variable name) is defined in the grammar as:
-  // '%' ( identifier | STRING )
-  if (extConstant.terminalNodeText.length === 2) {
-    // if the variable name is a STRING
-    varName = getStringLiteralVal(extConstant.terminalNodeText[1]);
+  if (node.delimitedText) {
+    // the parser now works out which child nodes are appropriate
+    varName = getStringLiteralVal(node.delimitedText);
   } else {
-    // otherwise, it is an identifier
-    varName = getIdentifierVal(extConstant.children[0].text);
+    varName = node.text;
   }
 
   let value;
@@ -369,15 +369,8 @@ engine.BooleanLiteral = function(ctx, parentData, node) {
 };
 
 engine.QuantityLiteral = function(ctx, parentData, node) {
-  var valueNode = node.children[0];
-  var value = Number(valueNode.terminalNodeText[0]);
-  var unitNode = valueNode.children[0];
-  var unit = unitNode.terminalNodeText[0];
-  // Sometimes the unit is in a child node of the child
-  if (!unit && unitNode.children)
-    unit = unitNode.children[0].terminalNodeText[0];
-
-  return [new FP_Quantity(value, unit)];
+  var value = Number(node.value);
+  return [new FP_Quantity(value, node.unit)];
 };
 
 /**
@@ -580,10 +573,11 @@ function doInvoke(ctx, fnName, data, rawParams){
       var argTypes = invoc.arity[paramsNumber];
       if(argTypes){
         var params = [];
+        const thisValue = ctx.$this || ctx.dataRoot;
         for(var i = 0; i < paramsNumber; i++){
           var tp = argTypes[i];
           var pr = rawParams[i];
-          params.push(makeParam(ctx, data, tp, pr));
+          params.push(makeParam(ctx, thisValue, tp, pr));
         }
         params.unshift(data);
         if(invoc.nullable) {
@@ -667,7 +661,7 @@ engine.UnionExpression = function(ctx, parentData, node) {
 };
 
 engine.ThisInvocation = function(ctx) {
-  return ctx.$this;
+  return ctx.$this ?? ctx.dataRoot;
 };
 
 engine.TotalInvocation = function(ctx) {
@@ -679,13 +673,13 @@ engine.IndexInvocation = function(ctx) {
 };
 
 engine.OpExpression = function(ctx, parentData, node) {
-  var op = node.terminalNodeText[0];
+  var op = node.text;
   return infixInvoke(ctx, op, parentData, node.children);
 };
 
 engine.AliasOpExpression = function(map){
   return function(ctx, parentData, node) {
-    var op = node.terminalNodeText[0];
+    var op = node.text;
     var alias = map[op];
     if(!alias) { throw new Error("Do not know how to alias " + op + " by " + util.toJSON(map)); }
     return infixInvoke(ctx, alias, parentData, node.children);
@@ -746,7 +740,11 @@ engine.doEval = function(ctx, parentData, node) {
 engine.doEvalSync = function(ctx, parentData, node) {
   const evaluator = engine.evalTable[node.type] || engine[node.type];
   if(evaluator){
-    return evaluator.call(engine, ctx, parentData, node);
+    let result = evaluator.call(engine, ctx, parentData, node);
+    if (ctx.debugger){
+      ctx.debugger(ctx, parentData, result, node);
+    }
+    return result;
   } else {
     throw new Error("No " + node.type + " evaluator ");
   }
@@ -814,6 +812,9 @@ function applyParsedPath(resource, parsedPath, envVars, model, options) {
   };
   if (options.traceFn) {
     ctx.customTraceFn = options.traceFn;
+  }
+  if (options.debugger) {
+    ctx.debugger = options.debugger;
   }
   if (options.userInvocationTable) {
     ctx.userInvocationTable = options.userInvocationTable;

@@ -106,12 +106,80 @@ interface Model {
   }
 }
 
+interface ResourceNode {
+  /**
+   * The parent resource node
+   */
+  parentResNode: ResourceNode | null;
+  
+  /**
+   * The path of the node in the resource (e.g. Patient.name)
+   */
+  path: string | null;
+
+  /** 
+   * The index of the node in the array (e.g. The `0` in Patient.name[0])
+   */
+  index: number | undefined;
+  
+  /**
+   * The raw name of the property
+   * e.g. `family` in `Patient.name[0].family`
+   *      or `valueString` in `Patient.name[1].family.extension[0].value` 
+   *      (has the type suffix on it for choice type properties)
+   */
+  propName: string | undefined;
+
+  /**
+   * The node's data or value (might be an object with sub-nodes, an array, or FHIR data type)
+   */
+  data: any;
+  
+  /**
+   * Additional data stored in a property named with "_" prepended
+   * See https://www.hl7.org/fhir/element.html#json for details
+   */
+  _data: Record<string, any>;
+  
+  /**
+   * FHIR node data type, if the resource node is described in the FHIR model
+   */
+  fhirNodeDataType: string | null;
+  
+  /**
+   * Cached converted data
+   */
+  convertData(): any;
+ 
+  /**
+   * The FHIR model used for this node
+   */
+  model : Model;
+ 
+  /**
+   * Retrieve any type information if available
+   */
+  getTypeInfo(): any;
+
+  /**
+   * Converts the node to its JSON representation
+   */
+  toJSON(): string;
+
+  /**
+   * Returns the full property name of the node where available
+   */
+  fullPropertyName(): string | undefined;
+}
+
+
 interface Options {
     resolveInternalTypes?: boolean
     traceFn?: (value: any, label: string) => void,
     userInvocationTable?: UserInvocationTable,
     terminologyUrl?: string,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    debugger?: (ctx: any, focus: ResourceNode[], result: ResourceNode[], node: any) => void,
     httpHeaders?: Record<string, string>
 }
 
