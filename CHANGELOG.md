@@ -3,10 +3,14 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [4.7.0] - 2025-10-02
+## [4.7.0] - 2025-11-17
 ### Added
 - the ability to add a debug tracing hook, as well as some improvements to the
   fhirpath parser for reading location information.
+
+## [4.6.1] - 2025-10-03
+### Fixed
+- an issue where the `div` operator used `Math.floor` instead of `Math.trunc`.
 
 ## [4.6.0] - 2025-08-21
 ### Added
