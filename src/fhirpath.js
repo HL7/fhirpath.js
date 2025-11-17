@@ -216,6 +216,20 @@ engine.TermExpression = function(ctx, parentData, node) {
   return engine.doEval(ctx,parentData, node.children[0]);
 };
 
+
+/**
+ * Evaluates a PolarityExpression node in the FHIRPath AST.
+ * Applies unary plus or minus to a single number or FP_Quantity.
+ * Throws an error if the operand is not a number or FP_Quantity, or if there
+ * is more than one operand.
+ *
+ * @param {Object} ctx - The evaluation context.
+ * @param {Array} parentData - The data from the parent node.
+ * @param {Object} node - The AST node representing the PolarityExpression.
+ * @returns {Array} - An array containing the result after applying polarity.
+ * @throws {Error} - If the operand is not a number or FP_Quantity, or if there
+ *  is more than one operand.
+ */
 engine.PolarityExpression = function(ctx, parentData, node) {
   var sign = node.text; // either - or + per grammar
   var rtn = engine.doEval(ctx,parentData, node.children[0]);
@@ -264,6 +278,20 @@ engine.TypeSpecifier = function(ctx, parentData, node) {
   return typeInfo;
 };
 
+
+/**
+ * Evaluates an ExternalConstantTerm node in the FHIRPath AST.
+ * Resolves the value of an external constant (environment variable) by its name.
+ * Handles user-defined variables and variables defined via "defineVariable".
+ * Converts values to ResourceNode instances if necessary.
+ * Throws an error if the variable is not defined.
+ *
+ * @param {Object} ctx - The evaluation context containing variables and processed state.
+ * @param {Array} parentData - The data from the parent node (unused here).
+ * @param {Object} node - The AST node representing the ExternalConstantTerm.
+ * @returns {Array} - An array containing the resolved value(s) of the variable.
+ * @throws {Error} - If the variable is not defined in any context.
+ */
 engine.ExternalConstantTerm = function(ctx, parentData, node) {
   let varName;
   if (node.delimitedText) {
@@ -478,32 +506,47 @@ engine.realizeParams = function(ctx, parentData, args) {
   }
 };
 
+
+/**
+ * Clones the evaluation context and sets the $this property.
+ * If definedVars exist, clones them as well to isolate variable changes in subexpressions.
+ *
+ * @param {Object} ctx - The original evaluation context.
+ * @param {*} $this - The value to set for $this in the cloned context.
+ * @returns {Object} - The cloned context with updated $this.
+ */
+function cloneCtx(ctx, $this) {
+  const ctxExpr = { ...ctx, $this };
+  if (ctx.definedVars) {
+    // Each parameter subexpression needs its own set of defined variables
+    // (cloned from the parent context). This way, the changes to the variables
+    // are isolated in the subexpression.
+    ctxExpr.definedVars = { ...ctx.definedVars };
+  }
+  return ctxExpr;
+}
+
+
+/**
+ * Prepares and evaluates a parameter for FHIRPath function/operator invocation.
+ * Returns the evaluated value, or a function for "Expr" type.
+ *
+ * @param {Object} ctx - The evaluation context.
+ * @param {Array} parentData - The data from the parent node.
+ * @param {string|Array} type - The expected type(s) of the parameter.
+ * @param {Object} param - The AST node representing the parameter.
+ * @returns {*} - The evaluated parameter value, or a function for "Expr" type.
+ * @throws {Error} - If an Identifier type param is not a TermExpression.
+ */
 function makeParam(ctx, parentData, type, param) {
-  if(type === "Expr"){
+  if(type === "Expr") {
     return function(data) {
       const $this = util.arraify(data);
-      let ctxExpr = { ...ctx, $this };
-      if (ctx.definedVars) {
-        // Each parameter subexpression needs its own set of defined variables
-        // (cloned from the parent context). This way, the changes to the variables
-        // are isolated in the subexpression.
-        ctxExpr.definedVars = {...ctx.definedVars};
-      }
-      return engine.doEval(ctxExpr, $this, param);
+      return engine.doEval(cloneCtx(ctx, $this), $this, param);
     };
   }
-  if(type === "AnyAtRoot"){
-    const $this = ctx.$this || ctx.dataRoot;
-    let ctxExpr = { ...ctx, $this};
-    if (ctx.definedVars) {
-      // Each parameter subexpression needs its own set of defined variables
-      // (cloned from the parent context). This way, the changes to the variables
-      // are isolated in the subexpression.
-      ctxExpr.definedVars = {...ctx.definedVars};
-    }
-    return engine.doEval(ctxExpr, $this, param);
-  }
-  if(type === "Identifier"){
+
+  if(type === "Identifier") {
     if(param.type === "TermExpression") {
       return param.text;
     } else {
@@ -515,36 +558,21 @@ function makeParam(ctx, parentData, type, param) {
     return engine.TypeSpecifier(ctx, parentData, param);
   }
 
-  let res;
-  if(type === 'AnySingletonAtRoot'){
-    const $this = ctx.$this || ctx.dataRoot;
-    let ctxExpr = { ...ctx, $this};
-    if (ctx.definedVars) {
-      // Each parameter subexpression needs its own set of defined variables
-      // (cloned from the parent context). This way, the changes to the variables
-      // are isolated in the subexpression.
-      ctxExpr.definedVars = {...ctx.definedVars};
+  const $this = ctx.$this || ctx.dataRoot;
+  const res = engine.doEval(cloneCtx(ctx, $this), $this, param);
+
+  if (type === "Any" || type === "AnyAtRoot") {
+    return res;
+  }
+
+  // If type is in array (like [Boolean]) - this means
+  // function accepts value of this type or an empty value.
+  // See engine.invocationTable for examples.
+  if (Array.isArray(type)) {
+    if (res.length === 0) {
+      return [];
     }
-    res = engine.doEval(ctxExpr, $this, param);
-  } else {
-    let ctxExpr = {...ctx};
-    if (ctx.definedVars) {
-      // Each parameter subexpression needs its own set of defined variables
-      // (cloned from the parent context). This way, the changes to the variables
-      // are isolated in the subexpression.
-      ctxExpr.definedVars = {...ctx.definedVars};
-    }
-    res = engine.doEval(ctxExpr, parentData, param);
-    if (type === "Any") {
-      return res;
-    }
-    if (Array.isArray(type)) {
-      if (res.length === 0) {
-        return [];
-      } else {
-        type = type[0];
-      }
-    }
+    type = type[0];
   }
 
   return res instanceof Promise ?
@@ -573,11 +601,10 @@ function doInvoke(ctx, fnName, data, rawParams){
       var argTypes = invoc.arity[paramsNumber];
       if(argTypes){
         var params = [];
-        const thisValue = ctx.$this || ctx.dataRoot;
         for(var i = 0; i < paramsNumber; i++){
           var tp = argTypes[i];
           var pr = rawParams[i];
-          params.push(makeParam(ctx, thisValue, tp, pr));
+          params.push(makeParam(ctx, data, tp, pr));
         }
         params.unshift(data);
         if(invoc.nullable) {
