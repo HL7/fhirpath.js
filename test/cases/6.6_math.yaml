@@ -328,6 +328,9 @@ tests:
   - desc: '** Can div a long number literal by a decimal literal'
     expression: 10L div 4.5
     result: [2]
+  - desc: '** Can div a negative decimal number by a number'
+    expression: -5.5 div 2
+    result: [-2]
   - desc: '** Error dividing a Quantity literal by a long number literal'
     expression: 4 '1' div 2L
     error: true

@@ -6,7 +6,7 @@ const { calcExpression } = require("./test_utils");
 const FP_DateTime = require('../src/types').FP_DateTime;
 
 // Get document, or throw exception on error
-// const testcase = yaml.safeLoad(fs.readFileSync( __dirname + '/cases/simple.yaml', 'utf8'));
+// const testcase = yaml.load(fs.readFileSync( __dirname + '/cases/simple.yaml', 'utf8'));
 
 const items = fs.readdirSync(__dirname + '/cases/');
 
@@ -70,7 +70,7 @@ const endWith = (s, postfix) => {
 };
 
 const files = items.filter(fileName => endWith(fileName, '.yaml'))
-  .map(fileName =>({ fileName, data: yaml.safeLoad(fs.readFileSync(__dirname + '/cases/' + fileName, 'utf8')) }));
+  .map(fileName =>({ fileName, data: yaml.load(fs.readFileSync(__dirname + '/cases/' + fileName, 'utf8')) }));
 
 const generateTest = (test, testResource) => {
   let expressions = Array.isArray(test.expression) ? test.expression : [test.expression];
