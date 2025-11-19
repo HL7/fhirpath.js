@@ -138,12 +138,15 @@ engine.gte = function(a, b){
 
 
 /**
- * Determines if two operands are singleton quantities and are comparable.
+ * Determines whether two operands are singleton quantities (or implicitly
+ * convertible to quantities https://www.hl7.org/fhirpath/#conversion)
+ * and whether they are comparable.
  *
  * @param {any[]} a - The first operand, expected to be an array with a single value.
  * @param {any[]} b - The second operand, expected to be an array with a single value.
  * @returns {[boolean]} - Returns an array containing `true` if both operands are
- *   instances of FP_Quantity and are comparable, otherwise returns `[false]`.
+ *   instances of FP_Quantity (or implicitly convertible to FP_Quantity) and are
+ *   comparable, otherwise returns `[false]`.
  */
 engine.comparable = function(a, b){
   util.assertOnlyOne(a, "Singleton was expected");
