@@ -151,6 +151,10 @@ tests:
       result: [false]
     - expression: 1 year < 12 months
       result: [false]
+    - expression: 1 year > 11 months
+      result: [true]
+    - expression: 23 months < 2 years
+      result: [true]
     - expression: 1 minute > 59 seconds
       result: [true]
     - expression: 1 minute < 61 seconds

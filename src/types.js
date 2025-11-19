@@ -171,13 +171,24 @@ class FP_Quantity extends FP_Type {
     const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
     const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
 
-    if (
-      !thisUnitInSeconds !== !otherUnitInSeconds &&
-      (thisUnitInSeconds > 1 || otherUnitInSeconds > 1)
-    ) {
+    if(thisUnitInSeconds !== undefined && otherUnitInSeconds !== undefined) {
+      // If both operands are calendar durations
+      const thisConvFactor = FP_Quantity._yearMonthConversionFactor[this.unit],
+        otherConvFactor = FP_Quantity._yearMonthConversionFactor[otherQuantity.unit];
+
+      if ( thisConvFactor && otherConvFactor) {
+        // If the values are indicated in years and months, we use the conversion
+        // factor: 1 year = 12 months
+        return this.value * thisConvFactor - otherQuantity.value * otherConvFactor;
+      }
+
+      // Otherwise, we convert them to seconds to compare.
+      return this.value * thisUnitInSeconds - otherQuantity.value * otherUnitInSeconds;
+    } else if(thisUnitInSeconds > 1 || otherUnitInSeconds > 1) {
       // If one of the operands is a calendar duration greater than seconds and
-      // another one is not a calendar duration, return empty result
-      // For example, 1 year > 1 'a' should return []
+      // another one is not a calendar duration, then they are not comparable.
+      // For example, 1 year > 1 'a' should return [].
+      // See https://hl7.org/fhirpath/#comparison.
       return null;
     }
 
