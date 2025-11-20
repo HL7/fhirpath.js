@@ -5,7 +5,6 @@
   "version": "0.1",
   "title": "Demo map from SNOMED/Loinc to/from local measure type mapping",
   "status": "draft",
-  "targetCanonical": "http://example.org/ValueSet/local-measure-type",
   "group": [
     {
       "source": "http://snomed.info/sct",

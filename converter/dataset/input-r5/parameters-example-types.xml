@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Parameters xmlns="http://hl7.org/fhir"
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://hl7.org/fhir ../../src-generated/schemas/fhir-single.xsd">
+<Parameters xmlns="http://hl7.org/fhir">
 	<id value="example-types"/>
 	<parameter>
 		<name value="string"/>

@@ -2,9 +2,7 @@
 
 const util = require("./utilities");
 const { deepEqual } = require('./deep-equal');
-const types = require('./types');
-const FP_Type = types.FP_Type;
-const FP_DateTime = types.FP_DateTime;
+const { FP_Type, FP_DateTime, FP_Quantity } = require('./types');
 
 var engine = {};
 
@@ -57,8 +55,17 @@ function typecheck(a, b){
     let lClass = getClassForComparison(a);
     let rClass = getClassForComparison(b);
     if (lClass !== rClass) {
-      util.raiseError('Type of "' + a + '" (' + lClass.name + ') did not match type of "' +
-        b + '" (' + rClass.name + ')', 'InequalityExpression');
+      // Implicit conversion of numbers to quantities.
+      // See:
+      //  https://hl7.org/fhirpath/#conversion
+      if (lClass === Number && rClass === FP_Quantity) {
+        a = new FP_Quantity(a, "'1'");
+      } else if (lClass === FP_Quantity && rClass === Number) {
+        b = new FP_Quantity(b, "'1'");
+      } else {
+        util.raiseError('Type of "' + a + '" (' + lClass.name + ') did not match type of "' +
+          b + '" (' + rClass.name + ')', 'InequalityExpression');
+      }
     }
   }
   return [a, b];
@@ -127,6 +134,41 @@ engine.gte = function(a, b){
     return compare === null ? [] : compare >= 0;
   }
   return a0 >= b0;
+};
+
+
+/**
+ * Determines whether two operands are singleton quantities (or implicitly
+ * convertible to quantities https://www.hl7.org/fhirpath/#conversion)
+ * and whether they are comparable.
+ *
+ * @param {any[]} a - The first operand, expected to be an array with a single value.
+ * @param {any[]} b - The second operand, expected to be an array with a single value.
+ * @returns {[boolean]} - Returns an array containing `true` if both operands are
+ *   instances of FP_Quantity (or implicitly convertible to FP_Quantity) and are
+ *   comparable, otherwise returns `[false]`.
+ */
+engine.comparable = function(a, b){
+  util.assertOnlyOne(a, "Singleton was expected");
+  util.assertOnlyOne(b, "Singleton was expected");
+  let a0 = util.valDataConverted(a[0]);
+  let b0 = util.valDataConverted(b[0]);
+  // Comparable is only defined for quantities, but numbers are implicitly
+  // converted to quantities with unit '1'.
+  // See:
+  //  https://hl7.org/fhir/fhirpath.html#fn-comparable
+  //  https://hl7.org/fhirpath/#conversion
+  if (typeof a0 === 'number') {
+    a0 = new FP_Quantity(a0, "'1'");
+  }
+  if (typeof b0 === 'number') {
+    b0 = new FP_Quantity(b0, "'1'");
+  }
+
+  if (a0 instanceof FP_Quantity && b0 instanceof FP_Quantity) {
+    return [a0.comparable(b0)];
+  }
+  return [false];
 };
 
 

@@ -332,6 +332,8 @@ tests:
         inputfile: observation-example.json
         expression: Observation.valueQuantity.unit
         error: true
+        result:
+          - lbs
         model: r5
         disable: true
       - desc: '** testPolymorphismIsA1'
@@ -1288,7 +1290,7 @@ tests:
         result:
           - true
         model: r5
-      - desc: '** testStringQuantityDayLiteralToQuantity'
+      - desc: '** Contested: calendar day units are not equal to ucum day units'
         inputfile: patient-example.json
         expression: '''1 day''.toQuantity() = 1 ''d'''
         result:
@@ -1303,10 +1305,12 @@ tests:
         model: r5
         disable: true
       - desc: '** testStringQuantityMonthLiteralToQuantity'
+        inputfile: patient-example.json
         expression: '''1 \''mo\''''.toQuantity() = 1 month'
         model: r5
         result: []
       - desc: '** testStringQuantityYearLiteralToQuantity'
+        inputfile: patient-example.json
         expression: '''1 \''a\''''.toQuantity() = 1 year'
         model: r5
         result: []
@@ -2005,10 +2009,14 @@ tests:
         result:
           - true
         model: r5
-      - desc: '** testIif6'
+      - desc: >-
+          ** Contested: nothing in the spec about what to do with non-boolean
+          criteria - mixed results from engines
         inputfile: patient-example.json
-        expression: 'iif(''non boolean criteria'', ''true-result'', ''true-result'')'
+        expression: 'iif(''non boolean criteria'', ''true-result'', ''false-result'')'
         error: true
+        result:
+          - true-result
         model: r5
         disable: true
       - desc: '** testIif7'
@@ -2040,6 +2048,12 @@ tests:
         expression: '(''context'').iif($this = ''context'',''true-result'', ''false-result'')'
         result:
           - true-result
+        model: r5
+      - desc: '** testIif12'
+        inputfile: patient-example-name.json
+        expression: 'Patient.name.first().iif(text.exists(), text, family+given.first())'
+        result:
+          - Pater J Chalmers
         model: r5
   - 'group: testToInteger':
       - desc: '** testToInteger1'
@@ -2253,6 +2267,30 @@ tests:
         result:
           - true
         model: r5
+      - desc: '** testSubstring10'
+        inputfile: patient-example.json
+        expression: 'Patient.name.family.first().select(substring(2, length()-5))'
+        result:
+          - alm
+        model: r5
+      - desc: '** testSubstring10a'
+        inputfile: patient-example.json
+        expression: 'Patient.name.family.first().substring(2, length()-5)'
+        error: true
+        model: r5
+        disable: true
+      - desc: '** testSubstring11'
+        inputfile: patient-example.json
+        expression: '{}.substring({}).empty() = true'
+        result:
+          - true
+        model: r5
+      - desc: '** testSubstring12'
+        inputfile: patient-example.json
+        expression: '''string''.substring({}).empty() = true'
+        result:
+          - true
+        model: r5
   - 'group: testStartsWith':
       - desc: '** testStartsWith1'
         inputfile: patient-example.json
@@ -2320,6 +2358,18 @@ tests:
         result:
           - true
         model: r5
+      - desc: '** testStartsWith12'
+        inputfile: patient-example.json
+        expression: '''987654321''.select(startsWith(length().toString()))'
+        result:
+          - true
+        model: r5
+      - desc: '** testStartsWith12a'
+        inputfile: patient-example.json
+        expression: '''987654321''.startsWith(length().toString())'
+        error: true
+        model: r5
+        disable: true
       - desc: '** testStartsWithNonString1'
         inputfile: appointment-examplereq.json
         expression: Appointment.identifier.startsWith('rand')
@@ -2380,6 +2430,18 @@ tests:
         result:
           - true
         model: r5
+      - desc: '** testEndsWith10'
+        inputfile: patient-example.json
+        expression: '''123456789''.select(endsWith(length().toString()))'
+        result:
+          - true
+        model: r5
+      - desc: '** testEndsWith10a'
+        inputfile: patient-example.json
+        expression: '''123456789''.endsWith(length().toString())'
+        error: true
+        model: r5
+        disable: true
       - desc: '** testEndsWithNonString1'
         inputfile: appointment-examplereq.json
         expression: Appointment.identifier.endsWith('rand')
@@ -2440,6 +2502,18 @@ tests:
         result:
           - true
         model: r5
+      - desc: '** testContainsString10'
+        inputfile: patient-example.json
+        expression: '''123456789''.select(contains(length().toString()))'
+        result:
+          - true
+        model: r5
+      - desc: '** testContainsString10a'
+        inputfile: patient-example.json
+        expression: '''123456789''.contains(length().toString())'
+        error: true
+        model: r5
+        disable: true
       - desc: '** testContainsNonString1'
         inputfile: appointment-examplereq.json
         expression: Appointment.identifier.contains('rand')
@@ -2846,61 +2920,61 @@ tests:
           - true
         model: r5
   - 'group: testSort':
-      - desc: '** testSort1'
+      - desc: '** Prototype definition - not part of spec yet'
         inputfile: patient-example.json
         expression: (1 | 2 | 3).sort() = (1 | 2 | 3)
         result:
           - true
         model: r5
-      - desc: '** testSort2'
+      - desc: '** Prototype definition - not part of spec yet'
         inputfile: patient-example.json
         expression: (3 | 2 | 1).sort() = (1 | 2 | 3)
         result:
           - true
         model: r5
-      - desc: '** testSort3'
+      - desc: '** Prototype definition - not part of spec yet'
         inputfile: patient-example.json
         expression: (1 | 2 | 3).sort($this) = (1 | 2 | 3)
         result:
           - true
         model: r5
-      - desc: '** testSort4'
+      - desc: '** Prototype definition - not part of spec yet'
         inputfile: patient-example.json
         expression: (3 | 2 | 1).sort($this) = (1 | 2 | 3)
         result:
           - true
         model: r5
-      - desc: '** testSort5'
+      - desc: '** Prototype definition - not part of spec yet'
         inputfile: patient-example.json
         expression: (1 | 2 | 3).sort(-$this) = (3 | 2 | 1)
         result:
           - true
         model: r5
-      - desc: '** testSort6'
+      - desc: '** Prototype definition - not part of spec yet'
         inputfile: patient-example.json
         expression: ('a' | 'b' | 'c').sort($this) = ('a' | 'b' | 'c')
         result:
           - true
         model: r5
-      - desc: '** testSort7'
+      - desc: '** Prototype definition - not part of spec yet'
         inputfile: patient-example.json
         expression: ('c' | 'b' | 'a').sort($this) = ('a' | 'b' | 'c')
         result:
           - true
         model: r5
-      - desc: '** testSort8'
+      - desc: '** Prototype definition - not part of spec yet'
         inputfile: patient-example.json
         expression: ('a' | 'b' | 'c').sort(-$this) = ('c' | 'b' | 'a')
         result:
           - true
         model: r5
-      - desc: '** testSort9'
+      - desc: '** Prototype definition - not part of spec yet'
         inputfile: patient-example.json
         expression: 'Patient.name[0].given.sort() = (''James'' | ''Peter'')'
         result:
           - true
         model: r5
-      - desc: '** testSort10'
+      - desc: '** Prototype definition - not part of spec yet'
         inputfile: patient-example.json
         expression: 'Patient.name.sort(-family, -given.first()).first().use = ''usual'''
         result:
@@ -3037,7 +3111,9 @@ tests:
         result:
           - false
         model: r5
-      - desc: '** testEquality23'
+      - desc: >-
+          ** This could be impacted by the timezone of the engine running the
+          test
         inputfile: patient-example.json
         expression: '@2012-04-15T15:00:00Z = @2012-04-15T10:00:00'
         model: r5
@@ -3361,7 +3437,7 @@ tests:
         result:
           - true
         model: r5
-      - desc: '** testEquivalent23'
+      - desc: '** testEquivalent24'
         inputfile: observation-example.json
         expression: (1 | 2 | 3) ~ (3 | 2 | 1)
         result:
@@ -3667,6 +3743,21 @@ tests:
         result:
           - false
         model: r5
+      - desc: '** testLessThanEmpty1'
+        inputfile: patient-example.json
+        expression: '1 < {}'
+        model: r5
+        result: []
+      - desc: '** testLessThanEmpty2'
+        inputfile: patient-example.json
+        expression: '{} < 1'
+        model: r5
+        result: []
+      - desc: '** testLessThanEmpty3'
+        inputfile: patient-example.json
+        expression: '{} < {}'
+        model: r5
+        result: []
   - 'group: testLessOrEqual':
       - desc: '** testLessOrEqual1'
         inputfile: patient-example.json
@@ -3827,6 +3918,21 @@ tests:
         result:
           - true
         model: r5
+      - desc: '** testLessOrEqualEmpty1'
+        inputfile: patient-example.json
+        expression: '1 <= {}'
+        model: r5
+        result: []
+      - desc: '** testLessOrEqualEmpty2'
+        inputfile: patient-example.json
+        expression: '{} <= 1'
+        model: r5
+        result: []
+      - desc: '** testLessOrEqualEmpty3'
+        inputfile: patient-example.json
+        expression: '{} <= {}'
+        model: r5
+        result: []
   - 'group: testGreatorOrEqual':
       - desc: '** testGreatorOrEqual1'
         inputfile: patient-example.json
@@ -3987,6 +4093,21 @@ tests:
         result:
           - true
         model: r5
+      - desc: '** testGreatorOrEqualEmpty1'
+        inputfile: patient-example.json
+        expression: '1 >= {}'
+        model: r5
+        result: []
+      - desc: '** testGreatorOrEqualEmpty2'
+        inputfile: patient-example.json
+        expression: '{} >= 1'
+        model: r5
+        result: []
+      - desc: '** testGreatorOrEqualEmpty3'
+        inputfile: patient-example.json
+        expression: '{} >= {}'
+        model: r5
+        result: []
   - 'group: testGreaterThan':
       - desc: '** testGreaterThan1'
         inputfile: patient-example.json
@@ -4147,6 +4268,21 @@ tests:
         result:
           - false
         model: r5
+      - desc: '** testGreaterThanEmpty1'
+        inputfile: patient-example.json
+        expression: '1 > {}'
+        model: r5
+        result: []
+      - desc: '** testGreaterThanEmpty2'
+        inputfile: patient-example.json
+        expression: '{} > 1'
+        model: r5
+        result: []
+      - desc: '** testGreaterThanEmpty3'
+        inputfile: patient-example.json
+        expression: '{} > {}'
+        model: r5
+        result: []
   - 'group: testCombine()':
       - desc: '** testCombine1'
         inputfile: codesystem-example.json
@@ -4243,6 +4379,13 @@ tests:
         result:
           - 8
         model: r5
+      - desc: '** testUnion12'
+        inputfile: patient-example.json
+        expression: true | Patient.name.given.first()
+        result:
+          - true
+          - Peter
+        model: r5
   - 'group: testIntersect':
       - desc: '** testIntersect1'
         inputfile: patient-example.json
@@ -4318,6 +4461,27 @@ tests:
         result:
           - false
         model: r5
+      - desc: '** testIn5'
+        inputfile: patient-example.json
+        expression: ('a' | 'c' | 'd') in 'b'
+        error: true
+        model: r5
+      - desc: '** testInEmptyCollection'
+        inputfile: patient-example.json
+        expression: '1 in {}'
+        result:
+          - false
+        model: r5
+      - desc: '** testInEmptyValue'
+        inputfile: patient-example.json
+        expression: '{} in (1 | 2 | 3)'
+        model: r5
+        result: []
+      - desc: '** testInEmptyBoth'
+        inputfile: patient-example.json
+        expression: '{} in {}'
+        model: r5
+        result: []
   - 'group: testContainsCollection':
       - desc: '** testContainsCollection1'
         inputfile: patient-example.json
@@ -4340,6 +4504,35 @@ tests:
       - desc: '** testContainsCollection4'
         inputfile: patient-example.json
         expression: ('a' | 'c' | 'd') contains 'b'
+        result:
+          - false
+        model: r5
+      - desc: '** testContainsCollectionEmpty1'
+        inputfile: patient-example.json
+        expression: '{} contains 1'
+        result:
+          - false
+        model: r5
+      - desc: '** testContainsCollectionEmpty2'
+        inputfile: patient-example.json
+        expression: '{} contains ''value'''
+        result:
+          - false
+        model: r5
+      - desc: '** testContainsCollectionEmpty3'
+        inputfile: patient-example.json
+        expression: '{} contains true'
+        result:
+          - false
+        model: r5
+      - desc: '** testContainsCollectionEmpty4'
+        inputfile: patient-example.json
+        expression: '{} contains {}'
+        model: r5
+        result: []
+      - desc: '** testContainsCollectionEmptyDateTime'
+        inputfile: patient-example.json
+        expression: '{} contains @2023-01-01'
         result:
           - false
         model: r5
@@ -4588,6 +4781,11 @@ tests:
         result:
           - true
         model: r5
+      - desc: '** testPlus5'
+        inputfile: patient-example.json
+        expression: '''a''+{}'
+        model: r5
+        result: []
       - desc: '** testPlusDate1'
         inputfile: patient-example.json
         expression: '@1973-12-25 + 7 days'
@@ -4699,9 +4897,8 @@ tests:
         inputfile: patient-example.json
         expression: '@1973-12-25T00:00:00.000+10:00 + 0.1 ''s'''
         result:
-          - '1973-12-25T00:00:00.000+10:00'
+          - '1973-12-25T00:00:00.100+10:00'
         model: r5
-        disable: true
       - desc: '** testPlusDate20'
         inputfile: patient-example.json
         expression: '@1973-12-25T00:00:00.000+10:00 + 10 ''ms'''
@@ -4727,6 +4924,39 @@ tests:
         expression: '@1974-12-25 + 7'
         error: true
         model: r5
+      - desc: '** testPlusTime1'
+        inputfile: patient-example.json
+        expression: '@T01:00:00 + 2 hours'
+        result:
+          - '03:00:00'
+        model: r5
+      - desc: '** testPlusTime2'
+        inputfile: patient-example.json
+        expression: '@T23:00:00 + 2 hours'
+        result:
+          - '01:00:00'
+        model: r5
+      - desc: '** testPlusTime3'
+        inputfile: patient-example.json
+        expression: '@T23:00:00 + 50 hours'
+        result:
+          - '01:00:00'
+        model: r5
+      - desc: '** testPlusEmpty1'
+        inputfile: patient-example.json
+        expression: '1 + {}'
+        model: r5
+        result: []
+      - desc: '** testPlusEmpty2'
+        inputfile: patient-example.json
+        expression: '{} + 1'
+        model: r5
+        result: []
+      - desc: '** testPlusEmpty3'
+        inputfile: patient-example.json
+        expression: '{} + {}'
+        model: r5
+        result: []
   - 'group: testConcatenate':
       - desc: '** testConcatenate1'
         inputfile: patient-example.json
@@ -4775,7 +5005,9 @@ tests:
         expression: '''a''-''b'' = ''ab'''
         error: true
         model: r5
-      - desc: '** testMinus5'
+      - desc: >-
+          ** Contested: single quotes are ucum units, which are not applicable
+          to date arithmetic
         inputfile: patient-example.json
         expression: '@1974-12-25 - 1 ''month'''
         result:
@@ -4787,6 +5019,33 @@ tests:
         expression: '@1974-12-25 - 1 ''cm'''
         error: true
         model: r5
+      - desc: '** testMinus7'
+        inputfile: patient-example.json
+        expression: '@T00:30:00 - 1 hour'
+        result:
+          - '23:30:00'
+        model: r5
+      - desc: '** testMinus8'
+        inputfile: patient-example.json
+        expression: '@T01:00:00 - 2 hours'
+        result:
+          - '23:00:00'
+        model: r5
+      - desc: '** testMinusEmpty1'
+        inputfile: patient-example.json
+        expression: '1 - {}'
+        model: r5
+        result: []
+      - desc: '** testMinusEmpty2'
+        inputfile: patient-example.json
+        expression: '{} - 1'
+        model: r5
+        result: []
+      - desc: '** testMinusEmpty3'
+        inputfile: patient-example.json
+        expression: '{} - {}'
+        model: r5
+        result: []
   - 'group: testMultiply':
       - desc: '** testMultiply1'
         inputfile: patient-example.json
@@ -4806,6 +5065,21 @@ tests:
         result:
           - true
         model: r5
+      - desc: '** testMultiplyEmpty1'
+        inputfile: patient-example.json
+        expression: '1 * {}'
+        model: r5
+        result: []
+      - desc: '** testMultiplyEmpty2'
+        inputfile: patient-example.json
+        expression: '{} * 1'
+        model: r5
+        result: []
+      - desc: '** testMultiplyEmpty3'
+        inputfile: patient-example.json
+        expression: '{} * {}'
+        model: r5
+        result: []
   - 'group: testDivide':
       - desc: '** testDivide1'
         inputfile: patient-example.json
@@ -4842,6 +5116,21 @@ tests:
         expression: 1 / 0
         model: r5
         result: []
+      - desc: '** testDivideEmpty1'
+        inputfile: patient-example.json
+        expression: '1 / {}'
+        model: r5
+        result: []
+      - desc: '** testDivideEmpty2'
+        inputfile: patient-example.json
+        expression: '{} / 1'
+        model: r5
+        result: []
+      - desc: '** testDivideEmpty3'
+        inputfile: patient-example.json
+        expression: '{} / {}'
+        model: r5
+        result: []
   - 'group: testDiv':
       - desc: '** testDiv1'
         inputfile: patient-example.json
@@ -4870,6 +5159,21 @@ tests:
       - desc: '** testDiv5'
         inputfile: patient-example.json
         expression: 5 div 0
+        model: r5
+        result: []
+      - desc: '** testDivEmpty1'
+        inputfile: patient-example.json
+        expression: '1 div {}'
+        model: r5
+        result: []
+      - desc: '** testDivEmpty2'
+        inputfile: patient-example.json
+        expression: '{} div 1'
+        model: r5
+        result: []
+      - desc: '** testDivEmpty3'
+        inputfile: patient-example.json
+        expression: '{} div {}'
         model: r5
         result: []
   - 'group: testMod':
@@ -4902,6 +5206,21 @@ tests:
         expression: 5 mod 0
         model: r5
         result: []
+      - desc: '** testModEmpty1'
+        inputfile: patient-example.json
+        expression: '1 mod {}'
+        model: r5
+        result: []
+      - desc: '** testModEmpty2'
+        inputfile: patient-example.json
+        expression: '{} mod 1'
+        model: r5
+        result: []
+      - desc: '** testModEmpty3'
+        inputfile: patient-example.json
+        expression: '{} mod {}'
+        model: r5
+        result: []
   - 'group: testRound':
       - desc: '** testRound1'
         inputfile: patient-example.json
@@ -4912,6 +5231,12 @@ tests:
       - desc: '** testRound2'
         inputfile: patient-example.json
         expression: 3.14159.round(3) = 3.142
+        result:
+          - true
+        model: r5
+      - desc: '** testRoundEmpty'
+        inputfile: patient-example.json
+        expression: '{}.round().empty()'
         result:
           - true
         model: r5
@@ -4927,6 +5252,12 @@ tests:
         expression: (-1).sqrt()
         model: r5
         result: []
+      - desc: '** testSqrtEmpty'
+        inputfile: patient-example.json
+        expression: '{}.sqrt().empty()'
+        result:
+          - true
+        model: r5
   - 'group: testAbs':
       - desc: '** testAbs1'
         inputfile: patient-example.json
@@ -4946,6 +5277,12 @@ tests:
         result:
           - true
         model: r5
+      - desc: '** testAbsEmpty'
+        inputfile: patient-example.json
+        expression: '{}.abs().empty()'
+        result:
+          - true
+        model: r5
   - 'group: testCeiling':
       - desc: '** testCeiling1'
         inputfile: patient-example.json
@@ -4962,6 +5299,12 @@ tests:
       - desc: '** testCeiling3'
         inputfile: patient-example.json
         expression: 1.1.ceiling() = 2
+        result:
+          - true
+        model: r5
+      - desc: '** testCeilingEmpty'
+        inputfile: patient-example.json
+        expression: '{}.ceiling().empty()'
         result:
           - true
         model: r5
@@ -5003,6 +5346,12 @@ tests:
         result:
           - true
         model: r5
+      - desc: '** testFloorEmpty'
+        inputfile: patient-example.json
+        expression: '{}.floor().empty()'
+        result:
+          - true
+        model: r5
   - 'group: testLn':
       - desc: '** testLn1'
         inputfile: patient-example.json
@@ -5016,6 +5365,12 @@ tests:
         result:
           - true
         model: r5
+      - desc: '** testLnEmpty'
+        inputfile: patient-example.json
+        expression: '{}.ln().empty()'
+        result:
+          - true
+        model: r5
   - 'group: testLog':
       - desc: '** testLog1'
         inputfile: patient-example.json
@@ -5026,6 +5381,24 @@ tests:
       - desc: '** testLog2'
         inputfile: patient-example.json
         expression: 100.0.log(10.0) = 2.0
+        result:
+          - true
+        model: r5
+      - desc: '** testLogEmpty'
+        inputfile: patient-example.json
+        expression: '{}.log(10).empty()'
+        result:
+          - true
+        model: r5
+      - desc: '** testLogEmpty2'
+        inputfile: patient-example.json
+        expression: '{}.log({}).empty()'
+        result:
+          - true
+        model: r5
+      - desc: '** testLogEmpty3'
+        inputfile: patient-example.json
+        expression: '16.log({}).empty()'
         result:
           - true
         model: r5
@@ -5047,6 +5420,24 @@ tests:
         expression: (-1).power(0.5)
         model: r5
         result: []
+      - desc: '** testPowerEmpty'
+        inputfile: patient-example.json
+        expression: '{}.power(2).empty()'
+        result:
+          - true
+        model: r5
+      - desc: '** testPowerEmpty2'
+        inputfile: patient-example.json
+        expression: '{}.power({}).empty()'
+        result:
+          - true
+        model: r5
+      - desc: '** testPowerEmpty3'
+        inputfile: patient-example.json
+        expression: '2.5.power({}).empty()'
+        result:
+          - true
+        model: r5
   - 'group: testTruncate':
       - desc: '** testTruncate1'
         inputfile: patient-example.json
@@ -5063,6 +5454,12 @@ tests:
       - desc: '** testTruncate3'
         inputfile: patient-example.json
         expression: (-1.56).truncate() = -1
+        result:
+          - true
+        model: r5
+      - desc: '** testTruncateEmpty'
+        inputfile: patient-example.json
+        expression: '{}.truncate().empty()'
         result:
           - true
         model: r5
@@ -5298,7 +5695,9 @@ tests:
         result:
           - Patient
         model: r5
-      - desc: '** testType22'
+      - desc: >-
+          ** Note: Some systems may return an error due to failing to resolve
+          System.Patient
         inputfile: patient-example.json
         expression: Patient.is(System.Patient).not()
         result:
@@ -5633,7 +6032,6 @@ tests:
         result:
           - false
         model: r5
-    disable: true
   - 'group: Precision':
       - desc: '** PrecisionDecimal'
         expression: 1.58700.precision()
@@ -5659,6 +6057,12 @@ tests:
         expression: '@T10:30:00.000.precision()'
         result:
           - 9
+        model: r5
+      - desc: '** PrecisionEmpty'
+        inputfile: patient-example.json
+        expression: '{}.precision().empty()'
+        result:
+          - true
         model: r5
     disable: true
   - 'group: from-Zulip':
@@ -5782,7 +6186,7 @@ tests:
         result:
           - false
         model: r5
-      - desc: '** testFHIRPathAsFunction11'
+      - desc: '** Contested: code type is a subtype of string'
         inputfile: patient-example.json
         expression: Patient.gender.as(string)
         model: r5
@@ -5810,7 +6214,7 @@ tests:
         expression: ValueSet.version.as(code)
         model: r5
         result: []
-      - desc: '** testFHIRPathAsFunction16'
+      - desc: '** Contested: code type is a subtype of string'
         inputfile: patient-example.json
         expression: Patient.gender.ofType(string)
         model: r5
@@ -5870,11 +6274,7 @@ tests:
         model: r5
       - desc: '** testMultipleResolve'
         inputfile: diagnosticreport-eric.json
-        expression: >-
-          composition.exists() implies
-          (composition.resolve().section.entry.reference.where(resolve() is
-          Observation) in (result.reference |
-          result.reference.resolve().hasMember.reference))
+        expression: "\n\t\t\tcomposition.exists() \n\t\t\timplies \n\t\t\t(\n\t\t\t\tcomposition.resolve().section.entry.reference.where(resolve() is Observation)\n\t\t\t\t.where($this in (%resource.result.reference | %resource.result.reference.resolve().hasMember.reference)).exists()\n\t\t\t)\n\t\t\t"
         result:
           - true
         model: r5
@@ -5900,5 +6300,31 @@ tests:
           recordTarget.patientRole.hasTemplateIdOf('http://hl7.org/cda/us/ccda/StructureDefinition/ContinuityofCareDocumentCCD')
         result:
           - false
+        model: r5
+    disable: true
+  - 'group: TerminologyTests':
+      - desc: '** txTest01'
+        inputfile: patient-example.json
+        expression: >-
+          %terminologies.expand('http://hl7.org/fhir/ValueSet/administrative-gender').expansion.contains.count()
+        result:
+          - 4
+        model: r5
+      - desc: '** txTest02'
+        inputfile: patient-example.json
+        expression: >-
+          %terminologies.validateVS('http://hl7.org/fhir/ValueSet/administrative-gender',
+          $this.gender).parameter.where(name = 'result').value
+        result:
+          - true
+        model: r5
+      - desc: '** txTest03'
+        inputfile: patient-example.json
+        expression: >-
+          %terminologies.translate('http://hl7.org/fhir/ConceptMap/cm-address-use-v2',
+          $this.address.use).parameter.where(name = 'match').part.where(name =
+          'concept').value.code
+        result:
+          - H
         model: r5
     disable: true

@@ -161,6 +161,18 @@ tests:
       - expression: 10 'kg.m/s2' = 5 'kg' * 4 'm' / (2 seconds * 1000 'ms')
         result: [true]
 
+      - expression: 9 = 9 '1'
+        result: [true]
+
+      - expression: 9 = 8 '1'
+        result: [false]
+
+      - expression: 2 '1' = 2
+        result: [true]
+
+      - expression: 3 '1' = 2
+        result: [false]
+
 
     - desc: '* For complex types, equality requires all child properties to be equal, recursively.'
 

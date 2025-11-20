@@ -4,7 +4,7 @@
   <version value="0.1" />
   <title value="Demo map from SNOMED/Loinc to/from local measure type mapping" />
   <status value="draft" />
-  <targetCanonical value="http://example.org/ValueSet/local-measure-type" />
+  <targetScopeCanonical value="http://example.org/ValueSet/local-measure-type" />
   <group>
     <source value="http://snomed.info/sct" />
     <target value="http://example.org/CodeSystem/local-measure-type" />

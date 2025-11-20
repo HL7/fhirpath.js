@@ -151,6 +151,10 @@ tests:
       result: [false]
     - expression: 1 year < 12 months
       result: [false]
+    - expression: 1 year > 11 months
+      result: [true]
+    - expression: 23 months < 2 years
+      result: [true]
     - expression: 1 minute > 59 seconds
       result: [true]
     - expression: 1 minute < 61 seconds
@@ -172,6 +176,46 @@ tests:
     - expression: 1001 'g' > 1 'kg'
       result: [true]
     - expression: 1001 'g' < 1 'kg'
+      result: [false]
+    - expression: 2 '1' > 1
+      result: [true]
+    - expression: 2 > 1 '1'
+      result: [true]
+    - expression: 1 '1' < 2
+      result: [true]
+    - expression: 1 < 2 '1'
+      result: [true]
+    - expression: 1 'kg'.comparable(999 'g')
+      result: [true]
+    - expression: 1 year.comparable(1 second)
+      result: [true]
+    - expression: 1 'kg'.comparable(1 's')
+      result: [false]
+    # Check comparable on Quantity from FHIR Resource, which contains the value
+    # 185 'mo', which automatically converts to 185 months
+    - expression: Observation.value.comparable(2 years)
+      model: r4
+      inputfile: observation-example-2.json
+      result: [true]
+    # if model is not specified, Observation.value is empty i.e. []
+    - expression: Observation.value.comparable(1 year)
+      inputfile: observation-example-2.json
+      error: true
+    # if we have one node with null value, comparable returns [false]
+    - expression: i.comparable(2 years)
+      result: [false]
+
+    # Per the current specification, the function can return true only for
+    # quantities, but numbers are implicitly converted to quantities with unit
+    # '1'.
+    # See:
+    #  https://hl7.org/fhir/fhirpath.html#fn-comparable
+    #  https://hl7.org/fhirpath/#conversion
+    - expression: 1.comparable(2)
+      result: [true]
+    - expression: 1 'something'.comparable(2 'something')
+      result: [true]
+    - expression: 1 'something'.comparable(2 'something else')
       result: [false]
   - 'group: Dates & Times':
     - 'group:  Date >':

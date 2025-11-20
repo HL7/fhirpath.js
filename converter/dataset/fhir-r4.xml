@@ -404,8 +404,8 @@ Any text enclosed within is ignored
 		<test name="testStringQuantityLiteralToQuantity" inputfile="patient-example.xml"><expression>'1 day'.toQuantity() = 1 day</expression><output type="boolean">true</output></test>
 		<test name="testStringQuantityDayLiteralToQuantity" inputfile="patient-example.xml"><expression>'1 day'.toQuantity() = 1 'd'</expression><output type="boolean">true</output></test>
 		<test name="testStringQuantityWeekLiteralToQuantity" inputfile="patient-example.xml"><expression>'1 \'wk\''.toQuantity() = 1 week</expression><output type="boolean">true</output></test>
-		<test name="testStringQuantityMonthLiteralToQuantity" inputFile="patient-example.xml"><expression>'1 \'mo\''.toQuantity() = 1 month</expression></test>
-		<test name="testStringQuantityYearLiteralToQuantity" inputFile="patient-example.xml"><expression>'1 \'a\''.toQuantity() = 1 year</expression></test>
+		<test name="testStringQuantityMonthLiteralToQuantity" inputfile="patient-example.xml"><expression>'1 \'mo\''.toQuantity() = 1 month</expression></test>
+		<test name="testStringQuantityYearLiteralToQuantity" inputfile="patient-example.xml"><expression>'1 \'a\''.toQuantity() = 1 year</expression></test>
 		<test name="testStringDecimalLiteralToQuantity" inputfile="patient-example.xml"><expression>'1.0'.toQuantity() ~ 1 '1'</expression><output type="boolean">true</output></test>
 
 		<test name="testIntegerLiteralConvertsToBoolean" inputfile="patient-example.xml"><expression>1.convertsToBoolean()</expression><output type="boolean">true</output></test>

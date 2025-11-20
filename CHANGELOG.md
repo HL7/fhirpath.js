@@ -3,6 +3,13 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.8.0] - 2025-11-18
+### Added
+- function `comparable(quantity) : boolean`.
+### Fixed
+- implicit conversion from Integer/Decimal to Quantity for comparison
+  operators.
+
 ## [4.7.0] - 2025-11-17
 ### Added
 - the ability to add a debug tracing hook, as well as some improvements to the

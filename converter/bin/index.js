@@ -33,6 +33,7 @@ const sources = [
   ['input-r5/codesystem-example.xml', 'resources/r5/codesystem-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/codesystem-example.xml'],
   ['input-r5/parameters-example-types.xml', 'resources/r5/parameters-example-types.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/parameters-example-types.xml'],
   ['input-r5/patient-example-period.xml', 'resources/r5/patient-example-period.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/patient-example-period.xml'],
+  ['input-r5/patient-example-name.xml', 'resources/r5/patient-example-name.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/patient-example-name.xml'],
   ['input-r5/patient-container-example.json', 'resources/r5/patient-container-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/patient-container-example.json'],
   ['input-r5/diagnosticreport-eric.json', 'resources/r5/diagnosticreport-eric.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/diagnosticreport-eric.json'],
   // Can't convert this one:
