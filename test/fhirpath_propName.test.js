@@ -67,7 +67,7 @@ test("traceProcessingHasAccessToPropertyNames", () => {
   };
 
   let output = [];
-  let tracefunction = function (x, label) {
+  let tracefunction = function (x) {
     if (Array.isArray(x)) {
       for (let item of x) {
         output.push(item);
@@ -186,7 +186,7 @@ test("traceProcessingHasAccessToPrimitiveExtensionPropertyNames", () => {
   };
 
   let output = [];
-  let tracefunction = function (x, label) {
+  let tracefunction = function (x) {
     if (Array.isArray(x)) {
       for (let item of x) {
         output.push(item);
@@ -209,12 +209,6 @@ test("traceProcessingHasAccessToPrimitiveExtensionPropertyNames", () => {
     fhirpath_r4_model,
     options
   );
-
-  for (const element of output) {
-    let node = element;
-    if (node.fullPropertyName)
-      console.log(node.fullPropertyName(), JSON.stringify(node.convertData()));
-  }
 
   expect(result).toBeDefined();
   expect(output).toBeDefined();
