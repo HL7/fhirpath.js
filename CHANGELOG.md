@@ -3,7 +3,7 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [4.7.0] - 2025-11-18
+## [4.8.0] - 2025-11-18
 ### Added
 - function `comparable(quantity) : boolean`.
 ### Fixed
