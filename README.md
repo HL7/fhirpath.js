@@ -124,6 +124,13 @@ pairs:
 fhirpath.evaluate({}, '%a - 1', {a: 5});
 ```
 
+To use the standard `%resource` variable (as described in [FHIRPath supplements](http://hl7.org/fhir/uv/sdc/expressions.html#fhirpath-supplements) and [FHIRPath specification](https://build.fhir.org/fhirpath.html#variables)), pass `"%resource"` as the `fhirPathExpression` and include the resource in `envVars`. Note that the `resource` value in `envVars` should be the same object as what is passed in the `resourceObject` parameter:
+
+```js
+const my_resource = {"resourceType": "Patient", "name": [{"given": ["John"]}]};
+fhirpath.evaluate(my_resource, '%resource', {resource: my_resource});
+```
+
 To include FHIR model data (for support of choice types), pass in the model data
 object as the fourth argument:
 
