@@ -460,33 +460,38 @@ open browser on localhost:8080
 ### Updating the FHIR module on a FHIR release
 * Download the FHIR StructureDefinitions (into the `fhir-context` directory - *don't check these in*)
   ```
-  > wget http://hl7.org/fhir/profiles-types.json -O profiles-types.json
-  > wget http://hl7.org/fhir/profiles-others.json -O profiles-others.json
-  > wget http://hl7.org/fhir/profiles-resources.json -O profiles-resources.json
-  > wget https://hl7.org/fhir/search-parameters.json -O search-parameters.json
+  > wget 'http://hl7.org/fhir/6.0.0-ballot3/profiles-types.json' -O profiles-types.json
+  > wget 'http://hl7.org/fhir/6.0.0-ballot3/profiles-others.json' -O profiles-others.json
+  > wget 'http://hl7.org/fhir/6.0.0-ballot3/profiles-resources.json' -O profiles-resources.json
+  > wget 'https://hl7.org/fhir/6.0.0-ballot3/search-parameters.json' -O search-parameters.json
   ```
 * Create the new folder for the version you are importing
   ```
-  > mkdir r5
+  > mkdir r6
   ```
-* Run the script `` with NodeJS
+* Run the script `extract-model-info.js` with NodeJS
   ```
-  > node ./extract-model-info.js --outputDir r5 --fhirDefDir .
+  > node ./extract-model-info.js --outputDir r6 --fhirDefDir .
   ```
 * Compare the output files in the new folder to those of the last release
   (looking for issues that might be due to changes in the StructureDefinition format)
 * Copy the `index.js` file from the last release into the new folder
   ```
-  > cp ../r4/index.js r5
+  > cp ../r5/index.js r6
   ```
-* Update the `/index.d.ts` file to include the new module as an export
+* Update the `/index.d.ts` file to include the new module as an export (can copy from previous version)
   ``` js
-  declare module "fhirpath/fhir-context/r5" {
+  declare module "fhirpath/fhir-context/r6" {
     export const {
+      version,
+      score,
       choiceTypePaths,
       pathsDefinedElsewhere,
       type2Parent,
-      path2Type
+      path2Type,
+      resourcesWithUrlParam,
+      path2TypeWithoutElements,
+      path2RefType
     }: Model;
   }
   ```
