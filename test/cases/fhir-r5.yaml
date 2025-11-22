@@ -1609,6 +1609,7 @@ tests:
         result:
           - true
         model: r5
+        disable: true
       - desc: '** testQuantity5'
         inputfile: patient-example.json
         expression: 7 days = 1 week

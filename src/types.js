@@ -134,24 +134,41 @@ class FP_Quantity extends FP_Type {
     return numbers.isEqual(thisQuantity.value, convResult.toVal);
   }
 
+
+  /**
+   * Determines if this quantity is equivalent to another quantity.
+   * See https://www.hl7.org/fhirpath/#quantity-equivalence
+   *
+   * @param {FP_Quantity} otherQuantity - The quantity to compare with.
+   * @returns {boolean} - Returns true if the quantities are equivalent, false otherwise.
+   */
   equivalentTo(otherQuantity) {
     if (!(otherQuantity instanceof this.constructor)) {
       return false;
     }
 
     if (this.unit === otherQuantity.unit) {
+      // If the units are the same, compare the values directly
       return numbers.isEquivalent(this.value, otherQuantity.value);
     }
 
     const ucumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(this.unit),
       otherUcumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit),
-      convResult = ucumUtils.convertUnitTo(otherUcumUnitCode, otherQuantity.value, ucumUnitCode);
+      convOther = ucumUtils.convertUnitTo(otherUcumUnitCode, otherQuantity.value, ucumUnitCode);
 
-    if (convResult.status !== 'succeeded') {
+    if (convOther.status !== 'succeeded') {
+      // If units are not convertible, return false
       return false;
     }
 
-    return numbers.isEquivalent(this.value, convResult.toVal);
+    if (convOther.toVal >= otherQuantity.value) {
+      // If ucumUnitCode is most granular, use it
+      return numbers.isEquivalent(this.value, convOther.toVal);
+    }
+    const convThis = ucumUtils.convertUnitTo(ucumUnitCode, this.value, otherUcumUnitCode);
+    // Skip the convThis.status check here because the conversion must succeed
+    // If otherUcumUnitCode is most granular, use it
+    return numbers.isEquivalent(convThis.toVal, otherQuantity.value);
   }
 
   /**
