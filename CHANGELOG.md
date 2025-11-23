@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.8.1] - 2025-11-23
+### Fixed
+- an issue where the resolve() function does not resolve URL in FHIR.string.
+
 ## [4.8.0] - 2025-11-18
 ### Added
 - function `comparable(quantity) : boolean`.

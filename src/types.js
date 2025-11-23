@@ -1651,6 +1651,8 @@ TypeInfo.FhirUri = new TypeInfo({
   namespace: TypeInfo.FHIR, name: 'uri'});
 TypeInfo.SystemString = new TypeInfo({
   namespace: TypeInfo.System, name: 'String'});
+TypeInfo.FhirString = new TypeInfo({
+  namespace: TypeInfo.FHIR, name: 'string'});
 TypeInfo.FhirCodeSystem = new TypeInfo({
   namespace: TypeInfo.FHIR, name: 'CodeSystem'});
 TypeInfo.FhirCodeableConcept = new TypeInfo({
