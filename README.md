@@ -6,9 +6,9 @@
 Try it out on the [demo page](https://hl7.github.io/fhirpath.js/).
 
 ## Table of Contents:
-- [Installation](#installation-)
-  * [Server-side (Node.js)](#server-side--nodejs-)
-  * [Web-browser](#web-browser-)
+- [Installation](#installation)
+  * [Server-side (Node.js)](#server-side-nodejs)
+  * [Web-browser](#web-browser)
 - [API Usage](#api-usage)
   * [Asynchronous functions](#asynchronous-functions)
   * [User-defined functions](#user-defined-functions)
@@ -419,10 +419,13 @@ Completed sections:
 - 8   (Lexical Elements) - handled by ANTLR parser
 - 9   (Environment Variables)
 
-Supported additional functions from FHIR:
+Supported [Additional functions](https://hl7.org/fhir/fhirpath.html#functions):
 - extension(url : string) : collection
 - hasValue() : Boolean
+- getValue() : System.[type]
+- resolve() : collection
 - memberOf(valueset : string) : Boolean
+- comparable(quantity) : boolean
 
 Supported [Terminology Service APIs](https://build.fhir.org/fhirpath.html#txapi):
 - %terminologies.expand(valueSet, params) : ValueSet
@@ -435,6 +438,20 @@ Supported [Terminology Service APIs](https://build.fhir.org/fhirpath.html#txapi)
 Supported [FHIRPath supplements](https://hl7.org/fhir/uv/sdc/expressions.html#fhirpath-supplements):
 - sum(), min(), max(), count(), avg() - short-cuts for the equivalent .aggregate().
 - ordinal()/weight() - see [description of the weight() function](docs/weight.md).
+
+Supported [Type Factory](https://hl7.org/fhir/fhirpath.html#factory):
+- %factory.{primitive}(value, extensions) : {primitive}
+- %factory.Extension(url, value) : Extension
+- %factory.Identifier{system, value, use, type) : Identifier
+- %factory.HumanName(family, given, prefix, suffix, text, use) : HumanName
+- %factory.ContactPoint(system, value, use) : ContactPoint
+- %factory.Address(line, city, state, postalCode, country, use, type) : Address
+- %factory.Quantity(system, code, value, unit) : Quantity
+- %factory.Coding(system, code, display, version) : Coding
+- %factory.CodeableConcept(value, text) : CodeableConcept
+- %factory.create(type) : {type}
+- %factory.withExtension(instance, url, value) : {instance type}
+- %factory.withProperty(instance, name, value) : {instance type}
 
 ## Development Notes
 
