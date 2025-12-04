@@ -419,7 +419,7 @@ Completed sections:
 - 8   (Lexical Elements) - handled by ANTLR parser
 - 9   (Environment Variables)
 
-Supported [Additional functions](https://hl7.org/fhir/fhirpath.html#functions):
+Supported [Additional functions](https://hl7.org/fhir/fhirpath.html#functions) from FHIRPath:
 - extension(url : string) : collection
 - hasValue() : Boolean
 - getValue() : System.[type]
@@ -439,7 +439,7 @@ Supported [FHIRPath supplements](https://hl7.org/fhir/uv/sdc/expressions.html#fh
 - sum(), min(), max(), count(), avg() - short-cuts for the equivalent .aggregate().
 - ordinal()/weight() - see [description of the weight() function](docs/weight.md).
 
-Supported [Type Factory](https://hl7.org/fhir/fhirpath.html#factory):
+Supported [Type Factory APIs](https://hl7.org/fhir/fhirpath.html#factory):
 - %factory.{primitive}(value, extensions) : {primitive}
 - %factory.Extension(url, value) : Extension
 - %factory.Identifier{system, value, use, type) : Identifier
