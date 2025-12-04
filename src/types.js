@@ -165,9 +165,9 @@ class FP_Quantity extends FP_Type {
       // If ucumUnitCode is most granular, use it
       return numbers.isEquivalent(this.value, convOther.toVal);
     }
+    // If otherUcumUnitCode is most granular, use it
     const convThis = ucumUtils.convertUnitTo(ucumUnitCode, this.value, otherUcumUnitCode);
     // Skip the convThis.status check here because the conversion must succeed
-    // If otherUcumUnitCode is most granular, use it
     return numbers.isEquivalent(convThis.toVal, otherQuantity.value);
   }
 
