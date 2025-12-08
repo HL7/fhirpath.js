@@ -181,9 +181,11 @@ function requestResourceByUrl(ctx, node, refType, url, isCanonical) {
  * Resolves a collection of FHIR references, canonicals, or URIs to their
  * corresponding resources.
  * For each item in the collection:
- * - If it is a Reference, resolves the referenced resource.
- * - If it is a Canonical, resolves the resource by canonical URL.
- * - If it is a URI or string, attempts to resolve as a resource URL.
+ * - If it is a FHIR.Reference, resolves the referenced resource.
+ * - If it is a FHIR.canonical, resolves the resource by canonical URL.
+ * - If it is a FHIR.uri, FHIR.string, or System.String, attempts to resolve as
+ *   a resource URL.
+ *
  * Returns an array of ResourceNode objects for successfully resolved resources.
  *
  * @param {Array} coll - The collection of items to resolve.
@@ -202,15 +204,22 @@ engine.resolveFn = function (coll) {
     if (typeInfo.is(TypeInfo.FhirReference, ctx.model)) {
       const v = util.valData(item);
       if (v?.reference) {
-        // If the item is a Reference, use its reference property.
+        // If the item is a FHIR.Reference, use its reference property to
+        // resolve the resource.
         res = requestResourceByUrl(ctx, item, typeInfo.refType?.length === 1 &&
           typeInfo.refType[0] || v.type, v.reference, false);
       }
-    } else if(typeInfo.is(TypeInfo.FhirCanonical, ctx.model)) {
+    } else if (typeInfo.is(TypeInfo.FhirCanonical, ctx.model)) {
+      // If the item is a FHIR.canonical, resolve the resource by canonical URL.
       res = requestResourceByUrl(ctx, item,typeInfo.refType?.length === 1 &&
         typeInfo.refType[0], util.valData(item), true);
-    } else if(typeInfo.is(TypeInfo.FhirUri, ctx.model) ||
-      typeInfo.is(TypeInfo.SystemString)) {
+    } else if (
+      typeInfo.is(TypeInfo.FhirUri, ctx.model) ||
+      typeInfo.is(TypeInfo.SystemString, ctx.model) ||
+      typeInfo.is(TypeInfo.FhirString, ctx.model)
+    ) {
+      // If the item is a FHIR.uri, FHIR.string, or System.String, attempt to
+      // resolve as a resource URL.
       res = requestResourceByUrl(ctx, item, null, util.valData(item), false);
     }
 

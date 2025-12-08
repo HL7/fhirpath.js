@@ -1177,16 +1177,30 @@ describe('Async functions', () => {
       // [models, description, resource, expression, expectedResult]
       [
         [modelDSTU2, modelSTU3, modelR4],
-        'String with relative URL',
+        'System.String with relative URL',
         {},
         '\'MedicationDispense/med-106-0\'.resolve().medication.coding.where(system=\'357\').code',
         ['00168022138']
       ],
       [
         [modelDSTU2, modelSTU3, modelR4],
-        'String with absolute URL',
+        'System.String with absolute URL',
         {},
         '\'https://some-fhir-server/MedicationDispense/med-107-0\'.resolve().medication.coding.where(system=\'357\').code',
+        ['00168022138']
+      ],
+      [
+        [modelDSTU2, modelSTU3, modelR4],
+        'FHIR.string with relative URL',
+        {},
+        '%factory.string(\'MedicationDispense/med-106-0\').resolve().medication.coding.where(system=\'357\').code',
+        ['00168022138']
+      ],
+      [
+        [modelDSTU2, modelSTU3, modelR4],
+        'FHIR.string with absolute URL',
+        {},
+        '%factory.string(\'https://some-fhir-server/MedicationDispense/med-107-0\').resolve().medication.coding.where(system=\'357\').code',
         ['00168022138']
       ],
       [
