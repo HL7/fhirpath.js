@@ -147,27 +147,30 @@ class FP_Quantity extends FP_Type {
       return false;
     }
 
+    // If the units are the same, compare the values directly.
     if (this.unit === otherQuantity.unit) {
-      // If the units are the same, compare the values directly
       return numbers.isEquivalent(this.value, otherQuantity.value);
     }
 
+    // Convert both units to their UCUM equivalents and attempt conversion.
     const ucumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(this.unit),
       otherUcumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit),
       convOther = ucumUtils.convertUnitTo(otherUcumUnitCode, otherQuantity.value, ucumUnitCode);
 
+    // If units are not convertible, return false.
     if (convOther.status !== 'succeeded') {
-      // If units are not convertible, return false
       return false;
     }
 
+    // If ucumUnitCode is most granular, use it for equivalence check.
     if (convOther.toVal >= otherQuantity.value) {
-      // If ucumUnitCode is most granular, use it
       return numbers.isEquivalent(this.value, convOther.toVal);
     }
-    // If otherUcumUnitCode is most granular, use it
+
+    // If otherUcumUnitCode is most granular, use it for equivalence check.
+    // Skip the convThis.status check here because the conversion must succeed.
     const convThis = ucumUtils.convertUnitTo(ucumUnitCode, this.value, otherUcumUnitCode);
-    // Skip the convThis.status check here because the conversion must succeed
+
     return numbers.isEquivalent(convThis.toVal, otherQuantity.value);
   }
 
