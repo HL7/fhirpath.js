@@ -5,7 +5,8 @@ This log documents significant changes for each release.  This project follows
 
 ## [4.8.1] - 2025-11-22
 ### Fixed
-- the ~(equivalence) operator for quantities.
+- the ~(equivalence) operator for quantities (now the comparison is performed
+  after converting the values to the most granular unit).
 
 ## [4.8.0] - 2025-11-18
 ### Added
