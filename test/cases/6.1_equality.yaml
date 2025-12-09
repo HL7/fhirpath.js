@@ -491,6 +491,30 @@ tests:
       - expression: 30 days ~ 1 'mo'
         result: [true]
 
+      - expression: 4 'g' !~ 4040 'mg'
+        result: [true]
+
+      - expression: 4040 'mg' !~ 4 'g'
+        result: [true]
+
+      - expression: 3.04 'g' ~ 3040 'mg'
+        result: [true]
+
+      - expression: 4040 'mg' ~ 4.0403 'g'
+        result: [true]
+
+      - expression: 4040 'mg' !~ 4.0409 'g'
+        result: [true]
+
+      - expression: 4040 'mg' !~ 4.041 'g'
+        result: [true]
+
+      - expression: 4040.01 'g' ~ 4040.009 'g'
+        result: [true]
+
+      - expression: 4040.01 'g' !~ 4040.1 'g'
+        result: [true]
+
   # dateTime and time: values must be equal, except that for partial date/time
   # values, the comparison returns false, not empty ({ }). If one operand has less
   # precision than the other, comparison is done at the lowest precision.
