@@ -26,6 +26,18 @@ tests:
     expression: Patient.name.given[0].indexOf('Peter')
     result: []
 
+  - desc: '** indexOf on a literal string abcabc'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: "'abcabc'.indexOf('b')"
+    result: [1]
+
+  - desc: '** lastIndexOf on a literal string abcabc'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: "'abcabc'.lastIndexOf('b')"
+    result: [4]
+
   - desc: '** index of empty substring'
     expression: Functions.str.empty.indexOf(EmptySubstring)
     result: []

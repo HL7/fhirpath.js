@@ -133,6 +133,7 @@ engine.invocationTable = {
   convertsToQuantity:   {fn: misc.createConvertsToFn(misc.toQuantity, FP_Quantity)},
 
   indexOf:        {fn: strings.indexOf,          arity: {1: ["String"]}},
+  lastIndexOf:    {fn: strings.lastIndexOf,      arity: {1: ["String"]}},
   substring:      {fn: strings.substring,        arity: {1: ["Integer"], 2: ["Integer","Integer"]}},
   startsWith:     {fn: strings.startsWith,       arity: {1: ["String"]}},
   endsWith:       {fn: strings.endsWith,         arity: {1: ["String"]}},

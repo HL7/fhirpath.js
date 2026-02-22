@@ -45,6 +45,11 @@ engine.indexOf = function (coll, substr) {
   return util.isEmpty(substr) || util.isEmpty(str) ? [] : str.indexOf(substr);
 };
 
+engine.lastIndexOf = function (coll, substr) {
+  const str = misc.singleton(coll, 'String');
+  return util.isEmpty(substr) || util.isEmpty(str) ? [] : str.lastIndexOf(substr);
+};
+
 engine.substring = function (coll, start, length) {
   const str = misc.singleton(coll, 'String');
   if (util.isEmpty(str) || util.isEmpty(start) || start < 0 || start >= str.length) {
