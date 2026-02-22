@@ -2580,35 +2580,30 @@ tests:
         result:
           - false
         model: r5
-        disable: true
       - desc: '** testMatchesFullWithinUrl3'
         expression: >-
           'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('Library')
         result:
           - false
         model: r5
-        disable: true
       - desc: '** testMatchesFullWithinUrl4'
         expression: >-
           'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('^Library$')
         result:
           - false
         model: r5
-        disable: true
       - desc: '** testMatchesFullWithinUrl1a'
         expression: >-
           'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('.*Library.*')
         result:
           - true
         model: r5
-        disable: true
       - desc: '** testMatchesFullWithinUrl2'
         expression: >-
           'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('Measure')
         result:
           - false
         model: r5
-        disable: true
   - 'group: testReplaceMatches':
       - desc: '** testReplaceMatches1'
         inputfile: patient-example.json

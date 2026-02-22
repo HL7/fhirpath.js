@@ -274,6 +274,88 @@ tests:
     expression: "'Taupō'.matches('^\\\\p{Lu}\\\\p{Ll}*$')"
     result: [true]
 
+  - desc: '** matches with flags - case insensitive'
+    expression: "'Hello World'.matches('hello', 'i')"
+    result: [true]
+
+  - desc: '** matches with flags - case sensitive (no flags)'
+    expression: "'Hello World'.matches('hello', '')"
+    result: [false]
+
+  - desc: '** matches with flags - multiline'
+    expression: "'first line\nsecond line'.matches('^second', 'm')"
+    result: [true]
+
+  - desc: '** matches with flags - multiline not set'
+    expression: "'first line\nsecond line'.matches('^second', '')"
+    result: [false]
+
+  - desc: '** matches with flags - invalid flag throws error'
+    expression: "'first line\nsecond line'.matches('line.second', 's')"
+    error: true
+
+  - desc: '** matches with flags - invalid x flag throws error'
+    expression: "'first line\nsecond line'.matches('line.second', 'x')"
+    error: true
+
+  - desc: '** matches with flags - single-line remains on with empty flags'
+    expression: "'first line\nsecond line'.matches('line.second', '')"
+    result: [true]
+
+  - desc: '** matches with flags - combined im'
+    expression: "'first line\nsecond line'.matches('^SECOND', 'im')"
+    result: [true]
+
+  - desc: '5.6.9a. matchesFull(regex : string) : boolean'
+
+  - desc: '** matchesFull - full match'
+    expression: "'test string'.matchesFull('test string')"
+    result: [true]
+
+  - desc: '** matchesFull - partial does not match'
+    expression: "'test string'.matchesFull('test')"
+    result: [false]
+
+  - desc: '** matchesFull - regex full match'
+    expression: "'test string'.matchesFull('t.+g')"
+    result: [true]
+
+  - desc: '** matchesFull - regex partial does not match'
+    expression: "'test string'.matchesFull('t.+t')"
+    result: [false]
+
+  - desc: '** matchesFull on empty input collection'
+    expression: Functions.str.empty.matchesFull('.*')
+    result: []
+
+  - desc: '** matchesFull with empty collection in regex'
+    expression: Functions.str.attr.matchesFull(EmptyRegex)
+    result: []
+
+  - desc: '** matchesFull with dotAll'
+    expression: "'first line\nsecond line'.matchesFull('first line.second line')"
+    result: [true]
+
+  - desc: '** matchesFull with flags - case insensitive'
+    expression: "'Test String'.matchesFull('test string', 'i')"
+    result: [true]
+
+  - desc: '** matchesFull with flags - case sensitive (no flags)'
+    expression: "'Test String'.matchesFull('test string', '')"
+    result: [false]
+
+  - desc: '** matchesFull with flags - invalid flag throws error'
+    expression: "'first line\nsecond line'.matchesFull('first line.second line', 's')"
+    error: true
+
+  - desc: '** matchesFull with flags - invalid x flag throws error'
+    expression: "'first line\nsecond line'.matchesFull('first line.second line', 'x')"
+    error: true
+
+  - desc: '** matchesFull with flags - single-line remains on with empty flags'
+    expression: "'first line\nsecond line'.matchesFull('first line.second line', '')"
+    result: [true]
+
   - desc: '5.6.10. replaceMatches(regex : string, substitution: string) : string'
 # If the input collection contains a single item of type string, the function will match the input using the regular expression in regex and replace each match with the substitution string. The substitution may refer to identified match groups in the regular expression.
 # This example of replaceMatches() will convert a string with a date formatted as MM/dd/yy to dd-MM-yy:

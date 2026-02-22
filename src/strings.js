@@ -161,25 +161,61 @@ engine.decodeFn = function (coll, format) {
 // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/dotAll for details.
 const dotAllIsSupported = (new RegExp('')).dotAll === false;
 
-if (dotAllIsSupported) {
-  engine.matches = function (coll, regex) {
-    const str = misc.singleton(coll, 'String');
-    if (util.isEmpty(regex) || util.isEmpty(str)) {
-      return [];
+/**
+ * Converts FHIRPath regex flags to JavaScript RegExp flags.
+ * FHIRPath flags: i (case-insensitive), m (multiline).
+ * The regex is always evaluated in single-line mode (dotAll).
+ * Any other flag character results in an exception.
+ * The 'u' (unicode) flag is always applied.
+ */
+function resolveRegexFlags(flags) {
+  let jsFlags = 'u';
+  let hasI = false;
+  let hasM = false;
+
+  if (flags !== undefined) {
+    for (const ch of flags) {
+      if (ch === 'i') {
+        hasI = true;
+      } else if (ch === 'm') {
+        hasM = true;
+      } else {
+        throw new Error('matches/matchesFull flags must only contain i and/or m');
+      }
     }
-    const reg = new RegExp(regex, 'su');
-    return reg.test(str);
-  };
-} else {
-  engine.matches = function (coll, regex) {
-    const str = misc.singleton(coll, 'String');
-    if (util.isEmpty(regex) || util.isEmpty(str)) {
-      return [];
-    }
-    const reg = new RegExp(rewritePatternForDotAll(regex), 'u');
-    return reg.test(str);
-  };
+  }
+
+  if (hasI) { jsFlags += 'i'; }
+  if (hasM) { jsFlags += 'm'; }
+  jsFlags += 's';
+
+  return jsFlags;
 }
+
+engine.matches = function (coll, regex, flags) {
+    const str = misc.singleton(coll, 'String');
+    if (util.isEmpty(regex) || util.isEmpty(str)) {
+      return [];
+    }
+    const jsFlags = resolveRegexFlags(flags);
+  if (!dotAllIsSupported) {
+    return new RegExp(rewritePatternForDotAll(regex), jsFlags.replace('s', '')).test(str);
+  }
+  return new RegExp(regex, jsFlags).test(str);
+  };
+
+  engine.matchesFull = function (coll, regex, flags) {
+    const str = misc.singleton(coll, 'String');
+    if (util.isEmpty(regex) || util.isEmpty(str)) {
+      return [];
+    }
+    const fullRegex = '^(?:' + regex + ')$';
+  const jsFlags = resolveRegexFlags(flags);
+  if (!dotAllIsSupported) {
+    return new RegExp(rewritePatternForDotAll(fullRegex), jsFlags.replace('s', '')).test(str);
+  }
+  return new RegExp(fullRegex, jsFlags).test(str);
+  };
 
 engine.replace = function (coll, pattern, repl) {
   const str = misc.singleton(coll, 'String');
