@@ -87,6 +87,8 @@ engine.invocationTable = {
   where:        {fn: filtering.whereMacro, arity: {1: ["Expr"]}},
   extension:    {fn: filtering.extension, arity: {1: ["String"]}},
   select:       {fn: filtering.selectMacro, arity: {1: ["Expr"]}},
+  coalesce:     {fn: filtering.coalesce, arity: {1: ["ExprAtCurrent"], 2: ["ExprAtCurrent", "ExprAtCurrent"], 3: ["ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent"], 4: ["ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent"], 5: ["ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent"], 6: ["ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent"], 7: ["ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent"], 8: ["ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent"], 9: ["ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent"], 10: ["ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent", "ExprAtCurrent"]}},
+  sort:         {fn: filtering.sort, arity: {0: [], 1: ["SortArgument"], 2: ["SortArgument", "SortArgument"], 3: ["SortArgument", "SortArgument", "SortArgument"], 4: ["SortArgument", "SortArgument", "SortArgument", "SortArgument"], 5: ["SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument"], 6: ["SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument"], 7: ["SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument"], 8: ["SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument"], 9: ["SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument"], 10: ["SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument", "SortArgument"]}},
   aggregate:    {fn: aggregate.aggregateMacro, arity: {1: ["Expr"], 2: ["Expr", "AnyAtRoot"]}},
   sum:          {fn: aggregate.sumFn},
   min:          {fn: aggregate.minFn},
@@ -557,6 +559,12 @@ engine.IndexerExpression = function(ctx, parentData, node) {
 };
 
 engine.Functn = function(ctx, parentData, node) {
+  // Handle special case for sort function, doesn't pre-evaluate parameters
+  if (node.text === 'sort') {
+    return ['sort', { children: node.children }];
+  }
+  
+  // Regular function: identifier + paramList
   return node.children.map(function(x) {
     return engine.doEval(ctx, parentData, x);
   });
@@ -612,6 +620,19 @@ function makeParam(ctx, parentData, type, param) {
     };
   }
 
+  if(type === "ExprAtCurrent"){
+    return function(data) {
+      let ctxExpr = {...ctx};
+      if (ctx.definedVars) {
+        // Each parameter subexpression needs its own set of defined variables
+        // (cloned from the parent context). This way, the changes to the variables
+        // are isolated in the subexpression.
+        ctxExpr.definedVars = {...ctx.definedVars};
+      }
+      return engine.doEval(ctxExpr, util.arraify(data), param);
+    };
+  }
+
   if(type === "Identifier") {
     if(param.type === "TermExpression") {
       return param.text;
@@ -622,6 +643,23 @@ function makeParam(ctx, parentData, type, param) {
 
   if(type === "TypeSpecifier") {
     return engine.TypeSpecifier(ctx, parentData, param);
+  }
+
+  if(type === "SortArgument") {
+    // For sort arguments, we return the processed sort argument with expression and direction
+    const sortArg = engine.doEval(ctx, parentData, param);
+    return {
+      expr: function(data) {
+        let ctxExpr = {...ctx};
+        if (ctx.definedVars) {
+          ctxExpr.definedVars = {...ctx.definedVars};
+        }
+        // Set up $this context for sort expression
+        ctxExpr.$this = data;
+        return engine.doEval(ctxExpr, util.arraify(data), sortArg.expr);
+      },
+      direction: sortArg.direction
+    };
   }
 
   const $this = ctx.$this || ctx.dataRoot;
@@ -787,6 +825,22 @@ engine.ParenthesizedTerm = function(ctx, parentData, node) {
   return engine.doEval(ctx, parentData, node.children[0]);
 };
 
+engine.SortDirectionArgument = function(ctx, parentData, node) {
+  const expr = node.children[0]; // The expression to sort by
+  // Use the direction captured by the parser, defaulting to 'asc'
+  const direction = node.direction || 'asc';
+  
+  return {
+    expr: expr, // Return the raw AST node for later processing
+    direction: direction
+  };
+};
+
+engine.SortArgument = function(ctx, parentData, node) {
+  // For compatibility with SortDirectionArgument 
+  return engine.SortDirectionArgument(ctx, parentData, node);
+};
+
 
 engine.evalTable = { // not every evaluator is listed if they are defined on engine
   BooleanLiteral: engine.BooleanLiteral,
@@ -818,7 +872,9 @@ engine.evalTable = { // not every evaluator is listed if they are defined on eng
   OrExpression: engine.OpExpression,
   ImpliesExpression: engine.OpExpression,
   AndExpression: engine.OpExpression,
-  XorExpression: engine.OpExpression
+  XorExpression: engine.OpExpression,
+  SortDirectionArgument: engine.SortDirectionArgument,
+  SortArgument: engine.SortArgument
 };
 
 
