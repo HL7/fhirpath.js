@@ -124,6 +124,7 @@ engine.invocationTable = {
   toQuantity:   {fn: misc.toQuantity, arity: {0: [], 1: ["String"]}},
   hasValue:     {fn: misc.hasValueFn},
   getValue:     {fn: misc.getValueFn},
+  pathname:     {fn: misc.pathnameFn, arity: {0: [], 1: ["Boolean"]}},
   convertsToBoolean:    {fn: misc.createConvertsToFn(misc.toBoolean, 'boolean')},
   convertsToInteger:    {fn: misc.createConvertsToFn(misc.toInteger, 'number')},
   convertsToLong:       {fn: misc.createConvertsToFn(misc.toLong, 'bigint')},
