@@ -2540,7 +2540,6 @@ tests:
         result:
           - '"1<2"'
         model: r4
-    disable: true
   - 'group: testTrim':
       - desc: '** testTrim1'
         inputfile: patient-example.json
