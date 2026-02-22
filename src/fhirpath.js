@@ -155,6 +155,8 @@ engine.invocationTable = {
 
   encode:         {fn: strings.encodeFn,         arity: {1: ["String"]}},
   decode:         {fn: strings.decodeFn,         arity: {1: ["String"]}},
+  escape:         {fn: strings.escapeFn,         arity: {1: ["String"]}},
+  unescape:       {fn: strings.unescapeFn,       arity: {1: ["String"]}},
 
   abs:            {fn: math.abs},
   ceiling:        {fn: math.ceiling},

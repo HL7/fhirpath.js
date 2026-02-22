@@ -548,24 +548,20 @@ tests:
 
 # testExcapeUnescape Tests from the FHIR spec
   - desc: '** testExcapeUnescape 1e'
-    expression: "'\"1&lt;2\"'.escape('html')"
-    disable: true # not implemented yet
-    result: ['&amp;quot;1&amp;lt;2&amp;quot;']
+    expression: "'\"1<2\"'.escape('html')"
+    result: ['&quot;1&lt;2&quot;']
 
   - desc: '** testExcapeUnescape 2e'
-    expression: "'\"1&lt;2\"'.escape('json')"
-    disable: true # not implemented yet
-    result: ['\"1&lt;2\"']
+    expression: "'\"1<2\"'.escape('json')"
+    result: ['\"1<2\"']
 
   - desc: '** testExcapeUnescape 3u'
-    expression: "'&amp;quot;1&amp;lt;2&amp;quot;'.unescape('html')"
-    disable: true # not implemented yet
-    result: ['1&lt;2"']
+    expression: "'&quot;1&lt;2&quot;'.unescape('html')"
+    result: ['"1<2"']
 
   - desc: '** testExcapeUnescape 4u'
-    expression: "'\"1&lt;2\"'.unescape('json')"
-    disable: true # not implemented yet
-    result: ['1&lt;2']
+    expression: "'\\\"1<2\\\"'.unescape('json')"
+    result: ['"1<2"']
 
 # testTrim from the FHIR spec
   - desc: '** "123456".trim().length() = 6'

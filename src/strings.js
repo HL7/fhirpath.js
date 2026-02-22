@@ -193,29 +193,29 @@ function resolveRegexFlags(flags) {
 }
 
 engine.matches = function (coll, regex, flags) {
-    const str = misc.singleton(coll, 'String');
-    if (util.isEmpty(regex) || util.isEmpty(str)) {
-      return [];
-    }
-    const jsFlags = resolveRegexFlags(flags);
+  const str = misc.singleton(coll, 'String');
+  if (util.isEmpty(regex) || util.isEmpty(str)) {
+    return [];
+  }
+  const jsFlags = resolveRegexFlags(flags);
   if (!dotAllIsSupported) {
     return new RegExp(rewritePatternForDotAll(regex), jsFlags.replace('s', '')).test(str);
   }
   return new RegExp(regex, jsFlags).test(str);
-  };
+};
 
-  engine.matchesFull = function (coll, regex, flags) {
-    const str = misc.singleton(coll, 'String');
-    if (util.isEmpty(regex) || util.isEmpty(str)) {
-      return [];
-    }
-    const fullRegex = '^(?:' + regex + ')$';
+engine.matchesFull = function (coll, regex, flags) {
+  const str = misc.singleton(coll, 'String');
+  if (util.isEmpty(regex) || util.isEmpty(str)) {
+    return [];
+  }
+  const fullRegex = '^(?:' + regex + ')$';
   const jsFlags = resolveRegexFlags(flags);
   if (!dotAllIsSupported) {
     return new RegExp(rewritePatternForDotAll(fullRegex), jsFlags.replace('s', '')).test(str);
   }
   return new RegExp(fullRegex, jsFlags).test(str);
-  };
+};
 
 engine.replace = function (coll, pattern, repl) {
   const str = misc.singleton(coll, 'String');
@@ -243,6 +243,70 @@ engine.length = function (coll) {
 engine.toChars = function (coll) {
   const str = misc.singleton(coll, 'String');
   return util.isEmpty(str) ? [] : str.split('');
+};
+
+const htmlEscapeMap = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;'
+};
+
+const htmlUnescapeMap = {
+  '&amp;': '&',
+  '&lt;': '<',
+  '&gt;': '>',
+  '&quot;': '"',
+  '&#39;': "'"
+};
+
+const htmlEscapeRegex = /[&<>"']/g;
+const htmlUnescapeRegex = /&(?:amp|lt|gt|quot|#39);/g;
+
+engine.escapeFn = function (coll, format) {
+  const str = misc.singleton(coll, 'String');
+  if (util.isEmpty(str)) {
+    return [];
+  }
+  if (format === 'html') {
+    return str.replace(htmlEscapeRegex, ch => htmlEscapeMap[ch]);
+  }
+  if (format === 'json') {
+    return JSON.stringify(str).slice(1, -1);
+  }
+  return [];
+};
+
+const jsonEscapeRegex = /\\(["\\/bfnrt]|u[0-9a-fA-F]{4})/g;
+const jsonEscapeMap = {
+  '"': '"',
+  '\\': '\\',
+  '/': '/',
+  'b': '\b',
+  'f': '\f',
+  'n': '\n',
+  'r': '\r',
+  't': '\t'
+};
+
+engine.unescapeFn = function (coll, format) {
+  const str = misc.singleton(coll, 'String');
+  if (util.isEmpty(str)) {
+    return [];
+  }
+  if (format === 'html') {
+    return str.replace(htmlUnescapeRegex, entity => htmlUnescapeMap[entity]);
+  }
+  if (format === 'json') {
+    return str.replace(jsonEscapeRegex, (_, capture) => {
+      if (capture.length === 1) {
+        return jsonEscapeMap[capture];
+      }
+      return String.fromCharCode(parseInt(capture.substring(1), 16));
+    });
+  }
+  return [];
 };
 
 module.exports = engine;
