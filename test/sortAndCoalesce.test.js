@@ -162,5 +162,26 @@ describe("sortAndCoalesce", () => {
       expect(result[1]).toBe("2"); // Pos, Brian
       expect(result[2]).toBe("1"); // Smith, Peter
     });
+
+    it("sort descending dates", () => {
+      const expr = "(@2024|@2025|@2026).sort($this desc)";
+      const result = fhirpath.evaluate({}, expr, r4_model);
+      
+      expect(result).toHaveLength(3);
+      expect(result[0]).toBe("2026");
+      expect(result[1]).toBe("2025");
+      expect(result[2]).toBe("2024");
+    });
+
+    it("sort descending times", () => {
+      const expr = "(@T10:45|@T12:30|@T08:15|@T13:30).sort($this desc)";
+      const result = fhirpath.evaluate({}, expr, r4_model);
+      
+      expect(result).toHaveLength(4);
+      expect(result[0]).toBe("13:30");
+      expect(result[1]).toBe("12:30");
+      expect(result[2]).toBe("10:45");
+      expect(result[3]).toBe("08:15");
+    });
   });
 });

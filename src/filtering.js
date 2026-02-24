@@ -5,7 +5,7 @@
  *  Adds the filtering and projection functions to the given FHIRPath engine.
  */
 const util = require('./utilities');
-const {TypeInfo, ResourceNode} = require('./types');
+const {TypeInfo, ResourceNode, FP_Type} = require('./types');
 const hashObject = require('./hash-object');
 const { deepEqual, maxCollSizeForDeepEqual } = require('./deep-equal');
 
@@ -165,7 +165,7 @@ function compareValues(a, b) {
     const [a0, b0] = equality.typecheck([a], [b]);
     
     // Handle FP_Type objects (dates, times, quantities, etc.)
-    if (a0 && typeof a0 === 'object' && typeof a0.compare === 'function') {
+    if (a0 instanceof FP_Type) {
       const compareResult = a0.compare(b0);
       return compareResult === null ? 0 : compareResult;
     }
