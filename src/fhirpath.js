@@ -634,6 +634,13 @@ function makeParam(ctx, parentData, type, param) {
     };
   }
 
+  // The difference between Expr and ExprAtCurrent is that for ExprAtCurrent, we don't change the
+  // context $this when evaluating the parameter expression, while for Expr we set $this to the
+  // data passed in when evaluating the parameter expression.
+  // The coalesce function is currently the only function that works like this.
+  // It is really a late bound evaluation, and they are not evaluated before the function execution,
+  // the function is responsible for when they evaluated, as it will only evaluate parameters till it
+  // gets a non-empty value.
   if(type === "ExprAtCurrent"){
     return function(data) {
       let ctxExpr = {...ctx};
