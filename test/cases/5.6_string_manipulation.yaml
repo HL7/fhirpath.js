@@ -26,6 +26,18 @@ tests:
     expression: Patient.name.given[0].indexOf('Peter')
     result: []
 
+  - desc: '** indexOf on a literal string abcabc'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: "'abcabc'.indexOf('b')"
+    result: [1]
+
+  - desc: '** lastIndexOf on a literal string abcabc'
+    inputfile: patient-example-2.json
+    model: r4
+    expression: "'abcabc'.lastIndexOf('b')"
+    result: [4]
+
   - desc: '** index of empty substring'
     expression: Functions.str.empty.indexOf(EmptySubstring)
     result: []
@@ -262,6 +274,88 @@ tests:
     expression: "'Taupō'.matches('^\\\\p{Lu}\\\\p{Ll}*$')"
     result: [true]
 
+  - desc: '** matches with flags - case insensitive'
+    expression: "'Hello World'.matches('hello', 'i')"
+    result: [true]
+
+  - desc: '** matches with flags - case sensitive (no flags)'
+    expression: "'Hello World'.matches('hello', '')"
+    result: [false]
+
+  - desc: '** matches with flags - multiline'
+    expression: "'first line\nsecond line'.matches('^second', 'm')"
+    result: [true]
+
+  - desc: '** matches with flags - multiline not set'
+    expression: "'first line\nsecond line'.matches('^second', '')"
+    result: [false]
+
+  - desc: '** matches with flags - invalid flag throws error'
+    expression: "'first line\nsecond line'.matches('line.second', 's')"
+    error: true
+
+  - desc: '** matches with flags - invalid x flag throws error'
+    expression: "'first line\nsecond line'.matches('line.second', 'x')"
+    error: true
+
+  - desc: '** matches with flags - single-line remains on with empty flags'
+    expression: "'first line\nsecond line'.matches('line.second', '')"
+    result: [true]
+
+  - desc: '** matches with flags - combined im'
+    expression: "'first line\nsecond line'.matches('^SECOND', 'im')"
+    result: [true]
+
+  - desc: '5.6.9a. matchesFull(regex : string) : boolean'
+
+  - desc: '** matchesFull - full match'
+    expression: "'test string'.matchesFull('test string')"
+    result: [true]
+
+  - desc: '** matchesFull - partial does not match'
+    expression: "'test string'.matchesFull('test')"
+    result: [false]
+
+  - desc: '** matchesFull - regex full match'
+    expression: "'test string'.matchesFull('t.+g')"
+    result: [true]
+
+  - desc: '** matchesFull - regex partial does not match'
+    expression: "'test string'.matchesFull('t.+t')"
+    result: [false]
+
+  - desc: '** matchesFull on empty input collection'
+    expression: Functions.str.empty.matchesFull('.*')
+    result: []
+
+  - desc: '** matchesFull with empty collection in regex'
+    expression: Functions.str.attr.matchesFull(EmptyRegex)
+    result: []
+
+  - desc: '** matchesFull with dotAll'
+    expression: "'first line\nsecond line'.matchesFull('first line.second line')"
+    result: [true]
+
+  - desc: '** matchesFull with flags - case insensitive'
+    expression: "'Test String'.matchesFull('test string', 'i')"
+    result: [true]
+
+  - desc: '** matchesFull with flags - case sensitive (no flags)'
+    expression: "'Test String'.matchesFull('test string', '')"
+    result: [false]
+
+  - desc: '** matchesFull with flags - invalid flag throws error'
+    expression: "'first line\nsecond line'.matchesFull('first line.second line', 's')"
+    error: true
+
+  - desc: '** matchesFull with flags - invalid x flag throws error'
+    expression: "'first line\nsecond line'.matchesFull('first line.second line', 'x')"
+    error: true
+
+  - desc: '** matchesFull with flags - single-line remains on with empty flags'
+    expression: "'first line\nsecond line'.matchesFull('first line.second line', '')"
+    result: [true]
+
   - desc: '5.6.10. replaceMatches(regex : string, substitution: string) : string'
 # If the input collection contains a single item of type string, the function will match the input using the regular expression in regex and replace each match with the substitution string. The substitution may refer to identified match groups in the regular expression.
 # This example of replaceMatches() will convert a string with a date formatted as MM/dd/yy to dd-MM-yy:
@@ -452,26 +546,30 @@ tests:
     expression: "'6B6C6D6E6'.decode('hex')"
     error: true
 
-# testExcapeUnescape Tests from the FHIR spec
-  - desc: '** testExcapeUnescape 1e'
-    expression: "'\"1&lt;2\"'.escape('html')"
-    disable: true # not implemented yet
-    result: ['&amp;quot;1&amp;lt;2&amp;quot;']
+# testEscapeUnescape Tests from the FHIR spec
+  - desc: '** testEscapeUnescape 1e'
+    expression: "'\"1<2\"'.escape('html')"
+    result: ['&quot;1&lt;2&quot;']
 
-  - desc: '** testExcapeUnescape 2e'
-    expression: "'\"1&lt;2\"'.escape('json')"
-    disable: true # not implemented yet
-    result: ['\"1&lt;2\"']
+  - desc: '** testEscapeUnescape 2e'
+    expression: "'\"1<2\"'.escape('json')"
+    result: ['\"1<2\"']
 
-  - desc: '** testExcapeUnescape 3u'
-    expression: "'&amp;quot;1&amp;lt;2&amp;quot;'.unescape('html')"
-    disable: true # not implemented yet
-    result: ['1&lt;2"']
+  - desc: '** testEscapeUnescape 2e-slash'
+    expression: "'\\\\1<2\\\\'.escape('json')"
+    result: ['\\1<2\\']
 
-  - desc: '** testExcapeUnescape 4u'
-    expression: "'\"1&lt;2\"'.unescape('json')"
-    disable: true # not implemented yet
-    result: ['1&lt;2']
+  - desc: '** testEscapeUnescape 2u-slash'
+    expression: "'\\\\1<2\\\\'.unescape('json')"
+    result: ['\1<2\']
+
+  - desc: '** testEscapeUnescape 3u'
+    expression: "'&quot;1&lt;2&quot;'.unescape('html')"
+    result: ['"1<2"']
+
+  - desc: '** testEscapeUnescape 4u'
+    expression: "'\\\"1<2\\\"'.unescape('json')"
+    result: ['"1<2"']
 
 # testTrim from the FHIR spec
   - desc: '** "123456".trim().length() = 6'

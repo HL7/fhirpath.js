@@ -42,6 +42,313 @@ tests:
             result:
               - true
 
+      - 'group: 5.9.3. Date/Time component extraction':
+        - 'group: yearOf(): Integer':
+
+          - desc: '** yearOf for a full DateTime'
+            expression: (@2014-01-05T10:30:00.000).yearOf()
+            result:
+              - 2014
+
+          - desc: '** yearOf for a DateTime with only year-month-day'
+            expression: (@2020-06-15).yearOf()
+            result:
+              - 2020
+
+          - desc: '** yearOf for a DateTime with only year-month'
+            expression: (@2019-03).yearOf()
+            result:
+              - 2019
+
+          - desc: '** yearOf for a DateTime with only year'
+            expression: (@2012).yearOf()
+            result:
+              - 2012
+
+          - desc: '** yearOf for an empty collection'
+            expression: ({}).yearOf()
+            result: []
+
+          - desc: '** yearOf for a Time value returns empty'
+            expression: (@T10:30:00).yearOf()
+            result: []
+
+          - desc: '** yearOf for an invalid input type returns empty'
+            expression: 5.yearOf()
+            result: []
+
+        - 'group: monthOf(): Integer':
+
+          - desc: '** monthOf for a full DateTime'
+            expression: (@2014-01-05T10:30:00.000).monthOf()
+            result:
+              - 1
+
+          - desc: '** monthOf for a year-month Date'
+            expression: (@2020-06).monthOf()
+            result:
+              - 6
+
+          - desc: '** monthOf for a year-only Date returns empty'
+            expression: (@2012).monthOf()
+            result: []
+
+          - desc: '** monthOf for a Time value returns empty'
+            expression: (@T10:30:00).monthOf()
+            result: []
+
+          - desc: '** monthOf for an empty collection'
+            expression: ({}).monthOf()
+            result: []
+
+          - desc: '** monthOf for an invalid input type returns empty'
+            expression: 5.monthOf()
+            result: []
+
+        - 'group: dayOf(): Integer':
+
+          - desc: '** dayOf for a full DateTime'
+            expression: (@2014-01-05T10:30:00.000).dayOf()
+            result:
+              - 5
+
+          - desc: '** dayOf for a Date with day precision'
+            expression: (@2020-06-15).dayOf()
+            result:
+              - 15
+
+          - desc: '** dayOf for a year-month Date returns empty'
+            expression: (@2020-06).dayOf()
+            result: []
+
+          - desc: '** dayOf for a Time value returns empty'
+            expression: (@T10:30:00).dayOf()
+            result: []
+
+          - desc: '** dayOf for an empty collection'
+            expression: ({}).dayOf()
+            result: []
+
+          - desc: '** dayOf for an invalid input type returns empty'
+            expression: 5.dayOf()
+            result: []
+
+        - 'group: hourOf(): Integer':
+
+          - desc: '** hourOf for a full DateTime'
+            expression: (@2014-01-05T10:30:00.000).hourOf()
+            result:
+              - 10
+
+          - desc: '** hourOf for a Time value'
+            expression: (@T14:30:00).hourOf()
+            result:
+              - 14
+
+          - desc: '** hourOf for a Date returns empty'
+            expression: (@2020-06-15).hourOf()
+            result: []
+
+          - desc: '** hourOf for a DateTime without time returns empty'
+            expression: (@2020-06).hourOf()
+            result: []
+
+          - desc: '** hourOf for an empty collection'
+            expression: ({}).hourOf()
+            result: []
+
+          - desc: '** hourOf for an invalid input type returns empty'
+            expression: 5.hourOf()
+            result: []
+
+        - 'group: minuteOf(): Integer':
+
+          - desc: '** minuteOf for a full DateTime'
+            expression: (@2014-01-05T10:30:00.000).minuteOf()
+            result:
+              - 30
+
+          - desc: '** minuteOf for a Time value'
+            expression: (@T12:45:00).minuteOf()
+            result:
+              - 45
+
+          - desc: '** minuteOf for a Date returns empty'
+            expression: (@2020-06-15).minuteOf()
+            result: []
+
+          - desc: '** minuteOf for an empty collection'
+            expression: ({}).minuteOf()
+            result: []
+
+          - desc: '** minuteOf for an invalid input type returns empty'
+            expression: 5.minuteOf()
+            result: []
+
+        - 'group: secondOf(): Integer':
+
+          - desc: '** secondOf for a full DateTime'
+            expression: (@2014-01-05T10:30:40.000).secondOf()
+            result:
+              - 40
+
+          - desc: '** secondOf for a Time value'
+            expression: (@T12:30:55).secondOf()
+            result:
+              - 55
+
+          - desc: '** secondOf for a Date returns empty'
+            expression: (@2020-06-15).secondOf()
+            result: []
+
+          - desc: '** secondOf for an empty collection'
+            expression: ({}).secondOf()
+            result: []
+
+          - desc: '** secondOf for an invalid input type returns empty'
+            expression: 5.secondOf()
+            result: []
+
+        - 'group: millisecondOf(): Integer':
+
+          - desc: '** millisecondOf for a full DateTime'
+            expression: (@2014-01-05T10:30:00.123+10:00).millisecondOf()
+            result:
+              - 123
+
+          - desc: '** millisecondOf for a Time value with ms'
+            expression: (@T12:30:00.002).millisecondOf()
+            result:
+              - 2
+
+          - desc: '** millisecondOf for a DateTime without ms returns empty'
+            expression: (@2014-01-05T10:30:00).millisecondOf()
+            result: []
+
+          - desc: '** millisecondOf for a Time without ms returns empty'
+            expression: (@T12:30:00).millisecondOf()
+            result: []
+
+          - desc: '** millisecondOf for a Date returns empty'
+            expression: (@2020-06-15).millisecondOf()
+            result: []
+
+          - desc: '** millisecondOf for an empty collection'
+            expression: ({}).millisecondOf()
+            result: []
+
+          - desc: '** millisecondOf for an invalid input type returns empty'
+            expression: 5.millisecondOf()
+            result: []
+
+        - 'group: timezoneOffsetOf(): Decimal':
+
+          - desc: '** timezoneOffsetOf for a DateTime with negative offset'
+            expression: (@2012-01-01T12:30:00.000-07:00).timezoneOffsetOf()
+            result:
+              - -7.0
+
+          - desc: '** timezoneOffsetOf for a DateTime with positive fractional offset'
+            expression: (@2012-01-01T12:30:00.000+08:45).timezoneOffsetOf()
+            result:
+              - 8.75
+
+          - desc: '** timezoneOffsetOf for a DateTime with UTC (Z)'
+            expression: (@2012-01-01T12:30:00Z).timezoneOffsetOf()
+            result:
+              - 0.0
+
+          - desc: '** timezoneOffsetOf for a DateTime with positive whole-hour offset'
+            expression: (@2012-01-01T12:30:00.000+10:00).timezoneOffsetOf()
+            result:
+              - 10.0
+
+          - desc: '** timezoneOffsetOf for a DateTime without timezone returns empty'
+            expression: (@2012-01-01T12:30:00.000).timezoneOffsetOf()
+            result: []
+
+          - desc: '** timezoneOffsetOf for a Date returns empty'
+            expression: (@2020-06-15).timezoneOffsetOf()
+            result: []
+
+          - desc: '** timezoneOffsetOf for a Time returns empty'
+            expression: (@T10:30:00).timezoneOffsetOf()
+            result: []
+
+          - desc: '** timezoneOffsetOf for an empty collection'
+            expression: ({}).timezoneOffsetOf()
+            result: []
+
+          - desc: '** timezoneOffsetOf for an invalid input type returns empty'
+            expression: 5.timezoneOffsetOf()
+            result: []
+
+        - 'group: dateOf(): Date':
+
+          - desc: '** dateOf for a full DateTime'
+            expression: (@2012-01-01T12:30:00.000-07:00).dateOf()
+            result:
+              - '2012-01-01'
+
+          - desc: '** dateOf for a full DateTime positive offset'
+            expression: (@2012-01-01T12:30:00.000+11:00).dateOf()
+            result:
+              - '2012-01-01'
+
+          - desc: '** dateOf for a DateTime with no time component'
+            expression: (@2020-06-15).dateOf()
+            result:
+              - '2020-06-15'
+
+          - desc: '** dateOf for a Date returns the date unchanged'
+            expression: (@2020-06).dateOf()
+            result:
+              - 2020-06
+
+          - desc: '** dateOf for a Time returns empty'
+            expression: (@T10:30:00).dateOf()
+            result: []
+
+          - desc: '** dateOf for an empty collection'
+            expression: ({}).dateOf()
+            result: []
+
+          - desc: '** dateOf for an invalid input type returns empty'
+            expression: 5.dateOf()
+            result: []
+
+        - 'group: timeOf(): Time':
+
+          - desc: '** timeOf for a full DateTime'
+            expression: (@2012-01-01T12:30:00.000-07:00).timeOf()
+            result:
+              - '12:30:00.000'
+
+          - desc: '** timeOf for a DateTime with hour only'
+            expression: (@2012-01-01T12).timeOf()
+            result:
+              - '12'
+
+          - desc: '** timeOf for a DateTime with no time returns empty'
+            expression: (@2020-06-15).timeOf()
+            result: []
+
+          - desc: '** timeOf for a Date returns empty'
+            expression: (@2020-06).timeOf()
+            result: []
+
+          - desc: '** timeOf for a Time returns empty'
+            expression: (@T10:30:00).timeOf()
+            result: []
+
+          - desc: '** timeOf for an empty collection'
+            expression: ({}).timeOf()
+            result: []
+
+          - desc: '** timeOf for an invalid input type returns empty'
+            expression: 5.timeOf()
+            result: []
+
 subject:
   coll:
     - attr: [1,2,3]

@@ -27,7 +27,7 @@ interface Path {
 
 interface Model {
   // Model version, e.g. 'r5', 'r4', 'stu3', or 'dstu2'.
-  version: 'r5' | 'r4' | 'stu3' | 'dstu2',
+  version: string, // 'r6' | 'r5' | 'r4' | 'stu3' | 'dstu2',
 
   // This section contains setting for the `weight()` function.
   score?: {

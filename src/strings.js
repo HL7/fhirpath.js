@@ -45,6 +45,11 @@ engine.indexOf = function (coll, substr) {
   return util.isEmpty(substr) || util.isEmpty(str) ? [] : str.indexOf(substr);
 };
 
+engine.lastIndexOf = function (coll, substr) {
+  const str = misc.singleton(coll, 'String');
+  return util.isEmpty(substr) || util.isEmpty(str) ? [] : str.lastIndexOf(substr);
+};
+
 engine.substring = function (coll, start, length) {
   const str = misc.singleton(coll, 'String');
   if (util.isEmpty(str) || util.isEmpty(start) || start < 0 || start >= str.length) {
@@ -156,25 +161,61 @@ engine.decodeFn = function (coll, format) {
 // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/dotAll for details.
 const dotAllIsSupported = (new RegExp('')).dotAll === false;
 
-if (dotAllIsSupported) {
-  engine.matches = function (coll, regex) {
-    const str = misc.singleton(coll, 'String');
-    if (util.isEmpty(regex) || util.isEmpty(str)) {
-      return [];
+/**
+ * Converts FHIRPath regex flags to JavaScript RegExp flags.
+ * FHIRPath flags: i (case-insensitive), m (multiline).
+ * The regex is always evaluated in single-line mode (dotAll).
+ * Any other flag character results in an exception.
+ * The 'u' (unicode) flag is always applied.
+ */
+function resolveRegexFlags(flags) {
+  let jsFlags = 'u';
+  let hasI = false;
+  let hasM = false;
+
+  if (flags !== undefined) {
+    for (const ch of flags) {
+      if (ch === 'i') {
+        hasI = true;
+      } else if (ch === 'm') {
+        hasM = true;
+      } else {
+        throw new Error('matches/matchesFull flags must only contain i and/or m');
+      }
     }
-    const reg = new RegExp(regex, 'su');
-    return reg.test(str);
-  };
-} else {
-  engine.matches = function (coll, regex) {
-    const str = misc.singleton(coll, 'String');
-    if (util.isEmpty(regex) || util.isEmpty(str)) {
-      return [];
-    }
-    const reg = new RegExp(rewritePatternForDotAll(regex), 'u');
-    return reg.test(str);
-  };
+  }
+
+  if (hasI) { jsFlags += 'i'; }
+  if (hasM) { jsFlags += 'm'; }
+  jsFlags += 's';
+
+  return jsFlags;
 }
+
+engine.matches = function (coll, regex, flags) {
+  const str = misc.singleton(coll, 'String');
+  if (util.isEmpty(regex) || util.isEmpty(str)) {
+    return [];
+  }
+  const jsFlags = resolveRegexFlags(flags);
+  if (!dotAllIsSupported) {
+    return new RegExp(rewritePatternForDotAll(regex), jsFlags.replace('s', '')).test(str);
+  }
+  return new RegExp(regex, jsFlags).test(str);
+};
+
+engine.matchesFull = function (coll, regex, flags) {
+  const str = misc.singleton(coll, 'String');
+  if (util.isEmpty(regex) || util.isEmpty(str)) {
+    return [];
+  }
+  const fullRegex = '^(?:' + regex + ')$';
+  const jsFlags = resolveRegexFlags(flags);
+  if (!dotAllIsSupported) {
+    return new RegExp(rewritePatternForDotAll(fullRegex), jsFlags.replace('s', '')).test(str);
+  }
+  return new RegExp(fullRegex, jsFlags).test(str);
+};
 
 engine.replace = function (coll, pattern, repl) {
   const str = misc.singleton(coll, 'String');
@@ -202,6 +243,76 @@ engine.length = function (coll) {
 engine.toChars = function (coll) {
   const str = misc.singleton(coll, 'String');
   return util.isEmpty(str) ? [] : str.split('');
+};
+
+const htmlEscapeMap = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;'
+};
+
+const htmlUnescapeMap = {
+  '&amp;': '&',
+  '&lt;': '<',
+  '&gt;': '>',
+  '&quot;': '"',
+  '&#39;': "'"
+};
+
+const htmlEscapeRegex = /[&<>"']/g;
+const htmlUnescapeRegex = /&(?:amp|lt|gt|quot|#39);/g;
+
+engine.escapeFn = function (coll, format) {
+  const str = misc.singleton(coll, 'String');
+  if (util.isEmpty(str)) {
+    return [];
+  }
+  if (format === 'html') {
+    return str.replace(htmlEscapeRegex, ch => htmlEscapeMap[ch]);
+  }
+  if (format === 'json') {
+    // json encode using the built-in JSON.stringify and remove the surrounding quotes
+    return JSON.stringify(str).slice(1, -1);
+  }
+  return [];
+};
+
+// we're undoing the escaping done by JSON.stringify, so we need to handle the same escape sequences
+// see https://tc39.es/ecma262/multipage/structured-data.html#sec-json.stringify for details on JSON string escaping
+// particularly Note 3. going from the text "\n" (2 string characters) to an actual single newline character in the string
+const jsonEscapeRegex = /\\(["\\/bfnrt]|u[0-9a-fA-F]{4})/g;
+const jsonEscapeMap = {
+  '"': '"',
+  '\\': '\\',
+  '/': '/',
+  'b': '\b',
+  'f': '\f',
+  'n': '\n',
+  'r': '\r',
+  't': '\t'
+};
+
+engine.unescapeFn = function (coll, format) {
+  const str = misc.singleton(coll, 'String');
+  if (util.isEmpty(str)) {
+    return [];
+  }
+  if (format === 'html') {
+    return str.replace(htmlUnescapeRegex, entity => htmlUnescapeMap[entity]);
+  }
+  if (format === 'json') {
+    return str.replace(jsonEscapeRegex, (_, capture) => {
+      // single-character escape sequences like \" or \n (replacing with their single-character equivalents)
+      if (capture.length === 1) {
+        return jsonEscapeMap[capture];
+      }
+      // unicode processing \uXXXX (also a single character, but represented by 6 characters in the input string)
+      return String.fromCharCode(parseInt(capture.substring(1), 16));
+    });
+  }
+  return [];
 };
 
 module.exports = engine;

@@ -2580,35 +2580,30 @@ tests:
         result:
           - false
         model: r5
-        disable: true
       - desc: '** testMatchesFullWithinUrl3'
         expression: >-
           'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('Library')
         result:
           - false
         model: r5
-        disable: true
       - desc: '** testMatchesFullWithinUrl4'
         expression: >-
           'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('^Library$')
         result:
           - false
         model: r5
-        disable: true
       - desc: '** testMatchesFullWithinUrl1a'
         expression: >-
           'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('.*Library.*')
         result:
           - true
         model: r5
-        disable: true
       - desc: '** testMatchesFullWithinUrl2'
         expression: >-
           'http://fhir.org/guides/cqf/common/Library/FHIR-ModelInfo|4.0.1'.matchesFull('Measure')
         result:
           - false
         model: r5
-        disable: true
   - 'group: testReplaceMatches':
       - desc: '** testReplaceMatches1'
         inputfile: patient-example.json
@@ -2801,7 +2796,6 @@ tests:
         result:
           - '"1<2"'
         model: r5
-    disable: true
   - 'group: testTrim':
       - desc: '** testTrim1'
         inputfile: patient-example.json
@@ -2940,7 +2934,7 @@ tests:
         model: r5
       - desc: '** Prototype definition - not part of spec yet'
         inputfile: patient-example.json
-        expression: (1 | 2 | 3).sort(-$this) = (3 | 2 | 1)
+        expression: (1 | 2 | 3).sort($this desc) = (3 | 2 | 1)
         result:
           - true
         model: r5
@@ -2958,7 +2952,7 @@ tests:
         model: r5
       - desc: '** Prototype definition - not part of spec yet'
         inputfile: patient-example.json
-        expression: ('a' | 'b' | 'c').sort(-$this) = ('c' | 'b' | 'a')
+        expression: ('a' | 'b' | 'c').sort($this desc) = ('c' | 'b' | 'a')
         result:
           - true
         model: r5
@@ -2970,7 +2964,7 @@ tests:
         model: r5
       - desc: '** Prototype definition - not part of spec yet'
         inputfile: patient-example.json
-        expression: Patient.name.sort(-family, -given.first()).first().use = 'usual'
+        expression: Patient.name.sort(family desc, given.first() desc).first().use = 'usual'
         result:
           - true
         model: r5

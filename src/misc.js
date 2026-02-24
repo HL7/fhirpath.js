@@ -4,7 +4,7 @@
 
 var util = require("./utilities");
 
-const { FP_Quantity, TypeInfo, FP_DateTime, FP_Date, FP_Time } = require("./types");
+const { FP_Quantity, TypeInfo, FP_DateTime, FP_Date, FP_Time, ResourceNode } = require("./types");
 
 var engine = {};
 
@@ -611,6 +611,85 @@ engine.getValueFn = function(coll) {
     }
   }
   return [];
+};
+
+/**
+ * Builds the pathname string for a ResourceNode.
+ * When short is falsy, all non-root elements include an indexer (e.g. [0]),
+ * even for singleton properties.
+ * When short is true, indexers are excluded for elements that are not arrays
+ * (i.e. elements where index is null — meaning the underlying JSON value is
+ * not stored in an array).
+ * @param {ResourceNode} node - the resource node
+ * @param {boolean} short - whether to use the short form
+ * @return {string}
+ */
+function buildPathname(node, short) {
+  // Collect segments from leaf to root, then reverse
+  const segments = [];
+  let current = node;
+
+  while (current) {
+    if (current.propName != null) {
+      let propName = current.propName;
+
+      // Handle choice types (same logic as fullPropertyName)
+      if (current.parentResNode && current.model && current.fhirNodeDataType &&
+        propName.endsWith(current.fhirNodeDataType.charAt(0).toUpperCase() +
+          current.fhirNodeDataType.substring(1)) &&
+        current.model.choiceTypePaths[current.parentResNode?.path + '.' +
+          propName.substring(0, propName.length - current.fhirNodeDataType.length)]
+      ) {
+        propName = propName.substring(0, propName.length - current.fhirNodeDataType.length);
+      }
+
+      // Determine whether to include an indexer
+      let indexStr = '';
+      if (current.index != null) {
+        // The element is from an array property — always include indexer
+        indexStr = '[' + current.index + ']';
+      } else if (!short) {
+        // Without short, include [0] for all elements (including singletons)
+        indexStr = '[0]';
+      }
+
+      segments.push(propName + indexStr);
+    } else if (current.path) {
+      // Root node (resource type) — no indexer
+      segments.push(current.path);
+    }
+
+    current = current.parentResNode;
+  }
+
+  segments.reverse();
+  return segments.join('.');
+}
+
+/**
+ * Implementation of the pathname() function.
+ * Returns the path of each item in the input collection within the input
+ * resource, using element names and indexers.
+ *
+ * Items derived from computation (not ResourceNode instances) are excluded
+ * from the result. Items outside the input resource (navigated via resolve())
+ * are also excluded.
+ *
+ * @param {Array} coll - the input collection
+ * @param {boolean} [short] - when true, excludes array indexers for elements
+ *   known to not be arrays (either in the model or at runtime)
+ * @return {string[]}
+ */
+engine.pathnameFn = function(coll, short) {
+  const result = [];
+  for (let i = 0; i < coll.length; i++) {
+    const item = coll[i];
+    // Only include ResourceNode instances — computed values are excluded
+    if (item instanceof ResourceNode) {
+      result.push(buildPathname(item, short));
+    }
+  }
+  return result;
 };
 
 module.exports = engine;
