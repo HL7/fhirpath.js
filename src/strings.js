@@ -273,11 +273,15 @@ engine.escapeFn = function (coll, format) {
     return str.replace(htmlEscapeRegex, ch => htmlEscapeMap[ch]);
   }
   if (format === 'json') {
+    // json encode using the built-in JSON.stringify and remove the surrounding quotes
     return JSON.stringify(str).slice(1, -1);
   }
   return [];
 };
 
+// we're undoing the escaping done by JSON.stringify, so we need to handle the same escape sequences
+// see https://tc39.es/ecma262/multipage/structured-data.html#sec-json.stringify for details on JSON string escaping
+// particularly Note 3. going from the text "\n" (2 string characters) to an actual single newline character in the string
 const jsonEscapeRegex = /\\(["\\/bfnrt]|u[0-9a-fA-F]{4})/g;
 const jsonEscapeMap = {
   '"': '"',
@@ -300,9 +304,11 @@ engine.unescapeFn = function (coll, format) {
   }
   if (format === 'json') {
     return str.replace(jsonEscapeRegex, (_, capture) => {
+      // single-character escape sequences like \" or \n (replacing with their single-character equivalents)
       if (capture.length === 1) {
         return jsonEscapeMap[capture];
       }
+      // unicode processing \uXXXX (also a single character, but represented by 6 characters in the input string)
       return String.fromCharCode(parseInt(capture.substring(1), 16));
     });
   }

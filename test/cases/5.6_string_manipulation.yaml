@@ -546,20 +546,28 @@ tests:
     expression: "'6B6C6D6E6'.decode('hex')"
     error: true
 
-# testExcapeUnescape Tests from the FHIR spec
-  - desc: '** testExcapeUnescape 1e'
+# testEscapeUnescape Tests from the FHIR spec
+  - desc: '** testEscapeUnescape 1e'
     expression: "'\"1<2\"'.escape('html')"
     result: ['&quot;1&lt;2&quot;']
 
-  - desc: '** testExcapeUnescape 2e'
+  - desc: '** testEscapeUnescape 2e'
     expression: "'\"1<2\"'.escape('json')"
     result: ['\"1<2\"']
 
-  - desc: '** testExcapeUnescape 3u'
+  - desc: '** testEscapeUnescape 2e-slash'
+    expression: "'\\\\1<2\\\\'.escape('json')"
+    result: ['\\1<2\\']
+
+  - desc: '** testEscapeUnescape 2u-slash'
+    expression: "'\\\\1<2\\\\'.unescape('json')"
+    result: ['\1<2\']
+
+  - desc: '** testEscapeUnescape 3u'
     expression: "'&quot;1&lt;2&quot;'.unescape('html')"
     result: ['"1<2"']
 
-  - desc: '** testExcapeUnescape 4u'
+  - desc: '** testEscapeUnescape 4u'
     expression: "'\\\"1<2\\\"'.unescape('json')"
     result: ['"1<2"']
 
