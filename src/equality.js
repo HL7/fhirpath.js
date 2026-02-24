@@ -172,4 +172,5 @@ engine.comparable = function(a, b){
 };
 
 
+engine.typecheck = typecheck;
 module.exports = engine;

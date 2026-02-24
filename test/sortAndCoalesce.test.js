@@ -104,13 +104,14 @@ describe("sortAndCoalesce", () => {
     });
 
     it("sort descending numeric", () => {
-      const expr = "(1|2|3).sort($this desc)";
+      const expr = "(1|2|3|10).sort($this desc)";
       const result = fhirpath.evaluate({}, expr, r4_model);
       
-      expect(result).toHaveLength(3);
-      expect(result[0]).toBe(3);
-      expect(result[1]).toBe(2);
-      expect(result[2]).toBe(1);
+      expect(result).toHaveLength(4);
+      expect(result[0]).toBe(10);
+      expect(result[1]).toBe(3);
+      expect(result[2]).toBe(2);
+      expect(result[3]).toBe(1);
     });
 
     it("sort descending alphabetic", () => {

@@ -8,6 +8,7 @@ const util = require('./utilities');
 const {TypeInfo, ResourceNode, FP_Type} = require('./types');
 const hashObject = require('./hash-object');
 const { deepEqual, maxCollSizeForDeepEqual } = require('./deep-equal');
+const equality = require('./equality');
 
 var engine = {};
 engine.whereMacro = function(parentData, expr) {
@@ -159,28 +160,30 @@ function compareValues(a, b) {
   if (a == null) return -1;  // Empty values sort before non-empty values
   if (b == null) return 1;
   
-  try {
-    // Use existing FHIRPath comparison logic from equality.js
-    // Convert to singleton arrays for typecheck
-    const [a0, b0] = equality.typecheck([a], [b]);
-    
-    // Handle FP_Type objects (dates, times, quantities, etc.)
-    if (a0 instanceof FP_Type) {
-      const compareResult = a0.compare(b0);
-      return compareResult === null ? 0 : compareResult;
-    }
-    
-    // Standard JavaScript comparison for basic types
-    if (a0 === b0) return 0;
-    return a0 < b0 ? -1 : a0 > b0 ? 1 : 0;
-    
-  } catch (error) {
-    // Fallback for incomparable types - use string comparison as last resort
-    // Per spec: "Values that would result in comparison errors must be filtered prior to sorting"
-    const strA = String(a);
-    const strB = String(b);
-    return strA.localeCompare(strB);
+  // Use existing FHIRPath comparison logic from equality.js
+  // Convert to singleton arrays for typecheck
+  const [a0, b0] = equality.typecheck([a], [b]);
+  
+  // Handle FP_Type objects (dates, times, quantities, etc.)
+  if (a0 instanceof FP_Type) {
+    const compareResult = a0.compare(b0);
+    return compareResult === null ? 0 : compareResult;
   }
+  
+  // Reject non-primitive types that can't be meaningfully compared
+  // Per spec: "Values that would result in comparison errors must be filtered prior to sorting"
+  let type = typeof a0;
+  if (type === 'object' || type === 'function') {
+    throw new Error('Cannot sort by non-primitive type: ' + (a0.constructor?.name || type));
+  }
+  type = typeof b0;
+  if (type === 'object' || type === 'function') {
+    throw new Error('Cannot sort by non-primitive type: ' + (b0.constructor?.name || type));
+  }
+  
+  // Standard JavaScript comparison for basic types
+  if (a0 === b0) return 0;
+  return a0 < b0 ? -1 : a0 > b0 ? 1 : 0;
 }
 
 engine.repeatMacro = function(parentData, expr, state = { res: [], unique: {}, hasPrimitive: false }) {
