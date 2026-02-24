@@ -73,6 +73,10 @@ tests:
             expression: (@T10:30:00).yearOf()
             result: []
 
+          - desc: '** yearOf for an invalid input type returns empty'
+            expression: 5.yearOf()
+            result: []
+
         - 'group: monthOf(): Integer':
 
           - desc: '** monthOf for a full DateTime'
@@ -95,6 +99,10 @@ tests:
 
           - desc: '** monthOf for an empty collection'
             expression: ({}).monthOf()
+            result: []
+
+          - desc: '** monthOf for an invalid input type returns empty'
+            expression: 5.monthOf()
             result: []
 
         - 'group: dayOf(): Integer':
@@ -121,6 +129,10 @@ tests:
             expression: ({}).dayOf()
             result: []
 
+          - desc: '** dayOf for an invalid input type returns empty'
+            expression: 5.dayOf()
+            result: []
+
         - 'group: hourOf(): Integer':
 
           - desc: '** hourOf for a full DateTime'
@@ -145,6 +157,10 @@ tests:
             expression: ({}).hourOf()
             result: []
 
+          - desc: '** hourOf for an invalid input type returns empty'
+            expression: 5.hourOf()
+            result: []
+
         - 'group: minuteOf(): Integer':
 
           - desc: '** minuteOf for a full DateTime'
@@ -165,6 +181,10 @@ tests:
             expression: ({}).minuteOf()
             result: []
 
+          - desc: '** minuteOf for an invalid input type returns empty'
+            expression: 5.minuteOf()
+            result: []
+
         - 'group: secondOf(): Integer':
 
           - desc: '** secondOf for a full DateTime'
@@ -183,6 +203,10 @@ tests:
 
           - desc: '** secondOf for an empty collection'
             expression: ({}).secondOf()
+            result: []
+
+          - desc: '** secondOf for an invalid input type returns empty'
+            expression: 5.secondOf()
             result: []
 
         - 'group: millisecondOf(): Integer':
@@ -211,6 +235,10 @@ tests:
 
           - desc: '** millisecondOf for an empty collection'
             expression: ({}).millisecondOf()
+            result: []
+
+          - desc: '** millisecondOf for an invalid input type returns empty'
+            expression: 5.millisecondOf()
             result: []
 
         - 'group: timezoneOffsetOf(): Decimal':
@@ -251,6 +279,10 @@ tests:
             expression: ({}).timezoneOffsetOf()
             result: []
 
+          - desc: '** timezoneOffsetOf for an invalid input type returns empty'
+            expression: 5.timezoneOffsetOf()
+            result: []
+
         - 'group: dateOf(): Date':
 
           - desc: '** dateOf for a full DateTime'
@@ -281,6 +313,10 @@ tests:
             expression: ({}).dateOf()
             result: []
 
+          - desc: '** dateOf for an invalid input type returns empty'
+            expression: 5.dateOf()
+            result: []
+
         - 'group: timeOf(): Time':
 
           - desc: '** timeOf for a full DateTime'
@@ -307,6 +343,10 @@ tests:
 
           - desc: '** timeOf for an empty collection'
             expression: ({}).timeOf()
+            result: []
+
+          - desc: '** timeOf for an invalid input type returns empty'
+            expression: 5.timeOf()
             result: []
 
 subject:
