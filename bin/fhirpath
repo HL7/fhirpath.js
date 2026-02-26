@@ -2,8 +2,13 @@
 
 const fp = require('../src/fhirpath');
 const util = require('../src/utilities');
+const { mathOperations, validateOption } = require('./lib/cli-utils');
 const fs = require('fs');
 const yaml = require('js-yaml');
+
+// Supported FHIR versions
+const supportedVersions = ['dstu2', 'stu3', 'r4', 'r5'];
+
 const options = require('commander');
 options.description('Parses and/or runs a FHIRPath expression.  If neither --resourceFile nor --resourceJSON is provided, the parse tree of the FHIRPath expression will be output.');
 options.option('-b, --basePath <path>', 'base path in the resource from which the JSON data was extracted.');
@@ -13,7 +18,8 @@ options.option('-r, --resourceJSON <JSON>', 'JSON resource or part of it, if bas
 options.option('-v, --variables <JSON>', 'JSON hash of variables.');
 options.option('-t, --terminologyUrl <url>', 'the Terminology Service API URL.');
 options.option('-s, --fhirServerUrl <url>', 'the FHIR server URL.');
-options.option('-m, --model <dstu2 | stu3 | r4 | r5>', 'Include FHIR model data.');
+options.option(`-m, --model <${supportedVersions.join(' | ')}>`, 'Include FHIR model data.');
+options.option(`-o, --mathOperations <${mathOperations.join(' | ')}>`, 'mathematical operation mode.');
 options.parse(process.argv);
 
 // this cli util is part of public interface of fhirpath
@@ -42,18 +48,19 @@ else {
       context = JSON.parse(context);
     let resource = JSON.parse(resourceJSON);
     let model;
+
+    validateOption(options, options.model, supportedVersions, '-m');
     if (options.model) {
-      let supportedVersions = ['dstu2', 'stu3', 'r4', 'r5'];
-      if (supportedVersions.indexOf(options.model) < 0)
-        throw new Error('FHIR model must be one of '+supportedVersions);
-      model = require('../fhir-context/'+options.model);
+      model = require(`../fhir-context/${options.model}`);
     }
+    validateOption(options, options.mathOperations, mathOperations, '-o');
     let res = fp.evaluate(
       resource, base ? {base, expression} : expression, context, model,
       {
         async: true,
         ...(options.terminologyUrl ? {terminologyUrl: options.terminologyUrl} : {}),
-        ...(options.fhirServerUrl ? {fhirServerUrl : options.fhirServerUrl} : {})
+        ...(options.fhirServerUrl ? {fhirServerUrl : options.fhirServerUrl} : {}),
+        ...(options.mathOperations ? {preciseMath : options.mathOperations === 'precise'} : {})
       }
     );
 

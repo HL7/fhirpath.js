@@ -37,7 +37,7 @@ engine.sumFn = function(data) {
     if (x.length === 0 || y.length === 0) {
       return [];
     }
-    return math.plus(x, y);
+    return math.plus.call(this, x, y);
   }, data[0]]);
 };
 
@@ -78,12 +78,12 @@ engine.maxFn = function (data) {
 
 // Shortcut for "value.sum()/value.count()"
 engine.avgFn = function (data) {
-  const x = util.arraify(engine.sumFn(data));
-  const y = util.arraify(engine.countFn(data));
+  const x = util.arraify(engine.sumFn.call(this, data));
+  const y = util.arraify(engine.countFn.call(this, data));
   if (x.length === 0 || y.length === 0) {
     return [];
   }
-  return math.div(x, y);
+  return math.div.call(this, x, y);
 };
 
 module.exports = engine;

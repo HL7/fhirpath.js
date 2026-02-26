@@ -92,6 +92,7 @@ tests:
          %factory.decimal(0.30000000000000004, %factory.Extension('someExt', 'someString'))) |
         (%factory.decimal(0.3, %factory.Extension('someExt', 'someString1')) =
          %factory.decimal(0.30000000000000004, %factory.Extension('someExt', 'someString2')))
+      preciseMath: false
       result: [true, false]
 
     - desc: '* boolean: values must be the same'
@@ -120,7 +121,7 @@ tests:
 
     - 'group: Quantity Equality':
       - expression: 1 year != 1 'a'
-        result: [true]
+        result: []
 
       - expression: 12 months = 1 year
         result: [true]
@@ -132,7 +133,7 @@ tests:
         result: [true]
 
       - expression: 1 month != 1 'mo'
-        result: [true]
+        result: []
 
       - expression: 1 month = 30 'd'
         result: []
@@ -167,10 +168,16 @@ tests:
       - expression: 9 = 9 '1'
         result: [true]
 
+      - expression: 9 = 9 'kg.kg-1'
+        result: [true]
+
       - expression: 9 = 8 '1'
         result: [false]
 
       - expression: 2 '1' = 2
+        result: [true]
+
+      - expression: 2 's.s-1' = 2
         result: [true]
 
       - expression: 3 '1' = 2

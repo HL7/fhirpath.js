@@ -1,7 +1,7 @@
 const fhirpath = require('../src/fhirpath');
 const r4_model = require('../fhir-context/r4');
 const _ = require('lodash');
-const {FP_DateTime, FP_Quantity} = require('../src/types');
+const {FP_DateTime, FP_Quantity, FP_Decimal_Native} = require('../src/types');
 const observationResource = require('./resources/r4/observation-example.json');
 const input = {
   get questionnairePartExample() {
@@ -83,7 +83,7 @@ describe('compile', () => {
     expect(f({})).toStrictEqual(['2018-02-18T12:23:45-05:00']);
 
     f = fhirpath.compile("2.0 'cm'");
-    expect(f({})).toStrictEqual(["2 'cm'"]);
+    expect(f({})).toStrictEqual(["2.0 'cm'"]);
   });
 
   it('should not resolve values which have internal data types to strings when options.resolveInternalTypes is false', () => {
@@ -92,14 +92,16 @@ describe('compile', () => {
       null,
       {resolveInternalTypes: false}
     );
-    expect(f({})).toStrictEqual([new FP_DateTime('2018-02-18T12:23:45-05:00')]);
+    let r = f({});
+    expect(r).toStrictEqual([new FP_DateTime(r[0].ctx, '2018-02-18T12:23:45-05:00')]);
 
     f = fhirpath.compile(
       "2.0 'cm'",
       null,
       {resolveInternalTypes: false}
     );
-    expect(f({})).toStrictEqual([new FP_Quantity(2, "'cm'")]);
+    r = f({});
+    expect(r).toStrictEqual([new FP_Quantity(r[0].ctx, '2.0', "'cm'")]);
   });
 });
 
@@ -157,28 +159,17 @@ describe('evaluate', () => {
 
     expect(
       fhirpath.evaluate({}, "2.0 'cm'")
-    ).toStrictEqual(["2 'cm'"]);
+    ).toStrictEqual(["2.0 'cm'"]);
   });
 
   it('should not resolve values which have internal data types to strings when options.resolveInternalTypes is false', () => {
-    expect(
-      fhirpath.evaluate(
-        {},
-        '@2018-02-18T12:23:45-05:00',
-        null,
-        null,
-        { resolveInternalTypes: false })
-    ).toStrictEqual([new FP_DateTime('2018-02-18T12:23:45-05:00')]);
+    let r = fhirpath.evaluate( {}, '@2018-02-18T12:23:45-05:00', null, null,
+      { resolveInternalTypes: false });
+    expect(r).toStrictEqual([new FP_DateTime(r[0].ctx, '2018-02-18T12:23:45-05:00')]);
 
-    expect(
-      fhirpath.evaluate(
-        {},
-        "2.0 'cm'",
-        null,
-        null,
-        { resolveInternalTypes: false }
-      )
-    ).toStrictEqual([new FP_Quantity(2, "'cm'")]);
+    r = fhirpath.evaluate( {}, "2.0 'cm'", null, null,
+      { resolveInternalTypes: false });
+    expect(r).toStrictEqual([new FP_Quantity(r[0].ctx, '2.0', "'cm'")]);
   });
 
   it('should support providing a custom function to "trace"', () => {
@@ -200,8 +191,8 @@ describe('resolveInternalTypes', () => {
   it('should resolve values which have internal data types to strings', () => {
     expect(
       fhirpath.resolveInternalTypes([
-        new FP_DateTime('2020-02-18T12:23:45-05:00'),
-        new FP_Quantity(1, "'cm'")
+        new FP_DateTime(null, '2020-02-18T12:23:45-05:00'),
+        new FP_Quantity({getDecimal: FP_Decimal_Native.getDecimal}, 1, "'cm'")
       ])
     ).toStrictEqual([
       '2020-02-18T12:23:45-05:00',
@@ -317,3 +308,50 @@ describe('evaluate environment variables', () => {
     )).toStrictEqual([true]);
   })
 });
+
+
+describe('FP_Decimal in evaluate', () => {
+  const { FP_Decimal } = fhirpath;
+
+  it('should preserve precise decimal values in a resource', () => {
+    const resource = {
+      resourceType: 'Observation',
+      valueQuantity: {
+        value: FP_Decimal.getDecimal('12345678901234567890.12345678'),
+        system: 'http://unitsofmeasure.org',
+        code: 'mg'
+      }
+    };
+    const result = fhirpath.evaluate(
+      resource,
+      'Observation.value.value',
+      null,
+      r4_model,
+      { preciseMath: true, keepDecimalTypes: true }
+    );
+    expect(result[0] instanceof FP_Decimal).toBe(true);
+    expect(result[0].toString()).toBe('12345678901234567890.12345678');
+  });
+
+
+  it('should correctly handle FP_Decimal in quantity expressions', () => {
+    const resource = {
+      resourceType: 'Observation',
+      valueQuantity: {
+        value: FP_Decimal.getDecimal('0.1'),
+        system: 'http://unitsofmeasure.org',
+        code: 'kg'
+      }
+    };
+    const result = fhirpath.evaluate(
+      resource,
+      "Observation.value + 0.2 'kg'",
+      null,
+      r4_model,
+      { preciseMath: true }
+    );
+    expect(result[0].toString()).toBe("0.3 'kg'");
+  });
+
+});
+

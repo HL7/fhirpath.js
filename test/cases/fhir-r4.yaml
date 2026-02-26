@@ -919,7 +919,6 @@ tests:
         result:
           - true
         model: r4
-        disable: true
       - desc: '** testStringIntegerLiteralConvertsToDecimal'
         inputfile: patient-example.json
         expression: '''1''.convertsToDecimal()'
@@ -1277,7 +1276,6 @@ tests:
         result:
           - '1.0'
         model: r4
-        disable: true
       - desc: '** testStringLiteralToString'
         inputfile: patient-example.json
         expression: '''true''.toString()'
@@ -1940,7 +1938,6 @@ tests:
         result:
           - true
         model: r4
-        disable: true
       - desc: '** testToString5'
         inputfile: patient-example.json
         expression: '@2014-12-14.toString() = ''2014-12-14'''
@@ -4876,32 +4873,26 @@ tests:
         model: r4
   - 'group: testPrecedence':
       - desc: '** test unary precedence'
-        inputfile: patient-example.json
         expression: '-1.convertsToInteger()'
         error: true
         model: r4
       - desc: '** testPrecedence2'
-        inputfile: patient-example.json
         expression: 1+2*3+4 = 11
         result:
           - true
         model: r4
       - desc: '** testPrecedence3'
-        inputfile: patient-example.json
         expression: 1 > 2 is Boolean
+        error: true
         result:
           - true
         model: r4
-        disable: true
       - desc: '** testPrecedence4'
-        inputfile: patient-example.json
-        expression: 1 | 1 is Integer
+        expression: (1 | 1 is Integer).count()
         result:
-          - true
+          - 2
         model: r4
-        disable: true
       - desc: '** testPrecedence5'
-        inputfile: observation-example.json
         expression: true and '0215' in ('0215' | '0216')
         result:
           - true

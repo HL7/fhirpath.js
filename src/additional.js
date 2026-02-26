@@ -228,8 +228,8 @@ engine.resolveFn = function (coll) {
   }, [])).then(result => {
     return result.reduce((acc, resItem) => {
       if (resItem.status === 'fulfilled' && resItem.value?.resourceType) {
-        acc.push(ResourceNode.makeResNode(resItem.value, null, null, null,
-          null, ctx.model));
+        acc.push(ResourceNode.makeResNode(ctx, resItem.value, null, null, null,
+          null));
       }
       return acc;
     }, []);

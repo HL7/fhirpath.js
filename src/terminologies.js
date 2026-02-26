@@ -415,7 +415,7 @@ class Terminologies {
       if (obj?.resourceType === 'Parameters') {
         const code = obj.parameter?.find(p => p.name === 'outcome')?.valueCode;
         return ResourceNode.makeResNode(
-          code, null, 'code', null, 'code', ctx.model);
+          ctx, code, null, 'code', null, 'code');
       }
       throw new Error(obj);
     }).catch(() => null);
@@ -786,7 +786,7 @@ function getCodedType(ctx, codedColl) {
 function transformResponseToResource(ctx, response, resourceType) {
   return response?.then(obj => {
     if (obj?.resourceType === resourceType) {
-      return ResourceNode.makeResNode(obj, null, null, null, null, ctx.model);
+      return ResourceNode.makeResNode(ctx, obj, null, null, null, null);
     }
     // Throw an error if the resource type does not match - will cause the catch
     // function to be called.

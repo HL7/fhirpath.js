@@ -1,13 +1,27 @@
-
 // This file holds code to hande the FHIRPath Existence functions (5.1 in the
 // specification).
 
 var util = require("./utilities");
 
-const { FP_Quantity, TypeInfo, FP_DateTime, FP_Date, FP_Time } = require("./types");
+const { FP_Quantity, TypeInfo, FP_DateTime, FP_Date, FP_Time, FP_Decimal} =
+  require("./types");
 
 var engine = {};
 
+
+/**
+ * Implements the FHIRPath `iif(criterion, true-result, otherwise-result)` function.
+ * Evaluates the criterion expression on the input data. If the result is true,
+ * returns the result of the true-result expression; otherwise returns the result
+ * of the otherwise-result expression (or an empty collection if not provided).
+ * See https://hl7.org/fhirpath/#iifcriterion-expression-true-result-collection-otherwise-result-collection-collection
+ * @param {Array} data - the input collection.
+ * @param {Function} cond - the criterion expression.
+ * @param {Function} ok - the true-result expression.
+ * @param {Function} [fail] - the otherwise-result expression.
+ * @returns {Array|Promise<Array>} the result of the selected branch. Returns
+ *   a Promise if the criterion expression is asynchronous.
+ */
 engine.iifMacro = function(data, cond, ok, fail) {
   const condition = cond(data);
   if (condition instanceof Promise) {
@@ -16,6 +30,16 @@ engine.iifMacro = function(data, cond, ok, fail) {
   return iifMacroSync(data, condition, ok, fail);
 };
 
+
+/**
+ * Synchronous implementation of the iif macro logic.
+ * @param {Array} data - the input collection.
+ * @param {Array} condition - the evaluated criterion result.
+ * @param {Function} ok - the true-result expression.
+ * @param {Function} [fail] - the otherwise-result expression.
+ * @returns {Array} the result of the selected branch, or an empty array if
+ *   the condition is false and no otherwise-result is provided.
+ */
 function iifMacroSync(data, condition, ok, fail) {
   if(util.isTrue(condition)) {
     return ok(data);
@@ -24,6 +48,20 @@ function iifMacroSync(data, condition, ok, fail) {
   }
 }
 
+
+/**
+ * Implements the FHIRPath `trace(name, projection)` function.
+ * Logs the input collection (or the result of the projection expression) to
+ * the console or to a custom trace function, then returns the input collection
+ * unchanged.
+ * See https://hl7.org/fhirpath/#tracename-string-projection-expression-collection
+ * @param {Array} x - the input collection.
+ * @param {string} label - the trace label.
+ * @param {Function} [expr] - an optional projection expression whose result is
+ *   traced instead of the input collection.
+ * @returns {Array|Promise<Array>} the original input collection. Returns a
+ *   Promise if the projection expression is asynchronous.
+ */
 engine.traceFn = function (x, label, expr) {
   const exprRes = expr ? expr(x) : null;
   if (exprRes instanceof Promise) {
@@ -47,6 +85,7 @@ engine.traceFn = function (x, label, expr) {
   }
   return x;
 };
+
 
 /**
  * Defines a variable named name that is accessible in subsequent expressions
@@ -97,7 +136,20 @@ function checkSingleton(coll, fnName) {
 }
 
 var intRegex = /^[+-]?\d+$/;
+
+
+/**
+ * Implements the FHIRPath `toInteger()` function.
+ * Converts a singleton value to an integer. Supports booleans, numbers, BigInt,
+ * FP_Decimal, and strings matching an integer pattern.
+ * See https://hl7.org/fhirpath/#tointeger-integer
+ * @param {Array} coll - the input collection (singleton).
+ * @returns {number|FP_Decimal|undefined} the integer value, or undefined if
+ *   the value cannot be converted (which results in an empty collection).
+ * @throws {Error} if the collection contains more than one item.
+ */
 engine.toInteger = function(coll){
+  const ctx = this;
   let rtn;
   // If the input collection contains multiple items, the evaluation of
   // the expression will end and signal an error to the calling environment.
@@ -110,12 +162,16 @@ engine.toInteger = function(coll){
       rtn = 0;
     } else if (v === true) {
       rtn = 1;
+    } else if (v instanceof FP_Decimal) {
+      if (v.isInteger()) {
+        rtn = v;
+      }
     } else {
       const type = typeof v;
       if (type === "bigint") {
         // See the table of the possible conversions supported:
         // https://build.fhir.org/ig/HL7/FHIRPath/#conversion
-        rtn = Number(v);
+        rtn = ctx.getDecimal(v);
       } else if (type === "number") {
         if (Number.isInteger(v)) {
           rtn = v;
@@ -129,6 +185,16 @@ engine.toInteger = function(coll){
 };
 
 
+/**
+ * Implements the FHIRPath `toLong()` function.
+ * Converts a singleton value to a BigInt (long integer). Supports booleans,
+ * numbers, BigInt, FP_Decimal, and strings matching an integer pattern.
+ * See https://build.fhir.org/ig/HL7/FHIRPath/#tolong--long
+ * @param {Array} coll - the input collection (singleton).
+ * @returns {BigInt|undefined} the BigInt value, or undefined if the value
+ *   cannot be converted (which results in an empty collection).
+ * @throws {Error} if the collection contains more than one item.
+ */
 engine.toLong = function(coll){
   let rtn;
   // If the input collection contains multiple items, the evaluation of
@@ -143,6 +209,10 @@ engine.toLong = function(coll){
       rtn = 0n;
     } else if (v === true) {
       rtn = 1n;
+    } else if (v instanceof FP_Decimal) {
+      if (v.isInteger()) {
+        rtn = BigInt(v.toString());
+      }
     } else {
       const type = typeof v;
       if (type === "bigint") {
@@ -159,7 +229,28 @@ engine.toLong = function(coll){
   return rtn;
 };
 
-const quantityRegex = /^((\+|-)?\d+(\.\d+)?)\s*(('[^']+')|([a-zA-Z]+))?$/,
+/**
+ * Regular expression for parsing quantity strings.
+ * Matches an optional sign, integer or decimal number, optional whitespace,
+ * and an optional unit (either a UCUM code in single quotes or a calendar
+ * duration keyword).
+ *
+ * Capture groups:
+ *   1 - the full numeric value (including sign and decimal part)
+ *   2 - the sign (+ or -)
+ *   3 - the decimal part (e.g. ".5")
+ *   4 - the full unit group (quoted UCUM code or time keyword)
+ *   5 - the UCUM unit code surrounded by single quotes (e.g. 'mg')
+ *   6 - the calendar duration keyword (e.g. "days", "years")
+ *
+ * @type {RegExp}
+ */
+const quantityRegex = /^(([+-])?\d+(\.\d+)?)\s*(('[^']+')|([a-zA-Z]+))?$/,
+  /**
+   * Maps semantic field names to their corresponding capture group indices
+   * in {@link quantityRegex}.
+   * @type {{value: number, unit: number, time: number}}
+   */
   quantityRegexMap = {value:1,unit:5,time:6};
 
 
@@ -178,14 +269,15 @@ const quantityRegex = /^((\+|-)?\d+(\.\d+)?)\s*(('[^']+')|([a-zA-Z]+))?$/,
  *
  * @param {Array} coll - A collection that should contain a single element to
  *  convert. If the collection contains multiple items, an error will be thrown.
- *  If the collection is empty, the result will be an empty collection (null).
+ *  If the collection is empty, the result will be an empty collection
+ *  (undefined).
  * @param {string} [toUnit] - Optional target unit for conversion. FHIRPath
  *  calendar duration units (e.g., 'seconds', 'years', 'months') are also
  *  supported.
  *
- * @returns {FP_Quantity|null} Returns:
+ * @returns {FP_Quantity|undefined} Returns:
  *  - A FP_Quantity object representing the converted value
- *  - null if the input collection is empty or the value cannot be converted
+ *  - undefined if the input collection is empty or the value cannot be converted
  *
  * @throws {Error} If the collection contains multiple items (via checkSingleton)
  *
@@ -204,10 +296,11 @@ const quantityRegex = /^((\+|-)?\d+(\.\d+)?)\s*(('[^']+')|([a-zA-Z]+))?$/,
  * - Conversion between calendar durations and definite quantity durations
  *   above days (and weeks) (the threshold is defined by
  *   FP_Quantity._maxComparableCalendarDuration) is not allowed.
- * - If such a conversion is attempted, the function returns null.
+ * - If such a conversion is attempted, the function returns undefined.
  */
 engine.toQuantity = function (coll, toUnit) {
-  let result = null;
+  const ctx = this;
+  let result;
 
   // If the input collection contains multiple items, the evaluation of
   // the expression will end and signal an error to the calling environment.
@@ -216,30 +309,35 @@ engine.toQuantity = function (coll, toUnit) {
   // the calling function.
   if (checkSingleton(coll, 'toQuantity')) {
     const v = util.valDataConverted(coll[0]);
-    const type = typeof v;
-    let quantityRegexRes;
+    if (v instanceof FP_Decimal) {
+      result = new FP_Quantity(ctx, v, '\'1\'');
+    } else {
+      const type = typeof v;
+      let quantityRegexRes;
 
-    if (type === "number") {
-      result = new FP_Quantity(v, '\'1\'');
-    } else if (v instanceof FP_Quantity) {
-      result = v;
-    } else if (type === 'boolean') {
-      result = new FP_Quantity(v ? 1 : 0, '\'1\'');
-    } else if (type === "string" && (quantityRegexRes = quantityRegex.exec(v)) ) {
-      const value = quantityRegexRes[quantityRegexMap.value],
-        unit = quantityRegexRes[quantityRegexMap.unit],
-        time = quantityRegexRes[quantityRegexMap.time];
+      if (type === "number") {
+        result = new FP_Quantity(ctx, v, '\'1\'');
+      } else if (v instanceof FP_Quantity) {
+        result = v;
+      } else if (type === 'boolean') {
+        result = new FP_Quantity(ctx, v ? 1 : 0, '\'1\'');
+      } else if (type === "string" && (quantityRegexRes = quantityRegex.exec(v)) ) {
+        const value = quantityRegexRes[quantityRegexMap.value],
+          unit = quantityRegexRes[quantityRegexMap.unit],
+          time = quantityRegexRes[quantityRegexMap.time];
 
-      // UCUM unit code in the input string must be surrounded with single quotes
-      if (!time || FP_Quantity.mapTimeUnitsToUCUMCode[time]) {
-        result = new FP_Quantity(Number(value), unit || time || '\'1\'');
+        // UCUM unit code in the input string must be surrounded with single quotes
+        if (!time || FP_Quantity.mapTimeUnitsToUCUMCode[time]) {
+          result = new FP_Quantity(ctx, Number(value), unit || time || '\'1\'');
+        }
       }
     }
+
 
     if (result && toUnit && result.unit !== toUnit) {
       if ( result.hasIncomparableDurationMix(toUnit) ) {
         // If the durations cannot be compared, the conversion is not possible.
-        return null;
+        return undefined;
       }
 
       // Surround UCUM unit code in the toUnit parameter with single quotes
@@ -247,14 +345,26 @@ engine.toQuantity = function (coll, toUnit) {
         toUnit = `'${toUnit}'`;
       }
 
-      result = FP_Quantity.convUnitTo(result.unit, result.value, toUnit);
+      result = FP_Quantity.convUnitTo(ctx, result.unit, result.value, toUnit);
     }
   }
 
   return result;
 };
 
-var numRegex = /^[+-]?\d+(\.\d+)?$/;
+const numRegex = /^[+-]?\d+(\.\d+)?$/;
+
+
+/**
+ * Implements the FHIRPath `toDecimal()` function.
+ * Converts a singleton value to a decimal number. Supports booleans, numbers,
+ * BigInt, FP_Decimal, and strings matching a decimal pattern.
+ * See https://hl7.org/fhirpath/#todecimal-decimal
+ * @param {Array} coll - the input collection (singleton).
+ * @returns {number|FP_Decimal|undefined} the decimal value, or undefined if
+ *   the value cannot be converted (which results in an empty collection).
+ * @throws {Error} if the collection contains more than one item.
+ */
 engine.toDecimal = function(coll){
   let rtn;
   // If the input collection contains multiple items, the evaluation of
@@ -274,7 +384,7 @@ engine.toDecimal = function(coll){
         // See the table of the possible conversions supported:
         // https://build.fhir.org/ig/HL7/FHIRPath/#conversion
         rtn = Number(v);
-      } else if (type === "number") {
+      } else if (type === "number" || v instanceof FP_Decimal) {
         rtn = v;
       } else if (type === "string" && numRegex.test(v)) {
         rtn = parseFloat(v);
@@ -284,6 +394,16 @@ engine.toDecimal = function(coll){
   return rtn;
 };
 
+
+/**
+ * Implements the FHIRPath `toString()` function.
+ * Converts a singleton value to its string representation.
+ * See https://hl7.org/fhirpath/#tostring-string
+ * @param {Array} coll - the input collection (singleton).
+ * @returns {string|undefined} the string representation, or undefined if
+ *   the input is empty (which results in an empty collection).
+ * @throws {Error} if the collection contains more than one item.
+ */
 engine.toString = function(coll){
   let rtn;
   // If the input collection contains multiple items, the evaluation of
@@ -296,6 +416,7 @@ engine.toString = function(coll){
   }
   return rtn;
 };
+
 
 /**
  * Converts the input collection to an FP_Date value.
@@ -323,6 +444,7 @@ engine.toDate = function(coll) {
   //  the expression will end and signal an error to the calling environment.
   //  If the input collection is empty, the result is an empty collection.
   if (checkSingleton(coll, 'toDate')) {
+    const ctx = this;
     const v = util.valData(coll[0]);
 
     // Check if the value is already FP_Date
@@ -337,11 +459,11 @@ engine.toDate = function(coll) {
       // In case we need to apply timezone, we can use the following code:
       // const dateStr = v._getPrecision() <= 2 ? v.asStr : FP_DateTime.isoDateTime(v._getDateObj(),2)
       const dateStr = v.asStr.split('T')[0];
-      rtn = new FP_Date(dateStr);
+      rtn = new FP_Date(ctx, dateStr);
     }
     // Convert from string
     else if (typeof v === "string") {
-      const t = FP_Date.checkString(v);
+      const t = FP_Date.checkString(ctx, v);
       if (t) {
         rtn = t;
       }
@@ -377,6 +499,7 @@ engine.toDateTime = function(coll) {
   //  the expression will end and signal an error to the calling environment.
   //  If the input collection is empty, the result is an empty collection.
   if (checkSingleton(coll, 'toDateTime')) {
+    const ctx = this;
     const v = util.valData(coll[0]);
 
     // Check if the value is already FP_DateTime
@@ -385,11 +508,11 @@ engine.toDateTime = function(coll) {
     }
     // Convert from FP_Date (date string is valid as datetime string)
     else if (v instanceof FP_Date) {
-      rtn = new FP_DateTime(v.asStr);
+      rtn = new FP_DateTime(ctx, v.asStr);
     }
     // Convert from string
     else if (typeof v === "string") {
-      const t = FP_DateTime.checkString(v);
+      const t = FP_DateTime.checkString(ctx, v);
       if (t) {
         rtn = t;
       }
@@ -423,6 +546,7 @@ engine.toTime = function(coll) {
   //  the expression will end and signal an error to the calling environment.
   //  If the input collection is empty, the result is an empty collection.
   if (checkSingleton(coll, 'toTime')) {
+    const ctx = this;
     const v = util.valData(coll[0]);
 
     // Check if the value is already FP_Time
@@ -431,7 +555,7 @@ engine.toTime = function(coll) {
     }
     // Convert from string
     else if (typeof v === "string") {
-      const t = FP_Time.checkString(v);
+      const t = FP_Time.checkString(ctx, v);
       if (t) {
         rtn = t;
       }
@@ -453,6 +577,18 @@ const falseStrings = ['false', 'f', 'no', 'n', '0', '0.0'].reduce((acc, val) => 
   return acc;
 }, {});
 
+
+/**
+ * Implements the FHIRPath `toBoolean()` function.
+ * Converts a singleton value to a boolean. Supports booleans, numbers (0/1),
+ * BigInt (0n/1n), FP_Decimal (0/1), and strings ('true', 't', 'yes', 'y',
+ * '1', '1.0' for true; 'false', 'f', 'no', 'n', '0', '0.0' for false).
+ * See https://hl7.org/fhirpath/#toboolean-boolean
+ * @param {Array} coll - the input collection (singleton).
+ * @returns {boolean|undefined} the boolean value, or undefined if the value
+ *   cannot be converted (which results in an empty collection).
+ * @throws {Error} if the collection contains more than one item.
+ */
 engine.toBoolean = function (coll) {
   let rtn;
   // If the input collection contains multiple items, the evaluation of
@@ -462,32 +598,40 @@ engine.toBoolean = function (coll) {
   // the calling function..
   if (checkSingleton(coll, 'toBoolean')) {
     const v = util.valData(coll[0]);
-    switch (typeof v) {
-      case 'boolean':
-        rtn = v;
-        break;
-      case 'bigint':
-        // See the table of the possible conversions supported:
-        // https://build.fhir.org/ig/HL7/FHIRPath/#conversion
-        if (v === 1n) {
-          rtn = true;
-        } else if (v === 0n) {
-          rtn = false;
-        }
-        break;
-      case 'number':
-        if (v === 1) {
-          rtn = true;
-        } else if (v === 0) {
-          rtn = false;
-        }
-        break;
-      case 'string': {
-        const lowerCaseValue = v.toLowerCase();
-        if (trueStrings[lowerCaseValue]) {
-          rtn = true;
-        } else if (falseStrings[lowerCaseValue]) {
-          rtn = false;
+    if (v instanceof FP_Decimal) {
+      if (v.equals(1)) {
+        rtn = true;
+      } else if (v.equals(0)) {
+        rtn = false;
+      }
+    } else {
+      switch (typeof v) {
+        case 'boolean':
+          rtn = v;
+          break;
+        case 'bigint':
+          // See the table of the possible conversions supported:
+          // https://build.fhir.org/ig/HL7/FHIRPath/#conversion
+          if (v === 1n) {
+            rtn = true;
+          } else if (v === 0n) {
+            rtn = false;
+          }
+          break;
+        case 'number':
+          if (v === 1) {
+            rtn = true;
+          } else if (v === 0) {
+            rtn = false;
+          }
+          break;
+        case 'string': {
+          const lowerCaseValue = v.toLowerCase();
+          if (trueStrings[lowerCaseValue]) {
+            rtn = true;
+          } else if (falseStrings[lowerCaseValue]) {
+            rtn = false;
+          }
         }
       }
     }
@@ -495,35 +639,54 @@ engine.toBoolean = function (coll) {
   return rtn;
 };
 
+
 /**
- * Creates function that checks if toFunction returns specified type
- * @param {function(coll: array): <type|[]>} toFunction
- * @param {string|class} type - specifies type, for example: 'string' or FP_Quantity
- * @return {function(coll: array)}
+ * Creates a function that checks if a conversion function successfully converts
+ * a value from a singleton collection to a specified type.
+ *
+ * This factory function generates a converter validation function that can be
+ * used to implement FHIRPath's `convertsTo*` functions (e.g.,
+ * `convertsToInteger`, `convertsToDecimal`, `convertsToBoolean`, etc.).
+ *
+ * @param {function(coll: Array): (*|undefined)} toFunction - A conversion
+ *   function (e.g., `engine.toInteger`, `engine.toDecimal`) that takes a collection
+ *   and returns the converted value or `undefined` if conversion is not possible.
+ *   The function is called with `this` bound to the current evaluation context.
+ * @returns {function(this: Object, coll: Array): (boolean|Array)} A function that:
+ *   - Returns an empty array `[]` if the input collection does not contain
+ *     exactly one item
+ *   - Returns `true` if the conversion function successfully converts the value
+ *     (i.e., returns a value other than `undefined`)
+ *   - Returns `false` if the conversion function returns `undefined`
+ *
+ * @example
+ * // Create a convertsToInteger function
+ * engine.convertsToInteger = engine.createConvertsToFn(engine.toInteger);
+ *
+ * // Usage:
+ * engine.convertsToInteger.call(ctx, [42]);      // returns true
+ * engine.convertsToInteger.call(ctx, ['hello']); // returns false
+ * engine.convertsToInteger.call(ctx, []);        // returns []
+ * engine.convertsToInteger.call(ctx, [1, 2]);    // returns []
  */
-engine.createConvertsToFn = function (toFunction, type) {
-  if (typeof type === 'string') {
-    return function (coll) {
-      if (coll.length !== 1) {
-        return [];
-      }
-
-      return typeof toFunction(coll) === type;
-    };
-  }
-
+engine.createConvertsToFn = function (toFunction) {
   return function (coll) {
     if (coll.length !== 1) {
       return [];
     }
 
-    return toFunction(coll) instanceof type;
+    return toFunction.call(this, coll) !== undefined;
   };
 };
 
 const singletonEvalByType = {
   "Integer": function(d){
-    if (Number.isInteger(d)) {
+    if (d instanceof FP_Quantity) {
+      const decimal = d.toDecimal();
+      if (decimal?.isInteger()) {
+        return decimal;
+      }
+    } else if (d instanceof FP_Decimal ? d.isInteger() : Number.isInteger(d)) {
       return d;
     }
   },
@@ -536,7 +699,12 @@ const singletonEvalByType = {
   },
   "Number": function(d) {
     const type = typeof d;
-    if (type === "number" || type === "bigint") {
+    if (d instanceof FP_Quantity) {
+      const decimal = d.toDecimal();
+      if (decimal) {
+        return decimal;
+      }
+    } else if (type === "number" || type === "bigint" || d instanceof FP_Decimal) {
       return d;
     }
   },
@@ -547,7 +715,7 @@ const singletonEvalByType = {
   },
   "StringOrNumber": function(d){
     const type = typeof d;
-    if (type === "string" || type === "number") {
+    if (type === "string" || type === "number" || type === "bigint" || d instanceof FP_Decimal) {
       return d;
     }
   },
@@ -588,6 +756,16 @@ engine.singleton = function (coll, type) {
   throw new Error('Not supported type ' + type);
 };
 
+
+/**
+ * Implements the FHIRPath `hasValue()` function.
+ * Returns true if the input collection contains a single FHIR primitive value
+ * that is not null.
+ * See https://hl7.org/fhir/fhirpath.html#functions
+ * @param {Array} coll - the input collection.
+ * @returns {boolean} true if the collection contains exactly one non-null
+ *   primitive value, false otherwise.
+ */
 engine.hasValueFn = function(coll) {
   return coll.length === 1 && util.valData(coll[0]) != null
     && TypeInfo.isPrimitiveValue(coll[0]);

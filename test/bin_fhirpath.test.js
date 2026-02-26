@@ -1,9 +1,11 @@
 const {execSync} = require('child_process');
 
 /**
- *  Tests that the given fhirpath command outputs something that matches the given pattern.
- * @param fpCmd the command to run.  It should start wiht "bin/fhirpath"
- * followed by the arguments.
+ * Tests that the given fhirpath command outputs something that matches the given pattern.
+ * @param {string} fpCmd - The command to run. It should start with
+ *   "bin/fhirpath" followed by the arguments.
+ * @param {RegExp} pattern - A regular expression that the command output
+ *   is expected to match.
  */
 function checkOutput(fpCmd, pattern) {
   let output = execSync(__dirname +'/../'+fpCmd);
@@ -47,6 +49,14 @@ describe ('bin/fhirpath', function () {
     checkOutput("bin/fhirpath -e '%v1 + 2' -r '{}' -v '{\"v1\": 5}'", /7/g);
   });
 
+  it ('should accept the -o parameter to enable precision-safe arithmetic', function() {
+    checkOutput("bin/fhirpath -e '0.1 + 0.2' -r '{}' -o precise", /\s0.3\s/g);
+  });
+
+  it ('should accept the -o parameter to disable precision-safe arithmetic', function() {
+    checkOutput("bin/fhirpath -e '0.1 + 0.2' -r '{}' -o native", /\s0.300000/g);
+  });
+
   it ('should output help without arguments', function() {
     checkOutput("bin/fhirpath", /Options/g);
   });
@@ -76,6 +86,10 @@ describe ('bin/fhirpath', function () {
       checkOutput("bin/fhirpath --expression 'Observation.value' --resourceJSON "+
         "'{\"resourceType\": \"Observation\", \"valueString\": \"green\"}'"+
         " --model r4", /green/);
+    });
+
+    it ('should accept the --mathOperations parameter to enable precision-safe arithmetic', function() {
+      checkOutput("bin/fhirpath -e '0.1 + 0.2' -r '{}' --mathOperations precise", /\s0.3\s/g);
     });
   });
 })

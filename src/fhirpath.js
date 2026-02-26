@@ -55,7 +55,7 @@ let logic  = require("./logic");
 const types = require("./types");
 const {
   FP_Date, FP_DateTime, FP_Time, FP_Quantity,
-  FP_Type, ResourceNode, TypeInfo
+  FP_Type, ResourceNode, TypeInfo, FP_Decimal
 } = types;
 let makeResNode = ResourceNode.makeResNode;
 const Terminologies = require('./terminologies');
@@ -158,7 +158,7 @@ engine.invocationTable = {
   ln:             {fn: math.ln},
   log:            {fn: math.log, arity:  {1: ["Number"]}, nullable: true},
   power:          {fn: math.power, arity:  {1: ["Number"]}, nullable: true},
-  round:          {fn: math.round, arity:  {0: [], 1: ["Number"]}},
+  round:          {fn: math.round, arity:  {0: [], 1: ["Integer"]}},
   sqrt:           {fn: math.sqrt},
   truncate:       {fn: math.truncate},
 
@@ -243,9 +243,9 @@ engine.PolarityExpression = function(ctx, parentData, node) {
     if (sign === '-') {
       rtn[0] = -rtn[0];
     }
-  } else  if (rtn[0] instanceof FP_Quantity) {
+  } else  if (rtn[0] instanceof FP_Type) {
     if (sign === '-') {
-      rtn[0] = new FP_Quantity(-rtn[0].value, rtn[0].unit);
+      rtn[0] = rtn[0].negate();
     }
   } else {
     let msg = 'Unary ' + sign + ' can only be applied to a number or Quantity.';
@@ -315,17 +315,17 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
     if (Array.isArray(value)) {
       value = value.map(
         i => i?.__path__
-          ? makeResNode(i, i.__path__.parentResNode, i.__path__.path, null,
-            i.__path__.fhirNodeDataType, i.__path__.model)
+          ? makeResNode(i.__path__.ctx, i, i.__path__.parentResNode, i.__path__.path, null,
+            i.__path__.fhirNodeDataType)
           : i?.resourceType
-            ? makeResNode(i, null, null, null, null, ctx.model)
+            ? makeResNode(i.__path__.ctx, i, null, null, null, null)
             : i );
     } else {
       value = value?.__path__
-        ? makeResNode(value, value.__path__.parentResNode, value.__path__.path, null,
-          value.__path__.fhirNodeDataType, value.__path__.model)
+        ? makeResNode(value.__path__.ctx, value, value.__path__.parentResNode, value.__path__.path, null,
+          value.__path__.fhirNodeDataType)
         : value?.resourceType
-          ? makeResNode(value, null, null, null, null, ctx.model)
+          ? makeResNode(ctx, value, null, null, null, null)
           : value;
     }
     ctx.processedVars[varName] = value;
@@ -397,9 +397,19 @@ engine.BooleanLiteral = function(ctx, parentData, node) {
   }
 };
 
+/**
+ * Evaluates a QuantityLiteral node in the FHIRPath AST.
+ * Converts the node's numeric value and unit into an FP_Quantity instance.
+ *
+ * @param {Object} ctx - The evaluation context.
+ * @param {Array} parentData - The data from the parent node.
+ * @param {Object} node - The AST node representing the QuantityLiteral.
+ * @param {string} node.value - The numeric value of the quantity as a string.
+ * @param {string} node.unit - The unit of the quantity (e.g., 'mg', 'km').
+ * @returns {Array<FP_Quantity>} - An array containing a single FP_Quantity instance.
+ */
 engine.QuantityLiteral = function(ctx, parentData, node) {
-  var value = Number(node.value);
-  return [new FP_Quantity(value, node.unit)];
+  return [new FP_Quantity(ctx, ctx.getDecimal(node.value), node.unit)];
 };
 
 /**
@@ -413,22 +423,22 @@ engine.QuantityLiteral = function(ctx, parentData, node) {
  * @returns {Array} - An array containing a single FP_Date object.
  */
 engine.DateLiteral = function(ctx, parentData, node) {
-  var dateStr = node.text.slice(1); // Remove the @
-  return [new FP_Date(dateStr)];
+  const dateStr = node.text.slice(1); // Remove the @
+  return [new FP_Date(ctx, dateStr)];
 };
 
 engine.DateTimeLiteral = function(ctx, parentData, node) {
-  var dateStr = node.text.slice(1); // Remove the @
-  return [new FP_DateTime(dateStr)];
+  const dateStr = node.text.slice(1); // Remove the @
+  return [new FP_DateTime(ctx, dateStr)];
 };
 
 engine.TimeLiteral = function(ctx, parentData, node) {
-  var timeStr = node.text.slice(1); // Remove the @
-  return [new FP_Time(timeStr)];
+  const timeStr = node.text.slice(1); // Remove the @
+  return [new FP_Time(ctx, timeStr)];
 };
 
 engine.NumberLiteral = function(ctx, parentData, node) {
-  return [Number(node.text)];
+  return [ctx.getDecimal(node.text)];
 };
 
 engine.LongNumberLiteral = function(ctx, parentData, node) {
@@ -505,8 +515,8 @@ engine.MemberInvocation = function(ctx, parentData, astNode ) {
     const __path__ = parentData[i]?.__path__;
 
     // Wrap the data item in a ResourceNode for consistent type handling
-    const res = makeResNode(parentData[i], null,
-      __path__?.path, null, __path__?.fhirNodeDataType, model);
+    const res = makeResNode(ctx, parentData[i], null,
+      __path__?.path, null, __path__?.fhirNodeDataType);
 
     // TODO: refactor after discussing in FHIR chat
     // LEGACY: Check if the resourceType property matches the key
@@ -530,7 +540,7 @@ engine.MemberInvocation = function(ctx, parentData, astNode ) {
       result.push(res);
     } else {
       // Regular member access: extract child nodes for the specified key
-      util.pushFn(result, util.makeChildResNodes(res, key, model));
+      util.pushFn(result, util.makeChildResNodes(ctx, res, key, model));
     }
   }
 
@@ -850,58 +860,91 @@ function parse(path) {
 /**
  *  Applies the given parsed FHIRPath expression to the given resource,
  *  returning the result of doEval.
- * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
- *  This resource will be modified by this function to add type information.
- * @param {object} parsedPath - a special object created by the parser that describes the structure of a fhirpath expression.
+ * @param {(object|object[])} resource -  FHIR resource, bundle as js object or
+ *  array of resources. This resource will be modified by this function to add
+ *  type information.
+ * @param {object} parsedPath - a special object created by the parser that
+ *  describes the structure of a fhirpath expression.
  * @param {object} envVars - a hash of variable name/value pairs.
  * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} options - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
  *  types should be converted to strings, true by default.
- * @param {function} [options.traceFn] - An optional trace function to call when tracing.
+ * @param {boolean} [options.keepDecimalTypes] - when true, FP_Decimal values
+ *  are preserved as-is instead of being converted to JavaScript numbers.
+ *  Defaults to false.
+ * @param {function} [options.traceFn] - An optional trace function to call when
+ *  tracing.
+ * @param {function} [options.debugger] - An optional debugger function to call
+ *  after each evaluation step. The function receives (ctx, parentData, result,
+ *  node) as arguments.
  * @param {object} [options.userInvocationTable] - a user invocation table used
  *  to replace any existing or define new functions.
- * @param {boolean|string} [options.async] - defines how to support asynchronous functions:
- *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception;
- *  true or similar to true - return Promise only for asynchronous functions;
- *  "always" - return Promise always.
+ * @param {boolean} [options.preciseMath] - whether to use precise decimal
+ *  arithmetic instead of native JavaScript number arithmetic, false by default.
+ * @param {boolean|string} [options.async] - defines how to support asynchronous
+ *  functions:
+ *   - false or similar to false, e.g. undefined, null, or 0 (default) - throw
+ *     an exception;
+ *   - true or similar to true - return Promise only for asynchronous functions;
+ *   - "always" - return Promise always.
  * @param {string} [options.terminologyUrl] - a URL that points to a FHIR
- *   RESTful API that is used to create %terminologies that implements
- *   the Terminology Service API.
+ *  RESTful API that is used to create %terminologies that implements
+ *  the Terminology Service API.
  * @param {string} [options.fhirServerUrl] - a URL that points to a FHIR
- *   RESTful API that is used to query resources when using `resolve()`.
+ *  RESTful API that is used to query resources when using `resolve()`.
  * @param {AbortSignal} [options.signal] - an AbortSignal object that allows you
- *   to abort the asynchronous FHIRPath expression evaluation.
+ *  to abort the asynchronous FHIRPath expression evaluation.
  * @param {Object} [options.httpHeaders] - an object with HTTP headers to be
- *   used when making requests to the FHIR server. The property names of this
- *   object are server URLs, and the values are objects whose property names are
- *   HTTP header names and whose values are their values.
- * @returns {Array} - an array of results of the FHIRPath expression evaluation.
+ *  used when making requests to the FHIR server. The property names of this
+ *  object are server URLs, and the values are objects whose property names are
+ *  HTTP header names and whose values are their values.
+ * @param {boolean} [options.preciseMath] - if true, use precision-safe math
+ *  operations for decimal calculations. if false, use native math operations.
+ * @param {object} [baseInfo=null] - optional base information for the resource
+ *  node:
+ * @param {string} [baseInfo.path] - the path to the resource node.
+ * @param {string} [baseInfo.fhirNodeDataType] - the FHIR data type of the node.
+ * @param {string} [baseInfo.propName] - the property name of the node.
+ * @returns {Array|Promise<Array>} - an array of results of the FHIRPath
+ *  expression evaluation, or a Promise resolving to such an array if async mode
+ *  is enabled.
  */
-function applyParsedPath(resource, parsedPath, envVars, model, options) {
+function applyParsedPath(resource, parsedPath, envVars, model, options, baseInfo = null) {
   constants.reset();
-  let dataRoot = util.arraify(resource).map(
-    i => i?.__path__
-      ? makeResNode(i, i.__path__.parentResNode, i.__path__.path, null,
-        i.__path__.fhirNodeDataType, model, i.__path__.propName, i.__path__.index)
-      : i?.resourceType
-        ? makeResNode(i, null, null, null, null, model)
-        : i);
   // doEval takes a "ctx" object, and we store things in that as we parse, so we
   // need to put user-provided variable data in a sub-object, ctx.vars.
   // Set up default standard variables, and allow override from the variables.
   // However, we'll keep our own copy of dataRoot for internal processing.
   let ctx = {
-    dataRoot,
-    processedVars: {
-      ucum: 'http://unitsofmeasure.org',
-      context: dataRoot
-    },
     processedUserVarNames: new Set(),
     vars: envVars || {},
     model
   };
+  let dataRoot;
+  if (baseInfo) {
+    dataRoot = util.arraify(resource).map( i => makeResNode(ctx, i, null, baseInfo.path, null,
+      baseInfo.fhirNodeDataType, baseInfo.propName));
+  } else {
+    dataRoot = util.arraify(resource).map(
+      i => i?.__path__
+        ? makeResNode(i.__path__.ctx, i, i.__path__.parentResNode, i.__path__.path, null,
+          i.__path__.fhirNodeDataType, i.__path__.propName, i.__path__.index)
+        : i?.resourceType
+          ? makeResNode(ctx, i, null, null, null, null)
+          : i);
+  }
+  ctx.dataRoot = dataRoot;
+  ctx.processedVars = {
+    ucum: 'http://unitsofmeasure.org',
+    context: dataRoot
+  };
+
+  ctx.getDecimal = options.preciseMath ?
+    types.FP_Decimal_Precise.getDecimal :
+    types.FP_Decimal_Native.getDecimal;
+
   if (options.traceFn) {
     ctx.customTraceFn = options.traceFn;
   }
@@ -947,12 +990,12 @@ function applyParsedPath(resource, parsedPath, envVars, model, options) {
         return Promise.reject(new DOMException(
           'Evaluation of the expression was aborted.', 'AbortError'));
       } else {
-        return prepareEvalResult(r, model, options);
+        return prepareEvalResult(ctx, r, options);
       }
     })
     : options.async === 'always'
-      ? Promise.resolve(prepareEvalResult(res, model, options))
-      : prepareEvalResult(res, model, options);
+      ? Promise.resolve(prepareEvalResult(ctx, res, options))
+      : prepareEvalResult(ctx, res,options);
 }
 
 /**
@@ -961,15 +1004,18 @@ function applyParsedPath(resource, parsedPath, envVars, model, options) {
  * "ResourceNode" or "FP_Type" instances are not created for sub-items.
  * Resolves any internal "ResourceNode" instances to plain objects and if
  * options.resolveInternalTypes is true, resolve any internal "FP_Type"
- * instances to strings.
+ * instances to standard JavaScript types (unless options.keepDecimalTypes is
+ * true, in which case FP_Decimal instances are preserved).
+ * @param {object} defContext - the default evaluation context, used when a
+ *  result node does not carry its own context.
  * @param {Array} result - result of expression evaluation.
- * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  * @param {object} options - additional options (see function "applyParsedPath").
  * @return {Array}
  */
-function prepareEvalResult(result, model, options) {
+function prepareEvalResult(defContext, result, options) {
   return result
     .reduce((acc, n) => {
+      let ctx;
       // Path for the data extracted from the resource.
       let path;
       let fhirNodeDataType;
@@ -977,6 +1023,7 @@ function prepareEvalResult(result, model, options) {
       let propName;
       let index;
       if (n instanceof ResourceNode) {
+        ctx = n.ctx || defContext;
         path = n.path;
         fhirNodeDataType = n.fhirNodeDataType;
         parentResNode = n.parentResNode;
@@ -986,7 +1033,9 @@ function prepareEvalResult(result, model, options) {
       n = util.valData(n);
       if (n instanceof FP_Type) {
         if (options.resolveInternalTypes) {
-          n = n.toString();
+          if (!(options.keepDecimalTypes && n instanceof FP_Decimal)) {
+            n = n.toJSON();
+          }
         }
       }
       // Exclude nulls
@@ -996,7 +1045,7 @@ function prepareEvalResult(result, model, options) {
         if (path && typeof n === 'object' && !n.__path__) {
           Object.defineProperty(n, '__path__', {
             value: {
-              path, fhirNodeDataType, parentResNode, model, propName, index
+              ctx, path, fhirNodeDataType, parentResNode, propName, index
             }
           });
         }
@@ -1045,6 +1094,9 @@ function resolveInternalTypes(val) {
  *  types should be converted to standard JavaScript types (true by default).
  *  If false is passed, this conversion can be done later by calling
  *  resolveInternalTypes().
+ * @param {boolean} [options.keepDecimalTypes] - when true, FP_Decimal values
+ *  are preserved as-is instead of being converted to JavaScript numbers.
+ *  Defaults to false.
  * @param {function} [options.traceFn] - An optional trace function to call when tracing.
  * @param {object} [options.userInvocationTable] - a user invocation table used
  *  to replace any existing or define new functions.
@@ -1053,16 +1105,18 @@ function resolveInternalTypes(val) {
  *  true or similar to true - return Promise, only for asynchronous functions,
  *  "always" - return Promise always.
  * @param {string} [options.terminologyUrl] - a URL that points to a FHIR
- *   RESTful API that is used to create %terminologies that implements
- *   the Terminology Service API.
+ *  RESTful API that is used to create %terminologies that implements
+ *  the Terminology Service API.
  * @param {string} [options.fhirServerUrl] - a URL that points to a FHIR
- *   RESTful API that is used to query resources when using `resolve()`.
+ *  RESTful API that is used to query resources when using `resolve()`.
  * @param {AbortSignal} [options.signal] - an AbortSignal object that allows you
- *   to abort the asynchronous FHIRPath expression evaluation.
+ *  to abort the asynchronous FHIRPath expression evaluation.
  * @param {Object} [options.httpHeaders] - an object with HTTP headers to be
- *   used when making requests to the FHIR server. The property names of this
- *   object are server URLs, and the values are objects whose property names are
- *   HTTP header names and whose values are their values.
+ *  used when making requests to the FHIR server. The property names of this
+ *  object are server URLs, and the values are objects whose property names are
+ *  HTTP header names and whose values are their values.
+ * @param {boolean} [options.preciseMath] - if true, use precision-safe math
+ *  operations for decimal calculations. if false, use native math operations.
  * @returns {Array} - an array of results of the FHIRPath expression evaluation.
  */
 function evaluate(fhirData, path, envVars, model, options) {
@@ -1084,6 +1138,9 @@ function evaluate(fhirData, path, envVars, model, options) {
  * @param {object} [options] - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
  *  types should be converted to strings, true by default.
+ * @param {boolean} [options.keepDecimalTypes] - when true, FP_Decimal values
+ *  are preserved as-is instead of being converted to JavaScript numbers.
+ *  Defaults to false.
  * @param {function} [options.traceFn] - An optional trace function to call when tracing.
  * @param {object} [options.userInvocationTable] - a user invocation table used
  *  to replace any existing or define new functions.
@@ -1092,14 +1149,16 @@ function evaluate(fhirData, path, envVars, model, options) {
  *  true or similar to true - return Promise, only for asynchronous functions,
  *  "always" - return Promise always.
  * @param {string} [options.terminologyUrl] - a URL that points to a FHIR
- *   RESTful API that is used to create %terminologies that implements
- *   the Terminology Service API.
+ *  RESTful API that is used to create %terminologies that implements
+ *  the Terminology Service API.
  * @param {string} [options.fhirServerUrl] - a URL that points to a FHIR
- *   RESTful API that is used to query resources when using `resolve()`.
+ *  RESTful API that is used to query resources when using `resolve()`.
  * @param {Object} [options.httpHeaders] - an object with HTTP headers to be
- *   used when making requests to the FHIR server. The property names of this
- *   object are server URLs, and the values are objects whose property names are
- *   HTTP header names and whose values are their values.
+ *  used when making requests to the FHIR server. The property names of this
+ *  object are server URLs, and the values are objects whose property names are
+ *  HTTP header names and whose values are their values.
+ * @param {boolean} [options.preciseMath] - if true, use precision-safe math
+ *  operations for decimal calculations. if false, use native math operations.
  */
 function compile(path, model, options) {
   if (options?.signal) {
@@ -1183,13 +1242,15 @@ function _compile(path, model, options) {
           basePath : baseFhirNodeDataType || basePath;
     }
     return function (fhirData, envVars, additionalOptions) {
-      if (basePath) {
-        fhirData = makeResNode(fhirData, null, basePath, null,
-          baseFhirNodeDataType, model, path.base);
-      }
       const actualOptions = additionalOptions ?
         {...options, ...additionalOptions} : options;
-      return applyParsedPath(fhirData, node, envVars, model, actualOptions);
+      return applyParsedPath(
+        fhirData, node, envVars, model, actualOptions,
+        basePath ? {
+          path: basePath,
+          fhirNodeDataType: baseFhirNodeDataType,
+          propName: path.base
+        } : null);
     };
   } else {
     const node = parse(path);
@@ -1211,22 +1272,58 @@ function typesFn(fhirpathResult) {
   return util.arraify(fhirpathResult).map(value => {
     const ti = TypeInfo.fromValue(
       value?.__path__
-        ? new ResourceNode(value, value.__path__?.parentResNode,
-          value.__path__?.path, null, value.__path__?.fhirNodeDataType, value.__path__.model)
+        ? new ResourceNode(value.__path__.ctx, value, value.__path__?.parentResNode,
+          value.__path__?.path, null, value.__path__?.fhirNodeDataType)
         : value );
     return `${ti.namespace}.${ti.name}`;
   });
 }
 
 module.exports = {
+  /**
+   * The version string of the fhirpath.js library.
+   */
   version,
+  /**
+   * Parses a FHIRPath expression string into an internal AST representation.
+   */
   parse,
+  /**
+   * Compiles a FHIRPath expression into a reusable evaluator function.
+   * The expression is parsed once and can be applied to multiple resources.
+   */
   compile,
+  /**
+   * Evaluates a FHIRPath expression against the given FHIR data and returns
+   * an array of results (or a Promise when async mode is enabled).
+   */
   evaluate,
+  /**
+   * Converts any internal FHIRPath types in the given value to standard
+   * JavaScript types.
+   */
   resolveInternalTypes,
+  /**
+   * Returns the FHIRPath type of each element in the given evaluation result.
+   * The result must have been obtained from evaluate() with
+   * resolveInternalTypes: false.
+   */
   types: typesFn,
-  // Might as well export the UCUM library, since we are using it.
+  /**
+   * The FP_Decimal class for precise decimal arithmetic. Use
+   * FP_Decimal.getDecimal(value) to create instances from a number or
+   * numeric string, preserving exact decimal precision.
+   */
+  FP_Decimal: FP_Decimal,
+  /**
+   * An instance of the UCUM (Unified Code for Units of Measure) utilities
+   * library, used internally for unit conversions and also exported for
+   * external use.
+   */
   ucumUtils: require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance(),
-  // Utility functions that can be used to implement custom functions
+  /**
+   * Utility functions (e.g. arraify, valData, isEmpty) that can be used to
+   * implement custom user-defined FHIRPath functions.
+   */
   util
 };

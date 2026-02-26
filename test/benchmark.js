@@ -18,6 +18,8 @@ const { spawn, fork } = require('child_process');
 
 // Insert performance test suites here:
 const availableTests = [
+  'addition',
+  'gln-validation-expression',
   'comparison',
   'contains',
   'descendants',
@@ -31,11 +33,15 @@ const availableTests = [
 ];
 
 const options = require('commander');
+const {mathOperations, validateOption} = require('../bin/lib/cli-utils');
 options.description('Compare performance between the latest published version and the current version.');
 options.option('-v, --prevVersion <version>', 'use a specific version instead of latest published version.', 'latest');
 options.option('-t, --tests <list>', `list of comma-separated tests (e.g. "${availableTests.join(',')}")`, availableTests.join(','));
 options.option('-c, --compileOnly', 'skip tests for evaluate().', 'latest');
+options.option(`-o, --mathOperations <${mathOperations.join(' | ')}>`, 'mathematical operation mode.');
 options.parse(process.argv);
+
+validateOption(options, options.mathOperations, mathOperations, '-o');
 
 const npmInstallProcess = spawn('npm', ['i', '--prefix', './test/benchmark/prev-fhirpath', 'fhirpath@' + options.prevVersion], {
   stdio: 'inherit'

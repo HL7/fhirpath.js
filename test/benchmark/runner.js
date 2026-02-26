@@ -30,6 +30,11 @@ const filenamesToOpen = [];
  * @returns Promise<any>
  */
 async function run(filename, options) {
+  const fhirpathOptions = {
+    ...(options.mathOperations ? {preciseMath : options.mathOperations === 'precise'} : {} )
+  };
+
+
   const suites = [].concat(...require('./'+ filename)({
     benny,
     open,
@@ -45,7 +50,8 @@ async function run(filename, options) {
     bigItemsCopy,
     smallItems,
     smallItemsCopy,
-    options
+    options,
+    fhirpathOptions
   }));
   for (const suite of suites) {
     {
@@ -57,7 +63,7 @@ async function run(filename, options) {
               this,
               previous_fhirpath,
               previous_r4_model,
-              previous_fhirpath.compile(suite.expression, previous_r4_model)
+              previous_fhirpath.compile(suite.expression, previous_r4_model, fhirpathOptions)
             )
           )
         );
@@ -68,7 +74,7 @@ async function run(filename, options) {
               this,
               current_fhirpath,
               current_r4_model,
-              current_fhirpath.compile(suite.expression, current_r4_model)
+              current_fhirpath.compile(suite.expression, current_r4_model, fhirpathOptions)
             )
           )
         );

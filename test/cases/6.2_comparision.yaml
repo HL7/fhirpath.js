@@ -183,10 +183,30 @@ tests:
       result: [true]
     - expression: 2 > 1 '1'
       result: [true]
+    - expression: b > 1 '1'
+      result: [true]
+    - expression: 2 > 1 'kg.kg-1'
+      result: [true]
+    - expression: 2 'kg.kg-1' > 1
+      result: [true]
+    - expression: 2 > 1 'kg'
+      result: []
+    - expression: b > 1 'kg'
+      result: []
     - expression: 1 '1' < 2
       result: [true]
     - expression: 1 < 2 '1'
       result: [true]
+    - expression: a < 2 '1'
+      result: [true]
+    - expression: 1 < 2 'kg.kg-1'
+      result: [true]
+    - expression: 1 'kg.kg-1' < 2
+      result: [true]
+    - expression: 1 < 2 'kg'
+      result: []
+    - expression: a < 2 'kg'
+      result: []
     - expression: 1 'kg'.comparable(999 'g')
       result: [true]
     - expression: 1 year.comparable(1 second)
@@ -221,9 +241,17 @@ tests:
     #  https://hl7.org/fhirpath/#conversion
     - expression: 1.comparable(2)
       result: [true]
+    - expression: 1 '1'.comparable(2)
+      result: [true]
+    - expression: 1.comparable(2 '1')
+      result: [true]
+    - expression: 1 'kg.kg-1'.comparable(2)
+      result: [true]
+    - expression: 1.comparable(2 'kg.kg-1')
+      result: [true]
     - expression: 1 'something'.comparable(2 'something')
       result: [true]
-    - expression: 1 'something'.comparable(2 'something else')
+    - expression: 1 'something'.comparable(2 'somethingElse')
       result: [false]
   - 'group: Dates & Times':
     - 'group:  Date >':

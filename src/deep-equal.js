@@ -2,30 +2,38 @@
 // (https://github.com/substack/node-deep-equal), with modifications.
 // For the license for node-deep-equal, see the bottom of this file.
 
-const {FP_Type, FP_Quantity, ResourceNode} = require('./types');
-var numbers = require('./numbers');
-var pSlice = Array.prototype.slice;
-var objectKeys = Object.keys;
-var isArguments = function (object) {
+const {FP_Type, ResourceNode} = require('./types');
+const numbers = require('./numbers');
+const pSlice = Array.prototype.slice;
+const objectKeys = Object.keys;
+
+
+/**
+ * Checks whether the given object is an Arguments object.
+ * @param {*} object - the value to check.
+ * @returns {boolean} true if the object is an Arguments object, false otherwise.
+ */
+const isArguments = function (object) {
   return Object.prototype.toString.call(object) === '[object Arguments]';
 };
 
-function isString(myVar) {
-  return (typeof myVar === 'string' || myVar instanceof String);
-}
 
-function isNumber(n) {
-  return !isNaN(parseFloat(n)) && isFinite(n);
-}
-
+/**
+ * Normalizes a string for equivalence comparison by converting to uppercase
+ * and collapsing whitespace sequences to a single space.
+ * @param {string} x - the string to normalize.
+ * @returns {string} the normalized string.
+ */
 function normalizeStr(x) {
   return x.toUpperCase().replace(/\s+/, ' ');
 }
+
 
 /**
  * Performs a deep comparison between two values to determine if they are equal.
  * When you need to compare many objects, you can use hashObject instead for
  * optimization (if changes are needed here, they are likely also needed there).
+ * @param {Object} ctx - evaluation context.
  * @param {any} v1 - one of the comparing objects
  * @param {any} v2 - one of the comparing objects
  * @param {Object} [opts] - comparison options
@@ -35,7 +43,7 @@ function normalizeStr(x) {
  *   (see https://hl7.org/fhirpath/#equivalent).
  * @return {boolean}
  */
-function deepEqual(v1, v2, opts) {
+function deepEqual(ctx, v1, v2, opts) {
   const v1IsResourceNode = v1 instanceof ResourceNode;
   const v2IsResourceNode = v2 instanceof ResourceNode;
   let actual = v1IsResourceNode ? v1.convertData() : v1;
@@ -45,14 +53,17 @@ function deepEqual(v1, v2, opts) {
   // 7.1. All identical values are equivalent, as determined by ===.
   if (actual === expected) {
     return opts.fuzzy || !v1IsResourceNode || !v2IsResourceNode ||
-      deepEqual(v1._data, v2._data);
+      deepEqual(ctx, v1._data, v2._data);
   }
 
+  const typeOfActual = typeof actual;
+  const typeOfExpected = typeof expected;
+
   if (opts.fuzzy) {
-    if(isString(actual) && isString(expected)) {
+    if(typeOfActual === 'string' && typeOfExpected === 'string') {
       return normalizeStr(actual) === normalizeStr(expected);
     }
-    if(isNumber(actual) && isNumber(expected)) {
+    if(typeOfActual === 'number' && typeOfExpected === 'number') {
       return numbers.isEquivalent(actual, expected);
     }
   }
@@ -60,20 +71,18 @@ function deepEqual(v1, v2, opts) {
     // If these are numbers, they need to be rounded to the maximum supported
     // precision to remove floating point arithmetic errors (e.g. 0.1+0.1+0.1 should
     // equal 0.3) before comparing.
-    const typeOfActual = typeof actual;
     if (typeOfActual === 'number') {
-      const typeOfExpected = typeof expected;
       if (typeOfExpected === 'bigint') {
         return actual == expected;
       } else if (typeOfExpected === 'number') {
         if(numbers.isEqual(actual, expected)) {
           return v1IsResourceNode && v2IsResourceNode ?
-            deepEqual(v1._data, v2._data, opts) : true;
+            deepEqual(ctx, v1._data, v2._data, opts) : true;
         } else {
           return false;
         }
       }
-    } else if (typeOfActual === 'bigint' && typeof expected === 'number') {
+    } else if (typeOfActual === 'bigint' && typeOfExpected === 'number') {
       return actual == expected;
     }
   }
@@ -81,12 +90,12 @@ function deepEqual(v1, v2, opts) {
   if (actual instanceof Date && expected instanceof Date) {
     return (actual.getTime() === expected.getTime()) && (
       opts.fuzzy || !v1IsResourceNode || !v2IsResourceNode ||
-      deepEqual(v1._data, v2._data)
+      deepEqual(ctx, v1._data, v2._data)
     );
-  } else if (!actual || !expected || typeof actual != 'object' && typeof expected != 'object') {
+  } else if (actual == null || expected == null || typeof actual != 'object' && typeof expected != 'object') {
     return (actual === expected) && (
       opts.fuzzy || !v1IsResourceNode || !v2IsResourceNode ||
-      deepEqual(v1._data, v2._data)
+      deepEqual(ctx, v1._data, v2._data)
     );
   }
   else {
@@ -99,25 +108,22 @@ function deepEqual(v1, v2, opts) {
         let result = actual.equals(expected); // May return undefined
         if (result) {
           return !v1IsResourceNode || !v2IsResourceNode ||
-            deepEqual(v1._data, v2._data) &&
-            deepEqual(v1.data?.id, v2.data?.id) &&
-            deepEqual(v1.data?.extension, v2.data?.extension);
+            deepEqual(ctx, v1._data, v2._data) &&
+            deepEqual(ctx, v1.data?.id, v2.data?.id) &&
+            deepEqual(ctx, v1.data?.extension, v2.data?.extension);
         } else {
           return result;
         }
       }
     }
     else if (actualIsFPT || expectedIsFPT) { // if only one is an FP_Type
-      let anotherIsNumber = false;
-      if (typeof actual == 'number') {
-        actual = new FP_Quantity(actual, "'1'");
-        anotherIsNumber = true;
+      const typeOfActual = typeof actual;
+      if (typeOfActual === 'number' || typeOfActual === 'bigint') {
+        return opts.fuzzy ? expected.equivalentTo(actual) :
+          expected.equals(actual);
       }
-      if (typeof expected == 'number') {
-        expected = new FP_Quantity(expected, "'1'");
-        anotherIsNumber = true;
-      }
-      if (anotherIsNumber) {
+      const typeOfExpected = typeof expected;
+      if (typeOfExpected === 'number' || typeOfExpected === 'bigint') {
         return opts.fuzzy ? actual.equivalentTo(expected) :
           actual.equals(expected);
       }
@@ -129,15 +135,33 @@ function deepEqual(v1, v2, opts) {
     // (although not necessarily the same order), equivalent values for every
     // corresponding key, and an identical 'prototype' property. Note: this
     // accounts for both named and indexed properties on Arrays.
-    return objEquiv(actual, expected, opts);
+    return objEquiv(ctx, actual, expected, opts);
   }
 }
 
+
+/**
+ * Checks whether the given value is null or undefined.
+ * @param {*} value - the value to check.
+ * @returns {boolean} true if the value is null or undefined, false otherwise.
+ */
 function isUndefinedOrNull(value) {
   return value === null || value === undefined;
 }
 
-function objEquiv(a, b, opts) {
+
+/**
+ * Performs a deep equality comparison between two plain objects or arrays.
+ * Checks that both objects have the same prototype, the same set of own
+ * property keys, and deeply equal values for each key.
+ * @param {Object} ctx - the FHIRPath evaluation context.
+ * @param {Object} a - the first object to compare.
+ * @param {Object} b - the second object to compare.
+ * @param {Object} [opts] - comparison options (see {@link deepEqual}).
+ * @returns {boolean} true if the two objects are structurally equal,
+ *   false otherwise.
+ */
+function objEquiv(ctx, a, b, opts) {
   var i, key;
   if (isUndefinedOrNull(a) || isUndefinedOrNull(b))
     return false;
@@ -148,23 +172,23 @@ function objEquiv(a, b, opts) {
   if(isArguments(a) || isArguments(b)) {
     a = isArguments(a) ? pSlice.call(a) : a;
     b = isArguments(b) ? pSlice.call(b) : b;
-    return deepEqual(a, b, opts);
+    return deepEqual(ctx, a, b, opts);
   }
   try {
     var ka = objectKeys(a), kb = objectKeys(b);
-  } catch (e) {//happens when one is a string literal and the other isn't
+  } catch {//happens when one is a string literal and the other isn't
     return false;
   }
   // having the same number of owned properties (keys incorporates
   // hasOwnProperty)
-  if (ka.length != kb.length)
+  if (ka.length !== kb.length)
     return false;
   //the same set of keys (although not necessarily the same order),
   ka.sort();
   kb.sort();
   //~~~cheap key test
   for (i = ka.length - 1; i >= 0; i--) {
-    if (ka[i] != kb[i])
+    if (ka[i] !== kb[i])
       return false;
   }
   //equivalent values for every corresponding key, and
@@ -173,11 +197,11 @@ function objEquiv(a, b, opts) {
   // be "undefined".
   if (ka.length === 1) {
     key = ka[0];
-    return deepEqual(a[key], b[key], opts);
+    return deepEqual(ctx, a[key], b[key], opts);
   }
   for (i = ka.length - 1; i >= 0; i--) {
     key = ka[i];
-    if (!deepEqual(a[key], b[key], opts)) return false;
+    if (!deepEqual(ctx, a[key], b[key], opts)) return false;
   }
   return typeof a === typeof b;
 }
