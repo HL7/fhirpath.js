@@ -2,33 +2,33 @@
 
 const fp = require('../src/fhirpath');
 const util = require('../src/utilities');
-const { mathOperations, validateOption } = require('./lib/cli-utils');
 const fs = require('fs');
 const yaml = require('js-yaml');
+const { Command, Option } = require('commander');
 
-// Supported FHIR versions
-const supportedVersions = ['dstu2', 'stu3', 'r4', 'r5'];
+const program = new Command();
 
-const options = require('commander');
-options.description('Parses and/or runs a FHIRPath expression.  If neither --resourceFile nor --resourceJSON is provided, the parse tree of the FHIRPath expression will be output.');
-options.option('-b, --basePath <path>', 'base path in the resource from which the JSON data was extracted.');
-options.option('-e, --expression <expr>', 'FHIRPath expression.');
-options.option('-f, --resourceFile <path>', 'A file containing the JSON resource or part of it, if basePath is passed.');
-options.option('-r, --resourceJSON <JSON>', 'JSON resource or part of it, if basePath is passed.');
-options.option('-v, --variables <JSON>', 'JSON hash of variables.');
-options.option('-t, --terminologyUrl <url>', 'the Terminology Service API URL.');
-options.option('-s, --fhirServerUrl <url>', 'the FHIR server URL.');
-options.option(`-m, --model <${supportedVersions.join(' | ')}>`, 'Include FHIR model data.');
-options.option(`-o, --mathOperations <${mathOperations.join(' | ')}>`, 'mathematical operation mode.');
-options.parse(process.argv);
+program
+  .description('Parses and/or runs a FHIRPath expression.  If neither --resourceFile nor --resourceJSON is provided, the parse tree of the FHIRPath expression will be output.')
+  .addOption(new Option('-b, --basePath <path>', 'base path in the resource from which the JSON data was extracted.'))
+  .addOption(new Option('-e, --expression <expr>', 'FHIRPath expression.'))
+  .addOption(new Option('-f, --resourceFile <path>', 'A file containing the JSON resource or part of it, if basePath is passed.'))
+  .addOption(new Option('-r, --resourceJSON <JSON>', 'JSON resource or part of it, if basePath is passed.'))
+  .addOption(new Option('-v, --variables <JSON>', 'JSON hash of variables.'))
+  .addOption(new Option('-t, --terminologyUrl <url>', 'the Terminology Service API URL.'))
+  .addOption(new Option('-s, --fhirServerUrl <url>', 'the FHIR server URL.'))
+  .addOption(new Option('-m, --model <model>', 'Include FHIR model data.')
+    .choices(['dstu2', 'stu3', 'r4', 'r5']))
+  .addOption(new Option(`-o, --mathMode <mode>`, 'mathematical operations mode.')
+    .choices(['native', 'precise']))
+  .parse(process.argv);
 
-// this cli util is part of public interface of fhirpath
-// it can be extended with understading urls and files
-// TODO: introduce subcommands to inspect, eval fhirpath etc
+const options = program.opts();
+
 const expression =  options.expression;
 const base =  options.basePath;
 if (!expression)
-  options.help();
+  program.help();
 else {
   let resourceJSON = options.resourceJSON;
   if (!resourceJSON) {
@@ -49,18 +49,16 @@ else {
     let resource = JSON.parse(resourceJSON);
     let model;
 
-    validateOption(options, options.model, supportedVersions, '-m');
     if (options.model) {
       model = require(`../fhir-context/${options.model}`);
     }
-    validateOption(options, options.mathOperations, mathOperations, '-o');
     let res = fp.evaluate(
       resource, base ? {base, expression} : expression, context, model,
       {
         async: true,
         ...(options.terminologyUrl ? {terminologyUrl: options.terminologyUrl} : {}),
         ...(options.fhirServerUrl ? {fhirServerUrl : options.fhirServerUrl} : {}),
-        ...(options.mathOperations ? {preciseMath : options.mathOperations === 'precise'} : {})
+        ...(options.mathMode ? {preciseMath : options.mathMode === 'precise'} : {})
       }
     );
 

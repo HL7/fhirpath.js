@@ -41,7 +41,8 @@ function normalizeStr(x) {
  *   equality (see https://hl7.org/fhirpath/#equals).
  *   true, if comparing objects for equivalence
  *   (see https://hl7.org/fhirpath/#equivalent).
- * @return {boolean}
+ * @return {boolean|undefined} - may return undefined, if opts.fuzzy === false
+ *  and the objects are not comparable.
  */
 function deepEqual(ctx, v1, v2, opts) {
   const v1IsResourceNode = v1 instanceof ResourceNode;
@@ -73,16 +74,36 @@ function deepEqual(ctx, v1, v2, opts) {
     // equal 0.3) before comparing.
     if (typeOfActual === 'number') {
       if (typeOfExpected === 'bigint') {
+        // Note: currently, a resource node with a direct number value is not
+        // possible (we use FP_Decimal instead), so there is no need to compare
+        // the _data of the resource nodes like this:
+        //   return (actual == expected) && (v1IsResourceNode && v2IsResourceNode ?
+        //           deepEqual(ctx, v1._data, v2._data, opts) : true);
+        // If this ever becomes possible, the above code should be used instead
+        // of the code below.
         return actual == expected;
       } else if (typeOfExpected === 'number') {
-        if(numbers.isEqual(actual, expected)) {
-          return v1IsResourceNode && v2IsResourceNode ?
-            deepEqual(ctx, v1._data, v2._data, opts) : true;
-        } else {
-          return false;
-        }
+        // Note: currently, a resource node with a direct number value is not
+        // possible (we use FP_Decimal instead), so there is no need to compare
+        // the _data of the resource nodes like this:
+        //   if(numbers.isEqual(actual, expected)) {
+        //     return v1IsResourceNode && v2IsResourceNode ?
+        //       deepEqual(ctx, v1._data, v2._data, opts) : true;
+        //   } else {
+        //     return false;
+        //   }
+        // If this ever becomes possible, the above code should be used instead
+        // of the code below.
+        return numbers.isEqual(actual, expected);
       }
     } else if (typeOfActual === 'bigint' && typeOfExpected === 'number') {
+      // Note: currently, a resource node with a direct number value is not
+      // possible (we use FP_Decimal instead), so there is no need to compare
+      // the _data of the resource nodes like this:
+      //   return (actual == expected) && (v1IsResourceNode && v2IsResourceNode ?
+      //           deepEqual(ctx, v1._data, v2._data, opts) : true);
+      // If this ever becomes possible, the above code should be used instead
+      // of the code below.
       return actual == expected;
     }
   }

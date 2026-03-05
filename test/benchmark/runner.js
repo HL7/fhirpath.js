@@ -31,7 +31,7 @@ const filenamesToOpen = [];
  */
 async function run(filename, options) {
   const fhirpathOptions = {
-    ...(options.mathOperations ? {preciseMath : options.mathOperations === 'precise'} : {} )
+    ...(options.mathMode ? {preciseMath : options.mathMode === 'precise'} : {} )
   };
 
 
@@ -104,7 +104,7 @@ async function run(filename, options) {
 
 // Retrieves options from the main process and runs benchmarks
 process.on('message', async (options) => {
-  const filenames = options.tests.split(',');
+  const filenames = options.tests;
   for (const filename of filenames) {
     await run(filename, options);
   }

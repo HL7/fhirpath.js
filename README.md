@@ -525,12 +525,12 @@ lower case, e.g., 'dstu2', 'stu3' or 'r4').
 fhirpath --expression 'Observation.value' --resourceJSON '{"resourceType": "Observation", "valueString": "Green"}' --model r4
 ```
 
-Mathematical operations mode can be selected via --mathOperations followed by
+Mathematical operations mode can be selected via --mathMode followed by
 either 'precise' or 'native' ('native' is currently the default mode, but this may
 change):
 ```sh
 # Using precise math (accurate decimal arithmetic)
-fhirpath --expression '0.1 + 0.2' --resourceJSON '{}' --mathOperations precise
+fhirpath --expression '0.1 + 0.2' --resourceJSON '{}' --mathMode precise
 
 > fhirpath(0.1 + 0.2) =>
 > [
@@ -538,7 +538,7 @@ fhirpath --expression '0.1 + 0.2' --resourceJSON '{}' --mathOperations precise
 > ]
 
 # Using native math (faster but with floating-point precision issues)
-fhirpath --expression '0.1 + 0.2' --resourceJSON '{}' --mathOperations native
+fhirpath --expression '0.1 + 0.2' --resourceJSON '{}' --mathMode native
 
 > fhirpath(0.1 + 0.2) =>
 > [

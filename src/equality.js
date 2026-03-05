@@ -8,48 +8,14 @@ const engine = {};
 
 
 /**
- * Tests equality between two collections using deep comparison.
- * If either collection is empty, returns an empty array (propagating empty).
- * See https://hl7.org/fhirpath/#equals
- * @param {Object} ctx - the FHIRPath evaluation context.
- * @param {Array} x - the left operand collection.
- * @param {Array} y - the right operand collection.
- * @returns {boolean|Array} true or false if both operands are non-empty,
- *   or an empty array if either operand is empty.
- */
-function equality(ctx, x, y){
-  if(util.isEmpty(x) || util.isEmpty(y)) { return []; }
-  return deepEqual(ctx, x, y);
-}
-
-
-/**
- * Tests equivalence between two collections using fuzzy deep comparison.
- * If both collections are empty, returns [true]. If only one is empty,
- * returns an empty array.
- * See https://hl7.org/fhirpath/#equivalent
- * @param {Object} ctx - the FHIRPath evaluation context.
- * @param {Array} x - the left operand collection.
- * @param {Array} y - the right operand collection.
- * @returns {boolean|Array} true or false if both operands are non-empty,
- *   [true] if both are empty, or an empty array if only one is empty.
- */
-function equivalence(ctx, x, y){
-  if(util.isEmpty(x) && util.isEmpty(y)) { return [true]; }
-  if(util.isEmpty(x) || util.isEmpty(y)) { return []; }
-  return deepEqual(ctx, x, y, {fuzzy: true});
-}
-
-
-/**
  * Implements the FHIRPath `=` (equals) operator.
  * See https://hl7.org/fhirpath/#equals
  * @param {Array} a - the left operand collection.
  * @param {Array} b - the right operand collection.
- * @returns {boolean|Array} the result of equality comparison.
+ * @returns {boolean|undefined} the result of equality comparison.
  */
 engine.equal = function(a, b){
-  return equality(this, a, b);
+  return deepEqual(this, a, b);
 };
 
 
@@ -60,12 +26,12 @@ engine.equal = function(a, b){
  * See https://hl7.org/fhirpath/#not-equals
  * @param {Array} a - the left operand collection.
  * @param {Array} b - the right operand collection.
- * @returns {boolean|undefined} the negated result of equality, or undefined
- *   if equality is indeterminate.
+ * @returns {boolean|undefined} the negated result of equality, or
+ *  undefined if equality is indeterminate.
  */
 engine.unequal = function(a, b){
-  var eq = equality(this, a, b);
-  return eq === undefined || eq === null ? undefined : !eq;
+  const eq = deepEqual(this, a, b);
+  return eq === undefined ? undefined : !eq;
 };
 
 
@@ -77,7 +43,7 @@ engine.unequal = function(a, b){
  * @returns {boolean} the result of equivalence comparison.
  */
 engine.equival = function(a, b){
-  return equivalence(this, a, b);
+  return deepEqual(this, a, b, {fuzzy: true});
 };
 
 
@@ -89,7 +55,7 @@ engine.equival = function(a, b){
  * @returns {boolean} the negated result of equivalence comparison.
  */
 engine.unequival = function(a, b){
-  return !equivalence(this, a, b);
+  return !deepEqual(this, a, b, {fuzzy: true});
 };
 
 

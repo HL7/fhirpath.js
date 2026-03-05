@@ -3280,7 +3280,6 @@ tests:
         result:
           - false
         model: r5
-        disable: true
       - desc: '** testEquivalent4'
         inputfile: patient-example.json
         expression: 1 ~ 2
@@ -3432,7 +3431,6 @@ tests:
         result:
           - true
         model: r5
-        disable: true
       - desc: '** testNotEquivalent4'
         inputfile: patient-example.json
         expression: 1 !~ 2

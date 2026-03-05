@@ -19,8 +19,8 @@ This log documents significant changes for each release.  This project follows
   objects to be constructed from a number or numeric string, enabling lossless
   JSON parsing workflows (e.g., via lossless-json) when passing high-precision
   values in FHIR resource data.
-- **`--mathOperations` / `-o` CLI option**: The `fhirpath` CLI now accepts
-  `--mathOperations precise` or `--mathOperations native` to select the math
+- **`--mathMode` / `-o` CLI option**: The `fhirpath` CLI now accepts
+  `--mathMode precise` or `--mathMode native` to select the math
   mode from the command line.
 - The function `ceiling()`, `floor()`, `round()`, and `truncate()` now work with
   `Quantity`.
@@ -28,6 +28,11 @@ This log documents significant changes for each release.  This project follows
   treating it as a decimal number through implicit conversion. However, if
   the result of an operation can be represented as an integer, it will be of
   the `Long`(BigInt) type for improved precision.
+### Fixed
+- Multiplication/division involving calendar units (apart from the special UCUM
+  '1' unit) now returns an empty value.
+- An issue where equivalence was determined incorrectly if one of the operands
+  was an empty collection.
 
 ## [4.8.5] - 2026-01-28
 ### Fixed

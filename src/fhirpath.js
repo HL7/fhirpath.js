@@ -1159,6 +1159,8 @@ function evaluate(fhirData, path, envVars, model, options) {
  *  HTTP header names and whose values are their values.
  * @param {boolean} [options.preciseMath] - if true, use precision-safe math
  *  operations for decimal calculations. if false, use native math operations.
+ * @returns {Function} - A function that takes FHIR data, environment variables,
+ *  and additional options, and returns the evaluation result.
  */
 function compile(path, model, options) {
   if (options?.signal) {

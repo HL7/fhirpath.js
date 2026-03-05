@@ -88,8 +88,8 @@ describe ('bin/fhirpath', function () {
         " --model r4", /green/);
     });
 
-    it ('should accept the --mathOperations parameter to enable precision-safe arithmetic', function() {
-      checkOutput("bin/fhirpath -e '0.1 + 0.2' -r '{}' --mathOperations precise", /\s0.3\s/g);
+    it ('should accept the --mathMode parameter to enable precision-safe arithmetic', function() {
+      checkOutput("bin/fhirpath -e '0.1 + 0.2' -r '{}' --mathMode precise", /\s0.3\s/g);
     });
   });
 })

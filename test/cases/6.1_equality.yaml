@@ -85,15 +85,41 @@ tests:
       expression: '0.1 + 0.1 + 0.1 = 0.3'
       result: [true]
 
-    - desc: 'should take into account extensions for decimal values'
-      model: r4
-      expression: >-
-        (%factory.decimal(0.3, %factory.Extension('someExt', 'someString')) =
-         %factory.decimal(0.30000000000000004, %factory.Extension('someExt', 'someString'))) |
-        (%factory.decimal(0.3, %factory.Extension('someExt', 'someString1')) =
-         %factory.decimal(0.30000000000000004, %factory.Extension('someExt', 'someString2')))
-      preciseMath: false
-      result: [true, false]
+    - '- group: should take into account extensions for numeric values':
+      - model: r4
+        expression: >-
+          (%factory.decimal(0.3, %factory.Extension('someExt', 'someString')) =
+           %factory.decimal(0.30000000000000004, %factory.Extension('someExt', 'someString')))
+        preciseMath: false
+        result: [true]
+      - model: r4
+        expression: >-
+          (%factory.decimal(0.3, %factory.Extension('someExt', 'someString1')) =
+           %factory.decimal(0.30000000000000004, %factory.Extension('someExt', 'someString2')))
+        preciseMath: false
+        result: [false]
+      - model: r4
+        expression: >-
+          (%factory.integer64(123, %factory.Extension('someExt', 'someString')) =
+           %factory.integer64(123, %factory.Extension('someExt', 'someString')))
+        preciseMath: false
+        result: [true]
+      - model: r4
+        expression: >-
+          (%factory.integer64(123, %factory.Extension('someExt', 'someString')) =
+           %factory.integer64(123, %factory.Extension('someExt', 'someString2')))
+        preciseMath: false
+        result: [false]
+      - model: r4
+        expression: >-
+          (%factory.integer64(456, %factory.Extension('someExt', 'someString')) =
+           %factory.integer(456, %factory.Extension('someExt', 'someString')))
+        result: [true]
+      - model: r4
+        expression: >-
+          (%factory.integer64(456, %factory.Extension('someExt', 'someString')) =
+           %factory.integer(456, %factory.Extension('someExt', 'someString2')))
+        result: [false]
 
     - desc: '* boolean: values must be the same'
 
@@ -162,7 +188,7 @@ tests:
       - expression: 1 second = 1 's'
         result: [true]
 
-      - expression: 10 'kg.m/s2' = 5 'kg' * 4 'm' / (2 seconds * 1000 'ms')
+      - expression: 10 'kg.m/s2' = 5 'kg' * 4 'm' / (2 's' * 1000 'ms')
         result: [true]
 
       - expression: 9 = 9 '1'

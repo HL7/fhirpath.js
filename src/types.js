@@ -726,44 +726,54 @@ class FP_Quantity extends FP_Type_WithContext {
 
   /**
    * Multiplies this quantity to another quantity.
-   * @param {FP_Quantity|FP_Decimal} otherQuantity a quantity by which to
-   *  multiply this quantity.
-   * @return {FP_Quantity}
+   * @param {FP_Quantity|FP_Decimal|number|BigInt} otherQuantity a quantity by
+   *  which to multiply this quantity.
+   * @return {FP_Quantity|null} a new FP_Quantity representing the result of the
+   *  multiplication, or null if:
+   *  - calendar duration multiplied by a non-number
+   *  - either unit includes special UCUM, or non-UCUM units (except calendar
+   *    duration)
    */
   mul(otherQuantity) {
     const typeOfOther = typeof otherQuantity;
-    // If otherQuantity is a decimal or number, treat it as a quantity with unit '1'
     if (otherQuantity instanceof FP_Decimal || typeOfOther === 'number' || typeOfOther === 'bigint') {
-      otherQuantity = new FP_Quantity(this.ctx, otherQuantity, "'1'");
-    }
-
-    if (
-      (
-        this.hasIncomparableDurationMix(otherQuantity.unit) &&
-        this.unit !== "'1'" &&
-        otherQuantity.unit !== "'1'"
-      ) || (
-        this.isCalendarDuration() &&
-        this.isCalendarDuration(otherQuantity.unit) &&
-        (
-          this.isUnitGreaterThanMaxComparable() ||
-          this.isUnitGreaterThanMaxComparable(otherQuantity.unit)
-        )
-      )
-    ) {
+      if (this.isCalendarDuration()) {
+        return new FP_Quantity(this.ctx, this.value.mul(otherQuantity), this.unit);
+      }
+      const thisQ = this.getBaseUnits();
+      if (!thisQ) {
+        // If the first operand is not a UCUM quantity or it has a special unit
+        return null;
+      }
+      // If otherQuantity is a decimal or number, treat it as a quantity with unit '1'
+      return new FP_Quantity(this.ctx, this.value.mul(otherQuantity), this.unit);
+    } else if (!(otherQuantity instanceof FP_Quantity)) {
+      return null;
+    } else if (this.isCalendarDuration()) {
+      const otherQ = otherQuantity.getBaseUnits();
+      if (otherQ?.unit === '1') {
+        // If the second operand is a number, return the result in the calendar unit of the first operand
+        return new FP_Quantity(this.ctx, this.value.mul(otherQ.value), this.unit);
+      }
+      // Multiplication of a calendar duration by a non-number is not supported
+      return null;
+    } else if (otherQuantity.isCalendarDuration()) {
+      const thisQ = this.getBaseUnits();
+      if (thisQ?.unit === '1') {
+        // If the first operand is a number, return the result in the calendar unit of the second operand
+        return new FP_Quantity(this.ctx, thisQ.value.mul(otherQuantity.value), otherQuantity.unit);
+      }
+      // Multiplication of a calendar duration by a non-number is not supported
       return null;
     }
 
-    const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
-    const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
-
-    const thisQ = this.convToUcumUnits(this, thisUnitInSeconds);
+    const thisQ = this.getBaseUnits();
     if (!thisQ) {
       // If the first operand is not a UCUM quantity or it has a special unit
       return null;
     }
 
-    const otherQ = this.convToUcumUnits(otherQuantity, otherUnitInSeconds);
+    const otherQ = otherQuantity.getBaseUnits();
     if (!otherQ) {
       // If the second operand is not a UCUM quantity or it has a special unit
       return null;
@@ -792,55 +802,54 @@ class FP_Quantity extends FP_Type_WithContext {
 
   /**
    * Divides this quantity by another quantity.
-   * @param {FP_Quantity|FP_Decimal|number} otherQuantity a quantity by which to divide this quantity.
-   * @return {FP_Quantity}
+   * @param {FP_Quantity|FP_Decimal|number|BigInt} otherQuantity a quantity by
+   *  which to divide this quantity.
+   * @return {FP_Quantity|null} a new FP_Quantity representing the result of
+   *  the division, or null if:
+   *  - calendar duration multiplied by a non-number
+   *  - either unit includes special UCUM, or non-UCUM units (except calendar
+   *    duration)
    */
   div(otherQuantity) {
+    const typeOfOther = typeof otherQuantity;
     // If otherQuantity is a decimal or number, treat it as a quantity with unit '1'
-    if (otherQuantity instanceof FP_Decimal) {
-      if (otherQuantity.equals(0)) {
+    if (otherQuantity instanceof FP_Decimal || typeOfOther === 'number' || typeOfOther === 'bigint') {
+      if (otherQuantity.equals?.(0) || otherQuantity === 0 || otherQuantity === 0n) {
         // Division by zero always gives an empty result
         return null;
       }
-      otherQuantity = new FP_Quantity(this.ctx, otherQuantity, "'1'");
-    } else if (typeof otherQuantity === 'number' || typeof otherQuantity === 'bigint') {
-      if (otherQuantity === 0) {
-        // Division by zero always gives an empty result
+      if (this.isCalendarDuration()) {
+        return new FP_Quantity(this.ctx, this.value.div(otherQuantity), this.unit);
+      }
+      const thisQ = this.getBaseUnits();
+      if (!thisQ) {
+        // If the first operand is not a UCUM quantity or it has a special unit
         return null;
       }
-      otherQuantity = new FP_Quantity(this.ctx, otherQuantity, "'1'");
-    } else if (otherQuantity.value.equals(0)) {
+      return new FP_Quantity(this.ctx, this.value.div(otherQuantity), this.unit);
+    } else if (!(otherQuantity instanceof FP_Quantity) || otherQuantity.value.equals(0) || otherQuantity.isCalendarDuration()) {
       // Division by zero always gives an empty result
       return null;
-    } else if (otherQuantity.unit !== "'1'" && this.hasIncomparableDurationMix(otherQuantity.unit)) {
+    } else if (this.isCalendarDuration()) {
+      if (otherQuantity.unit === "'1'") {
+        return new FP_Quantity(this.ctx, this.value.div(otherQuantity.value), this.unit);
+      }
+      const otherQ = otherQuantity.getBaseUnits();
+      if (otherQ?.unit === '1') {
+        // If the second operand is a number, return the result in the calendar unit of the first operand
+        return new FP_Quantity(this.ctx, this.value.div(otherQ.value), this.unit);
+      }
+      // Division of a calendar duration by a non-number is not supported
       return null;
     }
 
-    const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
-    const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
-
-    if (thisUnitInSeconds) {
-      if (otherUnitInSeconds) {
-        // If both operands are calendar duration quantities
-        const thisConvFactor = FP_Quantity._yearMonthConversionFactor[this.unit];
-        const otherConvFactor = FP_Quantity._yearMonthConversionFactor[otherQuantity.unit];
-        if (thisConvFactor && otherConvFactor) {
-          // If the values are indicated in years and months, we use the conversion factor: 1 year = 12 months
-          return new FP_Quantity(this.ctx, this.value.mul(thisConvFactor).div(otherQuantity.value.mul(otherConvFactor)), "'1'");
-        }
-      } else if (otherQuantity.unit === "'1'") {
-        // If the second operand is a number
-        return new FP_Quantity(this.ctx, this.value.div(otherQuantity.value), this.unit);
-      }
-    }
-
-    const thisQ = this.convToUcumUnits(this, thisUnitInSeconds);
+    const thisQ = this.getBaseUnits();
     if (!thisQ) {
       // If the first operand is not a UCUM quantity or it has a special unit
       return null;
     }
 
-    const otherQ = this.convToUcumUnits(otherQuantity, otherUnitInSeconds);
+    const otherQ = otherQuantity.getBaseUnits();
     if (!otherQ) {
       // If the second operand is not a UCUM quantity or it has a special unit
       return null;
@@ -863,6 +872,12 @@ class FP_Quantity extends FP_Type_WithContext {
   }
 
 
+  /**
+   * Converts a quantity with unit `'1'` (dimensionless) or any UCUM unit
+   * into its base unit decimal value when possible.
+   *
+   * @returns {FP_Decimal|undefined} The base-unit decimal value if convertible; otherwise `undefined`.
+   */
   toDecimal() {
     if (this.unit === "'1'") {
       return this.value;
@@ -918,31 +933,20 @@ class FP_Quantity extends FP_Type_WithContext {
   }
 
   /**
-   * Converts a quantity to UCUM unit if possible, otherwise returns null.
-   * @param {FP_Quantity} quantity - source quantity.
-   * @param {number|undefined} unitInSeconds - if the source quantity is a
-   *  calendar duration then the value of the quantity unit in seconds,
-   *  otherwise undefined.
+   * Converts this quantity to base UCUM unit if possible, otherwise returns null.
    * @return {{unit: string, value: FP_Decimal} | null}
    */
-  convToUcumUnits(quantity, unitInSeconds) {
-    if (unitInSeconds) {
-      return {
-        value: quantity.value.mul(unitInSeconds),
-        unit: 's'
-      };
-    } else {
-      const unit = quantity.unit.replace(surroundingApostrophesRegex, '');
-      const convRes = ucumConvertToBaseUnits(unit, quantity.value);
-      if (convRes === null || convRes.fromUnitIsSpecial) {
-        // If it is not a UCUM quantity or it has a special unit
-        return null;
-      }
-      return {
-        value: convRes.value,
-        unit: convRes.unit
-      };
+  getBaseUnits() {
+    const unit = this.unit.replace(surroundingApostrophesRegex, '');
+    const convRes = ucumConvertToBaseUnits(unit, this.value);
+    if (convRes === null || convRes.fromUnitIsSpecial) {
+      // If it is not a UCUM quantity or it has a special unit
+      return null;
     }
+    return {
+      value: convRes.value,
+      unit: convRes.unit
+    };
   }
 
   /**
@@ -1227,9 +1231,13 @@ class FP_TimeBase extends FP_Type_WithContext {
   }
 
   /**
-   *  Adds a time-based quantity to this date/time.
-   * @param timeQuantity a quantity to be added to this date/time.  See the
+   * Adds a time-based quantity to this date/time.
+   * @param {FP_Quantity} timeQuantity a quantity to be added to this date/time.  See the
    *  FHIRPath specification for supported units.
+   * @returns {FP_TimeBase} a new date/time with the quantity added.
+   * @throws {Error} if the quantity's unit is not a supported time unit or if
+   *  the precision of the time quantity is higher than the precision of this
+   *  date/time.
    */
   plus(timeQuantity) {
     const unit = timeQuantity.unit;
@@ -1293,7 +1301,9 @@ class FP_TimeBase extends FP_Type_WithContext {
    * @param {FP_Quantity} timeQuantity - a quantity to subtract. See the
    *  FHIRPath specification for supported units.
    * @returns {FP_TimeBase} a new date/time with the quantity subtracted.
-   * @throws {Error} if the quantity's unit is not a supported time unit.
+   * @throws {Error} if the quantity's unit is not a supported time unit or if
+   *  the precision of the time quantity is higher than the precision of this
+   *  date/time.
    */
   minus(timeQuantity) {
     if (timeQuantity instanceof FP_Quantity) {
@@ -1307,13 +1317,12 @@ class FP_TimeBase extends FP_Type_WithContext {
 
 
   /**
-   *  Tests whether this object is equal to another.  Returns either true,
-   *  false, or undefined (where in the FHIRPath specification empty would be
-   *  returned).  The undefined return value indicates that the values were the
-   *  same to the shared precision, but that they had differnent levels of
-   *  precision.
-   * @param otherDateTime any sub-type of FP_TimeBase, but it should be the same
-   *  as the type of "this".
+   * Tests whether this date/time object is equal to another.
+   * @param {FP_TimeBase} otherDateTime any sub-type of FP_TimeBase, but it
+   *  should be the same as the type of "this".
+   * @returns {boolean|undefined} true if the date/times are equal, false if
+   *  they are not equal, or undefined if they are the same to the shared
+   *  precision but have different levels of precision.
    */
   equals(otherDateTime) {
     // From the 2019May ballot:
@@ -1373,8 +1382,11 @@ class FP_TimeBase extends FP_Type_WithContext {
 
 
   /**
-   *  Tests whether this object is equivalant to another.  Returns either true
-   *  or false.
+   * Tests whether this date/time object is equivalent to another.
+   * Equivalence requires both objects to be of the same type and have the same
+   * precision, then compares their underlying time values.
+   * @param {FP_TimeBase} otherDateTime - The other date/time object to compare.
+   * @returns {boolean} True if equivalent, false otherwise.
    */
   equivalentTo(otherDateTime) {
     var rtn = otherDateTime instanceof this.constructor;
@@ -2835,9 +2847,11 @@ class FP_Decimal_Native extends FP_Decimal {
 
 
   /**
-   * Divides this decimal by another decimal.
-   * @param {FP_Decimal|FP_Quantity|BigInt|number} other
-   * @returns {FP_Decimal|FP_Quantity}
+   * Divides this decimal by another decimal or quantity.
+   * @param {FP_Decimal|FP_Quantity|BigInt|number} other the value to divide by.
+   * @returns {FP_Decimal|FP_Quantity|null} null if division by zero  (or if
+   *  dividing by a quantity with incompatible units), otherwise the result of
+   *  division.
    */
   div(other) {
     if (other instanceof FP_Quantity) {
@@ -3019,13 +3033,19 @@ class FP_Decimal_Native extends FP_Decimal {
   /**
    * Checks equality with another value.
    * @param {FP_Decimal|FP_Quantity|number} other
-   * @returns {boolean}
+   * @returns {boolean|undefined} true if equal, false if not equal, undefined if not
+   *  comparable.
    */
   equals(other) {
     if (other instanceof FP_Quantity) {
       return new FP_Quantity(other.ctx, this, "'1'").equals(other);
     }
-    const otherVal = this._toNumber(other);
+    let otherVal;
+    try {
+      otherVal = this._toNumber(other);
+    } catch {
+      return undefined;
+    }
     return numbers.isEqual(this.value, otherVal);
   }
 
@@ -3034,10 +3054,15 @@ class FP_Decimal_Native extends FP_Decimal {
    * Determines numeric equivalence with another value.
    * Compares values rounded to the lesser of the two decimal precisions.
    * @param {FP_Decimal|number} other
-   * @returns {boolean}
+   * @returns {boolean} true if the values are equivalent, false otherwise.
    */
   equivalentTo(other) {
-    const otherDecimal = FP_Decimal_Native.getDecimal(other);
+    let otherDecimal;
+    try {
+      otherDecimal = FP_Decimal_Native.getDecimal(other);
+    } catch {
+      return false;
+    }
     const otherVal = otherDecimal.value;
     const thisVal = this.value;
 
@@ -3238,9 +3263,11 @@ class FP_Decimal_Precise extends FP_Decimal {
 
 
   /**
-   * Divides this decimal by another decimal.
-   * @param {FP_Decimal|Decimal|number|string} other
-   * @returns {FP_Decimal|FP_Quantity}
+   * Divides this decimal by another decimal or quantity.
+   * @param {FP_Decimal|FP_Quantity|BigInt|number} other the value to divide by.
+   * @returns {FP_Decimal|FP_Quantity|null} null if division by zero  (or if
+   *  dividing by a quantity with incompatible units), otherwise the result of
+   *  division.
    */
   div(other) {
     if (other instanceof FP_Quantity) {
@@ -3417,13 +3444,19 @@ class FP_Decimal_Precise extends FP_Decimal {
   /**
    * Checks equality with another value.
    * @param {FP_Decimal|FP_Quantity|Decimal|number} other
-   * @returns {boolean}
+   * @returns {boolean|undefined} true if equal, false if not equal, undefined
+   *  if not comparable.
    */
   equals(other) {
     if (other instanceof FP_Quantity) {
       return new FP_Quantity(other.ctx, this, "'1'").equals(other);
     }
-    const otherVal = this._toDecimal(other);
+    let otherVal;
+    try {
+      otherVal = this._toDecimal(other);
+    } catch {
+      return undefined;
+    }
     return this.value.toDecimalPlaces(FP_Decimal.MAX_PRECISION)
       .equals(otherVal.toDecimalPlaces(FP_Decimal.MAX_PRECISION));
   }
@@ -3433,10 +3466,16 @@ class FP_Decimal_Precise extends FP_Decimal {
    * Determines numeric equivalence with another value.
    * Compares values rounded to the lesser of the two decimal precisions.
    * @param {FP_Decimal|Decimal|number} other
-   * @returns {boolean}
+   * @returns {boolean} true if the values are equivalent, false otherwise.
    */
   equivalentTo(other) {
-    const otherVal = this._toDecimal(other);
+    let otherVal;
+    try {
+      otherVal = this._toDecimal(other);
+    } catch {
+      return false;
+    }
+
 
     if (this.value.isInteger() && otherVal.isInteger()) {
       return this.value.equals(otherVal);
