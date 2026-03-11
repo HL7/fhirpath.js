@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.8.6] - 2026-03-11
+### Fixed
+- Delimited identifiers can now have string escapes.
+
 ## [4.8.5] - 2026-01-28
 ### Fixed
 - Fixed toDate(), toDateTime(), and toTime() conversion functions to support

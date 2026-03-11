@@ -260,7 +260,7 @@ engine.PolarityExpression = function(ctx, parentData, node) {
 
 engine.TypeSpecifier = function(ctx, parentData, node) {
   let namespace, name;
-  const identifiers = node.text.split('.').map(i => i.replace(/(^`|`$)/g, ""));
+  const identifiers = node.text.split('.').map(getDelimitedIdentifierVal);
   switch (identifiers.length) {
     case 2:
       [namespace, name] = identifiers;
@@ -369,24 +369,10 @@ engine.StringLiteral = function(ctx, parentData, node) {
  * @return {string}
  */
 function getStringLiteralVal(str) {
-  return str.replace(/(^'|'$)/g, "")
-    .replace(/\\(u\d{4}|.)/g, function(match, submatch) {
-      switch(match) {
-        case '\\r':
-          return '\r';
-        case '\\n':
-          return "\n";
-        case '\\t':
-          return '\t';
-        case '\\f':
-          return '\f';
-        default:
-          if (submatch.length > 1)
-            return String.fromCharCode('0x'+submatch.slice(1));
-          else
-            return submatch;
-      }
-    });
+  if (str && str[0] === "'" && str[str.length - 1] === "'") {
+    return handleStringEscapes(str.slice(1, -1));
+  }
+  return str;
 }
 
 engine.BooleanLiteral = function(ctx, parentData, node) {
@@ -440,12 +426,49 @@ engine.Identifier = function(ctx, parentData, node) {
 };
 
 /**
- * Removes the beginning and ending back-quotes.
+ * Resolves an identifier value, including delimited identifiers.
  * @param {string} str - identifier string
  * @return {string}
  */
 function getIdentifierVal(str) {
-  return str.replace(/(^`|`$)/g, "");
+  return getDelimitedIdentifierVal(str);
+}
+
+/**
+ * Handles string-style escape sequences.
+ * @param {string} str - string content without surrounding quotes
+ * @return {string}
+ */
+function handleStringEscapes(str) {
+  return str.replace(/\\(u\d{4}|.)/g, function(match, submatch) {
+    switch (match) {
+      case '\\r':
+        return '\r';
+      case '\\n':
+        return "\n";
+      case '\\t':
+        return '\t';
+      case '\\f':
+        return '\f';
+      default:
+        if (submatch.length > 1) {
+          return String.fromCharCode('0x' + submatch.slice(1));
+        }
+        return submatch;
+    }
+  });
+}
+
+/**
+ * Removes the beginning and ending back-quotes and handles escapes.
+ * @param {string} str - identifier string
+ * @return {string}
+ */
+function getDelimitedIdentifierVal(str) {
+  if (str && str[0] === '`' && str[str.length - 1] === '`') {
+    return handleStringEscapes(str.slice(1, -1));
+  }
+  return str;
 }
 
 engine.InvocationTerm = function(ctx, parentData, node) {
