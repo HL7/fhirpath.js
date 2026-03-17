@@ -57,27 +57,72 @@ util.assertType = function(data, types, errorMsgPrefix) {
   return val;
 };
 
+
+/**
+ * Checks whether the given value is empty.
+ * A value is considered empty if it is null, undefined, or an empty array.
+ * @param {*} x - the value to check.
+ * @returns {boolean} true if the value is empty, false otherwise.
+ */
 util.isEmpty = function(x){
-  return Array.isArray(x) && x.length === 0;
+  return x === null || x === undefined || Array.isArray(x) && x.length === 0;
 };
 
+
+/**
+ * Checks whether the given value is not empty (the inverse of
+ * {@link util.isEmpty}).
+ * @param {*} x - the value to check.
+ * @returns {boolean} true if the value is not empty, false otherwise.
+ */
 util.isSome = function(x){
-  return x !== null && x !== undefined && !util.isEmpty(x);
+  return !util.isEmpty(x);
 };
 
+
+/**
+ * Checks whether the given value is truthy in FHIRPath terms.
+ * A value is true if it is the boolean `true`, or a singleton collection
+ * whose single element's data value is `true`.
+ * @param {*} x - the value to check (may be a boolean, an array, or a
+ *   ResourceNode).
+ * @returns {boolean} true if the value represents FHIRPath true,
+ *   false otherwise.
+ */
 util.isTrue = function(x){
   // We use util.valData because we can use a boolean node as a criterion
   return x !== null && x !== undefined && (x === true || (x.length === 1 && util.valData(x[0]) === true));
 };
 
+
+/**
+ * Checks whether the first character of the given string is uppercase.
+ * @param {string} x - the string to check.
+ * @returns {boolean} true if the first character is uppercase, false otherwise
+ *   or if the string is empty/falsy.
+ */
 util.isCapitalized = function(x){
   return x && (x[0] === x[0].toUpperCase());
 };
 
+
+/**
+ * Capitalizes the first character of the given string.
+ * @param {string} x - the string to capitalize.
+ * @returns {string} the string with the first character converted to uppercase.
+ */
 util.capitalize = function(x){
   return x[0].toUpperCase() + x.substring(1);
 };
 
+
+/**
+ * Flattens a nested array by one level. If any element is a Promise, waits
+ * for all to resolve before flattening.
+ * @param {Array} x - the array to flatten.
+ * @returns {Array|Promise<Array>} the flattened array, or a Promise resolving
+ *   to the flattened array if any element is a Promise.
+ */
 util.flatten = function(x){
   if (x.some(i => i instanceof Promise)) {
     return Promise.all(x).then(arr => flattenSync(arr));
@@ -97,11 +142,22 @@ function flattenSync(x) {
   return [].concat(...x);
 }
 
-util.arraify = function(x){
-  if(Array.isArray(x)){ return x; }
-  if(util.isSome(x)){ return [x]; }
+
+/**
+ * Converts the input to an array.
+ * - If the input is already an array, returns it as is.
+ * - If the input is not null or undefined, wraps it in an array.
+ * - If the input is null or undefined, returns an empty array.
+ *
+ * @param {*} x - The value to convert to an array.
+ * @returns {Array} - The resulting array.
+ */
+util.arraify = function(x) {
+  if (Array.isArray(x)) return x;
+  if (x !== null && x !== undefined) return [x];
   return [];
 };
+
 
 /**
  * If the input parameter is a promise, arraify the result of that promise,
@@ -115,19 +171,26 @@ util.resolveAndArraify = function(x){
     : util.arraify(x);
 };
 
+
 /**
- *  Returns the data value of the given parameter, which might be a ResourceNode.
- *  Otherwise, it returns the value that was passed in.
+ * Returns the data value of the given parameter, which might be a ResourceNode.
+ * If the value is a ResourceNode, returns its `data` property; otherwise,
+ * returns the value as-is.
+ * @param {*} val - the value to unwrap.
+ * @returns {*} the unwrapped data value.
  */
 util.valData = function(val) {
   return (val instanceof ResourceNode) ? val.data : val;
 };
 
+
 /**
- *  Returns the data value of the given parameter, which might be a ResourceNode.
- *  Otherwise, it returns the value that was passed in.  In the case of a
- *  ResourceNode that is a Quantity, the returned value will have been converted
- *  to an FP_Quantity.
+ * Returns the data value of the given parameter, which might be a ResourceNode.
+ * If the value is a ResourceNode, returns its converted data (e.g. a Quantity
+ * ResourceNode is converted to an FP_Quantity). Otherwise, returns the value
+ * as-is.
+ * @param {*} val - the value to unwrap and convert.
+ * @returns {*} the unwrapped and converted data value.
  */
 util.valDataConverted = function(val) {
   if (val instanceof ResourceNode) {
@@ -136,14 +199,16 @@ util.valDataConverted = function(val) {
   return val;
 };
 
+
 /**
- * Prepares a string for insertion into a regular expression
- * @param {string} str
- * @return {string}
+ * Prepares a string for insertion into a regular expression.
+ * @param {string} str - the string to escape.
+ * @returns {string} the escaped string safe for use in a RegExp.
  */
 util.escapeStringForRegExp = function (str) {
   return str.replace(/[-[\]{}()*+?.,\\/^$|#\s]/g, '\\$&');
 };
+
 
 /**
  * Binding to the Array.prototype.push.apply function to define a function to
@@ -158,77 +223,91 @@ util.pushFn = Function.prototype.apply.bind(Array.prototype.push);
 
 /**
  * Creates child resource nodes for the specified resource node property.
- * @param {ResourceNode} parentResNode - resource node
- * @param {string} childProperty - name of property
- * @param {object} [model] - "model" data object
- * @return {ResourceNode[]}
+ * Handles choice type paths, underscore-prefixed FHIR JSON properties, array
+ * values, and model-based type resolution.
+ * @param {Object} ctx - the FHIRPath evaluation context.
+ * @param {ResourceNode} parentResNode - the parent resource node.
+ * @param {string} childProperty - name of the child property to extract.
+ * @param {Object} [model] - the FHIR "model" data object specific to a domain,
+ *   e.g. R4.
+ * @returns {ResourceNode[]} an array of child ResourceNodes (may be empty).
  */
-util.makeChildResNodes = function(parentResNode, childProperty, model) {
-  let childPath = parentResNode.path + '.' + childProperty;
-
-  if (model) {
-    let defPath = model.pathsDefinedElsewhere[childPath];
-    if (defPath)
-      childPath = defPath;
-  }
-  let toAdd, _toAdd;
-  let actualTypes = model && model.choiceTypePaths[childPath];
-  if (actualTypes) {
-    // Use actualTypes to find the field's value
-    for (let t of actualTypes) {
-      let field = childProperty + t;
-      toAdd = parentResNode.data?.[field];
-      _toAdd = parentResNode.data?.['_' + field];
-      if (toAdd !== undefined || _toAdd !== undefined) {
-        childPath += t;
-        break;
-      }
-    }
-  }
-  else {
-    toAdd = parentResNode.data?.[childProperty];
-    _toAdd = parentResNode.data?.['_' + childProperty];
-    if (toAdd === undefined && _toAdd === undefined) {
-      toAdd = parentResNode._data[childProperty];
-    }
-    if (childProperty === 'extension') {
-      childPath = 'Extension';
-    }
-  }
-
+util.makeChildResNodes = function(ctx, parentResNode, childProperty, model) {
+  const parentResNodePath = parentResNode.path;
+  const data = parentResNode.data;
+  let childPath = null;
   let fhirNodeDataType = null;
-  if (model) {
-    fhirNodeDataType = model.path2Type[childPath];
-    childPath = model.path2TypeWithoutElements[childPath] || childPath;
-  }
+  let toAdd, _toAdd;
 
-  let result;
-  if (util.isSome(toAdd) || util.isSome(_toAdd)) {
-    if(Array.isArray(toAdd)) {
-      result = toAdd.map((x, i)=>
-        ResourceNode.makeResNode(x, parentResNode, childPath,
-          _toAdd && _toAdd[i], fhirNodeDataType, model, childProperty, i));
-      // Add items to the end of the ResourceNode list that have no value
-      // but have associated data, such as extensions or ids.
-      const _toAddLength = _toAdd?.length || 0;
-      for (let i = toAdd.length; i < _toAddLength; ++i) {
-        result.push(ResourceNode.makeResNode(null, parentResNode, childPath,
-          _toAdd[i], fhirNodeDataType, model, childProperty, i));
+  if (parentResNodePath) {
+    childPath = parentResNodePath + '.' + childProperty;
+
+    if (model) {
+      childPath = model.pathsDefinedElsewhere[childPath] || childPath;
+    }
+
+    const actualTypes = model && model.choiceTypePaths[childPath];
+    if (actualTypes) {
+      // Use actualTypes to find the field's value
+      for (const t of actualTypes) {
+        const field = childProperty + t;
+        toAdd = data?.[field];
+        _toAdd = data?.['_' + field];
+        if (toAdd !== undefined || _toAdd !== undefined) {
+          childPath += t;
+          break;
+        }
       }
-    } else if (toAdd == null && Array.isArray(_toAdd)) {
-      // Add items to the end of the ResourceNode list when there are no
-      // values at all, but there is a list of associated data, such as
-      // extensions or ids.
-      result = _toAdd.map((x) => ResourceNode.makeResNode(null, parentResNode,
-        childPath, x, fhirNodeDataType, model, childProperty));
     } else {
-      result = [ResourceNode.makeResNode(toAdd, parentResNode, childPath,
-        _toAdd, fhirNodeDataType, model, childProperty)];
+      toAdd = data?.[childProperty];
+      _toAdd = data?.['_' + childProperty];
+      if (toAdd === undefined && _toAdd === undefined) {
+        toAdd = parentResNode._data[childProperty];
+      }
+      if (childProperty === 'extension') {
+        childPath = 'Extension';
+      }
+    }
+
+    if (model) {
+      fhirNodeDataType = model.path2Type[childPath];
+      childPath = model.path2TypeWithoutElements[childPath] || childPath;
     }
   } else {
-    result = [];
+    toAdd = data?.[childProperty];
+    _toAdd = data?.['_' + childProperty];
+    if (toAdd === undefined && _toAdd === undefined) {
+      toAdd = parentResNode._data[childProperty];
+    }}
+
+  if (!util.isSome(toAdd) && !util.isSome(_toAdd)) {
+    return [];
   }
-  return result;
+
+  if (Array.isArray(toAdd)) {
+    const result = toAdd.map((x, i) =>
+      ResourceNode.makeResNode(ctx, x, parentResNode, childPath,
+        _toAdd && _toAdd[i], fhirNodeDataType, childProperty, i));
+    // Add items to the end of the ResourceNode list that have no value
+    // but have associated data, such as extensions or ids.
+    const _toAddLength = _toAdd?.length || 0;
+    for (let i = toAdd.length; i < _toAddLength; ++i) {
+      result.push(ResourceNode.makeResNode(ctx, null, parentResNode, childPath,
+        _toAdd[i], fhirNodeDataType, childProperty, i));
+    }
+    return result;
+  }
+
+  if (toAdd == null && Array.isArray(_toAdd)) {
+    // Add items to the end of the ResourceNode list when there are no
+    // values at all, but there is a list of associated data, such as
+    // extensions or ids.
+    return _toAdd.map((x) => ResourceNode.makeResNode(ctx, null, parentResNode,
+      childPath, x, fhirNodeDataType, childProperty));
+  }
+
+  return [ResourceNode.makeResNode(ctx, toAdd, parentResNode, childPath,
+    _toAdd, fhirNodeDataType, childProperty)];
 };
 
 

@@ -45,7 +45,7 @@ const sources = [
   return {srcFilename, targetFilename, downloadUrl, model};
 });
 
-const commander = require('commander');
+const { Command, Option } = require('commander');
 const convert = require('../index');
 
 const https = require('https');
@@ -72,12 +72,14 @@ function downloadFile(url, dest) {
   });
 }
 
-commander
-  .option('-s, --skip-download', 'skip downloading sources from FHIRPath repository')
+const program = new Command();
+
+program
+  .addOption(new Option('-s, --skip-download', 'skip downloading sources from FHIRPath repository'))
   .description('Convert xml test cases/resources to yaml/json')
-  .action(async (cmd) => {
+  .action(async (options) => {
     try {
-      if (!cmd.skipDownload) {
+      if (!options.skipDownload) {
         for (let i = 0; i < sources.length; i++) {
           const item = sources[i];
           await downloadFile(item.downloadUrl, sourceDir + item.srcFilename);
@@ -96,7 +98,7 @@ commander
         const item = testFiles[i];
         await convert.testsXmlFileToYamlFile(sourceDir + item.srcFilename, destDir + item.targetFilename, item.model);
       }
-    } catch(e) {
+    } catch (e) {
       console.error(e);
     }
   })

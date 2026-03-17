@@ -3,6 +3,37 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.9.0] - 2026-02-19
+### Added
+- **Precise decimal arithmetic mode** (`preciseMath` option): A new mathematical
+  calculation mode that currently uses the decimal.js library internally to
+  avoid binary floating-point rounding errors (e.g., `0.1 + 0.2` now equals `0.3`
+  exactly). Enabled by passing `{ preciseMath: true }` to evaluate() or
+  compile().
+- **FP_Decimal class** exported from fhirpath.js: Floating-point numbers and
+  integers are now stored internally as this class instances.
+- **`keepDecimalTypes` option**: When true, `FP_Decimal` values are preserved
+  as-is in `evaluate()` results instead of being converted to JavaScript numbers,
+  allowing downstream code to retain full decimal precision.
+- **`FP_Decimal.getDecimal(value)` static method**: Allows precise decimal
+  objects to be constructed from a number or numeric string, enabling lossless
+  JSON parsing workflows (e.g., via lossless-json) when passing high-precision
+  values in FHIR resource data.
+- **`--mathMode` / `-o` CLI option**: The `fhirpath` CLI now accepts
+  `--mathMode precise` or `--mathMode native` to select the math
+  mode from the command line.
+- The function `ceiling()`, `floor()`, `round()`, and `truncate()` now work with
+  `Quantity`.
+- **Improved `Long`(BigInt) interoperability in arithmetic operations** by
+  treating it as a decimal number through implicit conversion. However, if
+  the result of an operation can be represented as an integer, it will be of
+  the `Long`(BigInt) type for improved precision.
+### Fixed
+- Multiplication/division involving calendar units (apart from the special UCUM
+  '1' unit) now returns an empty value.
+- An issue where equivalence was determined incorrectly if one of the operands
+  was an empty collection.
+
 ## [4.8.5] - 2026-01-28
 ### Fixed
 - Fixed toDate(), toDateTime(), and toTime() conversion functions to support

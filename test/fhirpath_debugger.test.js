@@ -2,6 +2,7 @@
 
 const fhirpath = require("../src/fhirpath");
 const fhirpath_r4_model = require("../fhir-context/r4");
+const {FP_Decimal} = require('../src/types');
 
 function readFullPropertyName(item) {
   if (item?.fullPropertyName) {
@@ -85,11 +86,19 @@ function stringifySafe(val, space = 2) {
   );
 }
 
-function ToTraceValue(item) {
-  let typeName = Object.prototype.toString
+function getTypeName(item) {
+  if (item instanceof FP_Decimal) {
+    return 'Number';
+  }
+
+  return Object.prototype.toString
     .call(item ?? "")
     .substring(8)
     .replace("]", "");
+}
+
+function ToTraceValue(item) {
+  let typeName = getTypeName(item) ;
   if (typeof item.getTypeInfo === "function")
     typeName = item.getTypeInfo().name;
   let val = {
@@ -102,6 +111,9 @@ function ToTraceValue(item) {
       : stringifySafe(item, 2);
   }
   val.rawData = item.data ?? item;
+  if (val.rawData instanceof FP_Decimal) {
+    val.rawData = val.rawData.toNumber();
+  }
   return val;
 }
 

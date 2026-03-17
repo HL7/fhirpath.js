@@ -10,6 +10,9 @@ Try it out on the [demo page](https://hl7.github.io/fhirpath.js/).
   * [Server-side (Node.js)](#server-side-nodejs)
   * [Web-browser](#web-browser)
 - [API Usage](#api-usage)
+  * [Mathematical operations mode](#mathematical-operations-mode)
+    + [Passing precise numbers in the input resource](#passing-precise-numbers-in-the-input-resource)
+    + [Preserving precise numbers in evaluation results](#preserving-precise-numbers-in-evaluation-results)
   * [Asynchronous functions](#asynchronous-functions)
   * [User-defined functions](#user-defined-functions)
 - [fhirpath CLI](#fhirpath-cli)
@@ -78,6 +81,9 @@ where:
       types should be converted to standard JavaScript types (true by default).
       If false is passed, this conversion can be done later by calling
       fhirpath.resolveInternalTypes().
+    * options.keepDecimalTypes - when true, FP_Decimal values are preserved
+      as-is instead of being converted to JavaScript numbers (false by default).
+      See the section on [Mathematical operations mode](#mathematical-operations-mode) for more details.
     * options.traceFn - An optional trace function to call when tracing.
     * options.userInvocationTable - a user invocation table used
       to replace any existing functions or define new ones.
@@ -108,6 +114,12 @@ where:
       }
       ```
       See [authentication to FHIR servers](docs/auth.md).
+    * options.preciseMath - defines which mathematical operations mode to use:
+        * true - use precision-safe math operations for accurate decimal
+          calculations (e.g., 0.1 + 0.2 = 0.3)
+        * false (default) - use native JavaScript math operations for better
+          performance but with potential floating-point precision issues (e.g.,
+          0.1 + 0.2 = 0.30000000000000004)
 
 Note:  The resource will be modified by this function to add type information.
 
@@ -226,6 +238,148 @@ let tracefunction = function (x, label) {
 
 const res = fhirpath.evaluate(contextNode, path, envVars, fhirpath_r4_model, { traceFn: tracefunction });
 ```
+
+### Mathematical operations mode
+
+fhirpath.js supports two modes for mathematical operations, controlled by the
+`preciseMath` option:
+
+- **Native math** (`preciseMath: false`, the default) — uses JavaScript's
+  built-in `Number` type (IEEE 754 double-precision floating point). This is the
+  fastest mode, but it can produce small rounding errors inherent to binary
+  floating-point arithmetic (e.g., `0.1 + 0.2` evaluates to
+  `0.30000000000000004` instead of `0.3`).
+
+- **Precise math** (`preciseMath: true`) — uses a more precise decimal
+  representation internally to avoid rounding errors in binary floating-point
+  numbers.
+
+Benefits of precise math:
+- **Accuracy** — decimal arithmetic produces results that match human
+  expectations (e.g., `0.1 + 0.2 = 0.3`), which is critical for clinical
+  calculations, dosage computations, and financial amounts in healthcare data.
+- **FHIRPath compliance** — the [FHIRPath specification](https://hl7.org/fhirpath/#decimal)
+  defines decimal semantics with up to 8 digits of precision after the decimal
+  point. Precise math allows this precision to be preserved in all operations
+  except in cases of arithmetic overflow.
+
+The trade-off is a moderate performance cost compared to native math. For most
+FHIRPath evaluations the difference is negligible, but if you are processing
+very large datasets and do not need exact decimal precision, native math may be
+preferable.
+
+To use precision-safe decimal arithmetic:
+```js
+fhirpath.evaluate(
+  {
+    "resourceType": "Observation",
+    "valueQuantity": {
+      "value": 0.1,
+      "system": "http://unitsofmeasure.org",
+      "code": "kg"
+    }
+  },
+  'Observation.value + 0.2 \'kg\'',
+  null,
+  fhirpath_r4_model,
+  { preciseMath: true }  // Returns 0.3 'kg' instead of 0.30000000000000004 'kg'
+);
+```
+
+#### Passing precise numbers in the input resource
+
+When a FHIR resource is parsed from JSON using the standard `JSON.parse()`,
+numeric values are converted to JavaScript's `Number` type, which silently loses
+precision for decimals with many significant digits (e.g.,
+`JSON.parse('{"value": 12345678901234567890.12345678}')` yields
+`12345678901234567000`).
+Since `JSON.parse` converts every number to a `Number` _before_ the reviver
+function sees it, there is no way to recover the original precision using a
+reviver alone.
+
+To preserve exact decimal values from the source data, use a lossless JSON
+parser such as [lossless-json](https://www.npmjs.com/package/lossless-json),
+which gives you access to the raw numeric string from the JSON source. You can
+then pass that string to `FP_Decimal.getDecimal()` (where `FP_Decimal` is
+exported by fhirpath.js) to create a precise decimal object.
+
+```js
+const { parse } = require('lossless-json');
+const fhirpath = require('fhirpath');
+const { FP_Decimal } = fhirpath;
+const fhirpath_r4_model = require('fhirpath/fhir-context/r4');
+
+const jsonString = '{"resourceType": "Observation", "valueQuantity": '
+  + '{"value": 12345678901234567890.12345678, "unit": "mg", '
+  + '"system": "http://unitsofmeasure.org", "code": "mg"}}';
+
+// The third argument to parse() is a numberParser callback that receives
+// the raw numeric string from the JSON source. By passing it to
+// FP_Decimal.getDecimal(), we create a precise decimal object that preserves
+// the full original precision.
+const resource = parse(jsonString, null, (rawNumericStr) => {
+  return FP_Decimal.getDecimal(rawNumericStr); // preserve exact decimal precision
+});
+
+const result = fhirpath.evaluate(
+  resource,
+  'Observation.value',
+  null,
+  fhirpath_r4_model,
+  { preciseMath: true }
+);
+```
+
+#### Preserving precise numbers in evaluation results
+
+By default, `evaluate` converts all internal types — including decimal numbers —
+to standard JavaScript types before returning them. When `preciseMath` is
+enabled, this means `FP_Decimal` values are converted to JavaScript `Number`,
+which can reintroduce the same floating-point precision loss you intended to
+avoid.
+
+To keep decimal values as `FP_Decimal` objects in the output while still
+converting other internal types (dates, times, quantities) to strings,
+set `keepDecimalTypes` to `true`:
+
+```js
+const fhirpath = require('fhirpath');
+const { FP_Decimal } = fhirpath;
+const fhirpath_r4_model = require('fhirpath/fhir-context/r4');
+
+const result = fhirpath.evaluate(
+  {
+    "resourceType": "Observation",
+    "valueQuantity": {
+      "value": 0.1,
+      "system": "http://unitsofmeasure.org",
+      "code": "kg"
+    }
+  },
+  'Observation.value.value + 0.2',
+  null,
+  fhirpath_r4_model,
+  { preciseMath: true, keepDecimalTypes: true }
+);
+
+console.log(result[0] instanceof FP_Decimal); // true
+console.log(result[0].toString());            // "0.3"
+console.log(result[0].toNumber());            // 0.3 (JavaScript Number)
+```
+
+The `FP_Decimal` objects returned in this mode provide several useful methods:
+- `toString()` — returns the string representation with the original precision.
+- `toNumber()` — converts to a JavaScript `Number` (may lose precision).
+- `toJSON()` — returns a JavaScript `Number` (used by `JSON.stringify`).
+
+This option is especially useful when the evaluation result is used as input
+for further precise calculations, or when you need to display or serialize the
+result without losing decimal precision.
+
+> **Note:** `keepDecimalTypes` only has an effect when `resolveInternalTypes` is
+> `true` (the default). If `resolveInternalTypes` is `false`, the result of the
+> expression can only be used as a variable value for other expressions, since
+> its structure is not documented.
 
 ### Asynchronous functions
 
@@ -369,6 +523,27 @@ lower case, e.g., 'dstu2', 'stu3' or 'r4').
 
 ```sh
 fhirpath --expression 'Observation.value' --resourceJSON '{"resourceType": "Observation", "valueString": "Green"}' --model r4
+```
+
+Mathematical operations mode can be selected via --mathMode followed by
+either 'precise' or 'native' ('native' is currently the default mode, but this may
+change):
+```sh
+# Using precise math (accurate decimal arithmetic)
+fhirpath --expression '0.1 + 0.2' --resourceJSON '{}' --mathMode precise
+
+> fhirpath(0.1 + 0.2) =>
+> [
+>  0.3
+> ]
+
+# Using native math (faster but with floating-point precision issues)
+fhirpath --expression '0.1 + 0.2' --resourceJSON '{}' --mathMode native
+
+> fhirpath(0.1 + 0.2) =>
+> [
+>  0.30000000000000004
+> ]
 ```
 
 Also, you can pass in a filename or a string of JSON representing a part of the resource.

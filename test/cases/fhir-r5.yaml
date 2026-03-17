@@ -138,7 +138,7 @@ tests:
         model: r5
       - desc: '** realistic example with conceptmap'
         inputfile: conceptmap-example.json
-        expression: "\n\t\t\tgroup.select(\n\t\t\t\tdefineVariable('grp')\n\t\t\t\t.element\n\t\t\t\t.select(\n\t\t\t\t\tdefineVariable('ele')\n\t\t\t\t\t.target\n\t\t\t\t\t.select(%grp.source & '|' & %ele.code & ' ' & relationship & ' ' & %grp.target & '|' & code)\n\t\t\t\t)\n\t\t\t)\n\t\t\t.trace('all')\n\t\t\t.isDistinct()\n\t\t"
+        expression: "\r\n\t\t\tgroup.select(\r\n\t\t\t\tdefineVariable('grp')\r\n\t\t\t\t.element\r\n\t\t\t\t.select(\r\n\t\t\t\t\tdefineVariable('ele')\r\n\t\t\t\t\t.target\r\n\t\t\t\t\t.select(%grp.source & '|' & %ele.code & ' ' & relationship & ' ' & %grp.target & '|' & code)\r\n\t\t\t\t)\r\n\t\t\t)\r\n\t\t\t.trace('all')\r\n\t\t\t.isDistinct()\r\n\t\t"
         result:
           - false
         model: r5
@@ -174,53 +174,31 @@ tests:
         model: r5
       - desc: '** testComment2'
         inputfile: patient-example.json
-        expression: |-
-          // This is a multi line comment using // that
-            // should not fail during parsing
-            2+2
+        expression: "// This is a multi line comment using // that\r\n  // should not fail during parsing\r\n  2+2"
         result:
           - 4
         model: r5
       - desc: '** testComment3'
         inputfile: patient-example.json
-        expression: |-
-          2 + 2 
-                /*
-          This is a multi-line comment
-          Any text enclosed within is ignored
-          +2
-          */
+        expression: "2 + 2 \r\n      /*\r\nThis is a multi-line comment\r\nAny text enclosed within is ignored\r\n+2\r\n*/"
         result:
           - 4
         model: r5
       - desc: '** testComment4'
         inputfile: patient-example.json
-        expression: |-
-          2 + 2 
-                /*
-          This is a multi-line comment
-          Any text enclosed within is ignored
-          */
-          +2
+        expression: "2 + 2 \r\n      /*\r\nThis is a multi-line comment\r\nAny text enclosed within is ignored\r\n*/\r\n+2"
         result:
           - 6
         model: r5
       - desc: '** testComment5'
         inputfile: patient-example.json
-        expression: |-
-          /*
-          This is a multi-line comment
-          Any text enclosed within is ignored
-          */
-          2+2
+        expression: "/*\r\nThis is a multi-line comment\r\nAny text enclosed within is ignored\r\n*/\r\n2+2"
         result:
           - 4
         model: r5
       - desc: '** testComment6'
         inputfile: patient-example.json
-        expression: |-
-          2 // comment
-          / 2
+        expression: "2 // comment\r\n/ 2"
         result:
           - 1
         model: r5
@@ -1109,7 +1087,6 @@ tests:
         result:
           - true
         model: r5
-        disable: true
       - desc: '** testStringIntegerLiteralConvertsToDecimal'
         inputfile: patient-example.json
         expression: '''1''.convertsToDecimal()'
@@ -1467,7 +1444,6 @@ tests:
         result:
           - '1.0'
         model: r5
-        disable: true
       - desc: '** testStringLiteralToString'
         inputfile: patient-example.json
         expression: '''true''.toString()'
@@ -1513,7 +1489,7 @@ tests:
         model: r5
       - desc: '** testExists4'
         inputfile: patient-example.json
-        expression: "Patient.maritalStatus.coding.exists(code = 'P' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus')\n\t\t\tor Patient.maritalStatus.coding.exists(code = 'A' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus')"
+        expression: "Patient.maritalStatus.coding.exists(code = 'P' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus')\r\n\t\t\tor Patient.maritalStatus.coding.exists(code = 'A' and system = 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus')"
         result:
           - false
         model: r5
@@ -2140,7 +2116,6 @@ tests:
         result:
           - true
         model: r5
-        disable: true
       - desc: '** testToString5'
         inputfile: patient-example.json
         expression: '@2014-12-14.toString() = ''2014-12-14'''
@@ -2540,7 +2515,7 @@ tests:
           - true
         model: r5
       - desc: '** testMatchesSingleLineMode1'
-        expression: "'A\n\t\t\tB'.matches('A.*B')"
+        expression: "'A\r\n\t\t\tB'.matches('A.*B')"
         result:
           - true
         model: r5
@@ -3305,7 +3280,6 @@ tests:
         result:
           - false
         model: r5
-        disable: true
       - desc: '** testEquivalent4'
         inputfile: patient-example.json
         expression: 1 ~ 2
@@ -3457,7 +3431,6 @@ tests:
         result:
           - true
         model: r5
-        disable: true
       - desc: '** testNotEquivalent4'
         inputfile: patient-example.json
         expression: 1 !~ 2
@@ -5455,32 +5428,26 @@ tests:
         model: r5
   - 'group: testPrecedence':
       - desc: '** test unary precedence'
-        inputfile: patient-example.json
         expression: '-1.convertsToInteger()'
         error: true
         model: r5
       - desc: '** testPrecedence2'
-        inputfile: patient-example.json
         expression: 1+2*3+4 = 11
         result:
           - true
         model: r5
       - desc: '** testPrecedence3'
-        inputfile: patient-example.json
         expression: 1 > 2 is Boolean
+        error: true
         result:
           - true
         model: r5
-        disable: true
       - desc: '** testPrecedence4'
-        inputfile: patient-example.json
-        expression: 1 | 1 is Integer
+        expression: (1 | 1 is Integer).count()
         result:
-          - true
+          - 2
         model: r5
-        disable: true
       - desc: '** testPrecedence5'
-        inputfile: observation-example.json
         expression: true and '0215' in ('0215' | '0216')
         result:
           - true
@@ -6084,6 +6051,18 @@ tests:
           - false
         model: r5
         disable: true
+      - desc: '** testPolymorphicsC'
+        inputfile: observation-example.json
+        expression: Observation.valueQuantity.exists()
+        result:
+          - true
+        model: r5
+      - desc: '** testPolymorphicsD'
+        inputfile: observation-example.json
+        expression: Observation.valueString.exists()
+        result:
+          - false
+        model: r5
   - 'group: index-part':
       - desc: '** testIndex'
         inputfile: patient-example.json
@@ -6264,7 +6243,7 @@ tests:
         model: r5
       - desc: '** testMultipleResolve'
         inputfile: diagnosticreport-eric.json
-        expression: "\n\t\t\tcomposition.exists() \n\t\t\timplies \n\t\t\t(\n\t\t\t\tcomposition.resolve().section.entry.reference.where(resolve() is Observation)\n\t\t\t\t.where($this in (%resource.result.reference | %resource.result.reference.resolve().hasMember.reference)).exists()\n\t\t\t)\n\t\t\t"
+        expression: "\r\n\t\t\tcomposition.exists() \r\n\t\t\timplies \r\n\t\t\t(\r\n\t\t\t\tcomposition.resolve().section.entry.reference.where(resolve() is Observation)\r\n\t\t\t\t.where($this in (%resource.result.reference | %resource.result.reference.resolve().hasMember.reference)).exists()\r\n\t\t\t)\r\n\t\t\t"
         result:
           - true
         model: r5
