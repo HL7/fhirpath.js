@@ -3,6 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.9.1] - 2026-03-11
+### Fixed
+- Delimited identifiers can now have string escapes.
+
 ## [4.9.0] - 2026-02-19
 ### Added
 - **Precise decimal arithmetic mode** (`preciseMath` option): A new mathematical

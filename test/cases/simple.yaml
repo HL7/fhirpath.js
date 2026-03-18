@@ -7,6 +7,11 @@ tests:
       - Chalmers
       - Windsor
 
+  - desc: delimited identifier with escape
+    expression: 'Patient.`odd\`name`'
+    result:
+      - odd-value
+
   - desc: mapcat arrays
     expression: Patient.name.given
     result: ["Peter", "James", "Jim", "Peter", "James"]
@@ -188,6 +193,7 @@ tests:
 subject:
   resourceType: Patient
   id: example
+  "odd`name": odd-value
   address:
   - use: home
     city: PleasantVille
