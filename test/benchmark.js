@@ -18,6 +18,8 @@ const { spawn, fork } = require('child_process');
 
 // Insert performance test suites here:
 const availableTests = [
+  'addition',
+  'gln-validation-expression',
   'comparison',
   'contains',
   'descendants',
@@ -30,12 +32,27 @@ const availableTests = [
   'union'
 ];
 
-const options = require('commander');
-options.description('Compare performance between the latest published version and the current version.');
-options.option('-v, --prevVersion <version>', 'use a specific version instead of latest published version.', 'latest');
-options.option('-t, --tests <list>', `list of comma-separated tests (e.g. "${availableTests.join(',')}")`, availableTests.join(','));
-options.option('-c, --compileOnly', 'skip tests for evaluate().', 'latest');
-options.parse(process.argv);
+const { Command, Option, InvalidArgumentError } = require('commander');
+const program = new Command();
+
+program
+  .description('Compare performance between the latest published version and the current version.')
+  .addOption(new Option('-v, --prevVersion <version>', 'use a specific version instead of latest published version.').default('latest'))
+  .addOption(new Option('-t, --tests <list>', `list of comma-separated tests (e.g. "${availableTests.join(',')}")`)
+    .argParser(
+      (value) => {
+        const tests = value.split(',').map(s => s.trim());
+        const invalidTests = tests.filter(test => !availableTests.includes(test));
+        if (invalidTests.length > 0) {
+          throw new InvalidArgumentError('\nUnexpected tests: ' + invalidTests.join(',') + '.\nAvailable tests are: ' + availableTests.join(',') + '.');
+        }
+        return tests;
+      }).default(availableTests))
+  .addOption(new Option('-c, --compileOnly', 'skip tests for evaluate().'))
+  .addOption(new Option(`-o, --mathMode <mode>`, 'mathematical operations mode.').choices(['native', 'precise']))
+  .parse(process.argv);
+
+const options = program.opts();
 
 const npmInstallProcess = spawn('npm', ['i', '--prefix', './test/benchmark/prev-fhirpath', 'fhirpath@' + options.prevVersion], {
   stdio: 'inherit'

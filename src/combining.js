@@ -6,15 +6,45 @@ const hashObject = require('./hash-object');
 const { deepEqual, maxCollSizeForDeepEqual } = require('./deep-equal');
 const { TypeInfo } = require("./types");
 
+
+/**
+ * Returns the union of two collections, removing duplicates.
+ * See https://hl7.org/fhirpath/#unionother-collection
+ * @param {Array} coll1 - the first collection.
+ * @param {Array} coll2 - the second collection.
+ * @returns {Array} a collection containing all distinct items from both
+ *   collections.
+ */
 combineFns.union = function(coll1, coll2){
   return distinctFn(coll1.concat(coll2));
 };
 
+
+/**
+ * Returns the merge of two collections, preserving duplicates.
+ * See https://hl7.org/fhirpath/#combineother-collection-collection
+ * @param {Array} coll1 - the first collection.
+ * @param {Array} coll2 - the second collection.
+ * @returns {Array} a collection containing all items from both collections.
+ */
 combineFns.combineFn = function(coll1, coll2){
   return coll1.concat(coll2);
 };
 
+
+/**
+ * Returns the intersection of two collections — items that appear in both.
+ * Duplicates are eliminated from the result. For large collections without
+ * primitive values, a hash-based approach is used for efficiency; otherwise,
+ * deep equality comparison is used.
+ * See https://hl7.org/fhirpath/#intersectother-collection-collection
+ * @param {Array} coll1 - the first collection.
+ * @param {Array} coll2 - the second collection.
+ * @returns {Array} a collection containing distinct items present in both
+ *   input collections.
+ */
 combineFns.intersect = function(coll1, coll2) {
+  const ctx = this;
   let result = [];
   const coll1Length = coll1.length;
   let uncheckedLength = coll2.length;
@@ -47,7 +77,7 @@ combineFns.intersect = function(coll1, coll2) {
     } else {
       // Otherwise, it is more efficient to perform a deep comparison.
       result = distinctFn(coll1, hasPrimitive).filter(
-        obj1 => coll2.some(obj2 => deepEqual(obj1, obj2))
+        obj1 => coll2.some(obj2 => deepEqual(ctx, obj1, obj2))
       );
     }
   }
@@ -56,6 +86,15 @@ combineFns.intersect = function(coll1, coll2) {
 };
 
 
+/**
+ * Returns items from the first collection that are not in the second.
+ * For large collections without primitive values, a hash-based approach is
+ * used for efficiency; otherwise, deep equality comparison is used.
+ * See https://hl7.org/fhirpath/#excludeother-collection
+ * @param {Array} coll1 - the source collection.
+ * @param {Array} coll2 - the collection of items to exclude.
+ * @returns {Array} items from coll1 that do not appear in coll2.
+ */
 combineFns.exclude = function(coll1, coll2) {
   let result = [];
 
@@ -80,9 +119,10 @@ combineFns.exclude = function(coll1, coll2) {
 
       result = coll1.filter(item => !coll2hash[hashObject(item)]);
     } else {
+      const ctx = this;
       // Otherwise, it is more efficient to perform a deep comparison.
       result = coll1.filter(item => {
-        return !coll2.some(item2 => deepEqual(item, item2));
+        return !coll2.some(item2 => deepEqual(ctx, item, item2));
       });
     }
   }

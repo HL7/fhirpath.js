@@ -1,6 +1,15 @@
 const addMinutes = require('date-fns/add_minutes');
 const ucumUtils = require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance();
 const numbers = require('./numbers');
+// TODO: replace decimal.js with implementation that uses fixed precision
+//  decimal format and implement supports all math operations?
+const Decimal = require('decimal.js');
+
+// The maximum number of significant digits.
+// See
+//  https://hl7.org/fhirpath/#integer
+//  https://hl7.org/fhirpath/#decimal
+Decimal.set({precision:31});
 
 const ucumSystemUrl = 'http://unitsofmeasure.org';
 const timeFormat =
@@ -13,7 +22,7 @@ const dateTimeRE = new RegExp(
 const dateRE = new RegExp(
   '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9])?)?$');
 const instantRE = new RegExp(
-  '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T[0-9][0-9](\\:[0-9][0-9](\\:[0-9][0-9](\\.[0-9]+)?))(Z|(\\+|-)[0-9][0-9]\\:[0-9][0-9]))))$');
+  '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T[0-9][0-9](:[0-9][0-9](:[0-9][0-9](\\.[0-9]+)?))(Z|([+-])[0-9][0-9]:[0-9][0-9]))))$');
 // FHIR date/time regular expressions are slightly different.  For now, we will
 // stick with the FHIRPath regular expressions.
 //let fhirTimeRE = /([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?/;
@@ -43,15 +52,36 @@ const isAboveWeeks = [
  *   handling.
  */
 class FP_Type {
+
+  /**
+   * Returns the string representation of this FHIRPath type.
+   * Uses the `asStr` property if available, otherwise falls back to the
+   * default Object.toString().
+   * @returns {string}
+   */
+  toString() {
+    return this.asStr ? this.asStr : super.toString();
+  }
+
+
+  /**
+   * Returns the JSON representation of this FHIRPath type.
+   * By default, returns the string representation.
+   * @returns {string}
+   */
+  toJSON() {
+    return this.toString();
+  }
+
   /**
    *  Tests whether this object is equal to another.  Returns either true,
    *  false, or undefined (where in the FHIRPath specification empty would be
    *  returned).  The undefined return value indicates that the values were the
-   *  same to the shared precision, but that they had differnent levels of
+   *  same to the shared precision, but that they had different levels of
    *  precision.
    */
   equals(/* otherObj */) {
-    return false;
+    throw new Error('equals() is not implemented for ' + this.constructor.name);
   }
 
   /**
@@ -60,15 +90,32 @@ class FP_Type {
    *  returned).
    */
   equivalentTo(/* otherObj */) {
-    return false;
+    throw new Error('equivalentTo() is not implemented for ' + this.constructor.name);
   }
 
-  toString() {
-    return this.asStr ? this.asStr : super.toString();
+  /**
+   * Returns the value as a JavaScript number.
+   * @returns {number}
+   */
+  toNumber() {
+    throw new Error('toNumber() is not implemented for ' + this.constructor.name);
   }
 
-  toJSON() {
-    return this.toString();
+  /**
+   * Returns the value as FP_Decimal.
+   * @returns {FP_Decimal}
+   */
+  toDecimal() {
+    throw new Error('toNumber() is not implemented for ' + this.constructor.name);
+  }
+
+
+  /**
+   * Returns a BigInt representation of this object, if possible.
+   * Otherwise, throws an error.
+   */
+  toBigInt() {
+    throw new Error(this.constructor.name + ' cannot be converted to Long (BigInt)');
   }
 
   /**
@@ -76,28 +123,98 @@ class FP_Type {
    *  than otherObj.
    */
   compare(/* otherObj */) {
-    throw 'Comparison not implemented for ' + this.constructor.name;
+    throw new Error('Comparison not implemented for ' + this.constructor.name);
   }
 
   /**
    *  Adds other value to this value.
    */
   plus(/* otherObj */) {
-    throw 'Addition not implemented for ' + this.constructor.name;
+    throw new Error('Addition for ' + this.constructor.name + ' is not implemented');
+  }
+
+  /**
+   * Subtracts another value from this value.
+   */
+  minus(/* otherObj */) {
+    throw new Error('Subtraction for ' + this.constructor.name + ' is not implemented');
+  }
+
+  /**
+   * Returns the negation of this value.
+   */
+  negate() {
+    throw new Error('Negation for ' + this.constructor.name + ' is not implemented');
   }
 
   /**
    * Multiplies this value by another value.
    */
   mul(/* otherObj */) {
-    throw 'Multiplication not implemented for ' + this.constructor.name;
+    throw new Error('Multiplication for ' + this.constructor.name + ' is not implemented');
   }
 
   /**
    * Divides this value by another value.
    */
   div(/* otherObj */) {
-    throw 'Division not implemented for ' + this.constructor.name;
+    throw new Error('Division for ' + this.constructor.name + ' is not implemented');
+  }
+
+  /**
+   * Returns the absolute value of this value.
+   */
+  abs() {
+    throw new Error('abs() for ' + this.constructor.name + ' is not implemented');
+  }
+
+
+  /**
+   * Returns the ceiling of this value.
+   */
+  ceiling() {
+    throw new Error('ceiling() for ' + this.constructor.name + ' is not implemented');
+  }
+
+
+  /**
+   * Returns the floor of this value.
+   */
+  floor() {
+    throw new Error('floor() is not implemented for ' + this.constructor.name);
+  }
+
+
+  /**
+   * Rounds this value to the specified precision.
+   */
+  round(/*precision*/) {
+    throw new Error('round() is not implemented for ' + this.constructor.name);
+  }
+
+
+  /**
+   * Truncates this value.
+   * @returns {FP_Type}
+   */
+  truncate() {
+    throw new Error('truncate() is not implemented for ' + this.constructor.name);
+  }
+
+}
+
+
+/**
+ * Base class for FHIRPath types that require access to the evaluation context.
+ * Stores a reference to the context object (ctx) for use by subclasses.
+ */
+class FP_Type_WithContext extends FP_Type {
+  /**
+   * @param {Object} ctx - the FHIRPath evaluation context.
+   */
+  constructor(ctx) {
+    super();
+    this.ctx = ctx;
   }
 }
 
@@ -105,12 +222,24 @@ class FP_Type {
 /**
  *  A class for Quantities.
  */
-class FP_Quantity extends FP_Type {
-  constructor(value, unit) {
-    super();
-    this.asStr = value + ' ' + unit;
-    this.value = value;
+class FP_Quantity extends FP_Type_WithContext {
+  /**
+   * Constructs a Quantity with a numeric value and a unit.
+   * @param {Object} ctx - the FHIRPath evaluation context.
+   * @param {FP_Decimal|number} value - the numeric value of the quantity.
+   * @param {string} unit - the unit of the quantity (e.g. a calendar duration
+   *   like 'month', or a UCUM code in single quotes like `'mo'` or `'kg'`).
+   */
+  constructor(ctx, value, unit) {
+    super(ctx);
+    // Convert value to FP_Decimal if it isn't already
+    if (value instanceof FP_Decimal) {
+      this.value = value;
+    } else {
+      this.value = ctx.getDecimal(value);
+    }
     this.unit = unit;
+    this.asStr = this.value.toString() + ' ' + unit;
   }
 
 
@@ -168,12 +297,12 @@ class FP_Quantity extends FP_Type {
 
   /**
    * Compares this Quantity with another for equality.
-   * If the quantities could not be compared, returns null, which will be
+   * If the quantities could not be compared, returns undefined, which will be
    * converted to an empty collection in the "doInvoke" function.
    * See https://hl7.org/fhirpath/#equals
    *
-   * @param {FP_Quantity} otherQuantity - The quantity to compare with
-   * @returns {boolean|null} - true if equal, false if not equal, null if not
+   * @param {FP_Quantity|FP_Decimal|number} otherQuantity - The quantity to compare with
+   * @returns {boolean|undefined} - true if equal, false if not equal, undefined if not
    *  comparable
    *
    * @example
@@ -186,38 +315,52 @@ class FP_Quantity extends FP_Type {
    *
    * @example
    * // Disallowed comparisons (> week threshold)
-   * (1 month).equals(30 'd') // null (not comparable)
-   * (1 'a').equals(365 days) // null (not comparable)
+   * (1 month).equals(30 'd') // undefined (not comparable)
+   * (1 'a').equals(365 days) // undefined (not comparable)
    */
   equals(otherQuantity) {
-    if (!(otherQuantity instanceof this.constructor)) {
-      return false;
-    }
+    let normalizedOtherQuantity;
+    if (otherQuantity instanceof FP_Decimal || typeof otherQuantity === 'number') {
+      if (this.unit === "'1'") {
+        return this.value.equals(otherQuantity.value);
+      }
+      // If otherQuantity is a decimal or number, treat it as a UCUM quantity with
+      // unit 1
+      normalizedOtherQuantity = {
+        value: this.ctx.getDecimal(otherQuantity),
+        unit: '1'
+      };
+    } else {
+      if (!(otherQuantity instanceof this.constructor)) {
+        return false;
+      }
 
-    if (this.hasIncomparableDurationMix(otherQuantity.unit)) {
-      return null;
-    }
+      if (this.hasIncomparableDurationMix(otherQuantity.unit)) {
+        return undefined;
+      }
 
-    if (this.unit === otherQuantity.unit) {
-      return numbers.isEqual(this.value, otherQuantity.value);
-    }
+      if (this.unit === otherQuantity.unit) {
+        return this.value.equals(otherQuantity.value);
+      }
 
-    // Special year/month comparison case: 1 year = 12 month
-    const compareYearsAndMonths = this._compareYearsAndMonths(otherQuantity);
-    if (compareYearsAndMonths) {
-      return compareYearsAndMonths.isEqual;
+      // Special year/month comparison case: 1 year = 12 month
+      const compareYearsAndMonths = this._compareYearsAndMonths(otherQuantity);
+      if (compareYearsAndMonths) {
+        return compareYearsAndMonths.isEqual;
+      }
+
+      normalizedOtherQuantity = FP_Quantity.toUcumQuantity(otherQuantity.value, otherQuantity.unit);
     }
 
     // General comparison case
     const thisQuantity = FP_Quantity.toUcumQuantity(this.value, this.unit),
-      normalizedOtherQuantity = FP_Quantity.toUcumQuantity(otherQuantity.value, otherQuantity.unit),
-      convResult = ucumUtils.convertUnitTo(normalizedOtherQuantity.unit, normalizedOtherQuantity.value, thisQuantity.unit);
+      convResult = ucumConvertUnitTo(normalizedOtherQuantity.unit, normalizedOtherQuantity.value, thisQuantity.unit);
 
     if (convResult.status !== 'succeeded') {
       return false;
     }
 
-    return numbers.isEqual(thisQuantity.value, convResult.toVal);
+    return thisQuantity.value.equals(convResult.toVal);
   }
 
 
@@ -235,13 +378,13 @@ class FP_Quantity extends FP_Type {
 
     // If the units are the same, compare the values directly.
     if (this.unit === otherQuantity.unit) {
-      return numbers.isEquivalent(this.value, otherQuantity.value);
+      return this.value.equivalentTo(otherQuantity.value);
     }
 
     // Convert both units to their UCUM equivalents and attempt conversion.
     const ucumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(this.unit),
       otherUcumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit),
-      convOther = ucumUtils.convertUnitTo(otherUcumUnitCode, otherQuantity.value, ucumUnitCode);
+      convOther = ucumConvertUnitTo(otherUcumUnitCode, otherQuantity.value, ucumUnitCode);
 
     // If units are not convertible, return false.
     if (convOther.status !== 'succeeded') {
@@ -249,15 +392,15 @@ class FP_Quantity extends FP_Type {
     }
 
     // If ucumUnitCode is most granular, use it for equivalence check.
-    if (convOther.toVal >= otherQuantity.value) {
-      return numbers.isEquivalent(this.value, convOther.toVal);
+    if (convOther.toVal.compare(otherQuantity.value) >= 0) {
+      return this.value.equivalentTo(convOther.toVal);
     }
 
     // If otherUcumUnitCode is most granular, use it for equivalence check.
     // Skip the convThis.status check here because the conversion must succeed.
-    const convThis = ucumUtils.convertUnitTo(ucumUnitCode, this.value, otherUcumUnitCode);
+    const convThis = ucumConvertUnitTo(ucumUnitCode, this.value, otherUcumUnitCode);
 
-    return numbers.isEquivalent(convThis.toVal, otherQuantity.value);
+    return convThis.toVal.equivalentTo(otherQuantity.value);
   }
 
   /**
@@ -267,7 +410,7 @@ class FP_Quantity extends FP_Type {
    * converted to an empty collection in the "doInvoke" function.
    * See https://hl7.org/fhirpath/#comparison
    *
-   * @param {FP_Quantity} otherQuantity
+   * @param {FP_Quantity|FP_Decimal|number} otherQuantity
    * @return {number|null}
    *
    *  @example
@@ -282,41 +425,52 @@ class FP_Quantity extends FP_Type {
    * (1 'a').compare(1 day) // null (not comparable)
    */
   compare(otherQuantity) {
-    if (this.unit === otherQuantity.unit) {
-      return this.value - otherQuantity.value;
-    }
-
-    if (this.hasIncomparableDurationMix(otherQuantity.unit)) {
-      return null;
-    }
-
-    const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
-    const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
-
-    if(thisUnitInSeconds !== undefined && otherUnitInSeconds !== undefined) {
-      // If both operands are calendar durations
-      const thisConvFactor = FP_Quantity._yearMonthConversionFactor[this.unit],
-        otherConvFactor = FP_Quantity._yearMonthConversionFactor[otherQuantity.unit];
-
-      if ( thisConvFactor && otherConvFactor) {
-        // If the values are indicated in years and months, we use the conversion
-        // factor: 1 year = 12 months
-        return this.value * thisConvFactor - otherQuantity.value * otherConvFactor;
+    let otherValue;
+    let otherUcumUnitCode;
+    if (otherQuantity instanceof FP_Decimal || typeof otherQuantity === 'number') {
+      if (this.unit === "'1'") {
+        return this.value.compare(otherQuantity);
+      }
+      otherValue = this.ctx.getDecimal(otherQuantity);
+      otherUcumUnitCode = '1';
+    } else {
+      otherValue = otherQuantity.value;
+      if (this.unit === otherQuantity.unit) {
+        return this.value.minus(otherValue);
       }
 
-      // Otherwise, we convert them to seconds to compare.
-      return this.value * thisUnitInSeconds - otherQuantity.value * otherUnitInSeconds;
+      if (this.hasIncomparableDurationMix(otherQuantity.unit)) {
+        return null;
+      }
+
+      const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
+      const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
+
+      if (thisUnitInSeconds !== undefined && otherUnitInSeconds !== undefined) {
+        // If both operands are calendar durations
+        const thisConvFactor = FP_Quantity._yearMonthConversionFactor[this.unit],
+          otherConvFactor = FP_Quantity._yearMonthConversionFactor[otherQuantity.unit];
+
+        if (thisConvFactor && otherConvFactor) {
+          // If the values are indicated in years and months, we use the conversion
+          // factor: 1 year = 12 months
+          return this.value.mul(thisConvFactor).compare(otherValue.mul(otherConvFactor));
+        }
+
+        // Otherwise, we convert them to seconds to compare.
+        return this.value.mul(thisUnitInSeconds).compare(otherValue.mul(otherUnitInSeconds));
+      }
+      otherUcumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit);
     }
 
     const ucumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(this.unit),
-      otherUcumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit),
-      convResult = ucumUtils.convertUnitTo(otherUcumUnitCode, otherQuantity.value, ucumUnitCode);
+      convResult = ucumConvertUnitTo(otherUcumUnitCode, otherValue, ucumUnitCode);
 
     if (convResult.status !== 'succeeded') {
       return null;
     }
 
-    return this.value - convResult.toVal;
+    return this.value.compare(convResult.toVal);
   }
 
 
@@ -333,27 +487,42 @@ class FP_Quantity extends FP_Type {
    * (1 day).comparable(24 'h') // true (both ≤ week threshold)
    */
   comparable(otherQuantity) {
-    if (this.unit === otherQuantity.unit) {
-      return true;
-    }
-
-    if (this.hasIncomparableDurationMix(otherQuantity.unit)) {
+    if (otherQuantity instanceof FP_Decimal || typeof otherQuantity === 'number') {
+      if (this.unit === "'1'") {
+        return true;
+      }
+      const convRes = ucumUtils.convertToBaseUnits(
+        this.unit.replace(surroundingApostrophesRegex, ''), 1);
+      if (convRes.status === 'succeeded') {
+        return Object.keys(convRes.unitToExp).length === 0;
+      }
       return false;
     }
+    if (otherQuantity instanceof FP_Quantity) {
+      if (this.unit === otherQuantity.unit) {
+        return true;
+      }
 
-    const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
-    const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
+      if (this.hasIncomparableDurationMix(otherQuantity.unit)) {
+        return false;
+      }
 
-    if(thisUnitInSeconds !== undefined && otherUnitInSeconds !== undefined) {
-      // If both operands are calendar durations, they are comparable
-      return true;
+      const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
+      const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
+
+      if (thisUnitInSeconds !== undefined && otherUnitInSeconds !== undefined) {
+        // If both operands are calendar durations, they are comparable
+        return true;
+      }
+
+      const ucumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(this.unit),
+        otherUcumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit),
+        convResult = ucumConvertUnitTo(otherUcumUnitCode, otherQuantity.value, ucumUnitCode);
+
+      return convResult.status === 'succeeded';
     }
 
-    const ucumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(this.unit),
-      otherUcumUnitCode = FP_Quantity.getEquivalentUcumUnitCode(otherQuantity.unit),
-      convResult = ucumUtils.convertUnitTo(otherUcumUnitCode, otherQuantity.value, ucumUnitCode);
-
-    return convResult.status === 'succeeded';
+    return false;
   }
 
 
@@ -380,7 +549,7 @@ class FP_Quantity extends FP_Type {
    *
    *   `@2011-01-10 + 1.5 years = @2011-01-10 + 1 years = 2012-01-10`
    *
-   * @param {FP_Quantity} otherQuantity - A quantity to be added to this
+   * @param {FP_Quantity|FP_Decimal|number} otherQuantity - A quantity to be added to this
    *  quantity.
    *
    * @returns {FP_Quantity|null} A new FP_Quantity object representing the sum
@@ -390,18 +559,26 @@ class FP_Quantity extends FP_Type {
    *   - Either unit involves special UCUM units that cannot be converted
    */
   plus(otherQuantity) {
+    if (otherQuantity instanceof FP_TimeBase) {
+      return otherQuantity.plus(this);
+    }
+    const typeOfOther = typeof otherQuantity;
+    if (otherQuantity instanceof FP_Decimal || typeOfOther === 'number' || typeOfOther === 'bigint') {
+      // If otherQuantity is a decimal or number, treat it as a quantity with unit '1'
+      otherQuantity = new FP_Quantity(this.ctx, this.ctx.getDecimal(otherQuantity), "'1'");
+    }
     const thisConvFactor = FP_Quantity._yearMonthConversionFactor[this.unit];
     const otherConvFactor = FP_Quantity._yearMonthConversionFactor[otherQuantity.unit];
     if (thisConvFactor && otherConvFactor) {
       // If the values are indicated in years and months, we use the conversion factor: 1 year = 12 months
       if (thisConvFactor > otherConvFactor) {
-        return new FP_Quantity(
-          this.value * thisConvFactor / otherConvFactor + otherQuantity.value,
-          otherQuantity.unit);
+        const convertedValue = this.value.mul(thisConvFactor).div(otherConvFactor);
+        const resultValue = convertedValue.plus(otherQuantity.value);
+        return new FP_Quantity(this.ctx, resultValue, otherQuantity.unit);
       }
-      return new FP_Quantity(
-        this.value + otherQuantity.value * otherConvFactor / thisConvFactor,
-        this.unit);
+      const convertedValue = otherQuantity.value.mul(otherConvFactor).div(thisConvFactor);
+      const resultValue = this.value.plus(convertedValue);
+      return new FP_Quantity(this.ctx, resultValue, this.unit);
     }
 
     if (this.hasIncomparableDurationMix(otherQuantity.unit)) {
@@ -412,13 +589,13 @@ class FP_Quantity extends FP_Type {
     const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
     if (thisUnitInSeconds && otherUnitInSeconds) {
       if (thisUnitInSeconds > otherUnitInSeconds) {
-        return new FP_Quantity(
-          this.value * thisUnitInSeconds / otherUnitInSeconds + otherQuantity.value,
-          otherQuantity.unit);
+        const convertedValue = this.value.mul(thisUnitInSeconds).div(otherUnitInSeconds);
+        const resultValue = convertedValue.plus(otherQuantity.value);
+        return new FP_Quantity(this.ctx, resultValue, otherQuantity.unit);
       } else {
-        return new FP_Quantity(
-          this.value + otherQuantity.value * otherUnitInSeconds / thisUnitInSeconds,
-          this.unit);
+        const convertedValue = otherQuantity.value.mul(otherUnitInSeconds).div(thisUnitInSeconds);
+        const resultValue = this.value.plus(convertedValue);
+        return new FP_Quantity(this.ctx, resultValue, this.unit);
       }
     }
 
@@ -430,7 +607,8 @@ class FP_Quantity extends FP_Type {
       FP_Quantity.mapTimeUnitsToUCUMCode[otherQuantity.unit] :
       otherQuantity.unit.replace(surroundingApostrophesRegex, '');
 
-    const convResult = ucumUtils.convertUnitTo(otherUcumUnitCode, otherQuantity.value, thisUcumUnitCode);
+    const convResult = ucumConvertUnitTo(otherUcumUnitCode, otherQuantity.value,
+      thisUcumUnitCode);
 
     if (convResult.status !== 'succeeded'
       || convResult.fromUnit.isSpecial_
@@ -438,46 +616,164 @@ class FP_Quantity extends FP_Type {
       return null;
     }
 
+    const resultValue = this.value.plus(convResult.toVal);
+
     if (convResult.fromUnit.magnitude_ < convResult.toUnit.magnitude_) {
-      return new FP_Quantity((this.value + convResult.toVal)*convResult.toUnit.magnitude_/convResult.fromUnit.magnitude_, otherUnitInSeconds ? otherQuantity.unit : "'" + otherUcumUnitCode + "'");
+      const convertedValue = resultValue.mul(convResult.toUnit.magnitude_)
+        .div(convResult.fromUnit.magnitude_);
+      return new FP_Quantity(this.ctx, convertedValue, otherUnitInSeconds ?
+        otherQuantity.unit : "'" + otherUcumUnitCode + "'");
     }
 
-    return new FP_Quantity(this.value + convResult.toVal, thisUnitInSeconds ? this.unit : "'" + thisUcumUnitCode + "'");
+    return new FP_Quantity(this.ctx, resultValue, thisUnitInSeconds ?
+      this.unit : "'" + thisUcumUnitCode + "'");
   }
 
+
   /**
-   * Multiplies this quantity to another quantity.
-   * @param {FP_Quantity} otherQuantity a quantity by which to multiply this quantity.
-   * @return {FP_Quantity}
+   * Subtracts a quantity from this quantity.
+   * @param {FP_Quantity} otherQuantity - The quantity to subtract
+   * @returns {FP_Quantity|null} The result of the subtraction
    */
-  mul(otherQuantity) {
-    if (
-      (
-        this.hasIncomparableDurationMix(otherQuantity.unit) &&
-        this.unit !== "'1'" &&
-        otherQuantity.unit !== "'1'"
-      ) || (
-        this.isCalendarDuration() &&
-        this.isCalendarDuration(otherQuantity.unit) &&
-        (
-          this.isUnitGreaterThanMaxComparable() ||
-          this.isUnitGreaterThanMaxComparable(otherQuantity.unit)
-        )
-      )
-    ) {
+  minus(otherQuantity) {
+    if (otherQuantity instanceof FP_TimeBase) {
+      throw new Error('Cannot substract a date/time based value from a quantity');
+    }
+    const typeOfOther = typeof otherQuantity;
+    if (otherQuantity instanceof FP_Decimal || typeOfOther === 'number' || typeOfOther === 'bigint') {
+      // If otherQuantity is a decimal or number, treat it as a quantity with unit '1'
+      otherQuantity = new FP_Quantity(this.ctx, this.ctx.getDecimal(otherQuantity), "'1'");
+    }
+    // Handle year/month conversion factor case
+    const thisConvFactor = FP_Quantity._yearMonthConversionFactor[this.unit];
+    const otherConvFactor = FP_Quantity._yearMonthConversionFactor[otherQuantity.unit];
+
+    if (thisConvFactor && otherConvFactor) {
+      if (thisConvFactor > otherConvFactor) {
+        const convertedValue = this.value.mul(thisConvFactor).div(otherConvFactor);
+        const resultValue = convertedValue.minus(otherQuantity.value);
+        return new FP_Quantity(this.ctx, resultValue, otherQuantity.unit);
+      }
+      const convertedValue = otherQuantity.value.mul(otherConvFactor).div(thisConvFactor);
+      const resultValue = this.value.minus(convertedValue);
+      return new FP_Quantity(this.ctx, resultValue, this.unit);
+    }
+
+    if (this.hasIncomparableDurationMix(otherQuantity.unit)) {
       return null;
     }
 
     const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
     const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
 
-    const thisQ = this.convToUcumUnits(this, thisUnitInSeconds);
+    if (thisUnitInSeconds && otherUnitInSeconds) {
+      if (thisUnitInSeconds > otherUnitInSeconds) {
+        const convertedValue = this.value.mul(thisUnitInSeconds).div(otherUnitInSeconds);
+        const resultValue = convertedValue.minus(otherQuantity.value);
+        return new FP_Quantity(this.ctx, resultValue, otherQuantity.unit);
+      } else {
+        const convertedValue = otherQuantity.value.mul(otherUnitInSeconds).div(thisUnitInSeconds);
+        const resultValue = this.value.minus(convertedValue);
+        return new FP_Quantity(this.ctx, resultValue, this.unit);
+      }
+    }
+
+    const thisUcumUnitCode = thisUnitInSeconds ?
+      FP_Quantity.mapTimeUnitsToUCUMCode[this.unit] :
+      this.unit.replace(surroundingApostrophesRegex, '');
+
+    const otherUcumUnitCode = otherUnitInSeconds ?
+      FP_Quantity.mapTimeUnitsToUCUMCode[otherQuantity.unit] :
+      otherQuantity.unit.replace(surroundingApostrophesRegex, '');
+
+    const convResult = ucumConvertUnitTo(otherUcumUnitCode, otherQuantity.value,
+      thisUcumUnitCode);
+
+    if (convResult.status !== 'succeeded'
+      || convResult.fromUnit.isSpecial_
+      || convResult.toUnit.isSpecial_) {
+      return null;
+    }
+
+    const resultValue = this.value.minus(convResult.toVal);
+
+    if (convResult.fromUnit.magnitude_ < convResult.toUnit.magnitude_) {
+      const convertedValue = resultValue.mul(convResult.toUnit.magnitude_)
+        .div(convResult.fromUnit.magnitude_);
+      return new FP_Quantity(this.ctx, convertedValue, otherUnitInSeconds ?
+        otherQuantity.unit : "'" + otherUcumUnitCode + "'");
+    }
+
+    return new FP_Quantity(this.ctx, resultValue, thisUnitInSeconds ?
+      this.unit : "'" + thisUcumUnitCode + "'");
+  }
+
+
+  /**
+   * Returns the negation of this quantity's value while preserving the unit.
+   * Creates a new FP_Quantity with the negated value.
+   *
+   * @returns {FP_Quantity} A new FP_Quantity with the negated value and
+   *  the same unit.
+   * @override
+   * @example
+   * // If this quantity is "5 'kg'", negate() returns "-5 'kg'"
+   */
+  negate() {
+    return new FP_Quantity(this.ctx, this.value.negate(), this.unit);
+  }
+
+
+  /**
+   * Multiplies this quantity to another quantity.
+   * @param {FP_Quantity|FP_Decimal|number|BigInt} otherQuantity a quantity by
+   *  which to multiply this quantity.
+   * @return {FP_Quantity|null} a new FP_Quantity representing the result of the
+   *  multiplication, or null if:
+   *  - calendar duration multiplied by a non-number
+   *  - either unit includes special UCUM, or non-UCUM units (except calendar
+   *    duration)
+   */
+  mul(otherQuantity) {
+    const typeOfOther = typeof otherQuantity;
+    if (otherQuantity instanceof FP_Decimal || typeOfOther === 'number' || typeOfOther === 'bigint') {
+      if (this.isCalendarDuration()) {
+        return new FP_Quantity(this.ctx, this.value.mul(otherQuantity), this.unit);
+      }
+      const thisQ = this.getBaseUnits();
+      if (!thisQ) {
+        // If the first operand is not a UCUM quantity or it has a special unit
+        return null;
+      }
+      // If otherQuantity is a decimal or number, treat it as a quantity with unit '1'
+      return new FP_Quantity(this.ctx, this.value.mul(otherQuantity), this.unit);
+    } else if (!(otherQuantity instanceof FP_Quantity)) {
+      return null;
+    } else if (this.isCalendarDuration()) {
+      const otherQ = otherQuantity.getBaseUnits();
+      if (otherQ?.unit === '1') {
+        // If the second operand is a number, return the result in the calendar unit of the first operand
+        return new FP_Quantity(this.ctx, this.value.mul(otherQ.value), this.unit);
+      }
+      // Multiplication of a calendar duration by a non-number is not supported
+      return null;
+    } else if (otherQuantity.isCalendarDuration()) {
+      const thisQ = this.getBaseUnits();
+      if (thisQ?.unit === '1') {
+        // If the first operand is a number, return the result in the calendar unit of the second operand
+        return new FP_Quantity(this.ctx, thisQ.value.mul(otherQuantity.value), otherQuantity.unit);
+      }
+      // Multiplication of a calendar duration by a non-number is not supported
+      return null;
+    }
+
+    const thisQ = this.getBaseUnits();
     if (!thisQ) {
       // If the first operand is not a UCUM quantity or it has a special unit
       return null;
     }
 
-    const otherQ = this.convToUcumUnits(otherQuantity, otherUnitInSeconds);
+    const otherQ = otherQuantity.getBaseUnits();
     if (!otherQ) {
       // If the second operand is not a UCUM quantity or it has a special unit
       return null;
@@ -485,57 +781,75 @@ class FP_Quantity extends FP_Type {
 
     // Do not use UCUM unit codes for durations in simple cases
     if (this.unit === "'1'") {
-      return new FP_Quantity(this.value * otherQuantity.value, otherQuantity.unit);
+      return new FP_Quantity(this.ctx, this.value.mul(otherQuantity.value), otherQuantity.unit);
     } else if (otherQuantity.unit === "'1'") {
-      return new FP_Quantity(this.value * otherQuantity.value, this.unit);
+      return new FP_Quantity(this.ctx, this.value.mul(otherQuantity.value), this.unit);
     }
 
-    return new FP_Quantity(
-      thisQ.value * otherQ.value,
-      `'(${thisQ.unit}).(${otherQ.unit})'`
-    );
+    const convResult = ucumConvertToBaseUnits(`(${thisQ.unit}).(${otherQ.unit})`, thisQ.value.mul(otherQ.value));
+    if (convResult) {
+      return new FP_Quantity(
+        this.ctx,
+        convResult.value,
+        `'${convResult.unit}'`
+      );
+    }
+    // If the result units are unclear
+    return null;
+
   }
+
 
   /**
    * Divides this quantity by another quantity.
-   * @param {FP_Quantity} otherQuantity a quantity by which to divide this quantity.
-   * @return {FP_Quantity}
+   * @param {FP_Quantity|FP_Decimal|number|BigInt} otherQuantity a quantity by
+   *  which to divide this quantity.
+   * @return {FP_Quantity|null} a new FP_Quantity representing the result of
+   *  the division, or null if:
+   *  - calendar duration multiplied by a non-number
+   *  - either unit includes special UCUM, or non-UCUM units (except calendar
+   *    duration)
    */
   div(otherQuantity) {
-    // Division by zero always gives an empty result
-    if (otherQuantity.value === 0) {
-      return null;
-    }
-
-    if (this.hasIncomparableDurationMix(otherQuantity.unit) && otherQuantity.unit !== "'1'") {
-      return null;
-    }
-
-    const thisUnitInSeconds = FP_Quantity._calendarDuration2Seconds[this.unit];
-    const otherUnitInSeconds = FP_Quantity._calendarDuration2Seconds[otherQuantity.unit];
-
-    if (thisUnitInSeconds) {
-      if (otherUnitInSeconds) {
-        // If both operands are calendar duration quantities
-        const thisConvFactor = FP_Quantity._yearMonthConversionFactor[this.unit];
-        const otherConvFactor = FP_Quantity._yearMonthConversionFactor[otherQuantity.unit];
-        if (thisConvFactor && otherConvFactor) {
-          // If the values are indicated in years and months, we use the conversion factor: 1 year = 12 months
-          return new FP_Quantity(this.value * thisConvFactor / (otherQuantity.value * otherConvFactor), "'1'");
-        }
-      } else if (otherQuantity.unit === "'1'") {
-        // If the second operand is a number
-        return new FP_Quantity(this.value / otherQuantity.value, this.unit);
+    const typeOfOther = typeof otherQuantity;
+    // If otherQuantity is a decimal or number, treat it as a quantity with unit '1'
+    if (otherQuantity instanceof FP_Decimal || typeOfOther === 'number' || typeOfOther === 'bigint') {
+      if (otherQuantity.equals?.(0) || otherQuantity === 0 || otherQuantity === 0n) {
+        // Division by zero always gives an empty result
+        return null;
       }
+      if (this.isCalendarDuration()) {
+        return new FP_Quantity(this.ctx, this.value.div(otherQuantity), this.unit);
+      }
+      const thisQ = this.getBaseUnits();
+      if (!thisQ) {
+        // If the first operand is not a UCUM quantity or it has a special unit
+        return null;
+      }
+      return new FP_Quantity(this.ctx, this.value.div(otherQuantity), this.unit);
+    } else if (!(otherQuantity instanceof FP_Quantity) || otherQuantity.value.equals(0) || otherQuantity.isCalendarDuration()) {
+      // Division by zero always gives an empty result
+      return null;
+    } else if (this.isCalendarDuration()) {
+      if (otherQuantity.unit === "'1'") {
+        return new FP_Quantity(this.ctx, this.value.div(otherQuantity.value), this.unit);
+      }
+      const otherQ = otherQuantity.getBaseUnits();
+      if (otherQ?.unit === '1') {
+        // If the second operand is a number, return the result in the calendar unit of the first operand
+        return new FP_Quantity(this.ctx, this.value.div(otherQ.value), this.unit);
+      }
+      // Division of a calendar duration by a non-number is not supported
+      return null;
     }
 
-    const thisQ = this.convToUcumUnits(this, thisUnitInSeconds);
+    const thisQ = this.getBaseUnits();
     if (!thisQ) {
       // If the first operand is not a UCUM quantity or it has a special unit
       return null;
     }
 
-    const otherQ = this.convToUcumUnits(otherQuantity, otherUnitInSeconds);
+    const otherQ = otherQuantity.getBaseUnits();
     if (!otherQ) {
       // If the second operand is not a UCUM quantity or it has a special unit
       return null;
@@ -545,43 +859,94 @@ class FP_Quantity extends FP_Type {
       ? thisQ.unit
       : `(${thisQ.unit})/(${otherQ.unit})`;
 
-    const convResult = ucumUtils.convertToBaseUnits(resultUnit, thisQ.value / otherQ.value);
-    if (convResult.status !== 'succeeded') {
-      // If the result units are unclear
-      return null;
+    const convResult = ucumConvertToBaseUnits(resultUnit, thisQ.value.div(otherQ.value));
+    if (convResult) {
+      return new FP_Quantity(
+        this.ctx,
+        convResult.value,
+        `'${convResult.unit}'`
+      );
     }
-    return new FP_Quantity(
-      convResult.magnitude,
-      `'${Object.keys(convResult.unitToExp).map(key => key+convResult.unitToExp[key]).join('.') || "1"}'`
-    );
+    // If the result units are unclear
+    return null;
+  }
+
+
+  /**
+   * Converts a quantity with unit `'1'` (dimensionless) or any UCUM unit
+   * into its base unit decimal value when possible.
+   *
+   * @returns {FP_Decimal|undefined} The base-unit decimal value if convertible; otherwise `undefined`.
+   */
+  toDecimal() {
+    if (this.unit === "'1'") {
+      return this.value;
+    }
+    const convResult = ucumConvertToBaseUnits(
+      this.unit.replace(surroundingApostrophesRegex, ''), this.value);
+    if (convResult?.unit === "1") {
+      return convResult.value;
+    }
+  }
+
+
+  /**
+   * Returns the absolute value of this quantity.
+   * @returns {FP_Quantity}
+   */
+  abs() {
+    return new FP_Quantity(this.ctx, this.value.abs(), this.unit);
   }
 
   /**
-   * Converts a quantity to UCUM unit if possible, otherwise returns null.
-   * @param {FP_Quantity} quantity - source quantity.
-   * @param {number|undefined} unitInSeconds - if the source quantity is a
-   *  calendar duration then the value of the quantity unit in seconds,
-   *  otherwise undefined.
-   * @return {{unit: string, value: number} | null}
+   * Returns the ceiling of this quantity.
+   * @return {FP_Quantity}
    */
-  convToUcumUnits(quantity, unitInSeconds) {
-    if (unitInSeconds) {
-      return {
-        value: unitInSeconds * quantity.value,
-        unit: 's'
-      };
-    } else {
-      const unit = quantity.unit.replace(surroundingApostrophesRegex, '');
-      const convRes = ucumUtils.convertToBaseUnits(unit, quantity.value);
-      if (convRes.status !== 'succeeded' || convRes.fromUnitIsSpecial) {
-        // If it is not a UCUM quantity or it has a special unit
-        return null;
-      }
-      return {
-        value: convRes.magnitude,
-        unit: Object.keys(convRes.unitToExp).map(key => key+convRes.unitToExp[key]).join('.') || "1"
-      };
+  ceiling() {
+    return new FP_Quantity(this.ctx, this.value.ceiling(), this.unit);
+  }
+
+  /**
+   * Returns the floor of this quantity.
+   * @return {FP_Quantity}
+   */
+  floor() {
+    return new FP_Quantity(this.ctx, this.value.floor(), this.unit);
+  }
+
+  /**
+   * Returns the rounded value of this quantity.
+   * @param {number} [precision] - number of decimal places.
+   * @return {FP_Quantity}
+   */
+  round(precision) {
+    return new FP_Quantity(this.ctx, this.value.round(precision), this.unit);
+  }
+
+
+  /**
+   * Returns the truncated value of this quantity.
+   * @return {FP_Quantity}
+   */
+  truncate() {
+    return new FP_Quantity(this.ctx, this.value.truncate(), this.unit);
+  }
+
+  /**
+   * Converts this quantity to base UCUM unit if possible, otherwise returns null.
+   * @return {{unit: string, value: FP_Decimal} | null}
+   */
+  getBaseUnits() {
+    const unit = this.unit.replace(surroundingApostrophesRegex, '');
+    const convRes = ucumConvertToBaseUnits(unit, this.value);
+    if (convRes === null || convRes.fromUnitIsSpecial) {
+      // If it is not a UCUM quantity or it has a special unit
+      return null;
     }
+    return {
+      value: convRes.value,
+      unit: convRes.unit
+    };
   }
 
   /**
@@ -605,7 +970,7 @@ class FP_Quantity extends FP_Type {
 
     if ( magnitude1 && magnitude2) {
       return {
-        isEqual: numbers.isEqual(this.value*magnitude1, otherQuantity.value*magnitude2)
+        isEqual: this.value.mul(magnitude1).equals(otherQuantity.value.mul(magnitude2))
       };
     }
 
@@ -627,15 +992,15 @@ FP_Quantity.getEquivalentUcumUnitCode = function (unit) {
 
 /**
  * Converts FHIR path value/unit to UCUM value/unit. Usable for comparison.
- * @param {number} value
+ * @param {FP_Decimal} value
  * @param {string} unit
- * @returns { {value: number, unit: string} }
+ * @returns { {value: FP_Decimal, unit: string} }
  */
 FP_Quantity.toUcumQuantity = function (value, unit) {
   const magnitude = FP_Quantity._calendarDuration2Seconds[unit];
   if (magnitude) {
     return {
-      value: magnitude * value,
+      value: value.mul(magnitude),
       unit: 's'
     };
   }
@@ -648,18 +1013,97 @@ FP_Quantity.toUcumQuantity = function (value, unit) {
 
 
 /**
+ * Wrapper for ucumUtils.convertUnitTo that accepts FP_Decimal values.
+ * Converts a quantity from one unit to another, preserving decimal precision.
+ *
+ * @param {string} fromUnitCode - The source unit code.
+ * @param {FP_Decimal} fromVal - The value to convert (can be FP_Decimal or number).
+ * @param {string} toUnitCode - The target unit code.
+ * @returns {Object} The conversion result with toVal as FP_Decimal if successful,
+ *   or the original ucumUtils result if conversion failed.
+ */
+function ucumConvertUnitTo(fromUnitCode, fromVal, toUnitCode) {
+  const result = ucumUtils.convertUnitTo(fromUnitCode, 1, toUnitCode);
+
+  if (result.status === 'succeeded') {
+    return {
+      ...result,
+      toVal: fromVal.mul(result.fromUnit.magnitude_).div(result.toUnit.magnitude_)
+    };
+  }
+
+  return result;
+}
+
+
+/**
+ * Cache for ucumUtils.convertToBaseUnits results.
+ * Keys are unit codes, values are the conversion results (or null if failed).
+ * @type {Map<string, {unit: string, magnitude: number, fromUnitIsSpecial: boolean}|null>}
+ */
+const ucumConvertToBaseUnitsCache = new Map();
+
+
+/**
+ * Wrapper for ucumUtils.convertToBaseUnits that accepts FP_Decimal values.
+ * Converts a quantity to base UCUM units, preserving decimal precision.
+ * Results are cached by unit code for performance.
+ *
+ * @param {string} unitCode - The source unit code.
+ * @param {FP_Decimal} value - The value to convert.
+ * @returns {{unit: string, value: FP_Decimal, fromUnitIsSpecial: boolean}|null} An object with the base unit,
+ *   converted value, and whether the source unit is special, or null if conversion failed.
+ */
+function ucumConvertToBaseUnits(unitCode, value) {
+  let cachedResult = ucumConvertToBaseUnitsCache.get(unitCode);
+
+  if (cachedResult === undefined) {
+    const result = ucumUtils.convertToBaseUnits(unitCode, 1);
+    if (result.status === 'succeeded') {
+      cachedResult = {
+        unit: Object.keys(result.unitToExp).map(key => key+result.unitToExp[key]).join('.') || '1',
+        magnitude: result.magnitude,
+        fromUnitIsSpecial: result.fromUnitIsSpecial
+      };
+    } else {
+      cachedResult = null;
+    }
+    ucumConvertToBaseUnitsCache.set(unitCode, cachedResult);
+  }
+
+  if (cachedResult === null) {
+    return null;
+  }
+
+  return {
+    unit: cachedResult.unit,
+    value: value.mul(cachedResult.magnitude),
+    fromUnitIsSpecial: cachedResult.fromUnitIsSpecial
+  };
+}
+
+
+/**
  * Converts FHIRPath value/unit to other FHIRPath value/unit.
+ *
+ * @param {Object} ctx - The context object containing getDecimal method.
+ * @param {string} fromUnit - The source unit code.
+ * @param {FP_Decimal|number} value - The value to convert (can be FP_Decimal or number).
+ * @param {string} toUnit - The target unit code.
+ * @returns {Object} The conversion result with toVal as FP_Decimal if successful,
+ *   or the original ucumUtils result if conversion failed.
+ *
  * @param {string} fromUnit
  * @param {number} value
  * @param {string} toUnit
  * @return {FP_Quantity|null}
  */
-FP_Quantity.convUnitTo = function (fromUnit, value, toUnit) {
+FP_Quantity.convUnitTo = function (ctx, fromUnit, value, toUnit) {
   // 1 Year <-> 12 Months
   const fromYearMonthMagnitude = FP_Quantity._yearMonthConversionFactor[fromUnit],
     toYearMonthMagnitude = FP_Quantity._yearMonthConversionFactor[toUnit];
   if (fromYearMonthMagnitude && toYearMonthMagnitude) {
-    return new FP_Quantity( fromYearMonthMagnitude*value/toYearMonthMagnitude, toUnit);
+    return new FP_Quantity(ctx, value.mul(fromYearMonthMagnitude).div(toYearMonthMagnitude), toUnit);
   }
 
   const fromMagnitude = FP_Quantity._calendarDuration2Seconds[fromUnit],
@@ -668,21 +1112,21 @@ FP_Quantity.convUnitTo = function (fromUnit, value, toUnit) {
   // To FHIR path calendar duration
   if (toMagnitude) {
     if (fromMagnitude) {
-      return new FP_Quantity( fromMagnitude*value/toMagnitude, toUnit);
+      return new FP_Quantity(ctx, value.mul(fromMagnitude).div(toMagnitude), toUnit);
     } else {
-      const convResult = ucumUtils.convertUnitTo(fromUnit.replace(/^'|'$/g, ''), value, 's');
+      const convResult = ucumConvertUnitTo(fromUnit.replace(/^'|'$/g, ''), value, 's');
 
       if (convResult.status === 'succeeded') {
-        return new FP_Quantity(convResult.toVal/toMagnitude, toUnit);
+        return new FP_Quantity(ctx, convResult.toVal.div(toMagnitude), toUnit);
       }
     }
   // To Ucum unit
   } else {
-    const convResult = fromMagnitude ? ucumUtils.convertUnitTo('s', fromMagnitude*value, toUnit.replace(/^'|'$/g, ''))
-      : ucumUtils.convertUnitTo(fromUnit.replace(/^'|'$/g, ''), value, toUnit.replace(/^'|'$/g, ''));
+    const convResult = fromMagnitude ? ucumConvertUnitTo('s', value.mul(fromMagnitude), toUnit.replace(/^'|'$/g, ''))
+      : ucumConvertUnitTo(fromUnit.replace(/^'|'$/g, ''), value, toUnit.replace(/^'|'$/g, ''));
 
     if(convResult.status === 'succeeded') {
-      return new FP_Quantity(convResult.toVal, toUnit);
+      return new FP_Quantity(ctx, convResult.toVal, toUnit);
     }
   }
 
@@ -771,16 +1215,29 @@ FP_Quantity.mapTimeUnitsToUCUMCode = Object.keys(FP_Quantity.mapUCUMCodeToTimeUn
     return res;
   }, {});
 
-class FP_TimeBase extends FP_Type {
-  constructor(timeStr) {
-    super();
+/**
+ * Abstract base class for FHIRPath date/time types (FP_DateTime, FP_Date,
+ * FP_Time, FP_Instant). Provides common date/time arithmetic, comparison,
+ * and precision handling.
+ */
+class FP_TimeBase extends FP_Type_WithContext {
+  /**
+   * @param {Object} ctx - the FHIRPath evaluation context.
+   * @param {string} timeStr - the date/time string representation.
+   */
+  constructor(ctx, timeStr) {
+    super(ctx);
     this.asStr = timeStr;
   }
 
   /**
-   *  Adds a time-based quantity to this date/time.
-   * @param timeQuantity a quantity to be added to this date/time.  See the
+   * Adds a time-based quantity to this date/time.
+   * @param {FP_Quantity} timeQuantity a quantity to be added to this date/time.  See the
    *  FHIRPath specification for supported units.
+   * @returns {FP_TimeBase} a new date/time with the quantity added.
+   * @throws {Error} if the quantity's unit is not a supported time unit or if
+   *  the precision of the time quantity is higher than the precision of this
+   *  date/time.
    */
   plus(timeQuantity) {
     const unit = timeQuantity.unit;
@@ -803,8 +1260,8 @@ class FP_TimeBase extends FP_Type {
       // From the FHIRPath specification: "For precisions above seconds, the
       // decimal portion of the time-valued quantity is ignored, since date/time
       // arithmetic above seconds is performed with calendar duration semantics."
-      const truncatedVal = Math.trunc(qVal);
-      if (truncatedVal !== qVal) {
+      const truncatedVal = qVal.truncate();
+      if (!truncatedVal.equals(qVal)) {
         console.warn( 'The quantity value was truncated from ' +
           timeQuantity.toString() + ' to ' +
           truncatedVal + ' ' + timeQuantity.unit +
@@ -819,12 +1276,12 @@ class FP_TimeBase extends FP_Type {
       const neededUnit = cls._datePrecisionToTimeUnit[
         this._getPrecision()];
       if (neededUnit !== 'second') {
-        const newQuantity = FP_Quantity.convUnitTo(timeUnit, qVal, neededUnit);
+        const newQuantity = FP_Quantity.convUnitTo(this.ctx, timeUnit, qVal, neededUnit);
         timeUnit = newQuantity.unit;
-        qVal = Math.trunc(newQuantity.value);
+        qVal = newQuantity.value.truncate();
       }
     }
-    const newDate = FP_TimeBase.timeUnitToAddFn[timeUnit](this._getDateObj(), qVal);
+    const newDate = FP_TimeBase.timeUnitToAddFn[timeUnit](this._getDateObj(), qVal.toNumber());
     // newDate is a Date.  We need to make a string with the correct precision.
     let precision = this._getPrecision();
     if (isTime)
@@ -835,18 +1292,37 @@ class FP_TimeBase extends FP_Type {
       newDateStr = newDateStr.slice(newDateStr.indexOf('T') + 1, -6);
     }
 
-    return new cls(newDateStr);
+    return new cls(this.ctx, newDateStr);
   }
 
 
   /**
-   *  Tests whether this object is equal to another.  Returns either true,
-   *  false, or undefined (where in the FHIRPath specification empty would be
-   *  returned).  The undefined return value indicates that the values were the
-   *  same to the shared precision, but that they had differnent levels of
-   *  precision.
-   * @param otherDateTime any sub-type of FP_TimeBase, but it should be the same
-   *  as the type of "this".
+   * Subtracts a time-based quantity from this date/time.
+   * @param {FP_Quantity} timeQuantity - a quantity to subtract. See the
+   *  FHIRPath specification for supported units.
+   * @returns {FP_TimeBase} a new date/time with the quantity subtracted.
+   * @throws {Error} if the quantity's unit is not a supported time unit or if
+   *  the precision of the time quantity is higher than the precision of this
+   *  date/time.
+   */
+  minus(timeQuantity) {
+    if (timeQuantity instanceof FP_Quantity) {
+      const negativeQuantity = timeQuantity.negate();
+      return this.plus(negativeQuantity);
+    }
+    throw new Error('For date/time arithmetic, the unit of the quantity ' +
+      'must be one of the following time-based units: ' +
+      Object.keys(FP_Quantity.dateTimeArithmeticDurationUnits));
+  }
+
+
+  /**
+   * Tests whether this date/time object is equal to another.
+   * @param {FP_TimeBase} otherDateTime any sub-type of FP_TimeBase, but it
+   *  should be the same as the type of "this".
+   * @returns {boolean|undefined} true if the date/times are equal, false if
+   *  they are not equal, or undefined if they are the same to the shared
+   *  precision but have different levels of precision.
    */
   equals(otherDateTime) {
     // From the 2019May ballot:
@@ -888,8 +1364,8 @@ class FP_TimeBase extends FP_Type {
 
         // Now parse the strings and compare the adjusted time parts.
         // Dates without time specify no timezone and should be treated as already normalized to UTC. So we do not adjust the timezone, as this would change the date
-        var thisAdj  = thisPrec > 2 ? (new FP_DateTime(thisUTCStr))._getTimeParts() : this._getTimeParts();
-        var otherAdj = otherPrec > 2 ? (new FP_DateTime(otherUTCStr))._getTimeParts() : otherDateTime._getTimeParts();
+        var thisAdj  = thisPrec > 2 ? (new FP_DateTime(this.ctx, thisUTCStr))._getTimeParts() : this._getTimeParts();
+        var otherAdj = otherPrec > 2 ? (new FP_DateTime(this.ctx, otherUTCStr))._getTimeParts() : otherDateTime._getTimeParts();
 
         for (var i = 0; i <= commonPrec && rtn !== false; ++i) {
           rtn = thisAdj[i] == otherAdj[i];
@@ -906,8 +1382,11 @@ class FP_TimeBase extends FP_Type {
 
 
   /**
-   *  Tests whether this object is equivalant to another.  Returns either true
-   *  or false.
+   * Tests whether this date/time object is equivalent to another.
+   * Equivalence requires both objects to be of the same type and have the same
+   * precision, then compares their underlying time values.
+   * @param {FP_TimeBase} otherDateTime - The other date/time object to compare.
+   * @returns {boolean} True if equivalent, false otherwise.
    */
   equivalentTo(otherDateTime) {
     var rtn = otherDateTime instanceof this.constructor;
@@ -1096,13 +1575,16 @@ FP_TimeBase.timeUnitToAddFn = {
 };
 
 
+/**
+ * A class representing a FHIRPath DateTime value.
+ */
 class FP_DateTime extends FP_TimeBase {
   /**
    *  Constructs an FP_DateTime, assuming dateStr is valid.  If you don't know
    *  whether a string is a valid DateTime, use FP_DateTime.checkString instead.
    */
-  constructor(dateStr) {
-    super(dateStr);
+  constructor(ctx, dateStr) {
+    super(ctx, dateStr);
   }
 
 
@@ -1202,8 +1684,8 @@ class FP_DateTime extends FP_TimeBase {
  * @return If str is convertible to a DateTime, returns an FP_DateTime;
  *  otherwise returns null.
  */
-FP_DateTime.checkString = function(str) {
-  let d = new FP_DateTime(str);
+FP_DateTime.checkString = function(ctx, str) {
+  let d = new FP_DateTime(ctx, str);
   if (!d._getMatchData())
     d = null;
   return d;
@@ -1232,15 +1714,18 @@ FP_DateTime._datePrecisionToTimeUnit = [
 
 
 
+/**
+ * A class representing a FHIRPath Time value (e.g. "14:30:00").
+ */
 class FP_Time extends FP_TimeBase {
   /**
    *  Constructs an FP_Time, assuming dateStr is valid.  If you don't know
    *  whether a string is a valid DateTime, use FP_Time.checkString instead.
    */
-  constructor(timeStr) {
+  constructor(ctx, timeStr) {
     if (timeStr[0] === 'T')
       timeStr = timeStr.slice(1);
-    super(timeStr);
+    super(ctx, timeStr);
   }
 
 
@@ -1326,8 +1811,8 @@ class FP_Time extends FP_TimeBase {
  * @return If str is convertible to a Time, returns an FP_Time;
  *  otherwise returns null.
  */
-FP_Time.checkString = function(str) {
-  let d = new FP_Time(str);
+FP_Time.checkString = function(ctx, str) {
+  let d = new FP_Time(ctx, str);
   if (!d._getMatchData())
     d = null;
   return d;
@@ -1440,13 +1925,17 @@ FP_DateTime.isoTime = function(date, precision) {
 };
 
 
+/**
+ * A class representing a FHIRPath Date value (e.g. "2025-02-26").
+ * Extends FP_DateTime with date-only precision (year, month, day).
+ */
 class FP_Date extends FP_DateTime {
   /**
    * Constructs an FP_Date, assuming dateStr is valid.  If you don't know
    * whether a string is a valid Date, use FP_Date.checkString instead.
    */
-  constructor(dateStr) {
-    super(dateStr);
+  constructor(ctx, dateStr) {
+    super(ctx, dateStr);
   }
 
 
@@ -1465,8 +1954,8 @@ class FP_Date extends FP_DateTime {
  * @return If str is convertible to a Date, returns an FP_Date;
  *  otherwise returns null.
  */
-FP_Date.checkString = function(str) {
-  let d = new FP_Date(str);
+FP_Date.checkString = function(ctx, str) {
+  let d = new FP_Date(ctx, str);
   if (!d._getMatchData())
     d = null;
   return d;
@@ -1487,13 +1976,17 @@ FP_Date.isoDate = function(date, precision) {
   return FP_DateTime.isoDateTime(date, precision);
 };
 
+/**
+ * A class representing a FHIR Instant value — a DateTime with at least
+ * second-level precision and a mandatory timezone offset.
+ */
 class FP_Instant extends FP_DateTime {
   /**
    * Constructs an FP_Instant, assuming instantStr is valid.  If you don't know
    * whether a string is a valid "instant", use FP_Instant.checkString instead.
    */
-  constructor(instantStr) {
-    super(instantStr);
+  constructor(ctx, instantStr) {
+    super(ctx, instantStr);
   }
 
 
@@ -1512,8 +2005,8 @@ class FP_Instant extends FP_DateTime {
  * @return If str match the "instant" RegExp, returns an FP_Instant;
  *  otherwise returns null.
  */
-FP_Instant.checkString = function(str) {
-  let d = new FP_Instant(str);
+FP_Instant.checkString = function(ctx, str) {
+  let d = new FP_Instant(ctx, str);
   if (!d._getMatchData())
     d = null;
   return d;
@@ -1528,6 +2021,7 @@ class ResourceNode {
    *  Constructs a instance for the given node ("data") of a resource.  If the
    *  data is the top-level node of a resouce, the path and type parameters will
    *  be ignored in favor of the resource's resourceType field.
+   * @param {Object} ctx - the FHIRPath evaluation context.
    * @param {*} data - the node's data or value (which might be an object with
    *  sub-nodes, an array, or FHIR data type)
    * @param {ResourceNode} parentResNode - parent ResourceNode.
@@ -1538,7 +2032,6 @@ class ResourceNode {
    *  prepended, see https://www.hl7.org/fhir/element.html#json for details.
    * @param {string} fhirNodeDataType - FHIR node data type, if the resource node
    *  is described in the FHIR model.
-   *  @param {Object} model - the model object specific to a domain, e.g. R4.
    *  @param {string} propName – the property name of the node within its parent
    *   resource, if applicable. Used to identify the specific property this node
    *   represents.
@@ -1546,19 +2039,28 @@ class ResourceNode {
    *   if the node is part of an array. Used to track the position of the node
    *   among siblings.
    */
-  constructor(data, parentResNode, path, _data, fhirNodeDataType, model, propName = null, index = null) {
+  constructor(ctx, data, parentResNode, path, _data, fhirNodeDataType, propName = null, index = null) {
     // If data is a resource (maybe a contained resource) reset the path
     // information to the resource type.
     if (data?.resourceType) {
       path = data.resourceType;
       fhirNodeDataType = data.resourceType;
     }
+    this.ctx = ctx;
     this.parentResNode = parentResNode || null;
     this.path = path || null;
-    this.data = fhirNodeDataType === 'integer64' ?  BigInt(data): data;
+
+    if (fhirNodeDataType === 'integer64') {
+      this.data = BigInt(data);
+    } else if (typeof data === 'number') {
+      this.data = ctx.getDecimal(data);
+    } else {
+      this.data = data;
+    }
+
     this._data = _data || {};
     this.fhirNodeDataType = fhirNodeDataType || null;
-    this.model = model || null;
+    this.model = ctx.model || null;
     this.propName = propName;
     this.index = index;
   }
@@ -1593,6 +2095,11 @@ class ResourceNode {
     return this.typeInfo;
   }
 
+
+  /**
+   * Returns the JSON representation of this node's data.
+   * @returns {*} the JSON-serializable data value.
+   */
   toJSON() {
     return toJSON(this.data);
   }
@@ -1629,13 +2136,14 @@ class ResourceNode {
       if (data != null) {
         const cls = TypeInfo.typeToClassWithCheckString[this.path];
         if (cls) {
-          data = cls.checkString(data) || data;
+          data = cls.checkString(this.ctx, data) || data;
         } else if (TypeInfo.isType(this.path, 'Quantity', this.model)) {
           if (data?.system === ucumSystemUrl) {
-            if (typeof data.value === 'number' && typeof data.code === 'string') {
+            if ((typeof data.value === 'number' || data.value instanceof FP_Decimal) && typeof data.code === 'string') {
               if (data.comparator !== undefined)
                 throw new Error('Cannot convert a FHIR.Quantity that has a comparator');
               data = new FP_Quantity(
+                this.ctx,
                 data.value,
                 FP_Quantity.mapUCUMCodeToTimeUnits[data.code] || '\'' + data.code + '\''
               );
@@ -1685,10 +2193,10 @@ class ResourceNode {
  *  given node is already a ResourceNode.  Takes the same arguments as the
  *  constructor for ResourceNode.
  */
-ResourceNode.makeResNode = function(data, parentResNode, path, _data, fhirNodeDataType, model, propName, index) {
+ResourceNode.makeResNode = function(ctx, data, parentResNode, path, _data, fhirNodeDataType, propName, index) {
   return (data instanceof ResourceNode) ? data
-    : new ResourceNode(data, parentResNode, path, _data, fhirNodeDataType,
-      model, propName, index);
+    : new ResourceNode(ctx, data, parentResNode, path, _data, fhirNodeDataType,
+      propName, index);
 };
 
 
@@ -1863,6 +2371,8 @@ TypeInfo.createByValueInSystemNamespace = function(value) {
     name = 'integer';
   } else if (name === "number") {
     name = 'decimal';
+  } else if (value instanceof FP_Decimal) {
+    name = value.isInteger() ? 'integer' : 'decimal';
   } else if (value instanceof FP_Date) {
     name = 'date';
   } else if (value instanceof FP_DateTime) {
@@ -2069,6 +2579,978 @@ function toJSON(obj, space = undefined) {
 const hasOwnProperty = Function.prototype.call.bind(Object.prototype.hasOwnProperty);
 
 
+/**
+ * Abstract base class for FHIRPath decimal numbers.
+ * Provides a common interface for both native and precise decimal implementations.
+ */
+class FP_Decimal extends FP_Type {
+
+  /**
+   * @abstract
+   * @property value The numeric value of the decimal.
+   * @type {number|Decimal}
+   */
+
+  /**
+   * @abstract
+   * @property decimalPlaces number of digits after the decimal point.
+   * @type {number|Decimal}
+   */
+
+  /**
+   * @abstract
+   * @property decimalPrecision number of digits after the decimal point
+   *  excluding trailing zeroes.
+   * @type {number|Decimal}
+   */
+
+
+  /**
+   * Creates an FP_Decimal_Precise instance from the given value.
+   * This is the default factory method; subclasses override it to return
+   * their own type.
+   * @param {number|string|FP_Decimal} value - the value to convert.
+   * @returns {FP_Decimal}
+   */
+  static getDecimal(value) {
+    return new FP_Decimal_Precise(value);
+  }
+
+
+  /**
+   * The maximum number of decimal places allowed in FHIRPath.
+   * @type {number}
+   */
+  static MAX_PRECISION = 8;
+
+  /**
+   *  The smallest representable number in FHIRPath.
+   *  @type {number}
+   */
+  static MIN_DECIMAL = 1e-8;
+
+  /**
+   * The largest representable number in FHIRPath.
+   * @type {number}
+   */
+  static MAX_DECIMAL = Math.pow(10,20);
+
+  /**
+   * Divides this decimal by another decimal and returns the integer part of the
+   * result.
+   */
+  divToInt(/*other*/) {
+    throw new Error('divToInt() is not implemented for ' + this.constructor.name);
+  }
+
+  /**
+   * Returns the remainder of dividing this decimal by another decimal.
+   */
+  mod(/*other*/) {
+    throw new Error('mod() is not implemented for ' + this.constructor.name);
+  }
+
+  /**
+   * Returns the natural exponent of this decimal.
+   * @returns {FP_Decimal}
+   */
+  exp() {
+    throw new Error('exp() is not implemented for ' + this.constructor.name);
+  }
+
+
+  /**
+   * Returns the natural logarithm of this decimal.
+   * @returns {FP_Decimal}
+   */
+  ln() {
+    throw new Error('ln() is not implemented for ' + this.constructor.name);
+  }
+
+
+  /**
+   * Returns the logarithm of this decimal in the given base.
+   */
+  log(/*base*/) {
+    throw new Error('log() is not implemented for ' + this.constructor.name);
+  }
+
+
+  /**
+   * Raises this decimal to the given power.
+   */
+  power(/*exponent*/) {
+    throw new Error('power() is not implemented for ' + this.constructor.name);
+  }
+
+
+  /**
+   * Returns the square root of this decimal.
+   * @returns {FP_Decimal}
+   */
+  sqrt() {
+    throw new Error('sqrt() is not implemented for ' + this.constructor.name);
+  }
+
+
+  /**
+   * Checks whether this decimal value represents an integer (i.e., has no
+   * fractional part).
+   * @returns {boolean} true if the value is an integer, false otherwise.
+   */
+  isInteger() {
+    return this.decimalPlaces === 0;
+  }
+
+
+  /**
+   * Returns the JSON representation.
+   * @returns {number}
+   */
+  toJSON() {
+    return this.toNumber();
+  }
+
+
+  /**
+   * Parses a numeric string to determine the number of decimal places and
+   * the decimal precision (excluding trailing zeroes). Sets `this.decimalPlaces`
+   * and `this.decimalPrecision`.
+   * @param {string} str - a numeric string (e.g. "3.140", "1e-5").
+   */
+  decimalPlacesFromString(str) {
+    const match = /^([+-]?\d+)(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/.exec(str);
+    if (!match) {
+      return 0;
+    }
+    const fraction = match[2];
+    const trailingZeroes = fraction ? /0*$/.exec(fraction)[0].length : 0;
+    const exponent = match[3];
+    this.decimalPlaces = Math.max(
+      0,
+      (fraction === '0' ? (exponent ? 0 : 1) : (fraction || '').length) - (exponent || 0)
+    );
+    this.decimalPrecision = this.decimalPlaces - trailingZeroes;
+  }
+
+}
+
+/**
+ * Native implementation using JavaScript's built-in Number type.
+ * Uses the existing roundToMaxPrecision for equality/comparison.
+ */
+class FP_Decimal_Native extends FP_Decimal {
+  /**
+   * Constructs an FP_Decimal_Native from the given value.
+   * @param {FP_Decimal|number|bigint|string} value - the value to convert.
+   */
+  constructor(value) {
+    super();
+    if (value instanceof FP_Decimal) {
+      this.value = value.toNumber();
+      this.asStr = value.asStr;
+      this.decimalPlaces = value.decimalPlaces;
+      this.decimalPrecision = value.decimalPrecision;
+    } else {
+      const typeOfValue = typeof value;
+      if (typeOfValue === 'number' || typeOfValue === 'bigint') {
+        this.value = Number(value);
+        this.asStr = this.value.toString();
+        this.decimalPlacesFromString(this.asStr);
+      } else if (typeOfValue === 'string' &&
+        /^\s*[+-]?([0-9]+)(\.[0-9]+)?([eE][+-]?[0-9]+)?\s*$/.test(value)) {
+        this.value = parseFloat(value);
+        if (isNaN(this.value)) {
+          throw new Error(`Invalid decimal value: ${value}`);
+        }
+        this.asStr = value;
+        this.decimalPlacesFromString(value);
+      } else {
+        throw new Error(`Cannot convert ${typeOfValue} to decimal`);
+      }
+    }
+    // TODO: consider adding checks for underflow and overflow here
+    //   See
+    //   https://hl7.org/fhirpath/#decimal
+    //   https://hl7.org/fhirpath/#math-2
+    // if (this.value !== 0) {
+    //   if (Math.abs(this.value) < FP_Decimal.MIN_DECIMAL) {
+    //     // Operations that cause arithmetic underflow will result in empty ({ }).
+    //     return [];
+    //   } else if (Math.abs(this.value) > FP_Decimal.MAX_DECIMAL) {
+    //     // Operations that cause arithmetic overflow will result in empty ({ }).
+    //     return [];
+    //   }
+    // }
+  }
+
+
+  /**
+   * Creates an FP_Decimal_Native instance from the given value.
+   * @param {number|string|FP_Decimal} value - the value to convert.
+   * @returns {FP_Decimal_Native}
+   */
+  static getDecimal(value) {
+    return new FP_Decimal_Native(value);
+  }
+
+
+  /**
+   * Adds another decimal to this decimal.
+   * @param {FP_Decimal|FP_Quantity|BigInt|number} other
+   * @returns {FP_Decimal|FP_Quantity|BigInt}
+   */
+  plus(other) {
+    if (other instanceof FP_Quantity) {
+      return other.plus(this);
+    } else if (this.isInteger() && typeof other === 'bigint') {
+      return this.toBigInt() + other;
+    }
+
+    const otherVal = this._toNumber(other);
+    return new FP_Decimal_Native(this.value + otherVal);
+  }
+
+
+  /**
+   * Subtracts another value from this decimal.
+   * @param {FP_Decimal|FP_Quantity|BigInt|number} other
+   * @returns {FP_Decimal|FP_Quantity|BigInt}
+   */
+  minus(other) {
+    if (other instanceof FP_Quantity) {
+      return new FP_Quantity(other.ctx, this, "'1'").minus(other);
+    } if (this.isInteger() && typeof other === 'bigint') {
+      return this.toBigInt() - other;
+    }
+
+    const otherVal = this._toNumber(other);
+    return new FP_Decimal_Native(this.value - otherVal);
+  }
+
+
+  /**
+   * Multiplies this decimal by another decimal.
+   * @param {FP_Decimal|FP_Quantity|BigInt|number} other
+   * @returns {FP_Decimal|FP_Quantity|BigInt}
+   */
+  mul(other) {
+    if (other instanceof FP_Quantity) {
+      return other.mul(this);
+    } if (this.isInteger() && typeof other === 'bigint') {
+      return this.toBigInt() * other;
+    }
+
+    const otherVal = this._toNumber(other);
+    return new FP_Decimal_Native(this.value * otherVal);
+  }
+
+
+  /**
+   * Divides this decimal by another decimal or quantity.
+   * @param {FP_Decimal|FP_Quantity|BigInt|number} other the value to divide by.
+   * @returns {FP_Decimal|FP_Quantity|null} null if division by zero  (or if
+   *  dividing by a quantity with incompatible units), otherwise the result of
+   *  division.
+   */
+  div(other) {
+    if (other instanceof FP_Quantity) {
+      return (new FP_Quantity(other.ctx, this.value, "'1'")).div(other);
+    }
+
+    const otherVal = this._toNumber(other);
+    if (otherVal === 0) {
+      // Division by zero always gives an empty result
+      return null;
+    }
+    return new FP_Decimal_Native(this.value / otherVal);
+  }
+
+
+  /**
+   * Returns the integer part of dividing this decimal by another.
+   * @param {FP_Decimal|number} other
+   * @returns {FP_Decimal_Native|null} null if division by zero.
+   */
+  divToInt(other) {
+    const otherVal = this._toNumber(other);
+    if (otherVal === 0) {
+      // Division by zero always gives an empty result
+      return null;
+    }
+    return new FP_Decimal_Native(Math.trunc(this.value / otherVal));
+  }
+
+
+  /**
+   * Returns the remainder of dividing this decimal by another.
+   * @param {FP_Decimal|Decimal|number} other
+   * @returns {FP_Decimal}
+   */
+  mod(other) {
+    const otherVal = this._toNumber(other);
+    if (otherVal === 0) {
+      // Modulo by zero always gives an empty result
+      return null;
+    }
+    return new FP_Decimal_Native(this.value % otherVal);
+  }
+
+
+  /**
+   * Returns e raised to the power of this decimal.
+   * @returns {FP_Decimal_Native}
+   */
+  exp() {
+    return new FP_Decimal_Native(Math.exp(this.value));
+  }
+
+
+  /**
+   * Returns the natural logarithm of this decimal.
+   * @returns {FP_Decimal_Native}
+   */
+  ln() {
+    return new FP_Decimal_Native(Math.log(this.value));
+  }
+
+
+  /**
+   * Returns the logarithm of this decimal in the given base.
+   * @param {FP_Decimal|number} base
+   * @returns {FP_Decimal_Native}
+   */
+  log(base) {
+    const baseVal = this._toNumber(base);
+    return new FP_Decimal_Native(Math.log(this.value) / Math.log(baseVal));
+  }
+
+
+  /**
+   * Raises this decimal to the given power.
+   * @param {FP_Decimal|number} exponent
+   * @returns {FP_Decimal_Native|null} null if the result is NaN.
+   */
+  power(exponent) {
+    const exponentVal = this._toNumber(exponent);
+    const res = Math.pow(this.value, exponentVal);
+    return isNaN(res) ? null : new FP_Decimal_Native(res);
+  }
+
+
+  /**
+   * Returns the square root of this decimal.
+   * @returns {FP_Decimal_Native|null} null if the value is negative.
+   */
+  sqrt() {
+    if (this.value < 0) {
+      return null;
+    }
+    return new FP_Decimal_Native(Math.sqrt(this.value));
+  }
+
+
+  /**
+   * Returns the negation of this decimal.
+   * @returns {FP_Decimal_Native}
+   */
+  negate() {
+    return new FP_Decimal_Native(-this.value);
+  }
+
+
+  /**
+   * Returns the absolute value of this decimal.
+   * @returns {FP_Decimal_Native}
+   */
+  abs() {
+    return new FP_Decimal_Native(Math.abs(this.value));
+  }
+
+
+  /**
+   * Returns the ceiling of this decimal.
+   * @returns {FP_Decimal_Native}
+   */
+  ceiling() {
+    return new FP_Decimal_Native(Math.ceil(this.value));
+  }
+
+
+  /**
+   * Returns the floor of this decimal.
+   * @returns {FP_Decimal_Native}
+   */
+  floor() {
+    return new FP_Decimal_Native(Math.floor(this.value));
+  }
+
+
+  /**
+   * Rounds this decimal to the specified precision.
+   * @param {number} [precision] - number of decimal places.
+   * @returns {FP_Decimal_Native}
+   */
+  round(precision) {
+    if (precision === undefined) {
+      return new FP_Decimal_Native(Math.round(this.value));
+    }
+    const scale = Math.pow(10, precision);
+    return new FP_Decimal_Native(Math.round(this.value * scale) / scale);
+  }
+
+
+  /**
+   * Truncates this decimal to an integer.
+   * @returns {FP_Decimal_Native}
+   */
+  truncate() {
+    return new FP_Decimal_Native(Math.trunc(this.value));
+  }
+
+
+  /**
+   * Compares this decimal with another value.
+   * @param {FP_Decimal|FP_Quantity|number} other
+   * @returns {number|null} -1, 0, or 1, or null if comparison fails.
+   */
+  compare(other) {
+    if (other instanceof FP_Quantity) {
+      return new FP_Quantity(other.ctx, this, "'1'").compare(other);
+    }
+
+    try {
+      const otherVal = this._toNumber(other);
+      const thisRounded = numbers.roundToMaxPrecision(this.value);
+      const otherRounded = numbers.roundToMaxPrecision(otherVal);
+      return thisRounded < otherRounded ? -1 : (thisRounded > otherRounded ? 1 : 0);
+    } catch {
+      return null;
+    }
+  }
+
+
+  /**
+   * Checks equality with another value.
+   * @param {FP_Decimal|FP_Quantity|number} other
+   * @returns {boolean|undefined} true if equal, false if not equal, undefined if not
+   *  comparable.
+   */
+  equals(other) {
+    if (other instanceof FP_Quantity) {
+      return new FP_Quantity(other.ctx, this, "'1'").equals(other);
+    }
+    let otherVal;
+    try {
+      otherVal = this._toNumber(other);
+    } catch {
+      return undefined;
+    }
+    return numbers.isEqual(this.value, otherVal);
+  }
+
+
+  /**
+   * Determines numeric equivalence with another value.
+   * Compares values rounded to the lesser of the two decimal precisions.
+   * @param {FP_Decimal|number} other
+   * @returns {boolean} true if the values are equivalent, false otherwise.
+   */
+  equivalentTo(other) {
+    let otherDecimal;
+    try {
+      otherDecimal = FP_Decimal_Native.getDecimal(other);
+    } catch {
+      return false;
+    }
+    const otherVal = otherDecimal.value;
+    const thisVal = this.value;
+
+    if (Number.isInteger(thisVal) && Number.isInteger(otherVal)) {
+      return thisVal === otherVal;
+    }
+
+    const precision = Math.min(this.decimalPrecision, otherDecimal.decimalPrecision);
+
+    if (precision === 0) {
+      return Math.round(thisVal) === Math.round(otherVal);
+    }
+
+    const scale = Math.pow(10, precision);
+    return Math.round(thisVal * scale) / scale ===
+      Math.round(otherVal * scale) / scale;
+  }
+
+
+  /**
+   * Returns the value as a JavaScript number.
+   * @returns {number}
+   */
+  toNumber() {
+    return this.value;
+  }
+
+
+  /**
+   * Returns a BigInt representation of this decimal.
+   * @returns {BigInt}
+   * @throws {Error} if this decimal is not an integer or is out of BigInt range.
+   */
+  toBigInt() {
+    return BigInt(this.value);
+  }
+
+
+  /**
+   * Returns the string representation of this decimal.
+   * @returns {string}
+   */
+  toString() {
+    return this.asStr;
+  }
+
+
+  /**
+   * Converts another value to a JavaScript number for arithmetic.
+   * @param {FP_Decimal|number|string} other
+   * @returns {number}
+   * @throws {Error} if the value cannot be converted.
+   * @private
+   */
+  _toNumber(other) {
+    if (other instanceof FP_Decimal) {
+      return other.toNumber();
+    } else {
+      const typeOfOther = typeof other;
+      if (typeOfOther === 'bigint') {
+        return Number(other);
+      } else if (typeOfOther === 'number') {
+        return other;
+      } else if (typeOfOther === 'string' &&
+        /^\s*[+-]?([0-9]+)(\.[0-9]+)?([eE][+-]?[0-9]+)?\s*$/.test(other)) {
+        const val = parseFloat(other);
+        if (isNaN(val)) {
+          throw new Error(`Invalid decimal value: ${other}`);
+        }
+        return val;
+      }
+    }
+    throw new Error(`Cannot convert ${other} to a number`);
+  }
+
+}
+
+
+/**
+ * Precise implementation using decimal.js library.
+ * Preserves exact decimal precision for all operations.
+ */
+class FP_Decimal_Precise extends FP_Decimal {
+  /**
+   * Constructs an FP_Decimal_Precise from the given value.
+   * @param {FP_Decimal|Decimal|number|bigint|string} value - the value to convert.
+   */
+  constructor(value) {
+    super();
+    if (value instanceof FP_Decimal_Precise) {
+      this.value = value.value;
+      this.asStr = value.asStr;
+      this.decimalPlaces = value.decimalPlaces;
+      this.decimalPrecision = value.decimalPrecision;
+    } else if (value instanceof Decimal) {
+      this.value = value;
+      this.asStr = value.toString();
+      this.decimalPlaces = value.decimalPlaces();
+      this.decimalPrecision = this.decimalPlaces;
+    } else if (value instanceof FP_Decimal_Native) {
+      this.value = new Decimal(value.value);
+      this.asStr = value.asStr;
+      this.decimalPlaces = value.decimalPlaces;
+    } else {
+      const typeOfValue = typeof value;
+      if (typeOfValue === 'number' || typeOfValue === 'bigint') {
+        this.value = new Decimal(value);
+        this.asStr = this.value.toString();
+        this.decimalPlaces = this.value.decimalPlaces();
+        this.decimalPrecision = this.decimalPlaces;
+      } else if (typeOfValue === 'string') {
+        try {
+          this.value = new Decimal(value);
+        } catch {
+          throw new Error(`Invalid decimal value: ${value}`);
+        }
+        this.asStr = value;
+        this.decimalPlacesFromString(value);
+      } else {
+        throw new Error(`Cannot convert ${typeOfValue} to a decimal`);
+      }
+    }
+    // TODO: consider adding checks for underflow and overflow here
+    //   See
+    //   https://hl7.org/fhirpath/#decimal
+    //   https://hl7.org/fhirpath/#math-2
+    // if (!this.value.equals(0)) {
+    //   if (this.value.abs().comparedTo(FP_Decimal.MIN_DECIMAL) === -1) {
+    //     // Operations that cause arithmetic underflow will result in empty ({ }).
+    //     return [];
+    //   } else if (this.value.abs().comparedTo(FP_Decimal.MAX_DECIMAL) === 1) {
+    //     // Operations that cause arithmetic overflow will result in empty ({ }).
+    //     return [];
+    //   }
+    // }
+  }
+
+
+  /**
+   * Creates an FP_Decimal_Precise instance from the given value.
+   * @param {number|string|FP_Decimal} value - the value to convert.
+   * @returns {FP_Decimal_Precise}
+   */
+  static getDecimal(value) {
+    return new FP_Decimal_Precise(value);
+  }
+
+
+  /**
+   * Adds another decimal to this decimal.
+   * @param {FP_Decimal|Decimal|number|string|FP_Quantity} other
+   * @returns {FP_Decimal|FP_Quantity}
+   */
+  plus(other) {
+    if (other instanceof FP_Quantity) {
+      return other.plus(this);
+    } else if (this.isInteger() && typeof other === 'bigint') {
+      return this.toBigInt() + other;
+    }
+
+    const otherVal = this._toDecimal(other);
+    return new FP_Decimal_Precise(this.value.plus(otherVal));
+  }
+
+
+  /**
+   * Subtracts another value from this decimal.
+   * @param {FP_Decimal|Decimal|number|string|FP_Quantity} other
+   * @returns {FP_Decimal|FP_Quantity|BigInt}
+   */
+  minus(other) {
+    if (other instanceof FP_Quantity) {
+      return new FP_Quantity(other.ctx, this, "'1'").minus(other);
+    } if (this.isInteger() && typeof other === 'bigint') {
+      return this.toBigInt() - other;
+    }
+
+    const otherVal = this._toDecimal(other);
+    return new FP_Decimal_Precise(this.value.minus(otherVal));
+  }
+
+
+  /**
+   * Multiplies this decimal by another decimal.
+   * @param {FP_Decimal|Decimal|BigInt|number} other
+   * @returns {FP_Decimal|FP_Quantity|BigInt}
+   */
+  mul(other) {
+    if (other instanceof FP_Quantity) {
+      return other.mul(this);
+    } if (this.isInteger() && typeof other === 'bigint') {
+      return this.toBigInt() * other;
+    }
+
+    const otherVal = this._toDecimal(other);
+    return new FP_Decimal_Precise(this.value.times(otherVal));
+  }
+
+
+  /**
+   * Divides this decimal by another decimal or quantity.
+   * @param {FP_Decimal|FP_Quantity|BigInt|number} other the value to divide by.
+   * @returns {FP_Decimal|FP_Quantity|null} null if division by zero  (or if
+   *  dividing by a quantity with incompatible units), otherwise the result of
+   *  division.
+   */
+  div(other) {
+    if (other instanceof FP_Quantity) {
+      return (new FP_Quantity(other.ctx, this.value, "'1'")).div(other);
+    }
+
+    const otherVal = this._toDecimal(other);
+    if (otherVal.isZero()) {
+      // Division by zero always gives an empty result
+      return null;
+    }
+    return new FP_Decimal_Precise(this.value.dividedBy(otherVal));
+  }
+
+
+  /**
+   * Divides this decimal by another and returns the integer part of the result.
+   * @param {FP_Decimal|BigInt|number} other
+   * @returns {FP_Decimal_Precise|null} null if division by zero.
+   */
+  divToInt(other) {
+    const otherVal = this._toDecimal(other);
+    if (otherVal.isZero()) {
+      // Division by zero always gives an empty result
+      return null;
+    }
+    return new FP_Decimal_Precise(this.value.dividedToIntegerBy(otherVal));
+  }
+
+
+  /**
+   * Returns the remainder of dividing this decimal by another.
+   * @param {FP_Decimal|Decimal|number|string} other
+   * @returns {FP_Decimal_Precise|null} null if modulo by zero.
+   */
+  mod(other) {
+    const otherVal = this._toDecimal(other);
+    if (otherVal.isZero()) {
+      // Modulo by zero always gives an empty result
+      return null;
+    }
+    return new FP_Decimal_Precise(this.value.modulo(otherVal));
+  }
+
+
+  /**
+   * Returns e raised to the power of this decimal.
+   * @returns {FP_Decimal_Precise}
+   */
+  exp() {
+    return new FP_Decimal_Precise(this.value.exp());
+  }
+
+
+  /**
+   * Returns the natural logarithm of this decimal.
+   * @returns {FP_Decimal_Precise}
+   */
+  ln() {
+    return new FP_Decimal_Precise(this.value.ln());
+  }
+
+
+  /**
+   * Returns the logarithm of this decimal in the given base.
+   * @param {FP_Decimal|Decimal|number|string} base
+   * @returns {FP_Decimal_Precise}
+   */
+  log(base) {
+    return new FP_Decimal_Precise(this.value.log(
+      base instanceof FP_Decimal ? base.value : base));
+  }
+
+
+  /**
+   * Raises this decimal to the given power.
+   * @param {FP_Decimal|Decimal|number|string} exponent
+   * @returns {FP_Decimal_Precise|null} null if the result is NaN.
+   */
+  power(exponent) {
+    const res = this.value.pow(
+      exponent instanceof FP_Decimal ? exponent.value : exponent);
+    return res.isNaN() ? null : new FP_Decimal_Precise(res);
+  }
+
+
+  /**
+   * Returns the square root of this decimal.
+   * @returns {FP_Decimal_Precise|null} null if the value is negative.
+   */
+  sqrt() {
+    if (this.value.comparedTo(0) === -1) {
+      return null;
+    }
+
+    return new FP_Decimal_Precise(this.value.sqrt());
+  }
+
+
+  /**
+   * Returns the negation of this decimal.
+   * @returns {FP_Decimal_Precise}
+   */
+  negate() {
+    return new FP_Decimal_Precise(this.value.negated());
+  }
+
+
+  /**
+   * Returns the absolute value of this decimal.
+   * @returns {FP_Decimal_Precise}
+   */
+  abs() {
+    return new FP_Decimal_Precise(this.value.abs());
+  }
+
+
+  /**
+   * Returns the ceiling of this decimal.
+   * @returns {FP_Decimal_Precise}
+   */
+  ceiling() {
+    return new FP_Decimal_Precise(this.value.ceil());
+  }
+
+
+  /**
+   * Returns the floor of this decimal.
+   * @returns {FP_Decimal_Precise}
+   */
+  floor() {
+    return new FP_Decimal_Precise(this.value.floor());
+  }
+
+
+  /**
+   * Rounds this decimal to the specified precision using ROUND_HALF_UP.
+   * @param {number} [precision] - number of decimal places.
+   * @returns {FP_Decimal_Precise}
+   */
+  round(precision) {
+    if (precision === undefined) {
+      return new FP_Decimal_Precise(this.value.toDecimalPlaces(0, Decimal.ROUND_HALF_UP));
+    }
+    return new FP_Decimal_Precise(this.value.toDecimalPlaces(Number(precision), Decimal.ROUND_HALF_UP));
+  }
+
+
+  /**
+   * Truncates this decimal to an integer.
+   * @returns {FP_Decimal_Precise}
+   */
+  truncate() {
+    return new FP_Decimal_Precise(this.value.truncated());
+  }
+
+
+  /**
+   * Compares this decimal with another value.
+   * @param {FP_Decimal|FP_Quantity|Decimal|number} other
+   * @returns {number} -1, 0, or 1.
+   */
+  compare(other) {
+    if (other instanceof FP_Quantity) {
+      return new FP_Quantity(other.ctx, this, "'1'").compare(other);
+    }
+    const otherVal = this._toDecimal(other);
+
+    return this.value.toDecimalPlaces(FP_Decimal.MAX_PRECISION)
+      .comparedTo(otherVal.toDecimalPlaces(FP_Decimal.MAX_PRECISION));
+  }
+
+
+  /**
+   * Checks equality with another value.
+   * @param {FP_Decimal|FP_Quantity|Decimal|number} other
+   * @returns {boolean|undefined} true if equal, false if not equal, undefined
+   *  if not comparable.
+   */
+  equals(other) {
+    if (other instanceof FP_Quantity) {
+      return new FP_Quantity(other.ctx, this, "'1'").equals(other);
+    }
+    let otherVal;
+    try {
+      otherVal = this._toDecimal(other);
+    } catch {
+      return undefined;
+    }
+    return this.value.toDecimalPlaces(FP_Decimal.MAX_PRECISION)
+      .equals(otherVal.toDecimalPlaces(FP_Decimal.MAX_PRECISION));
+  }
+
+
+  /**
+   * Determines numeric equivalence with another value.
+   * Compares values rounded to the lesser of the two decimal precisions.
+   * @param {FP_Decimal|Decimal|number} other
+   * @returns {boolean} true if the values are equivalent, false otherwise.
+   */
+  equivalentTo(other) {
+    let otherVal;
+    try {
+      otherVal = this._toDecimal(other);
+    } catch {
+      return false;
+    }
+
+
+    if (this.value.isInteger() && otherVal.isInteger()) {
+      return this.value.equals(otherVal);
+    }
+
+    const prec = Math.min(this.decimalPrecision, otherVal.decimalPlaces());
+    const thisRounded = this.value.toDecimalPlaces(prec, Decimal.ROUND_HALF_UP);
+    const otherRounded = otherVal.toDecimalPlaces(prec, Decimal.ROUND_HALF_UP);
+
+    return thisRounded.equals(otherRounded);
+  }
+
+
+  /**
+   * Checks whether this decimal value represents an integer.
+   * @returns {boolean} true if the value is an integer, false otherwise.
+   */
+  isInteger() {
+    return this.decimalPlaces === 0;
+  }
+
+
+  /**
+   * Returns the value as a JavaScript number.
+   * @returns {number}
+   */
+  toNumber() {
+    return this.value.toNumber();
+  }
+
+
+  /**
+   * Returns a BigInt representation of this decimal.
+   * @returns {BigInt}
+   */
+  toBigInt() {
+    return BigInt(this.toString());
+  }
+
+
+  /**
+   * Returns the string representation of this decimal.
+   * @returns {string}
+   */
+  toString() {
+    return this.asStr;
+  }
+
+
+  /**
+   * Converts another value to a decimal.js Decimal for arithmetic.
+   * @param {FP_Decimal|Decimal|number|string} other
+   * @returns {Decimal}
+   * @throws {Error} if the value cannot be converted.
+   * @private
+   */
+  _toDecimal(other) {
+    if (other instanceof FP_Decimal_Precise) {
+      return other.value;
+    } else if (other instanceof Decimal) {
+      return other;
+    } else if (other instanceof FP_Decimal_Native) {
+      return new Decimal(other.value);
+    } else {
+      try {
+        return new Decimal(other);
+      } catch {
+        throw new Error(`Cannot convert ${other} to Decimal`);
+      }
+    }
+  }
+
+}
+
+
 module.exports = {
   FP_Type,
   FP_TimeBase,
@@ -2077,6 +3559,9 @@ module.exports = {
   FP_Instant,
   FP_Time,
   FP_Quantity,
+  FP_Decimal,
+  FP_Decimal_Native,
+  FP_Decimal_Precise,
   timeRE,
   dateTimeRE,
   dateRE,

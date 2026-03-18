@@ -51,8 +51,7 @@ tests:
         inputfile: quantity-example.json
         model: 'r4'
         expression: QuestionnaireResponse.item[0].answer.value != 2 'a'
-        result:
-          - true
+        result: []
       - desc: After converting 'min' to minutes it is equal to minutes
         inputfile: quantity-example.json
         model: 'r4'

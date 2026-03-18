@@ -419,8 +419,7 @@ tests:
     - 'group: calendar duration conversion factor':
       - inputfile: patient-example.json
         expression: '''1 year''.toQuantity() != 1 ''a'''
-        result:
-          - true
+        result: []
       - inputfile: patient-example.json
         expression: '''1 year''.toQuantity() ~ 1 ''a'''
         result:

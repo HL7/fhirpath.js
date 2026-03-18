@@ -7,11 +7,22 @@ tests:
   - desc: '** Can multiply two number literals'
     expression: 2 * 4
     result: [8]
+  - desc: '** The precision of multiplying a long integer by a decimal number'
+    expression: 838L * 0.3
+    preciseMath: true
+    result: [251.4]
+  - desc: '** The precision of multiplying two decimal number literals'
+    expression: 9.16 * 8.22
+    preciseMath: true
+    result: [75.2952]
   - desc: '** Can multiply two long number literals'
     expression: 2L * 4L
     result: ['8']
   - desc: '** Can multiply a long number literal by a number literal'
     expression: 2L * 4
+    result: ['8']
+  - desc: '** Can multiply a number literal by a long number literal'
+    expression: 4 * 2L
     result: ['8']
   - desc: '** Can multiply a long number literal by a decimal literal'
     expression: 2L * 4.1
@@ -19,9 +30,12 @@ tests:
   - desc: '** Can multiply a decimal literal by a long number literal'
     expression: 4.1 * 2L
     result: [8.2]
-  - desc: '** Error multiplying a long number literal by a Quantity literal'
-    expression: 2L * 4 '1'
-    error: true
+  - desc: '** Can multiplying a long number by a quantity (1)'
+    expression: 2L * 4 '1' = 8
+    result: [true]
+  - desc: '** Can multiplying a long number by a quantity (2)'
+    expression: 2L * 4 'kg'
+    result: ["8 'kg'"]
   - desc: '** Error multiplying string (1)'
     expression: s5 * n2
     error: true
@@ -55,12 +69,21 @@ tests:
   - desc: '** Can multiply a number by a quantity'
     expression: 2 * 5 'kg' = 10 'kg'
     result: [true]
+  - desc: '** The precision of multiplying two quantities'
+    expression: (9.16 'g' * 8.22 'm').toQuantity('g.m').value
+    preciseMath: true
+    result: [75.2952]
+  - desc: '** The precision of multiplying a quantity by a number'
+    expression: (9.16 'g' * 8.22).toQuantity('g').value
+    preciseMath: true
+    result: [75.2952]
+  - desc: '** The precision of multiplying a number by a quantity'
+    expression: (9.16 * 8.22 'm').toQuantity('m').value
+    preciseMath: true
+    result: [75.2952]
   - desc: '** Empty result when one of the operands has a special unit'
     expression: 1 'B' * 2
     result: []
-  - desc: '** Can multiply a quantity by a calendar duration quantity less than or equal to seconds (2)'
-    expression: (1 year).toQuantity('seconds').toQuantity('s') * (1 year).toQuantity('seconds') = 994519296000000 's2'
-    result: [true]
   - 'group: Incompatible duration units in multiplication':
     - expression: 1 'a' * 1 second
       result: []
@@ -70,8 +93,12 @@ tests:
       result: []
     - expression: 1 year * 1 year
       result: []
+    - expression: 1 second * 1 second
+      result: []
+    - expression: 1 's' * 1 second
+      result: []
   - 'group: Compatible duration units in multiplication':
-    - expression: 1 'm' * (1 year).toQuantity('seconds') = 31536000 'm.s'
+    - expression: 1 'm' * (1 year).toQuantity('seconds').toQuantity('s') = 31536000 'm.s'
       result: [true]
     - expression: 1 'a' * 2 'wk' = 38172072960000 's2'
       result: [true]
@@ -79,15 +106,27 @@ tests:
       result: [true]
     - expression: 2 * 1 year = 2 year
       result: [true]
+    - expression: 2 * 5 months = 10 months
+      result: [true]
 
 
   - desc: '6.6.2 division'
   - desc: '** Can divide two numbers'
     expression: n2/n1
     result: [2.5]
+  - expression: n1/2
+    result: [1]
   - desc: '** Can divide two number literals'
     expression: 5/2
     result: [2.5]
+  - desc: '** The precision of dividing a decimal number by a long integer'
+    expression: 99.27 / 3L
+    preciseMath: true
+    result: [33.09]
+  - desc: '** The precision of dividing two decimal numbers'
+    expression: 7.315 / 0.7
+    preciseMath: true
+    result: [10.45]
   - desc: '** Can divide two long number literals'
     expression: 2L / 4L
     result: [0.5]
@@ -100,9 +139,18 @@ tests:
   - desc: '** Can divide a decimal literal by a long number literal'
     expression: 9 / 4L
     result: [2.25]
+  - desc: '** Can dividing a long number by a quantity (1)'
+    expression: 4L / 2 '1' = 2
+    result: [true]
+  - desc: '** Can dividing a long number by a quantity (2)'
+    expression: 4L / 2 'kg' = 2 '1/kg'
+    result: [true]
+  - desc: '** Can dividing a number by a quantity'
+    expression: n1 / 2 'kg' = 1 'kg-1'
+    result: [true]
   - desc: '** Error dividing a Quantity literal by a long number literal'
     expression: 4 '1' / 2L
-    error: true
+    result: ["2 '1'"]
   - desc: '** Empty result when one of the operands is null'
     expression: n1 / i
     result: []
@@ -124,6 +172,14 @@ tests:
   - desc: '** Can divide a number by a quantity'
     expression: 20 / 5 'kg' = 4 '1/kg'
     result: [true]
+  - desc: '** The precision of dividing two quantities'
+    expression: (99.27 'g' / 3 'g').value
+    preciseMath: true
+    result: [33.09]
+  - desc: '** The precision of dividing a quantity by a number'
+    expression: (7.315 'm'/ 0.7).toQuantity('m').value
+    preciseMath: true
+    result: [10.45]
   - desc: '** Empty result when one of the operands has a special unit'
     expression: 1 'B' / 2
     result: []
@@ -144,46 +200,41 @@ tests:
       result: []
     - expression: 1 / 3 months
       result: []
+    - expression: 3 minutes / 1 's'
+      result: []
+    - expression: 3 years / 1.5 years
+      result: []
+    - expression: 1 year / 6 months
+      result: []
+    - expression: 3 month / 2 year
+      result: []
+    - expression: 1 week / 1 'wk'
+      result: []
+    - expression: 1 'kg' / (3 months).toQuantity('seconds')
+      result: []
+  - expression: 3 's' / 3 milliseconds
+    result: []
   - 'group: Compatible duration units in division':
-    - expression: (1 'a').toQuantity('s') / (1 year).toQuantity('seconds') = 1.0006849315068493 # 31557600 's' / (365*24*60*60) seconds
+    - expression: (1 'a') / (1 year).toQuantity('seconds').toQuantity('s') = 1.0006849315068493 # 31557600 's' / (365*24*60*60) seconds
+      preciseMath: false
       result: [true]
-    - expression: (1 year).toQuantity('seconds') / (1 'a').toQuantity('s') = 0.999315537303217 # 365*24*60*60 seconds - 31557600 's'
+    - expression: (1 year).toQuantity('seconds').toQuantity('s') / (1 'a') = 0.999315537303217 # 365*24*60*60 seconds - 31557600 's'
+      preciseMath: false
       result: [true]
-    - expression: (1 'mo').toQuantity('s') / (1 year).toQuantity('seconds') = 0.08339041095890411
+    - expression: (1 'mo') / (1 year).toQuantity('seconds').toQuantity('s') = 0.08339041095890411
+      preciseMath: false
       result: [true]
-    - expression: (1 year).toQuantity('seconds') / (1 'mo').toQuantity('s') = 11.991786447638603
-      result: [true]
-    - expression: 3 minutes / 1 's' = 180
-      result: [true]
-    - expression: 3 years / 1.5 years = 2
+    - expression: (1 year).toQuantity('seconds').toQuantity('s') / (1 'mo') = 11.991786447638603
+      preciseMath: false
       result: [true]
     - expression: 1 year / 2 = 6 months
       result: [true]
-    - expression: 1 year / 6 months = 2
-      result: [true]
-    - expression: 3 month / 2 year = 1 / 8
-      result: [true]
-    - expression: 1 week / 1 'wk' = 1
-      result: [true]
-  - desc: '** Allow division of a UCUM duration quantity'
-    expression: 3 's' / 3 milliseconds = 1000
-    result: [true]
   - desc: '** Empty result when one of the operands is a calendar duration quantity greater than seconds (4)'
     expression: 1 'kg' / 3 months
     result: []
-  - desc: '** Can divide a UCUM quantity by a calendar duration quantity less than or equal to seconds'
-    expression: 1 'kg' / (3 months).toQuantity('seconds') = 0.0001286008230452675 'g/s'
-    result: [true]
   - desc: '** Empty result when a calendar duration quantity divided by zero'
     expression: 1 year / 0 months
     result: []
-  - desc: '** Can divide System.Quantity (converted from FHIR.Quantity) by System.Quantity'
-    # Since FHIR.Quantity automatically converted to System.Quantity
-    # See https://hl7.org/fhir/fhirpath.html#quantity
-    inputfile: observation-example-2.json
-    model: r4
-    expression: Observation.value / 185 months = 1
-    result: [true]
   - desc: '** Empty result when one of the operands is a calendar duration quantity greater than seconds (6)'
     # Since FHIR.Quantity automatically converted to System.Quantity
     # See https://hl7.org/fhir/fhirpath.html#quantity
@@ -200,21 +251,51 @@ tests:
   - desc: '** Can add two number literals'
     expression: 2+3
     result: [5]
+  - desc: '** The precision of adding two decimal numbers'
+    expression: 0.1+0.2
+    preciseMath: true
+    result: [0.3]
+  - desc: '** The precision of adding a long integer and a decimal number'
+    expression: 9L+9.0999
+    preciseMath: true
+    result: [18.0999]
   - desc: '** Can add two long number literals'
     expression: 2L + 4L
     result: ['6']
   - desc: '** Can add a number literal to a long number literal'
     expression: 2L + 4
     result: ['6']
+  - desc: '** Can add a long number literal to a number literal'
+    expression: 2 + 4L
+    result: ['6']
+  - desc: '** Can add a long number literal to a number literal'
+    expression: n1 + 4L
+    result: ['6']
   - desc: '** Can add a decimal literal to a long number literal'
     expression: 9L + 4.5
     result: [13.5]
-  - desc: '** Error adding a long number literal to a Quantity literal'
-    expression: 4 '1' + 2L
-    error: true
+  - desc: '** Adding a long number literal to a Quantity literal'
+    expression: 4 '1' + 2L = 6
+    result: [true]
+  - desc: '** Adding a Quantity literal to a long number literal'
+    expression: 2L + 4 '1' = 6
+    result: [true]
   - desc: '** Can add two quantity literals'
     expression: 3 'm' + 3 'cm' = 303 'cm'
     result: [true]
+  - desc: '** The precision of adding two quantities'
+    expression: (0.1 'm' + 0.2 'm').toQuantity('m').value
+    preciseMath: true
+    result: [0.3]
+  - desc: '** The precision of adding a number and a quantity'
+    expression: (9 + 9.0999 '1').value
+    preciseMath: true
+    result: [18.0999]
+  - desc: '** The precision of adding a quantity and a number'
+    expression: (9 '1' + 9.0999).value
+    preciseMath: true
+    result: [18.0999]
+
   - desc: '** Can add a number to a quantity'
     expression: 3 '1' + 2 = 5 '1'
     result: [true]
@@ -267,6 +348,8 @@ tests:
       result: [true]
     - expression: (1 year).toQuantity('seconds') + (1 'a').toQuantity('s') = 63093600 seconds # 365*24*60*60 seconds + 31557600 's'
       result: [true]
+    - expression: 1 year - 6 months - 1 year + 18 months = 1 year
+      result: [true]
   - desc: '** Changing the places of the terms may change the sum because of the year/month conversion factor'
     # (1 year + 6 months) = 18 months; 1 year = 365 days;  12 months = 360 days
     expression: (1 year + 6 months).toQuantity('seconds') + (1 'a').toQuantity('s') + (5 days).toQuantity('seconds') = (1 'a').toQuantity('s') + (6 months).toQuantity('seconds') + (1 year).toQuantity('seconds')
@@ -307,21 +390,35 @@ tests:
   - desc: '** Can subtract two number literals'
     expression:  5-3
     result: [2]
+  - desc: '** The precision of subtracting two decimal numbers'
+    expression:  0.3 - 0.1
+    preciseMath: true
+    result: [0.2]
+  - desc: '** The precision of subtracting a decimal number from a long integer'
+    expression:  6L - 4.999999999999997
+    preciseMath: true
+    result: [1.000000000000003]
   - desc: '** Can subtract two long number literals'
     expression: 2L - 4L
     result: ['-2']
   - desc: '** Can subtract a number literal from a long number literal'
     expression: 2L - 4
     result: ['-2']
+  - desc: '** Can subtract a long number literal to a number literal'
+    expression: 2 - 4L
+    result: ['-2']
+  - desc: '** Can subtract a long number literal to a number literal'
+    expression: n1 - 4L
+    result: ['-2']
   - desc: '** Can subtract a decimal literal from a long number literal'
     expression: 9L - 4.5
     result: [4.5]
-  - desc: '** Error subtracting a long number literal from a Quantity literal'
-    expression: 4 '1' - 2L
-    error: true
-  - desc: '** Error subtracting a Quantity literal from a long number literal'
-    expression: 2L - 4 '1'
-    error: true
+  - desc: '** Subtracting a long number literal from a Quantity literal'
+    expression: 4 '1' - 2L = 2
+    result: [true]
+  - desc: '** Subtracting a Quantity literal from a long number literal'
+    expression: 2L - 4 '1' = -2
+    result: [true]
   - desc: '** Empty result when one of the operands is empty'
     expression: n1 - n4
     result: []
@@ -334,9 +431,32 @@ tests:
   - desc: '** Can subtract a quantity from a number'
     expression: 3 - 2 '1' = 1 '1'
     result: [true]
+  - desc: '** Can subtract a quantity from a number'
+    expression: 3 - 2 'kg.kg-1' = 1 '1'
+    result: [true]
   - desc: '** Can subtract a number from a quantity'
     expression: 3 '1' - 2 = 1 '1'
     result: [true]
+  - desc: '** The precision of subtracting two quantities'
+    expression:  (0.3 'm' - 0.1 'm').toQuantity('m').value
+    preciseMath: true
+    result: [0.2]
+  - desc: '** The precision of subtracting a decimal number from a quantity'
+    expression:  (9 '1' - 9.0999).value
+    preciseMath: true
+    result: [-0.0999]
+  - desc: '** The precision of subtracting a long number from a quantity'
+    expression: 0.9 '1' - 1L
+    preciseMath: true
+    result: ["-0.1 '1'"]
+  - desc: '** The precision of subtracting a quantity from a number'
+    expression: 1 - (0.9 '1')
+    preciseMath: true
+    result: ["0.1 '1'"]
+  - desc: '** The precision of subtracting a quantity from a long number'
+    expression: 1L - (0.9 '1')
+    preciseMath: true
+    result: ["0.1 '1'"]
   - desc: '** Empty result when one of the operands has a special unit'
     expression: 1 'B' - 1 'B'
     result: []
@@ -369,16 +489,19 @@ tests:
     result: ['2']
   - desc: '** Can div a long number literal by a number literal'
     expression: 5L div 2
-    result: [2]
+    result: ['2']
   - desc: '** Can div a long number literal by a decimal literal'
     expression: 10L div 4.5
     result: [2]
+  - desc: '** Can div a decimal number by a long number'
+    expression: 12.4 div 4L
+    result: [3]
   - desc: '** Can div a negative decimal number by a number'
     expression: -5.5 div 2
     result: [-2]
-  - desc: '** Error dividing a Quantity literal by a long number literal'
-    expression: 4 '1' div 2L
-    error: true
+  - desc: '** Dividing a Quantity literal by a long number literal'
+    expression: 4 '1' div 2L = 2
+    result: [true]
   - desc: '** Empty result when one of the operands is null'
     expression: n1 div i
     result: []
@@ -402,13 +525,24 @@ tests:
     result: ['1']
   - desc: '** Can mod a long number literal by a number literal'
     expression: 5L mod 2
-    result: [1]
+    result: ['1']
   - desc: '** Can mod a long number literal by a decimal literal'
     expression: 10L mod 4.5
     result: [1]
-  - desc: '** Error dividing a Quantity literal by a long number literal'
-    expression: 4 '1' mod 2L
-    error: true
+  - desc: '** The precision of modding two decimal numbers'
+    expression: 57.3 mod 3
+    preciseMath: true
+    result: [0.3]
+  - desc: '** The precision of modding a decimal number by a long integer'
+    expression: 99.27 mod 3L
+    preciseMath: true
+    result: [0.27]
+  - desc: '** Can mod a long number literal by a decimal literal'
+    expression: 10L mod 4.5
+    result: [1]
+  - desc: '** Dividing a Quantity literal by a long number literal'
+    expression: 5 '1' mod 2L = 1
+    result: [true]
   - desc: '** Empty result when one of the operands is null'
     expression: n1 mod i
     result: []
@@ -513,14 +647,6 @@ tests:
       error: true
     - expression: "1 year - @2016-02-29"
       error: true
-    - expression: "1 year - 6 months - 1 year + 18 months = 1 year"
-      result: [true]
-    - expression: "1 year * 2 = 2 year"
-      result: [true]
-    - expression: "2 * 5 months = 10 months"
-      result: [true]
-    - expression: "1 year / 6 months = 2"
-      result: [true]
     - expression: "@2016-01-31 + 1 month"
       result: ['2016-02-29']
     - expression: "@2016-01-31 + 1 month + 1 day"

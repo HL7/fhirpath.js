@@ -247,6 +247,10 @@ function getQuestionnaireItemInfo(ctx, qItem, value, valueType) {
       compareFn = o => o.valueCoding?.code === value.code &&
         o.valueCoding?.system === value.system;
       break;
+    case 'Integer':
+    case 'Decimal':
+      compareFn = o => ctx.getDecimal(value).equals(o[valuePropName]);
+      break;
     default:
       compareFn = o => o[valuePropName] === value;
   }
