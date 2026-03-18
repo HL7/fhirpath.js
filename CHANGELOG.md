@@ -37,7 +37,6 @@ This log documents significant changes for each release.  This project follows
   '1' unit) now returns an empty value.
 - An issue where equivalence was determined incorrectly if one of the operands
   was an empty collection.
->>>>>>> lhc-git/master
 
 ## [4.8.5] - 2026-01-28
 ### Fixed
