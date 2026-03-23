@@ -1021,12 +1021,15 @@ function applyParsedPath(resource, parsedPath, envVars, model, options, baseInfo
       : prepareEvalResult(ctx, res,options);
 }
 
+
 /**
  * Prepares the result after evaluating an expression.
  * engine.doEval returns array of "ResourceNode" and/or "FP_Type" instances.
  * "ResourceNode" or "FP_Type" instances are not created for sub-items.
- * Resolves any internal "ResourceNode" instances to plain objects and if
- * options.resolveInternalTypes is true, resolve any internal "FP_Type"
+ * If options.resolveInternalTypes is false, keeps "ResourceNode" instances as
+ * internal structures so their type/path metadata remains available for future
+ * evaluations. Otherwise, resolves "ResourceNode" instances to plain objects.
+ * If options.resolveInternalTypes is true, resolves any internal "FP_Type"
  * instances to standard JavaScript types (unless options.keepDecimalTypes is
  * true, in which case FP_Decimal instances are preserved).
  * @param {object} defContext - the default evaluation context, used when a
@@ -1036,8 +1039,16 @@ function applyParsedPath(resource, parsedPath, envVars, model, options, baseInfo
  * @return {Array}
  */
 function prepareEvalResult(defContext, result, options) {
+  const shouldResolveInternalTypes = options.resolveInternalTypes;
   return result
     .reduce((acc, n) => {
+      if (n instanceof ResourceNode && !shouldResolveInternalTypes) {
+        if (n.data != null) {
+          acc.push(n);
+        }
+        return acc;
+      }
+
       let ctx;
       // Path for the data extracted from the resource.
       let path;
@@ -1055,7 +1066,7 @@ function prepareEvalResult(defContext, result, options) {
       }
       n = util.valData(n);
       if (n instanceof FP_Type) {
-        if (options.resolveInternalTypes) {
+        if (shouldResolveInternalTypes) {
           if (!(options.keepDecimalTypes && n instanceof FP_Decimal)) {
             n = n.toJSON();
           }
@@ -1078,6 +1089,7 @@ function prepareEvalResult(defContext, result, options) {
     }, []);
 }
 
+
 /**
  * Resolves any internal "FP_Type" instances in a result of FHIRPath expression
  * evaluation to standard JavaScript types.
@@ -1089,15 +1101,30 @@ function resolveInternalTypes(val) {
     for (let i=0, len=val.length; i<len; ++i)
       val[i] = resolveInternalTypes(val[i]);
   }
+  else if (val instanceof ResourceNode) {
+    const pathInfo = {
+      ctx: val.ctx,
+      path: val.path,
+      fhirNodeDataType: val.fhirNodeDataType,
+      parentResNode: val.parentResNode,
+      propName: val.propName,
+      index: val.index
+    };
+    val = resolveInternalTypes(val.data);
+    if (val != null && pathInfo.path && typeof val === 'object' && !val.__path__) {
+      Object.defineProperty(val, '__path__', { value: pathInfo });
+    }
+  }
   else if (val instanceof FP_Type) {
     val = val.toString();
   }
-  else if (typeof val === 'object') {
+  else if (val && typeof val === 'object') {
     for (let k of Object.keys(val))
       val[k] = resolveInternalTypes(val[k]);
   }
   return val;
 }
+
 
 /**
  *  Evaluates the "path" FHIRPath expression on the given resource or part of the resource,

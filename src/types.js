@@ -2101,7 +2101,13 @@ class ResourceNode {
    * @returns {*} the JSON-serializable data value.
    */
   toJSON() {
-    return toJSON(this.data);
+    if (this.data instanceof FP_Type) {
+      return this.data.toJSON();
+    }
+    if (typeof this.data === 'bigint') {
+      return this.data.toString();
+    }
+    return this.data;
   }
 
 

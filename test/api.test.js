@@ -1,7 +1,10 @@
 const fhirpath = require('../src/fhirpath');
 const r4_model = require('../fhir-context/r4');
 const _ = require('lodash');
-const {FP_DateTime, FP_Quantity, FP_Decimal_Native} = require('../src/types');
+const {
+  FP_DateTime, FP_Quantity, FP_Decimal_Native, ResourceNode
+} = require('../src/types');
+
 const observationResource = require('./resources/r4/observation-example.json');
 const input = {
   get questionnairePartExample() {
@@ -172,6 +175,56 @@ describe('evaluate', () => {
     expect(r).toStrictEqual([new FP_Quantity(r[0].ctx, '2.0', "'cm'")]);
   });
 
+  it('should preserve ResourceNode results when options.resolveInternalTypes is false', () => {
+    const r = fhirpath.evaluate(
+      input.quantityExample,
+      "QuestionnaireResponse.item.where(linkId = '2')",
+      null,
+      r4_model,
+      { resolveInternalTypes: false }
+    );
+    expect(r).toHaveLength(1);
+    expect(r[0]).toBeInstanceOf(ResourceNode);
+    expect(r[0].fullPropertyName()).toBe('QuestionnaireResponse.item[1]');
+  });
+
+  it('should serialize ResourceNode string values without double-encoding', () => {
+    const r = fhirpath.evaluate(
+      input.quantityExample,
+      "QuestionnaireResponse.item.where(linkId = '2').linkId",
+      null,
+      r4_model,
+      { resolveInternalTypes: false }
+    );
+    expect(r[0]).toBeInstanceOf(ResourceNode);
+    expect(JSON.stringify(r)).toBe('["2"]');
+  });
+
+  it('should serialize ResourceNode object values as JSON objects', () => {
+    const r = fhirpath.evaluate(
+      input.quantityExample,
+      "QuestionnaireResponse.item.where(linkId = '2')",
+      null,
+      r4_model,
+      { resolveInternalTypes: false }
+    );
+    expect(r[0]).toBeInstanceOf(ResourceNode);
+    expect(JSON.stringify(r)).toContain('"linkId":"2"');
+    expect(JSON.stringify(r)).not.toContain('\\"linkId\\"');
+  });
+
+  it('should serialize ResourceNode integer64 values without throwing', () => {
+    const node = new ResourceNode(
+      { getDecimal: FP_Decimal_Native.getDecimal, model: null },
+      '9007199254740993',
+      null,
+      'Observation.value',
+      null,
+      'integer64'
+    );
+    expect(JSON.stringify([node])).toBe('["9007199254740993"]');
+  });
+
   it('should support providing a custom function to "trace"', () => {
     var traceobj = null;
     var tracelabel = null;
@@ -199,9 +252,73 @@ describe('resolveInternalTypes', () => {
       "1 'cm'"
     ]);
   });
+
+  it('should resolve ResourceNode values returned by evaluate when options.resolveInternalTypes is false', () => {
+    const raw = fhirpath.evaluate(
+      input.quantityExample,
+      "QuestionnaireResponse.item.where(linkId = '2')",
+      null,
+      r4_model,
+      { resolveInternalTypes: false }
+    );
+    expect(raw[0]).toBeInstanceOf(ResourceNode);
+
+    const resolved = fhirpath.resolveInternalTypes(raw);
+    expect(resolved[0]).not.toBeInstanceOf(ResourceNode);
+    expect(resolved[0].linkId).toBe('2');
+    expect(resolved[0].__path__.path).toBe('QuestionnaireResponse.item');
+  });
+
+  it('should handle null values while resolving internal types', () => {
+    expect(
+      fhirpath.resolveInternalTypes([
+        null,
+        {
+          a: null,
+          b: new FP_DateTime(null, '2020-02-18T12:23:45-05:00')
+        }
+      ])
+    ).toStrictEqual([
+      null,
+      {
+        a: null,
+        b: '2020-02-18T12:23:45-05:00'
+      }
+    ]);
+  });
 });
 
 describe('types', () => {
+  it('should return correct types for simple System primitive data types', () => {
+    const value = fhirpath.evaluate(
+      {},
+      "true.combine(1).combine(2.5).combine('abc')",
+      {},
+      null,
+      { resolveInternalTypes: false }
+    );
+    expect(
+      fhirpath.types(value)
+    ).toStrictEqual([
+      'System.Boolean', 'System.Integer', 'System.Decimal', 'System.String'
+    ]);
+  });
+
+  it('should return correct types for simple FHIR primitive data types', () => {
+    const value = fhirpath.evaluate(
+      observationResource,
+      'Observation.status.combine(Observation.effectiveDateTime).combine(Observation.valueQuantity.value)',
+      {},
+      r4_model,
+      { resolveInternalTypes: false }
+    );
+    expect(
+      fhirpath.types(value)
+    ).toStrictEqual([
+      'FHIR.code', 'FHIR.dateTime', 'FHIR.decimal'
+    ]);
+  });
+
   it('should return the type of each element in FHIRPath result', () => {
     let value = fhirpath.evaluate(
       input.quantityExample,
@@ -354,4 +471,3 @@ describe('FP_Decimal in evaluate', () => {
   });
 
 });
-

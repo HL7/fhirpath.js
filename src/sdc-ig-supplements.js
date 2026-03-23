@@ -149,7 +149,6 @@ function getResourceNodeInfo(ctx, rNode) {
       break;
     case 'QuestionnaireResponse.item.answer':
       isQuestionnaireResponse = true;
-      // eslint-disable-next-line no-fallthrough
       valueProp = rNode.data && Object.keys(rNode.data).find(
         p => p.length > 5 && p.startsWith('value')
       );

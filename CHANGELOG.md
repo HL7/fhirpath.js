@@ -3,6 +3,13 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.9.2] - 2026-03-23
+### Fixed
+- `evaluate()` with `{ resolveInternalTypes: false }` now preserves `ResourceNode`
+  instances in results, keeping internal type metadata for downstream use.
+- `ResourceNode.toJSON()` behavior was adjusted for compatibility when
+  `ResourceNode` objects are retained in output.
+
 ## [4.9.1] - 2026-03-11
 ### Fixed
 - Delimited identifiers can now have string escapes.
