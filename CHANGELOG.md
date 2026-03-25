@@ -4,6 +4,19 @@ This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
 ## [4.9.2] - 2026-03-23
+### Changed
+- Reworked the benchmark comparison workflow (`npm run compare-performance`) to
+  use Tinybench with CodSpeed plugin integration instead of Benny.
+- Benchmark output now generates a single consolidated HTML report at
+  `test/benchmark/results/compare-performance-report.html` with per-case
+  previous/current visual comparisons.
+- Added speedup trend classification based on confidence interval overlap and
+  colorized trend display in both console output and HTML report.
+- Updated benchmark runtime defaults and Node invocation flags for more
+  consistent benchmark runs.
+- Updated Node.js engine requirement to `>=20.0.0` to match current dependency
+  constraints.
+
 ### Fixed
 - `evaluate()` with `{ resolveInternalTypes: false }` now preserves `ResourceNode`
   instances in results, keeping internal type metadata for downstream use.
@@ -863,4 +876,3 @@ Limited support for types (see README.md for details):
 ### Added
 - There is a now a parser and a small script (bin/parseAndDisplay.js) which
   prints out the parse tree of a FHIRPath expression.
-

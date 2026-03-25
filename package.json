@@ -17,10 +17,10 @@
     "@babel/core": "^7.21.4",
     "@babel/eslint-parser": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
+    "@codspeed/tinybench-plugin": "^5.2.0",
     "@eslint/js": "^9.39.3",
     "babel-loader": "^8.2.3",
     "baseline-browser-mapping": "^2.9.14",
-    "benny": "github:caderek/benny#0ad058d3c7ef0b488a8fe9ae3519159fc7f36bb6",
     "bestzip": "^2.2.0",
     "copy-webpack-plugin": "^14.0.0",
     "cypress": "^13.7.2",
@@ -33,6 +33,7 @@
     "lodash": "^4.17.23",
     "open": "^8.4.0",
     "rimraf": "^3.0.0",
+    "tinybench": "^6.0.0",
     "tmp": "^0.2.5",
     "tsd": "^0.31.1",
     "webpack": "^5.102.1",
@@ -42,14 +43,13 @@
     "yargs": "^15.1.0"
   },
   "engines": {
-    "node": ">=8.9.0"
+    "node": ">=20.0.0"
   },
   "tsd": {
     "directory": "test/typescript"
   },
   "scripts": {
     "preinstall": "node bin/install-demo.js",
-    "postinstall": "echo \"Building the Benny package based on a pull request which fixes an issue with 'statusShift'... \" && (cd node_modules/benny && npm i && npm run build > /dev/null) || echo \"Building the Benny package is completed.\"",
     "generateParser": "cd src/parser; rimraf ./generated/*; java -Xmx500M -cp \"../../antlr-4.9.3-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o generated -Dlanguage=JavaScript FHIRPath.g4; node ../../scripts/fix-parser-imports.js",
     "build": "cd browser-build && webpack && rimraf fhirpath.zip && bestzip fhirpath.zip LICENSE.md fhirpath.min.js fhirpath.r5.min.js fhirpath.r4.min.js fhirpath.stu3.min.js fhirpath.dstu2.min.js && rimraf  LICENSE.md",
     "test:unit": "node --use_strict node_modules/.bin/jest && TZ=America/New_York node --use_strict node_modules/.bin/jest && TZ=Europe/Paris node --use_strict node_modules/.bin/jest",
@@ -59,7 +59,7 @@
     "test:tsd": "tsd",
     "test": "npm run lint && npm run test:tsd && npm run test:unit && npm run test:e2e && echo \"For tests specific to IE 11, open browser-build/test/index.html in IE 11, and confirm that the tests on that page pass.\"",
     "lint": "eslint src/parser/index.js src/*.js converter/",
-    "compare-performance": "node ./test/benchmark.js"
+    "compare-performance": "node --max-old-space-size=4096 --initial-old-space-size=4096 --max-semi-space-size=128 --min-semi-space-size=128 ./test/benchmark.js"
   },
   "bin": {
     "fhirpath": "bin/fhirpath"

@@ -12,7 +12,8 @@
  * To see all available options:
  * npm run compare-performance -- -h
  *
- * The results will be saved in the folder `./benchmark/results`
+ * The benchmark report will be saved as:
+ *   `./test/benchmark/results/compare-performance-report.html`
  */
 const { spawn, fork } = require('child_process');
 
@@ -36,20 +37,48 @@ const { Command, Option, InvalidArgumentError } = require('commander');
 const program = new Command();
 
 program
-  .description('Compare performance between the latest published version and the current version.')
-  .addOption(new Option('-v, --prevVersion <version>', 'use a specific version instead of latest published version.').default('latest'))
-  .addOption(new Option('-t, --tests <list>', `list of comma-separated tests (e.g. "${availableTests.join(',')}")`)
+  .description('Compare performance between the latest published version ' +
+    'and the current version.')
+  .addOption(new Option(
+    '-v, --prevVersion <version>',
+    'use a specific version instead of latest published version'
+    )
+    .default('latest'))
+  .addOption(new Option('-t, --tests <list>', `list of comma-separated tests`)
     .argParser(
       (value) => {
         const tests = value.split(',').map(s => s.trim());
-        const invalidTests = tests.filter(test => !availableTests.includes(test));
+        const invalidTests =
+          tests.filter(test => !availableTests.includes(test));
         if (invalidTests.length > 0) {
-          throw new InvalidArgumentError('\nUnexpected tests: ' + invalidTests.join(',') + '.\nAvailable tests are: ' + availableTests.join(',') + '.');
+          throw new InvalidArgumentError('\nUnexpected tests: ' +
+            invalidTests.join(',') + '.\nAvailable tests are: ' +
+            availableTests.join(',') + '.');
         }
         return tests;
-      }).default(availableTests))
-  .addOption(new Option('-c, --compileOnly', 'skip tests for evaluate().'))
-  .addOption(new Option(`-o, --mathMode <mode>`, 'mathematical operations mode.').choices(['native', 'precise']))
+      })
+    .default(availableTests, `"${availableTests.join(',')}"`))
+  .addOption(new Option('-c, --compileOnly', 'skip tests for evaluate()'))
+  .addOption(new Option('-M, --minTolerance <percent>',
+    'minimum tolerance percentage for confidence interval comparisons ' +
+    '(used to colorize results in the report). ' +
+    'Setting it too low may lead to false positives ' +
+    'in speed trend detection, ' +
+    'while setting it too high may mask real performance changes. ' +
+    'Adjust as needed based on the typical variability observed in benchmarks.')
+    .argParser((value) => {
+      const parsed = Number.parseInt(value, 10);
+      if (!Number.isInteger(parsed) || parsed < 0 || parsed > 50) {
+        throw new InvalidArgumentError(
+          'minTolerance must be an integer between 0 and 50.'
+        );
+      }
+      return parsed;
+    })
+    .default(5))
+  .addOption(new Option(`-o, --mathMode <mode>`,
+    'mathematical operations mode')
+    .choices(['native', 'precise']))
   .parse(process.argv);
 
 const options = program.opts();
