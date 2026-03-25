@@ -22,6 +22,9 @@ This log documents significant changes for each release.  This project follows
   instances in results, keeping internal type metadata for downstream use.
 - `ResourceNode.toJSON()` behavior was adjusted for compatibility when
   `ResourceNode` objects are retained in output.
+- `resolveInternalTypes()` now resolves `FP_Type` values using `toJSON()`
+  instead of `toString()`, preserving JSON-native result types (for example,
+  numberic results now resolve to numbers rather than strings).
 
 ## [4.9.1] - 2026-03-11
 ### Fixed

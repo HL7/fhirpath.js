@@ -253,6 +253,19 @@ describe('resolveInternalTypes', () => {
     ]);
   });
 
+  it('should resolve FP_Type values using toJSON()', () => {
+    const raw = fhirpath.evaluate(
+      {},
+      "1 + 2",
+      null,
+      r4_model,
+      { resolveInternalTypes: false }
+    );
+
+    const resolved = fhirpath.resolveInternalTypes(raw);
+    expect(resolved[0]).toBe(3);
+  });
+
   it('should resolve ResourceNode values returned by evaluate when options.resolveInternalTypes is false', () => {
     const raw = fhirpath.evaluate(
       input.quantityExample,

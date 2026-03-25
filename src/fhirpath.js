@@ -1116,7 +1116,7 @@ function resolveInternalTypes(val) {
     }
   }
   else if (val instanceof FP_Type) {
-    val = val.toString();
+    val = val.toJSON();
   }
   else if (val && typeof val === 'object') {
     for (let k of Object.keys(val))
