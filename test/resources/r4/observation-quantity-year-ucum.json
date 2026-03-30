@@ -1,0 +1,9 @@
+{
+  "resourceType": "Observation",
+  "valueQuantity": {
+    "value": 1,
+    "unit": "year",
+    "system": "http://unitsofmeasure.org",
+    "code": "a"
+  }
+}

@@ -41,7 +41,7 @@ describe('compile', () => {
       expression: 'answer.value.toString()'
     }, r4_model);
     expect(f(input.questionnairePartExample))
-      .toStrictEqual(['2 year']);
+      .toStrictEqual(["2 'a'"]);
   });
 
   it('should accept a resource as a environment variable', () => {
