@@ -2097,11 +2097,24 @@ class ResourceNode {
 
 
   /**
-   * Returns the JSON representation of this node's data.
-   * @returns {*} the JSON-serializable data value.
+   * Returns a JSON-safe representation of the wrapped node value.
+   *
+   * - FHIRPath internal scalar wrappers (`FP_Type`) are unwrapped via their own
+   *   `toJSON()` implementation.
+   * - `bigint` values are converted to strings because `JSON.stringify` does
+   *   not support BigInt natively.
+   * - All other values are returned as-is.
+   *
+   * @returns {*} A value suitable for JSON serialization.
    */
   toJSON() {
-    return toJSON(this.data);
+    if (this.data instanceof FP_Type) {
+      return this.data.toJSON();
+    }
+    if (typeof this.data === 'bigint') {
+      return this.data.toString();
+    }
+    return this.data;
   }
 
 
