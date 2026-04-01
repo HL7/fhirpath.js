@@ -3,10 +3,34 @@ tests:
     result: []
   - expression: "'a\\\\b\\'\\\"\\`\\r\\n\\t\\u0065'" # double escape for YAML
     result: ["a\\b'\"`\r\n\te"]
+  - expression: "'\\u00e9'"
+    result: ["\u00E9"]
+  - expression: "'\\u00E9'"
+    result: ["\u00E9"]
+  - expression: "'\\u12'"
+    result: ["u12"]
+  - expression: "'\\u123'"
+    result: ["u123"]
+  - expression: "'\\u12G4'"
+    result: ["u12G4"]
+  - expression: "'\\uZZZZ'"
+    result: ["uZZZZ"]
   - expression: "\"a\\\\b\\'\\\"\\`\\r\\n\\t\\u0065\"" # using " to wrap a string is not allowed by grammar
     error: true
   - expression: "`a\\\\b\\'\\\"\\`\\r\\n\\t\\u0065`" # ` used to wrap an identifier
     result: []
+  - expression: "`id\\u00e9`"
+    result: ["decoded-id"]
+  - expression: "`id\\u00E9`"
+    result: ["decoded-id"]
+  - expression: "`bad\\u12`"
+    result: ["malformed-u12"]
+  - expression: "`bad\\u123`"
+    result: ["malformed-u123"]
+  - expression: "`bad\\u12G4`"
+    result: ["malformed-u12G4"]
+  - expression: "`bad\\uZZZZ`"
+    result: ["malformed-uZZZZ"]
   - expression: "2 'mo'"
     result: ["2 'mo'"]
   - expression: "2 years"
@@ -40,3 +64,8 @@ tests:
 
 subject:
   prop: val
+  "id\u00E9": decoded-id
+  'badu12': malformed-u12
+  'badu123': malformed-u123
+  'badu12G4': malformed-u12G4
+  'baduZZZZ': malformed-uZZZZ

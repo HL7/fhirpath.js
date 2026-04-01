@@ -11,6 +11,10 @@ This log documents significant changes for each release.  This project follows
 - String equivalence and non-equivalence normalization now collapses repeated
   whitespace globally, so expressions like `'ab   c   d' ~ 'Ab C D'` evaluate as
   equivalent.
+- Unicode escape parsing in literals now accepts full hex digits for `\uXXXX`
+  (for example, `\u00e9` and `\u00E9`) in both single-quoted strings and
+  backtick-delimited identifiers.
+
 
 ## [4.9.3] - 2026-03-27
 ### Changed
