@@ -25,7 +25,7 @@ const isArguments = function (object) {
  * @returns {string} the normalized string.
  */
 function normalizeStr(x) {
-  return x.toUpperCase().replace(/\s+/, ' ');
+  return x.toUpperCase().replace(/\s+/g, ' ');
 }
 
 

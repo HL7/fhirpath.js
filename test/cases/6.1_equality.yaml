@@ -470,6 +470,14 @@ tests:
       expression: "'ab c' ~ 'Ab  C'"
       result: [true]
 
+    - desc: '** should normalize repeated whitespace in multiple places'
+      expression: "'ab   c   d' ~ 'Ab C D'"
+      result: [true]
+
+    - desc: '** should still fail after whitespace normalization when text differs'
+      expression: "'ab   c   d' ~ 'Ab C X'"
+      result: [false]
+
   # integer: exactly equal
 
     - desc: |
@@ -870,6 +878,10 @@ tests:
 
     - desc: '* string: the strings must be the same while ignoring case and normalizing whitespace.'
       expression: "'ab c' !~ 'Ab  C'"
+      result: [false]
+
+    - desc: '** should invert repeated-whitespace equivalence'
+      expression: "'ab   c   d' !~ 'Ab C D'"
       result: [false]
 
   # integer: exactly equal

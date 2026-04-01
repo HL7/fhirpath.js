@@ -28,6 +28,7 @@ const availableTests = [
   'addition',
   'gln-validation-expression',
   'comparison',
+  'equivalence',
   'contains',
   'descendants',
   'distinct',

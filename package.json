@@ -1,6 +1,6 @@
 {
   "name": "fhirpath",
-  "version": "4.9.3",
+  "version": "4.9.4",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "types": "src/fhirpath.d.ts",
@@ -72,6 +72,9 @@
     "scripts",
     "src"
   ],
-  "repository": "github:HL7/fhirpath.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HL7/fhirpath.js.git"
+  },
   "license": "SEE LICENSE in LICENSE.md"
 }

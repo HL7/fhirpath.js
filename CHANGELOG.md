@@ -3,6 +3,15 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.9.4] - 2026-03-31
+### Changed
+- Updated package repository metadata in `package.json` to an explicit git
+  repository object.
+### Fixed
+- String equivalence and non-equivalence normalization now collapses repeated
+  whitespace globally, so expressions like `'ab   c   d' ~ 'Ab C D'` evaluate as
+  equivalent.
+
 ## [4.9.3] - 2026-03-27
 ### Changed
 - `npm run compare-performance` can now use a local git ref as the baseline,
