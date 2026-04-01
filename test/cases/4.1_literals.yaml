@@ -7,6 +7,8 @@ tests:
     result: ["\u00E9"]
   - expression: "'\\u00E9'"
     result: ["\u00E9"]
+  - expression: "'\\uD83E\\uDDB6\\uD83D\\uDCA9'"
+    result: ["🦶💩"] # multiple surrogate pairs "\uD83E\uDDB6\uD83D\uDCA9"
   - expression: "'\\u12'"
     result: ["u12"]
   - expression: "'\\u123'"
