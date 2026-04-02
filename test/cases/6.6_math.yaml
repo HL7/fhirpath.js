@@ -183,6 +183,9 @@ tests:
   - desc: '** Empty result when one of the operands has a special unit'
     expression: 1 'B' / 2
     result: []
+  - desc: '** Empty result when a special unit quantity is divided by a quantity with unit ''1'''
+    expression: 1 'B' / 2 '1'
+    result: []
   - 'group: Incompatible duration units in division':
     - expression: 1 'a' / 1 year
       result: []
