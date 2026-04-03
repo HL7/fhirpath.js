@@ -467,15 +467,43 @@ tests:
   # For primitives
 
     - desc: '* string: the strings must be the same while ignoring case and normalizing whitespace.'
-      expression: "'ab c' ~ 'Ab  C'"
+      expression: "'ab\tc\t\nd' ~ 'Ab C\n D'"
       result: [true]
 
-    - desc: '** should normalize repeated whitespace in multiple places'
-      expression: "'ab   c   d' ~ 'Ab C D'"
+    - desc: '** should normalize Unicode whitespace characters during equivalence'
+      expression: "'ab\u00A0c' ~ 'Ab C'"
       result: [true]
+
+    - desc: '** should not collapse repeated whitespace'
+      expression: "'a   b' ~ 'a b'"
+      result: [false]
+
+    - desc: '** should not trim leading spaces during equivalence'
+      expression: "'  ab c' ~ 'ab c'"
+      result: [false]
+
+    - desc: '** should not trim trailing spaces during equivalence'
+      expression: "'ab c  ' ~ 'ab c'"
+      result: [false]
+
+    - desc: '** should not trim leading tab during equivalence'
+      expression: "'\tab c' ~ 'ab c'"
+      result: [false]
+
+    - desc: '** should not trim trailing tab during equivalence'
+      expression: "'ab c\t' ~ 'ab c'"
+      result: [false]
+
+    - desc: '** should not trim leading newline during equivalence'
+      expression: "'\nab c' ~ 'ab c'"
+      result: [false]
+
+    - desc: '** should not trim trailing newline during equivalence'
+      expression: "'ab c\n' ~ 'ab c'"
+      result: [false]
 
     - desc: '** should still fail after whitespace normalization when text differs'
-      expression: "'ab   c   d' ~ 'Ab C X'"
+      expression: "'ab\tc\t\nd' ~ 'Ab C\n X'"
       result: [false]
 
   # integer: exactly equal
@@ -876,13 +904,41 @@ tests:
 
   # For primitives
 
-    - desc: '* string: the strings must be the same while ignoring case and normalizing whitespace.'
-      expression: "'ab c' !~ 'Ab  C'"
+    - desc: '* string: the strings must not be the same while ignoring case and normalizing whitespace.'
+      expression: "'ab\tc\t\nd' !~ 'Ab C\n D'"
       result: [false]
 
-    - desc: '** should invert repeated-whitespace equivalence'
-      expression: "'ab   c   d' !~ 'Ab C D'"
-      result: [false]
+    - desc: '** should invert repeated-space non-equivalence explicitly'
+      expression: "'a   b' !~ 'a b'"
+      result: [true]
+
+    - desc: '** should still succeed after whitespace normalization when text differs'
+      expression: "'ab\tc\t\nd' !~ 'Ab C\n X'"
+      result: [true]
+
+    - desc: '** should not trim leading spaces during not-equivalence'
+      expression: "'  ab c' !~ 'ab c'"
+      result: [true]
+
+    - desc: '** should not trim trailing spaces during not-equivalence'
+      expression: "'ab c  ' !~ 'ab c'"
+      result: [true]
+
+    - desc: '** should not trim leading tab during not-equivalence'
+      expression: "'\tab c' !~ 'ab c'"
+      result: [true]
+
+    - desc: '** should not trim trailing tab during not-equivalence'
+      expression: "'ab c\t' !~ 'ab c'"
+      result: [true]
+
+    - desc: '** should not trim leading newline during not-equivalence'
+      expression: "'\nab c' !~ 'ab c'"
+      result: [true]
+
+    - desc: '** should not trim trailing newline during not-equivalence'
+      expression: "'ab c\n' !~ 'ab c'"
+      result: [true]
 
   # integer: exactly equal
 

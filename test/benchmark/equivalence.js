@@ -2,7 +2,7 @@ module.exports = ({
                     options
                   }) => {
 
-  const whitespaceEquivalenceExpression = "'ab   c   d' ~ 'Ab C D'";
+  const whitespaceEquivalenceExpression = "'ab\tc\td' ~ 'Ab C D'";
 
   return [
     ...(options.compileOnly
