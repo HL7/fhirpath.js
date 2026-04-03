@@ -289,7 +289,7 @@ class FP_Quantity extends FP_Type_WithContext {
   /**
    * Returns the mapped calendar unit of this quantity if it originated from a
    * FHIR Quantity.
-   * @returns {string}
+   * @returns {string|undefined}
    */
   getMappedCalendarUnit() {
     return this._fhirQuantityInfo?.calendarUnit;
