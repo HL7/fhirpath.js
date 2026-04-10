@@ -3,10 +3,13 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [4.9.4] - 2026-03-31
+## [4.9.3] - 2026-03-31
 ### Changed
 - Updated package repository metadata in `package.json` to an explicit git
   repository object.
+- `npm run compare-performance` can now use a local git ref as the baseline,
+  keeps benchmark labels explicit about previous/current results, and includes a
+  dedicated FHIR quantity context benchmark.
 ### Fixed
 - String equivalence and non-equivalence normalization now collapses repeated
   whitespace globally, so expressions like `'ab   c   d' ~ 'Ab C D'` evaluate as
@@ -14,14 +17,6 @@ This log documents significant changes for each release.  This project follows
 - Unicode escape parsing in literals now accepts full hex digits for `\uXXXX`
   (for example, `\u00e9` and `\u00E9`) in both single-quoted strings and
   backtick-delimited identifiers.
-
-
-## [4.9.3] - 2026-03-27
-### Changed
-- `npm run compare-performance` can now use a local git ref as the baseline,
-  keeps benchmark labels explicit about previous/current results, and includes a
-  dedicated FHIR quantity context benchmark.
-### Fixed
 - FHIR `Quantity` duration values sourced from resources now preserve their
   original UCUM code in string output and quantity math while treated as
   corresponding calendar durations in date/time arithmetic.
