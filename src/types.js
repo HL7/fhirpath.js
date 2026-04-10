@@ -289,7 +289,7 @@ class FP_Quantity extends FP_Type_WithContext {
   /**
    * Returns the mapped calendar unit of this quantity if it originated from a
    * FHIR Quantity.
-   * @returns {string}
+   * @returns {string|undefined}
    */
   getMappedCalendarUnit() {
     return this._fhirQuantityInfo?.calendarUnit;
@@ -362,7 +362,7 @@ class FP_Quantity extends FP_Type_WithContext {
     const thisUnit = this.unit;
     if (otherQuantity instanceof FP_Decimal || typeof otherQuantity === 'number') {
       if (thisUnit === "'1'") {
-        return this.value.equals(otherQuantity.value);
+        return this.value.equals(otherQuantity);
       }
       // If otherQuantity is a decimal or number, treat it as a UCUM quantity with
       // unit 1
@@ -890,10 +890,7 @@ class FP_Quantity extends FP_Type_WithContext {
     const typeOfOther = typeof otherQuantity;
     if (otherQuantity instanceof FP_Decimal || typeOfOther === 'number' || typeOfOther === 'bigint') {
       if (this.isCalendarDuration()) {
-        return FP_Quantity.copyFhirQuantityInfo(
-          this,
-          new FP_Quantity(this.ctx, this.value.mul(otherQuantity), this.unit)
-        );
+        return new FP_Quantity(this.ctx, this.value.mul(otherQuantity), this.unit);
       }
       const thisQ = this.getBaseUnits();
       if (!thisQ) {
@@ -938,10 +935,16 @@ class FP_Quantity extends FP_Type_WithContext {
     }
 
     // Do not use UCUM unit codes for durations in simple cases
-    if (this.unit === "'1'") {
-      return new FP_Quantity(this.ctx, this.value.mul(otherQuantity.value), otherQuantity.unit);
-    } else if (otherQuantity.unit === "'1'") {
-      return new FP_Quantity(this.ctx, this.value.mul(otherQuantity.value), this.unit);
+    if (thisQ.unit === '1') {
+      return FP_Quantity.copyFhirQuantityInfo(
+        otherQuantity,
+        new FP_Quantity(otherQuantity.ctx, thisQ.value.mul(otherQuantity.value), otherQuantity.unit)
+      );
+    } else if (otherQ.unit === '1') {
+      return FP_Quantity.copyFhirQuantityInfo(
+        this,
+        new FP_Quantity(this.ctx, this.value.mul(otherQ.value), this.unit)
+      );
     }
 
     const convResult = ucumConvertToBaseUnits(`(${thisQ.unit}).(${otherQ.unit})`, thisQ.value.mul(otherQ.value));
@@ -977,10 +980,7 @@ class FP_Quantity extends FP_Type_WithContext {
         return null;
       }
       if (this.isCalendarDuration()) {
-        return FP_Quantity.copyFhirQuantityInfo(
-          this,
-          new FP_Quantity(this.ctx, this.value.div(otherQuantity), this.unit)
-        );
+        return new FP_Quantity(this.ctx, this.value.div(otherQuantity), this.unit);
       }
       const thisQ = this.getBaseUnits();
       if (!thisQ) {
@@ -1017,6 +1017,17 @@ class FP_Quantity extends FP_Type_WithContext {
     if (!otherQ) {
       // If the second operand is not a UCUM quantity or it has a special unit
       return null;
+    }
+
+    // Copies FHIR-specific quantity metadata from the first operand to
+    // the result when the second operand is dimensionless (unit '1')
+    // to preserve the original unit in the result, which is important for
+    // date-time arithmetic.
+    if (otherQ.unit === '1') {
+      return FP_Quantity.copyFhirQuantityInfo(
+        this,
+        new FP_Quantity(this.ctx, this.value.div(otherQ.value), this.unit)
+      );
     }
 
     const resultUnit = otherQ.unit === '1'
@@ -1271,7 +1282,7 @@ function ucumConvertToBaseUnits(unitCode, value) {
  * @param {FP_Decimal|number} value - The value to convert (can be FP_Decimal or number).
  * @param {string} toUnit - The target unit code.
  * @returns {FP_Quantity|null} The conversion result with toVal as FP_Decimal if successful,
- *   or the original ucumUtils result if conversion failed.
+ *   or null if conversion failed.
  */
 FP_Quantity.convUnitTo = function (ctx, fromUnit, value, toUnit) {
   // 1 Year <-> 12 Months

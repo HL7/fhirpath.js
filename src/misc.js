@@ -336,8 +336,8 @@ engine.toQuantity = function (coll, toUnit) {
     }
   }
 
-  // Unquoted non-calendar words and quoted calendar words (e.g. 1 something,
-  // 1 'year') are not valid units.
+  // Unquoted non-calendar words and quoted calendar words (e.g. "1 abcd",
+  // "1 'year'") are not valid units.
   if (!result || FP_Quantity.isQuotedCalendarWord(result.unit)) {
     return undefined;
   }
@@ -349,10 +349,10 @@ engine.toQuantity = function (coll, toUnit) {
 
   const resultUnit = result.unit;
   const resultUnitInSeconds = FP_Quantity._calendarDuration2Seconds[resultUnit];
-  const toUnitInSeconds = FP_Quantity._calendarDuration2Seconds[toUnit];
+  const toUnitInSeconds = FP_Quantity._calendarDuration2Seconds[targetUnit];
   const hasIncomparableDurationMix =
     (resultUnitInSeconds !== undefined) !== (toUnitInSeconds !== undefined) &&
-    (result.isUnitGreaterThanMaxComparable() || result.isUnitGreaterThanMaxComparable(toUnit));
+    (result.isUnitGreaterThanMaxComparable() || result.isUnitGreaterThanMaxComparable(targetUnit));
   if (hasIncomparableDurationMix) {
     const calendarUnit = result.getMappedCalendarUnit();
     if (!calendarUnit) {
