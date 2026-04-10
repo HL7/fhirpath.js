@@ -903,42 +903,42 @@ tests:
   # If both operands are collections with a single item:
 
   # For primitives
+    - 'group: strings':
+      - desc: '* should be the same while ignoring case and normalizing whitespace.'
+        expression: "'ab\tc\t\nd' !~ 'Ab C\n D'"
+        result: [false]
 
-    - desc: '* string: the strings must not be the same while ignoring case and normalizing whitespace.'
-      expression: "'ab\tc\t\nd' !~ 'Ab C\n D'"
-      result: [false]
+      - desc: '** should invert repeated-space non-equivalence explicitly'
+        expression: "'a   b' !~ 'a b'"
+        result: [true]
 
-    - desc: '** should invert repeated-space non-equivalence explicitly'
-      expression: "'a   b' !~ 'a b'"
-      result: [true]
+      - desc: '** should still succeed after whitespace normalization when text differs'
+        expression: "'ab\tc\t\nd' !~ 'Ab C\n X'"
+        result: [true]
 
-    - desc: '** should still succeed after whitespace normalization when text differs'
-      expression: "'ab\tc\t\nd' !~ 'Ab C\n X'"
-      result: [true]
+      - desc: '** should not trim leading spaces during not-equivalence'
+        expression: "'  ab c' !~ 'ab c'"
+        result: [true]
 
-    - desc: '** should not trim leading spaces during not-equivalence'
-      expression: "'  ab c' !~ 'ab c'"
-      result: [true]
+      - desc: '** should not trim trailing spaces during not-equivalence'
+        expression: "'ab c  ' !~ 'ab c'"
+        result: [true]
 
-    - desc: '** should not trim trailing spaces during not-equivalence'
-      expression: "'ab c  ' !~ 'ab c'"
-      result: [true]
+      - desc: '** should not trim leading tab during not-equivalence'
+        expression: "'\tab c' !~ 'ab c'"
+        result: [true]
 
-    - desc: '** should not trim leading tab during not-equivalence'
-      expression: "'\tab c' !~ 'ab c'"
-      result: [true]
+      - desc: '** should not trim trailing tab during not-equivalence'
+        expression: "'ab c\t' !~ 'ab c'"
+        result: [true]
 
-    - desc: '** should not trim trailing tab during not-equivalence'
-      expression: "'ab c\t' !~ 'ab c'"
-      result: [true]
+      - desc: '** should not trim leading newline during not-equivalence'
+        expression: "'\nab c' !~ 'ab c'"
+        result: [true]
 
-    - desc: '** should not trim leading newline during not-equivalence'
-      expression: "'\nab c' !~ 'ab c'"
-      result: [true]
-
-    - desc: '** should not trim trailing newline during not-equivalence'
-      expression: "'ab c\n' !~ 'ab c'"
-      result: [true]
+      - desc: '** should not trim trailing newline during not-equivalence'
+        expression: "'ab c\n' !~ 'ab c'"
+        result: [true]
 
   # integer: exactly equal
 
