@@ -11,9 +11,9 @@ This log documents significant changes for each release.  This project follows
   keeps benchmark labels explicit about previous/current results, and includes a
   dedicated FHIR quantity context benchmark.
 ### Fixed
-- String equivalence and non-equivalence normalization now collapses repeated
-  whitespace globally, so expressions like `'ab   c   d' ~ 'Ab C D'` evaluate as
-  equivalent.
+- String normalization, when determining equivalence, now treats different
+  Unicode whitespace characters and ordinary spaces as identical and does not
+  collapse consecutive spaces.
 - Unicode escape parsing in literals now accepts full hex digits for `\uXXXX`
   (for example, `\u00e9` and `\u00E9`) in both single-quoted strings and
   backtick-delimited identifiers.
