@@ -20,12 +20,12 @@ const isArguments = function (object) {
 
 /**
  * Normalizes a string for equivalence comparison by converting to uppercase
- * and collapsing whitespace sequences to a single space.
+ * and replacing every whitespace character with a regular ASCII space.
  * @param {string} x - the string to normalize.
  * @returns {string} the normalized string.
  */
 function normalizeStr(x) {
-  return x.toUpperCase().replace(/\s+/, ' ');
+  return x.toUpperCase().replace(/\p{White_Space}/ug, ' ');
 }
 
 
@@ -61,10 +61,10 @@ function deepEqual(ctx, v1, v2, opts) {
   const typeOfExpected = typeof expected;
 
   if (opts.fuzzy) {
-    if(typeOfActual === 'string' && typeOfExpected === 'string') {
+    if (typeOfActual === 'string' && typeOfExpected === 'string') {
       return normalizeStr(actual) === normalizeStr(expected);
     }
-    if(typeOfActual === 'number' && typeOfExpected === 'number') {
+    if (typeOfActual === 'number' && typeOfExpected === 'number') {
       return numbers.isEquivalent(actual, expected);
     }
   }
@@ -81,6 +81,7 @@ function deepEqual(ctx, v1, v2, opts) {
         //           deepEqual(ctx, v1._data, v2._data, opts) : true);
         // If this ever becomes possible, the above code should be used instead
         // of the code below.
+        // noinspection EqualityComparisonWithCoercionJS
         return actual == expected;
       } else if (typeOfExpected === 'number') {
         // Note: currently, a resource node with a direct number value is not
@@ -104,6 +105,7 @@ function deepEqual(ctx, v1, v2, opts) {
       //           deepEqual(ctx, v1._data, v2._data, opts) : true);
       // If this ever becomes possible, the above code should be used instead
       // of the code below.
+      // noinspection EqualityComparisonWithCoercionJS
       return actual == expected;
     }
   }
@@ -190,7 +192,7 @@ function objEquiv(ctx, a, b, opts) {
   if (a.prototype !== b.prototype) return false;
   //~~~I've managed to break Object.keys through screwy arguments passing.
   //   Converting to array solves the problem.
-  if(isArguments(a) || isArguments(b)) {
+  if (isArguments(a) || isArguments(b)) {
     a = isArguments(a) ? pSlice.call(a) : a;
     b = isArguments(b) ? pSlice.call(b) : b;
     return deepEqual(ctx, a, b, opts);

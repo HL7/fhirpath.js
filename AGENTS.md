@@ -19,6 +19,7 @@
 
 ## Testing workflow (project-specific)
 - Spec-style unit tests are YAML-driven: `test/fhirpath.test.js` loads `test/cases/*.yaml` and generates Jest tests dynamically.
+- `test/cases/fhir-r4.yaml` and `test/cases/fhir-r5.yaml` are generated from `converter/dataset`; refresh them with `node converter/bin/index.js -s` (skip download, use local dataset files).
 - Additional Jest suites in `test/*.test.js` cover APIs and behaviors outside YAML cases (e.g. `test/async-functions.test.js`, `test/user-invocation-table.test.js`, `test/bin_fhirpath.test.js`).
 - Many tests run in both math modes automatically (`preciseMath` true/false) unless a case sets `preciseMath` explicitly.
 - `npm run test:unit` runs Jest three times across time zones (`default`, `America/New_York`, `Europe/Paris`) to catch datetime regressions.
@@ -32,6 +33,7 @@
 - Lint: `npm run lint` (targets `src/parser/index.js`, `src/*.js`, `converter/`).
 - Unit tests: `npm run test:unit`; debugger mode: `npm run test:unit:debug`.
 - Type tests: `npm run test:tsd`.
+- Demo build: `npm run build:demo` (`npm run build` + `demo` webpack build).
 - E2E tests: `npm run test:e2e` (builds demo + runs Cypress).
 - Full CI-like local run: `npm test` (lint + tsd + unit + e2e).
 - Parser regeneration: `npm run generateParser` (uses `src/parser/FHIRPath.g4`, `antlr-4.9.3-complete.jar`, then `scripts/fix-parser-imports.js`).
@@ -55,3 +57,4 @@
 - For async server calls, thread options via `terminologyUrl`, `fhirServerUrl`, `httpHeaders`, and optional `signal` (see `docs/auth.md`, `docs/abort.md`).
 - If public API signatures or exports change, update `src/fhirpath.d.ts` and validate with `npm run test:tsd` (`test/typescript/fhirpath.test-d.ts`).
 - Keep behavior standards-compliant with FHIRPath and aligned with the selected FHIR model version when model-aware behavior is involved.
+- Contributors **MUST NOT** hand-edit `test/cases/fhir-r4.yaml` or `test/cases/fhir-r5.yaml` (these files are generated).

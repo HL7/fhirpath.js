@@ -450,7 +450,7 @@ function getIdentifierVal(str) {
  * @return {string}
  */
 function handleStringEscapes(str) {
-  return str.replace(/\\(u\d{4}|.)/g, function(match, submatch) {
+  return str.replace(/\\(u[0-9a-fA-F]{4}|.)/g, function(match, submatch) {
     switch (match) {
       case '\\r':
         return '\r';
@@ -462,7 +462,7 @@ function handleStringEscapes(str) {
         return '\f';
       default:
         if (submatch.length > 1) {
-          return String.fromCharCode('0x' + submatch.slice(1));
+          return String.fromCharCode(parseInt(submatch.slice(1), 16));
         }
         return submatch;
     }
