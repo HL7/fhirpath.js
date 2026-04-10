@@ -88,13 +88,15 @@ function hasStatistics(taskResult) {
  * Builds a task name with benchmark version suffix.
  * @param {string} testCaseName
  * @param {string} version
+ * @param {string} side - one of "prev" or "current".
  * @returns {string}
  */
-function prepareTaskName(testCaseName, version) {
+function prepareTaskName(testCaseName, version, side) {
+  const sideLabel = side ? `${side}:` : '';
   if (!testCaseName) {
-    return '[' + version + ']';
+    return `[${sideLabel}${version}]`;
   }
-  return testCaseName + ' [' + version + ']';
+  return `${testCaseName} [${sideLabel}${version}]`;
 }
 
 
@@ -421,7 +423,7 @@ function buildReportHtml(allSuitesResults, options, minTolerancePercent) {
     </section>
   `).join('\n');
 
-  const selectedMathMode = options.mathMode || 'both (default behavior in suites)';
+  const selectedMathMode = options.mathMode || 'native';
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -647,8 +649,10 @@ async function run(filename, options, Bench, minTolerancePercent) {
       const currentTaskFn = await prepareBenchmarkTaskFn(currentTaskFactory);
       const bench = withCodSpeed(new Bench(tinybenchDefaults));
 
-      bench.add(prepareTaskName(testCase.name, previousVersion), previousTaskFn);
-      bench.add(prepareTaskName(testCase.name, currentVersion), currentTaskFn);
+      bench.add(prepareTaskName(testCase.name, previousVersion, 'prev'),
+        previousTaskFn);
+      bench.add(prepareTaskName(testCase.name, currentVersion, 'current'),
+        currentTaskFn);
       await bench.run();
 
       // For debugging:

@@ -3,6 +3,18 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.9.3] - 2026-03-27
+### Changed
+- `npm run compare-performance` can now use a local git ref as the baseline,
+  keeps benchmark labels explicit about previous/current results, and includes a
+  dedicated FHIR quantity context benchmark.
+### Fixed
+- FHIR `Quantity` duration values sourced from resources now preserve their
+  original UCUM code in string output and quantity math while treated as
+  corresponding calendar durations in date/time arithmetic.
+- `toQuantity()` now can convert FHIR-origin duration quantities between their
+  original UCUM code and mapped calendar unit.
+
 ## [4.9.2] - 2026-03-23
 ### Changed
 - Reworked the benchmark comparison workflow (`npm run compare-performance`) to

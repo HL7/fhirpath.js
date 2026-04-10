@@ -9,13 +9,19 @@
  * for example:
  *   `npm run compare-performance -- -v 2.14.0`
  *
+ * To compare with a local pre-change commit, use:
+ *   `npm run compare-performance -- -r <git-ref>`
+ *
  * To see all available options:
  * npm run compare-performance -- -h
  *
  * The benchmark report will be saved as:
  *   `./test/benchmark/results/compare-performance-report.html`
  */
+const path = require('path');
+const fs = require('fs');
 const { spawn, fork } = require('child_process');
+const npmCacheDir = path.join(__dirname, 'benchmark/.npm-cache');
 
 // Insert performance test suites here:
 const availableTests = [
@@ -26,6 +32,7 @@ const availableTests = [
   'descendants',
   'distinct',
   'exclude',
+  'fhir-quantity-context',
   'intersect',
   'member-invocation',
   'part-of-resource',
@@ -44,6 +51,10 @@ program
     'use a specific version instead of latest published version'
     )
     .default('latest'))
+  .addOption(new Option(
+    '-r, --prevRef <gitRef>',
+    'use a local git ref as the baseline instead of an npm version'
+    ))
   .addOption(new Option('-t, --tests <list>', `list of comma-separated tests`)
     .argParser(
       (value) => {
@@ -78,21 +89,123 @@ program
     .default(5))
   .addOption(new Option(`-o, --mathMode <mode>`,
     'mathematical operations mode')
-    .choices(['native', 'precise']))
+    .choices(['native', 'precise'])
+    .default('native'))
   .parse(process.argv);
 
 const options = program.opts();
 
-const npmInstallProcess = spawn('npm', ['i', '--prefix', './test/benchmark/prev-fhirpath', 'fhirpath@' + options.prevVersion], {
-  stdio: 'inherit'
-});
-
 // Process for running benchmarks. We need a separate process to run the tests
 // to free the main process from synchronous code to listen for the SIGINT event.
 let benchmarkingProcess;
+let activeProcess;
+
+
+/**
+ * Runs a command and returns a promise.
+ * @param {string} command - command to execute.
+ * @param {string[]} args - command arguments.
+ * @param {Object} [options] - spawn options.
+ * @param {string} [options.cwd] - working directory.
+ * @param {*} [options.stdio='inherit'] - stdio mode.
+ * @param {boolean} [options.captureStdout=false] - whether to capture stdout.
+ * @returns {Promise<string|undefined>}
+ */
+function runCommand(command, args, options = {}) {
+  const stdio = options.captureStdout ? ['ignore', 'pipe', 'inherit'] :
+    (options.stdio || 'inherit');
+  const env = command === 'npm' ?
+    {...process.env, NPM_CONFIG_CACHE: npmCacheDir} : process.env;
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {cwd: options.cwd, stdio, env});
+    activeProcess = child;
+    let stdout = '';
+    if (options.captureStdout) {
+      child.stdout.on('data', (chunk) => {
+        stdout += chunk.toString();
+      });
+    }
+    child.on('error', (error) => {
+      if (activeProcess === child) {
+        activeProcess = null;
+      }
+      reject(error);
+    });
+    child.on('exit', (code) => {
+      if (activeProcess === child) {
+        activeProcess = null;
+      }
+      if (code === 0) {
+        resolve(options.captureStdout ? stdout : undefined);
+      } else {
+        reject(new Error(`${command} ${args.join(' ')} failed with code ${code}`));
+      }
+    });
+  });
+}
+
+
+/**
+ * Installs the baseline package into test/benchmark/prev-fhirpath.
+ * The baseline can come from npm (--prevVersion) or from a local git ref
+ * (--prevRef).
+ * @param {Object} opts - parsed options from commander.
+ * @returns {Promise<void>}
+ */
+async function installBaseline(opts) {
+  if (!opts.prevRef) {
+    await runCommand('npm', ['i', '--prefix', './test/benchmark/prev-fhirpath',
+      'fhirpath@' + opts.prevVersion]);
+    return;
+  }
+
+  const prevSrcPath = path.join(__dirname, 'benchmark/prev-src');
+  try {
+    await runCommand('git', ['worktree', 'remove', '--force', prevSrcPath], {
+      stdio: 'ignore'
+    });
+  } catch {
+    // Ignore: worktree may not exist yet.
+  }
+
+  await runCommand('git', ['worktree', 'add', '--detach', '--force', prevSrcPath,
+    opts.prevRef]);
+  await runCommand('npm', ['pack', '--silent'], {
+    cwd: prevSrcPath
+  });
+  const tarballName = fs.readdirSync(prevSrcPath)
+    .filter(name => name.endsWith('.tgz'))
+    .map(name => ({
+      name,
+      mtime: fs.statSync(path.join(prevSrcPath, name)).mtimeMs
+    }))
+    .sort((a, b) => b.mtime - a.mtime)[0]?.name;
+  if (!tarballName) {
+    throw new Error('Could not locate npm pack tarball in ' + prevSrcPath);
+  }
+  const tarballPath = path.join(prevSrcPath, tarballName);
+  await runCommand('npm', ['i', '--prefix', './test/benchmark/prev-fhirpath',
+    tarballPath]);
+}
+
+
+/**
+ * Starts the benchmark runner process.
+ */
+function startBenchmarkRunner() {
+  benchmarkingProcess = fork(__dirname + '/benchmark/runner.js', {
+    stdio: 'inherit'
+  });
+  // Pass options to the benchmarking process to run benchmarks
+  benchmarkingProcess.send(options);
+}
+
 
 process.on('SIGINT', () => {
   // Kill the benchmarking process
+  if (activeProcess) {
+    activeProcess.kill('SIGKILL');
+  }
   if (benchmarkingProcess) {
     benchmarkingProcess.kill('SIGKILL');
     // Displays the bash prompt on a new line.
@@ -106,10 +219,10 @@ process.on('SIGINT', () => {
   process.exit(130);
 });
 
-npmInstallProcess.on('exit', code => {
-  if (code === 0) {
-    benchmarkingProcess = fork(__dirname + '/benchmark/runner.js', { stdio: 'inherit'});
-    // Pass options to the benchmarking process to run benchmarks
-    benchmarkingProcess.send(options);
-  }
-});
+
+installBaseline(options)
+  .then(startBenchmarkRunner)
+  .catch((error) => {
+    console.error(error.message || error);
+    process.exit(1);
+  });

@@ -183,6 +183,9 @@ tests:
   - desc: '** Empty result when one of the operands has a special unit'
     expression: 1 'B' / 2
     result: []
+  - desc: '** Empty result when a special unit quantity is divided by a quantity with unit ''1'''
+    expression: 1 'B' / 2 '1'
+    result: []
   - 'group: Incompatible duration units in division':
     - expression: 1 'a' / 1 year
       result: []
@@ -229,19 +232,17 @@ tests:
       result: [true]
     - expression: 1 year / 2 = 6 months
       result: [true]
-  - desc: '** Empty result when one of the operands is a calendar duration quantity greater than seconds (4)'
+  - desc: '** Empty result when one of the operands is a calendar duration quantity greater than days(weeks)'
     expression: 1 'kg' / 3 months
     result: []
   - desc: '** Empty result when a calendar duration quantity divided by zero'
     expression: 1 year / 0 months
     result: []
-  - desc: '** Empty result when one of the operands is a calendar duration quantity greater than seconds (6)'
-    # Since FHIR.Quantity automatically converted to System.Quantity
-    # See https://hl7.org/fhir/fhirpath.html#quantity
+  - desc: '** FHIR quantity uses UCUM semantics for quantity division context'
     inputfile: observation-example-2.json
     model: r4
     expression: Observation.value / 185 'mo'
-    result: []
+    result: ["1 '1'"]
 
 
   - desc: '6.6.3 addition'

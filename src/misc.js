@@ -307,49 +307,65 @@ engine.toQuantity = function (coll, toUnit) {
   // If the input collection is empty, the result is an empty collection.
   // Note: An undefined result will be converted to an empty collection in
   // the calling function.
-  if (checkSingleton(coll, 'toQuantity')) {
-    const v = util.valDataConverted(coll[0]);
-    if (v instanceof FP_Decimal) {
+  if (!checkSingleton(coll, 'toQuantity')) {
+    return result;
+  }
+
+  const v = util.valDataConverted(coll[0]);
+  if (v instanceof FP_Decimal) {
+    result = new FP_Quantity(ctx, v, '\'1\'');
+  } else {
+    const type = typeof v;
+    let quantityRegexRes;
+
+    if (type === "number") {
       result = new FP_Quantity(ctx, v, '\'1\'');
-    } else {
-      const type = typeof v;
-      let quantityRegexRes;
+    } else if (v instanceof FP_Quantity) {
+      result = v;
+    } else if (type === 'boolean') {
+      result = new FP_Quantity(ctx, v ? 1 : 0, '\'1\'');
+    } else if (type === "string" && (quantityRegexRes = quantityRegex.exec(v))) {
+      const value = quantityRegexRes[quantityRegexMap.value],
+        unit = quantityRegexRes[quantityRegexMap.unit],
+        time = quantityRegexRes[quantityRegexMap.time];
 
-      if (type === "number") {
-        result = new FP_Quantity(ctx, v, '\'1\'');
-      } else if (v instanceof FP_Quantity) {
-        result = v;
-      } else if (type === 'boolean') {
-        result = new FP_Quantity(ctx, v ? 1 : 0, '\'1\'');
-      } else if (type === "string" && (quantityRegexRes = quantityRegex.exec(v)) ) {
-        const value = quantityRegexRes[quantityRegexMap.value],
-          unit = quantityRegexRes[quantityRegexMap.unit],
-          time = quantityRegexRes[quantityRegexMap.time];
-
-        // UCUM unit code in the input string must be surrounded with single quotes
-        if (!time || FP_Quantity.mapTimeUnitsToUCUMCode[time]) {
-          result = new FP_Quantity(ctx, Number(value), unit || time || '\'1\'');
-        }
+      // UCUM unit code in the input string must be surrounded with single quotes
+      if (!time || FP_Quantity.mapTimeUnitsToUCUMCode[time]) {
+        result = new FP_Quantity(ctx, Number(value), unit || time || '\'1\'');
       }
-    }
-
-
-    if (result && toUnit && result.unit !== toUnit) {
-      if ( result.hasIncomparableDurationMix(toUnit) ) {
-        // If the durations cannot be compared, the conversion is not possible.
-        return undefined;
-      }
-
-      // Surround UCUM unit code in the toUnit parameter with single quotes
-      if (!FP_Quantity.mapTimeUnitsToUCUMCode[toUnit]) {
-        toUnit = `'${toUnit}'`;
-      }
-
-      result = FP_Quantity.convUnitTo(ctx, result.unit, result.value, toUnit);
     }
   }
 
-  return result;
+  // Unquoted non-calendar words and quoted calendar words (e.g. "1 abcd",
+  // "1 'year'") are not valid units.
+  if (!result || FP_Quantity.isQuotedCalendarWord(result.unit)) {
+    return undefined;
+  }
+
+  const targetUnit = toUnit && (FP_Quantity.mapTimeUnitsToUCUMCode[toUnit] ? toUnit : `'${toUnit}'`);
+  if (!targetUnit || result.unit === targetUnit) {
+    return result;
+  }
+
+  const resultUnit = result.unit;
+  const resultUnitInSeconds = FP_Quantity._calendarDuration2Seconds[resultUnit];
+  const toUnitInSeconds = FP_Quantity._calendarDuration2Seconds[targetUnit];
+  const hasIncomparableDurationMix =
+    (resultUnitInSeconds !== undefined) !== (toUnitInSeconds !== undefined) &&
+    (result.isUnitGreaterThanMaxComparable() || result.isUnitGreaterThanMaxComparable(targetUnit));
+  if (hasIncomparableDurationMix) {
+    const calendarUnit = result.getMappedCalendarUnit();
+    if (!calendarUnit) {
+      // If the durations cannot be compared, the conversion is not possible.
+      return undefined;
+    }
+
+    // FHIR-origin quantities can bridge through the mapped calendar unit.
+    // See https://hl7.org/fhir/fhirpath.html#quantity
+    return FP_Quantity.convUnitTo(ctx, calendarUnit, result.value, targetUnit);
+  }
+
+  return FP_Quantity.convUnitTo(ctx, result.unit, result.value, targetUnit);
 };
 
 const numRegex = /^[+-]?\d+(\.\d+)?$/;

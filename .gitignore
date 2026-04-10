@@ -7,6 +7,8 @@ build
 .editorconfig
 Makefile
 test/benchmark/prev-fhirpath
+test/benchmark/prev-src
+test/benchmark/.npm-cache
 test/benchmark/results
 test/cypress/screenshots
 test/cypress/videos

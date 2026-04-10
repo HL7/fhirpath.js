@@ -1,38 +1,17 @@
 tests:
-  - 'group: standard tests from fhir-r4':
-      - desc: '** test'
-        inputfile: patient-example.json
-        expression: 1.toQuantity() = 1 '1'
-        result:
-          - true
-      - desc: '** test'
-        inputfile: patient-example.json
-        expression: 1.0.toQuantity() = 1.0 '1'
-        result:
-          - true
-      - desc: '** test'
-        inputfile: patient-example.json
-        expression: '''1''.toQuantity()'
-        result:
-          - 1 '1'
-      - desc: '** test'
-        inputfile: patient-example.json
-        expression: '''1 day''.toQuantity() = 1 day'
-        result:
-          - true
-      - desc: '** test'
-        inputfile: patient-example.json
-        expression: '''1 day''.toQuantity() = 1 ''d'''
+  - 'group: Equality of a dimensionless quantity and a numeric variable':
+      - expression: (2).toQuantity() = %n
+        variables:
+          n: 2
         result: [true]
-      - desc: '** test'
-        inputfile: patient-example.json
-        expression: '''1 \''wk\''''.toQuantity() = 1 week'
+      - expression: '%n = (2).toQuantity()'
+        variables:
+          n: 2
         result: [true]
-      - desc: '** test'
-        inputfile: patient-example.json
-        expression: '''1.0''.toQuantity() ~ 1 ''1'''
-        result:
-          - true
+      - expression: (3).toQuantity() = %n
+        variables:
+          n: 2
+        result: [false]
   # see Use of FHIR Quantity: https://www.hl7.org/fhir/fhirpath.html#quantity
   - 'group: Mapping from FHIR Quantity to FHIRPath System.Quantity':
       - desc: After converting 'a' to year it is equal to year
@@ -51,7 +30,7 @@ tests:
         inputfile: quantity-example.json
         model: 'r4'
         expression: QuestionnaireResponse.item[0].answer.value != 2 'a'
-        result: []
+        result: [false]
       - desc: After converting 'min' to minutes it is equal to minutes
         inputfile: quantity-example.json
         model: 'r4'
@@ -74,4 +53,163 @@ tests:
         expression: QuestionnaireResponse.item[3].answer.value.comparator
         result:
           - '>'
-
+      - desc: UCUM comparison still works for FHIR quantity values
+        inputfile: quantity-example.json
+        model: 'r4'
+        expression: QuestionnaireResponse.item[0].answer.value = 2 'a'
+        result: [true]
+      - desc: toQuantity with UCUM unit keeps UCUM semantics for FHIR quantity values
+        inputfile: quantity-example.json
+        model: 'r4'
+        expression: QuestionnaireResponse.item[0].answer.value.toQuantity('a') = 2 'a'
+        result: [true]
+      - desc: FHIR quantity supports both UCUM and calendar semantics in their respective contexts
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: Observation.value = 1 'a'
+        result: [true]
+      - desc: FHIR quantity remains equal to calendar duration in equality
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: Observation.value = 1 year
+        result: [true]
+      - desc: FHIR quantity in quantity arithmetic keeps UCUM unit
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: Observation.value + 1 'a' = 2 'a'
+        result: [true]
+      - desc: FHIR quantity in quantity arithmetic keeps calendar duration year
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: Observation.value + 1 year = 2 years
+        result: [true]
+      - desc: FHIR quantity in UCUM division keeps UCUM unit
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: 1 'km'/Observation.value = 1 'km'/1 'a'
+        result: [true]
+      - desc: toQuantity supports mapped calendar year for FHIR-origin quantity
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: Observation.value.toQuantity('year') = 1 year
+        result: [true]
+      - desc: toQuantity supports original UCUM year code for FHIR-origin quantity
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: Observation.value.toQuantity('a') = 1 'a'
+        result: [true]
+      - desc: toQuantity converts mapped year to calendar month for FHIR-origin quantity
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: Observation.value.toQuantity('month') = 12 months
+        result: [true]
+      - desc: toQuantity converts mapped year to UCUM month code for FHIR-origin quantity
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: Observation.value.toQuantity('mo') = 12 'mo'
+        result: [true]
+      - desc: FHIR quantity divided by a number keeps date arithmetic behavior
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: "@2025-01 + (Observation.value / 2).toQuantity('month') = @2025-07"
+        result: [true]
+      - desc: FHIR quantity divided by a quantity with the unit of measure '1' keeps date arithmetic behavior
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: "@2025-01 + (Observation.value / (2).toQuantity()).toQuantity('month') = @2025-07"
+        result: [true]
+      - desc: FHIR quantity divided by a quantity with the unit of measure '1' keeps date arithmetic behavior
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: "@2025-01 + (Observation.value / 2 'kg/kg').toQuantity('month') = @2025-07"
+        result: [true]
+      - desc: FHIR quantity can be used in date arithmetic
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: "@2025 + Observation.value = @2026"
+        result: [true]
+      - desc: Date arithmetic with plus-produced FHIR-origin quantity (same UCUM unit) should generate an error
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: "@2025 + (Observation.value + 1 'a') = @2027"
+        error: true
+      - desc: Date arithmetic with minus-produced FHIR-origin quantity (same UCUM unit) should generate an error
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: "@2025 + (Observation.value - 0 'a') = @2026"
+        error: true
+      - desc: FHIR quantity multiplied by a number keeps date arithmetic behavior
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: "@2025 + Observation.value * 2 = @2027"
+        result: [true]
+      - desc: FHIR quantity multiplied by a number keeps date arithmetic behavior (reverse order)
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: "@2025 + 2 * Observation.value = @2027"
+        result: [true]
+      - desc: FHIR quantity multiplied by a quantity with the unit of measure '1' keeps date arithmetic behavior (1)
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: "@2025 + Observation.value * (2).toQuantity() = @2027"
+        result: [true]
+      - desc: FHIR quantity multiplied by a quantity with the unit of measure '1' keeps date arithmetic behavior (reverse order) (1)
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: "@2025 + (2).toQuantity() * Observation.value = @2027"
+        result: [true]
+      - desc: FHIR quantity multiplied by a quantity with the unit of measure '1' keeps date arithmetic behavior (2)
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: "@2025 + Observation.value * (2000 'g' / 1 'kg') = @2027"
+        result: [true]
+      - desc: FHIR quantity multiplied by a quantity with the unit of measure '1' keeps date arithmetic behavior (3)
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: "@2025 + Observation.value * (2000 'g/kg') = @2027"
+        result: [true]
+      - desc: FHIR quantity multiplied by a quantity with the unit of measure '1' keeps date arithmetic behavior (reverse order) (2)
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: "@2025 + (2000 'g' / 1 'kg') * Observation.value = @2027"
+        result: [true]
+      - desc: FHIR quantity multiplied by a quantity with the unit of measure '1' keeps date arithmetic behavior (reverse order) (2)
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: "@2025 + (2000 'g/kg') * Observation.value = @2027"
+        result: [true]
+      - desc: Number multiplied by FHIR quantity keeps date arithmetic behavior
+        inputfile: observation-quantity-year-ucum.json
+        model: 'r4'
+        expression: "@2025 + 2 * Observation.value = @2027"
+        result: [true]
+      - desc: Literal UCUM year is still invalid in date arithmetic
+        expression: "(@2025 + 1 'a').empty()"
+        error: true
+      - desc: Literal UCUM year to calendar year remains unsupported
+        expression: (1 'a').toQuantity('year').empty()
+        result: [true]
+      - desc: Literal calendar year to UCUM year remains unsupported
+        expression: (1 year).toQuantity('a').empty()
+        result: [true]
+      - desc: Literal UCUM year to calendar month remains unsupported
+        expression: (1 'a').toQuantity('month').empty()
+        result: [true]
+      - desc: Literal calendar year to UCUM month remains unsupported
+        expression: (1 year).toQuantity('mo').empty()
+        result: [true]
+      - desc: Literal calendar days to UCUM month remains unsupported
+        expression: (30 days).toQuantity('mo').empty()
+        result: [true]
+      - desc: Quoted calendar year is not treated as UCUM
+        expression: (1 'year').toQuantity('mo').empty()
+        result: [true]
+      - desc: Quoted calendar month is not treated as UCUM
+        expression: (1 'month').toQuantity('a').empty()
+        result: [true]
+      - desc: Quoted calendar day is not treated as UCUM
+        expression: (1 'day').toQuantity('d').empty()
+        result: [true]
+      - desc: Quoted calendar hour is not treated as UCUM
+        expression: (1 'hour').toQuantity('h').empty()
+        result: [true]

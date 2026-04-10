@@ -42,6 +42,7 @@
 - If a command that is important to the task fails due to sandbox restrictions (for example EPERM/spawn permission errors), rerun it with escalated permissions and include a brief justification request.
 
 ## Conventions to preserve when editing
+- Performance is a top priority: prefer lower-allocation, lower-overhead designs, and treat measurable performance regressions as blockers unless explicitly approved.
 - Use CommonJS (`require`/`module.exports`) and 2-space indentation (see `eslint.config.js`).
 - Use modern JavaScript syntax (`const`/`let`, arrow functions, destructuring) where it matches existing files.
 - In AI chat responses, prefer project-relative file references in `path:line` format (e.g. `src/fhirpath.js:19`).
