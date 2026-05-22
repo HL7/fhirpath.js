@@ -1,6 +1,6 @@
 // This file holds code to hande the FHIRPath Math functions.
 
-const {FP_Type, FP_Decimal} = require('./types');
+const {FP_Type, FP_Decimal, FP_TimeBase} = require('./types');
 const util = require("./utilities");
 
 /**
@@ -250,11 +250,55 @@ function callSingletonMethod(x, handler, expectedType) {
     throw new Error("Unexpected collection" + util.toJSON(x) +
       "; expected " + expectedType);
   }
-  const val = util.valData(x[0]);
+  const val = util.valDataConverted(x[0]);
   if (val == null) {
     return [];
   }
   return handler(val);
+}
+
+
+/**
+ * Normalizes the optional boundary precision argument to a JavaScript integer.
+ * @param {number|FP_Decimal} [precision] - requested precision.
+ * @returns {number|undefined} normalized precision, or undefined if omitted.
+ */
+function normalizeBoundaryPrecision(precision) {
+  if (precision === undefined) {
+    return undefined;
+  }
+  if (precision instanceof FP_Decimal) {
+    return precision.toNumber();
+  }
+  return precision;
+}
+
+
+// Used in the boundary function to provide consistent error messages when
+// the input value is not of a supported type.
+const BOUNDARY_EXPECTED_TYPE = "a Decimal, Date, DateTime, or Time";
+
+/**
+ * Applies a boundary method to supported singleton values.
+ * @param {Object} ctx - evaluation context.
+ * @param {Array} x - input collection.
+ * @param {number|FP_Decimal} precision - requested precision.
+ * @param {string} methodName - boundary method to invoke.
+ * @returns {FP_Type|Array|null} boundary value, empty collection, or null.
+ */
+function boundary(ctx, x, precision, methodName) {
+  const requestedPrecision = normalizeBoundaryPrecision(precision);
+  return callSingletonMethod(x, (val) => {
+    if (val instanceof FP_Decimal || val instanceof FP_TimeBase) {
+      return val[methodName](requestedPrecision);
+    }
+    const typeOfVal = typeof val;
+    if (typeOfVal === 'number' || typeOfVal === 'bigint') {
+      return ctx.getDecimal(val)[methodName](requestedPrecision);
+    }
+    throw new Error("Expected " + BOUNDARY_EXPECTED_TYPE + ", but got " +
+      util.toJSON(val ?? x));
+  }, BOUNDARY_EXPECTED_TYPE);
 }
 
 
@@ -506,6 +550,36 @@ engine.truncate = function(x){
     }
     throw new Error("Expected a number or a Quantity, but got " + util.toJSON(num ?? x));
   }, "a number or a Quantity");
+};
+
+
+/**
+ * Implements the FHIRPath `lowBoundary([precision])` function.
+ * Returns the least possible Decimal, Date, DateTime, or Time value of the
+ * singleton input at the requested precision.
+ * See https://build.fhir.org/ig/HL7/FHIRPath/en/#lowboundaryprecision-integer-decimal--date--datetime--time
+ * @param {Array} x - the input collection (singleton).
+ * @param {number|FP_Decimal} [precision] - requested precision.
+ * @returns {FP_Type|Array|null} the low boundary, empty collection, or null.
+ * @throws {Error} if the input is not a singleton or not a supported type.
+ */
+engine.lowBoundary = function(x, precision) {
+  return boundary(this, x, precision, 'lowBoundary');
+};
+
+
+/**
+ * Implements the FHIRPath `highBoundary([precision])` function.
+ * Returns the greatest possible Decimal, Date, DateTime, or Time value of the
+ * singleton input at the requested precision.
+ * See https://build.fhir.org/ig/HL7/FHIRPath/en/#highboundaryprecision-integer-decimal--date--datetime--time
+ * @param {Array} x - the input collection (singleton).
+ * @param {number|FP_Decimal} [precision] - requested precision.
+ * @returns {FP_Type|Array|null} the high boundary, empty collection, or null.
+ * @throws {Error} if the input is not a singleton or not a supported type.
+ */
+engine.highBoundary = function(x, precision) {
+  return boundary(this, x, precision, 'highBoundary');
 };
 
 module.exports = engine;

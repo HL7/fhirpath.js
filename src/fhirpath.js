@@ -173,6 +173,8 @@ engine.invocationTable = {
   round:          {fn: math.round, arity:  {0: [], 1: ["Integer"]}},
   sqrt:           {fn: math.sqrt},
   truncate:       {fn: math.truncate},
+  lowBoundary:    {fn: math.lowBoundary, arity: {0: [], 1: ["Integer"]}},
+  highBoundary:   {fn: math.highBoundary, arity: {0: [], 1: ["Integer"]}},
 
   now:            {fn: datetime.now },
   today:          {fn: datetime.today },

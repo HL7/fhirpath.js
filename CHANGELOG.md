@@ -3,6 +3,18 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.11.0] - 2026-05-22
+### Added
+- Added `lowBoundary()` and `highBoundary()` for Decimal, Date, DateTime, and
+  Time values.
+
+### Changed
+- Refreshed generated FHIRPath R4 and R5 test cases.
+
+### Fixed
+- Fixed `abs()`, `ceiling()`, `floor()`, `round()` and `truncate()` functions to
+  handle `FHIR.Quantity` correctly.
+
 ## [4.10.1] - 2026-05-04
 ### Fixed
 - Fixed UCUM conversion handling for special units (`Cel`, `[degF]`, `K`) to

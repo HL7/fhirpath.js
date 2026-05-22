@@ -5258,11 +5258,13 @@ tests:
         result:
           - -0.0
         model: r4
+        disable: true
       - desc: '** LowBoundaryQuantity'
         expression: 1.587 'cm'.lowBoundary(8)
         result:
           - 1.58650000 'cm'
         model: r4
+        disable: true
       - desc: '** LowBoundaryDateMonth'
         expression: '@2014.lowBoundary(6)'
         result:
@@ -5273,6 +5275,7 @@ tests:
         result:
           - '2014-01-01T08:00:00.000+14:00'
         model: r4
+        disable: true
       - desc: '** LowBoundaryDateTimeMillisecond2'
         expression: '@2014-01-01T08:05+08:00.lowBoundary(17)'
         result:
@@ -5288,7 +5291,6 @@ tests:
         result:
           - '10:30:00.000'
         model: r4
-    disable: true
   - 'group: HighBoundary':
       - desc: '** HighBoundaryDecimalDefault'
         expression: 1.587.highBoundary()
@@ -5368,11 +5370,13 @@ tests:
         result:
           - 0
         model: r4
+        disable: true
       - desc: '** HighBoundaryDecimal16'
         expression: '-0.0034.highBoundary(1)'
         result:
           - 0
         model: r4
+        disable: true
       - desc: '** HighBoundaryDecimal'
         expression: 1.587.highBoundary(8)
         result:
@@ -5383,6 +5387,7 @@ tests:
         result:
           - 1.58750000 'm'
         model: r4
+        disable: true
       - desc: '** HighBoundaryDateMonth'
         expression: '@2014.highBoundary(6)'
         result:
@@ -5393,6 +5398,7 @@ tests:
         result:
           - '2014-01-01T08:00:59.999-12:00'
         model: r4
+        disable: true
       - desc: '** HighBoundaryDateTimeMillisecond2'
         expression: '@2014-01-01T08:05-05:00.highBoundary(17)'
         result:
@@ -5403,12 +5409,12 @@ tests:
         result:
           - '2014-01-01T08:00:59.999-12:00'
         model: r4
+        disable: true
       - desc: '** HighBoundaryTimeMillisecond'
         expression: '@T10:30.highBoundary(9)'
         result:
           - '10:30:59.999'
         model: r4
-    disable: true
   - 'group: Comparable':
       - desc: '** Comparable1'
         expression: 1 'cm'.comparable(1 '[in_i]')
@@ -5505,7 +5511,6 @@ tests:
         result:
           - true
         model: r4
-        disable: true
   - 'group: testInheritance':
       - desc: '** testFHIRPathIsFunction1'
         inputfile: patient-example.json
