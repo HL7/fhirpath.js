@@ -950,6 +950,48 @@ tests:
         result:
           - true
         model: r5
+      - desc: '** testLiteralYearToDateTime'
+        inputfile: patient-example.json
+        expression: '''2015''.toDateTime() = @2015'
+        result:
+          - true
+        model: r5
+      - desc: '** testLiteralMonthToDateTime'
+        inputfile: patient-example.json
+        expression: '''2015-02''.toDateTime() = @2015-02'
+        result:
+          - true
+        model: r5
+      - desc: '** testLiteralDayToDateTime'
+        inputfile: patient-example.json
+        expression: '''2015-02-04''.toDateTime() = @2015-02-04'
+        result:
+          - true
+        model: r5
+      - desc: '** testLiteralSecondToDateTime'
+        inputfile: patient-example.json
+        expression: '''2015-02-04T14:34:28''.toDateTime() = @2015-02-04T14:34:28'
+        result:
+          - true
+        model: r5
+      - desc: '** testLiteralMillisecondToDateTime'
+        inputfile: patient-example.json
+        expression: '''2015-02-04T14:34:28.123''.toDateTime() = @2015-02-04T14:34:28.123'
+        result:
+          - true
+        model: r5
+      - desc: '** testLiteralUTCToDateTime'
+        inputfile: patient-example.json
+        expression: '''2015-02-04T14:34:28Z''.toDateTime() = @2015-02-04T14:34:28Z'
+        result:
+          - true
+        model: r5
+      - desc: '** testLiteralTZToDateTime'
+        inputfile: patient-example.json
+        expression: '''2015-02-04T14:34:28+10:00''.toDateTime() = @2015-02-04T14:34:28+10:00'
+        result:
+          - true
+        model: r5
       - desc: '** testStringHourConvertsToTime'
         inputfile: patient-example.json
         expression: '''14''.convertsToTime()'

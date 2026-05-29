@@ -3,13 +3,10 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [4.11.0] - 2026-05-22
+## [4.11.0] - 2026-05-29
 ### Added
 - Added `lowBoundary()` and `highBoundary()` for Decimal, Date, DateTime, and
   Time values.
-
-### Changed
-- Refreshed generated FHIRPath R4 and R5 test cases.
 
 ### Fixed
 - Fixed `abs()`, `ceiling()`, `floor()`, `round()` and `truncate()` functions to

@@ -485,6 +485,14 @@ Any text enclosed within is ignored
 		<test name="testStringUTCConvertsToDateTime" testing="convertsToDateTime" inputfile="patient-example.xml"><expression>'2015-02-04T14:34:28Z'.convertsToDateTime()</expression><output type="boolean">true</output></test>
 		<test name="testStringTZConvertsToDateTime" testing="convertsToDateTime" inputfile="patient-example.xml"><expression>'2015-02-04T14:34:28+10:00'.convertsToDateTime()</expression><output type="boolean">true</output></test>
 
+		<test name="testLiteralYearToDateTime" testing="toDateTime" inputfile="patient-example.xml"><expression>'2015'.toDateTime() = @2015</expression><output type="boolean">true</output></test>
+		<test name="testLiteralMonthToDateTime" testing="toDateTime" inputfile="patient-example.xml"><expression>'2015-02'.toDateTime() = @2015-02</expression><output type="boolean">true</output></test>
+		<test name="testLiteralDayToDateTime" testing="toDateTime" inputfile="patient-example.xml"><expression>'2015-02-04'.toDateTime() = @2015-02-04</expression><output type="boolean">true</output></test>
+		<test name="testLiteralSecondToDateTime" testing="toDateTime" inputfile="patient-example.xml"><expression>'2015-02-04T14:34:28'.toDateTime() = @2015-02-04T14:34:28</expression><output type="boolean">true</output></test>
+		<test name="testLiteralMillisecondToDateTime" testing="toDateTime" inputfile="patient-example.xml"><expression>'2015-02-04T14:34:28.123'.toDateTime() = @2015-02-04T14:34:28.123</expression><output type="boolean">true</output></test>
+		<test name="testLiteralUTCToDateTime" testing="toDateTime" inputfile="patient-example.xml"><expression>'2015-02-04T14:34:28Z'.toDateTime() = @2015-02-04T14:34:28Z</expression><output type="boolean">true</output></test>
+		<test name="testLiteralTZToDateTime" testing="toDateTime" inputfile="patient-example.xml"><expression>'2015-02-04T14:34:28+10:00'.toDateTime() = @2015-02-04T14:34:28+10:00</expression><output type="boolean">true</output></test>
+
 		<test name="testStringHourConvertsToTime" testing="convertsToTime" inputfile="patient-example.xml"><expression>'14'.convertsToTime()</expression><output type="boolean">true</output></test>
 		<test name="testStringMinuteConvertsToTime" testing="convertsToTime" inputfile="patient-example.xml"><expression>'14:34'.convertsToTime()</expression><output type="boolean">true</output></test>
 		<test name="testStringSecondConvertsToTime" testing="convertsToTime" inputfile="patient-example.xml"><expression>'14:34:28'.convertsToTime()</expression><output type="boolean">true</output></test>
