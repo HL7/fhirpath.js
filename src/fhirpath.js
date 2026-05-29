@@ -434,17 +434,29 @@ engine.QuantityLiteral = function(ctx, parentData, node) {
  */
 engine.DateLiteral = function(ctx, parentData, node) {
   const dateStr = node.text.slice(1); // Remove the @
-  return [new FP_Date(ctx, dateStr)];
+  const date = FP_Date.checkString(ctx, dateStr);
+  if (!date) {
+    throw new Error('Invalid date literal: ' + node.text);
+  }
+  return [date];
 };
 
 engine.DateTimeLiteral = function(ctx, parentData, node) {
   const dateStr = node.text.slice(1); // Remove the @
-  return [new FP_DateTime(ctx, dateStr)];
+  const dateTime = FP_DateTime.checkString(ctx, dateStr);
+  if (!dateTime) {
+    throw new Error('Invalid date-time literal: ' + node.text);
+  }
+  return [dateTime];
 };
 
 engine.TimeLiteral = function(ctx, parentData, node) {
   const timeStr = node.text.slice(1); // Remove the @
-  return [new FP_Time(ctx, timeStr)];
+  const time = FP_Time.checkString(ctx, timeStr);
+  if (!time) {
+    throw new Error('Invalid time literal: ' + node.text);
+  }
+  return [time];
 };
 
 engine.NumberLiteral = function(ctx, parentData, node) {

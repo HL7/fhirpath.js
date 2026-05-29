@@ -12,22 +12,33 @@ const Decimal = require('decimal.js');
 Decimal.set({precision:31});
 
 const ucumSystemUrl = 'http://unitsofmeasure.org';
+const yearFormat = '[0-9][0-9][0-9][0-9]';
+const monthFormat = '(?:0[1-9]|1[0-2])';
+const dayFormat = '(?:0[1-9]|[1-2][0-9]|3[0-1])';
+const hourFormat = '(?:[0-1][0-9]|2[0-3])';
+const minuteFormat = '[0-5][0-9]';
+// Leap Seconds are allowed to comply with the FHIR spec
+// https://hl7.org/fhir/datatypes.html#dateTime
+// https://hl7.org/fhir/datatypes.html#time
+// but they are treated as 59, since JS does not support leap seconds.
+const secondFormat = '(?:[0-5][0-9]|60)';
+const timezoneOffsetFormat =
+  '(?:(?:0[0-9]|1[0-3])\\:' + minuteFormat + '|14\\:00)';
 const timeFormat =
-  '[0-9][0-9](\\:[0-9][0-9](\\:[0-9][0-9](\\.[0-9]+)?)?)?';
-const zoneFormat = '(Z|(\\+|-)[0-9][0-9]\\:[0-9][0-9])?';
+  hourFormat + '(\\:' + minuteFormat + '(\\:' + secondFormat +
+  '(\\.[0-9]+)?)?)?';
+const zoneFormat = '(Z|(\\+|-)' + timezoneOffsetFormat + ')?';
 const timeRE = new RegExp('^T?' + timeFormat + '$');
 const dateTimeRE = new RegExp(
-  '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T' + timeFormat + zoneFormat +
-  ')?)?)?Z?$');
+  '^(?!.*T.*T)' + yearFormat + '(-' + monthFormat + '(-' + dayFormat + '(T' +
+  timeFormat + zoneFormat +
+  ')?)?)?(?:T)?$');
 const dateRE = new RegExp(
-  '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9])?)?$');
+  '^' + yearFormat + '(-' + monthFormat + '(-' + dayFormat + ')?)?$');
 const instantRE = new RegExp(
-  '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T[0-9][0-9](:[0-9][0-9](:[0-9][0-9](\\.[0-9]+)?))(Z|([+-])[0-9][0-9]:[0-9][0-9]))))$');
-// FHIR date/time regular expressions are slightly different.  For now, we will
-// stick with the FHIRPath regular expressions.
-//let fhirTimeRE = /([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?/;
-//let fhirDateTimeRE =
-///([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1])(T([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?/;
+  '^' + yearFormat + '(-' + monthFormat + '(-' + dayFormat + '(T' +
+  hourFormat + '(\\:' + minuteFormat + '(\\:' + secondFormat +
+  '(\\.[0-9]+)?))(Z|([+-])' + timezoneOffsetFormat + '))))$');
 
 
 /**
@@ -1738,25 +1749,29 @@ class FP_TimeBase extends FP_Type_WithContext {
    *  into the constructor against the "timeRE" regular expression.
    */
   _getTimeParts(timeMatchData) {
-    var timeParts = [];
+    let timeParts;
     // Finish parsing the data into pieces, for later use in building
     // lower-precision versions of the date if needed.
     timeParts = [timeMatchData[0]];
-    var timeZone = timeMatchData[4];
+    let timeZone = timeMatchData[4];
     if (timeZone) { // remove time zone from hours
       let hours = timeParts[0];
       timeParts[0] = hours.slice(0, hours.length-timeZone.length);
     }
-    var min = timeMatchData[1];
+    let min = timeMatchData[1];
     if (min) { // remove minutes from hours
       let hours = timeParts[0];
       timeParts[0] = hours.slice(0, hours.length-min.length);
       timeParts[1] = min;
-      var sec = timeMatchData[2];
+      let sec = timeMatchData[2];
       if (sec) { // remove seconds from minutes
         timeParts[1] = min.slice(0, min.length-sec.length);
-        timeParts[2] = sec;
-        var ms = timeMatchData[3];
+        // Leap Seconds are allowed to comply with the FHIR spec
+        // https://hl7.org/fhir/datatypes.html#dateTime
+        // https://hl7.org/fhir/datatypes.html#time
+        // but they are treated as 59, since JS does not support leap seconds.
+        timeParts[2] = sec === ':60' ? ':59' : sec;
+        let ms = timeMatchData[3];
         if (ms) { // remove milliseconds from seconds
           timeParts[2] = sec.slice(0, sec.length-ms.length);
           timeParts[3] = ms;
@@ -1865,6 +1880,25 @@ function isLeapYear(year) {
  */
 function getDaysInMonth(year, month) {
   return month === 2 && isLeapYear(year) ? 29 : daysPerMonth[month - 1];
+}
+
+
+/**
+ * Returns true when a parsed date-like value names an existing calendar date.
+ * Missing month or day components are valid lower-precision values.
+ * @param {FP_TimeBase} value - date, dateTime, or instant value.
+ * @returns {boolean} whether the parsed date components are valid.
+ */
+function hasValidDateComponents(value) {
+  const parts = value._getTimeParts();
+  if (parts.length < 3) {
+    return true;
+  }
+
+  const year = parseInt(parts[0]);
+  const month = parseInt(parts[1].slice(1));
+  const day = parseInt(parts[2].slice(1));
+  return day <= getDaysInMonth(year, month);
 }
 
 
@@ -2049,6 +2083,8 @@ class FP_DateTime extends FP_TimeBase {
     if (!this.timeParts) {
       let timeMatchData =  this._getMatchData();
       let year = timeMatchData[0];
+      if (!timeMatchData[3])
+        year = year.replace(/T$/, '');
       this.timeParts = [year];
       var month = timeMatchData[1];
       if (month) { // Remove other information from year
@@ -2115,7 +2151,7 @@ class FP_DateTime extends FP_TimeBase {
  */
 FP_DateTime.checkString = function(ctx, str) {
   let d = new FP_DateTime(ctx, str);
-  if (!d._getMatchData())
+  if (!d._getMatchData() || !hasValidDateComponents(d))
     d = null;
   return d;
 };
@@ -2412,7 +2448,7 @@ class FP_Date extends FP_DateTime {
  */
 FP_Date.checkString = function(ctx, str) {
   let d = new FP_Date(ctx, str);
-  if (!d._getMatchData())
+  if (!d._getMatchData() || !hasValidDateComponents(d))
     d = null;
   return d;
 };
@@ -2474,7 +2510,7 @@ class FP_Instant extends FP_DateTime {
  */
 FP_Instant.checkString = function(ctx, str) {
   let d = new FP_Instant(ctx, str);
-  if (!d._getMatchData())
+  if (!d._getMatchData() || !hasValidDateComponents(d))
     d = null;
   return d;
 };

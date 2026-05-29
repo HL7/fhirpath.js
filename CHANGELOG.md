@@ -14,6 +14,13 @@ This log documents significant changes for each release.  This project follows
 ### Fixed
 - Fixed `abs()`, `ceiling()`, `floor()`, `round()` and `truncate()` functions to
   handle `FHIR.Quantity` correctly.
+- Fixed date, dateTime, time, and instant validation to reject invalid
+  calendar dates (e.g. `@2019-02-29`, `@2019-04-31`), out-of-range time
+  components, and timezone offsets outside `-14:00`..`+14:00`. Leap seconds
+  (`:60`) are now accepted per the FHIR spec and normalized to `:59` during
+  comparison and calculation operations since JavaScript does not support leap
+  seconds. Date/dateTime/time literals now throw on invalid values instead of
+  silently producing a bad value.
 
 ## [4.10.1] - 2026-05-04
 ### Fixed
