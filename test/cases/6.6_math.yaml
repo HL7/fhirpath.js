@@ -712,6 +712,9 @@ tests:
       result: [true]
     - expression: "@T23:59:23.005 + 1990 milliseconds = @T23:59:24.995"
       result: [true]
+    - desc: "Normalize leap second to :59"
+      expression: "@T23:59:60 + 1 minute = @T00:00:59"
+      result: [true]
     - 'group: Date/Time Arithmetic with decimal duration values':
         # From the FHIRPath specification: "For precisions above seconds, the decimal
         # portion of the time-valued quantity is ignored, since date/time arithmetic

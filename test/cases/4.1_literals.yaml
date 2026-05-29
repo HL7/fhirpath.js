@@ -41,6 +41,42 @@ tests:
     result: [2]
   - expression: "@2019"
     result: ["2019"]
+  - expression: "@2019-01"
+    result: ["2019-01"]
+  - expression: "@2019-12-31"
+    result: ["2019-12-31"]
+  - expression: "@2020-02-29"
+    result: ["2020-02-29"]
+  - expression: "@2024-01-31T23:59:60+14:00"
+    result: ["2024-01-31T23:59:60+14:00"]
+  - expression: "@2019-00"
+    error: true
+  - expression: "@2019-13"
+    error: true
+  - expression: "@2019-01-00"
+    error: true
+  - expression: "@2019-01-32"
+    error: true
+  - expression: "@2019-02-29"
+    error: true
+  - expression: "@2019-04-31"
+    error: true
+  - expression: "@2019-02-29T12:00"
+    error: true
+  - expression: "@2024-01-31T23:60:00Z"
+    error: true
+  - expression: "@2024-01-31T23:59:61Z"
+    error: true
+  - expression: "@2024-01-31T23:59:59+14:01"
+    error: true
+  - expression: "@T14:30:00"
+    result: ["14:30:00"]
+  - expression: "@T25:00"
+    error: true
+  - expression: "@T12:60"
+    error: true
+  - expression: "@T12:30:61"
+    error: true
   - expression: "@2019-02-03T01:00Z = @2019-02-02T21:00-04:00"
     result: [true]
   - expression: "@2019-02-03T02:00Z = @2019-02-02T21:00-04:00"

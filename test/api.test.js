@@ -96,7 +96,7 @@ describe('compile', () => {
       {resolveInternalTypes: false}
     );
     let r = f({});
-    expect(r).toStrictEqual([new FP_DateTime(r[0].ctx, '2018-02-18T12:23:45-05:00')]);
+    expect(r).toStrictEqual([FP_DateTime.checkString(r[0].ctx, '2018-02-18T12:23:45-05:00')]);
 
     f = fhirpath.compile(
       "2.0 'cm'",
@@ -168,7 +168,7 @@ describe('evaluate', () => {
   it('should not resolve values which have internal data types to strings when options.resolveInternalTypes is false', () => {
     let r = fhirpath.evaluate( {}, '@2018-02-18T12:23:45-05:00', null, null,
       { resolveInternalTypes: false });
-    expect(r).toStrictEqual([new FP_DateTime(r[0].ctx, '2018-02-18T12:23:45-05:00')]);
+    expect(r).toStrictEqual([FP_DateTime.checkString(r[0].ctx, '2018-02-18T12:23:45-05:00')]);
 
     r = fhirpath.evaluate( {}, "2.0 'cm'", null, null,
       { resolveInternalTypes: false });

@@ -12,22 +12,33 @@ const Decimal = require('decimal.js');
 Decimal.set({precision:31});
 
 const ucumSystemUrl = 'http://unitsofmeasure.org';
+const yearFormat = '[0-9][0-9][0-9][0-9]';
+const monthFormat = '(?:0[1-9]|1[0-2])';
+const dayFormat = '(?:0[1-9]|[1-2][0-9]|3[0-1])';
+const hourFormat = '(?:[0-1][0-9]|2[0-3])';
+const minuteFormat = '[0-5][0-9]';
+// Leap Seconds are allowed to comply with the FHIR spec
+// https://hl7.org/fhir/datatypes.html#dateTime
+// https://hl7.org/fhir/datatypes.html#time
+// but they are treated as 59, since JS does not support leap seconds.
+const secondFormat = '(?:[0-5][0-9]|60)';
+const timezoneOffsetFormat =
+  '(?:(?:0[0-9]|1[0-3])\\:' + minuteFormat + '|14\\:00)';
 const timeFormat =
-  '[0-9][0-9](\\:[0-9][0-9](\\:[0-9][0-9](\\.[0-9]+)?)?)?';
-const zoneFormat = '(Z|(\\+|-)[0-9][0-9]\\:[0-9][0-9])?';
+  hourFormat + '(\\:' + minuteFormat + '(\\:' + secondFormat +
+  '(\\.[0-9]+)?)?)?';
+const zoneFormat = '(Z|(\\+|-)' + timezoneOffsetFormat + ')?';
 const timeRE = new RegExp('^T?' + timeFormat + '$');
 const dateTimeRE = new RegExp(
-  '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T' + timeFormat + zoneFormat +
-  ')?)?)?Z?$');
+  '^(?!.*T.*T)' + yearFormat + '(-' + monthFormat + '(-' + dayFormat + '(T' +
+  timeFormat + zoneFormat +
+  ')?)?)?(?:T)?$');
 const dateRE = new RegExp(
-  '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9])?)?$');
+  '^' + yearFormat + '(-' + monthFormat + '(-' + dayFormat + ')?)?$');
 const instantRE = new RegExp(
-  '^[0-9][0-9][0-9][0-9](-[0-9][0-9](-[0-9][0-9](T[0-9][0-9](:[0-9][0-9](:[0-9][0-9](\\.[0-9]+)?))(Z|([+-])[0-9][0-9]:[0-9][0-9]))))$');
-// FHIR date/time regular expressions are slightly different.  For now, we will
-// stick with the FHIRPath regular expressions.
-//let fhirTimeRE = /([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?/;
-//let fhirDateTimeRE =
-///([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1])(T([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?(Z|(\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?/;
+  '^' + yearFormat + '(-' + monthFormat + '(-' + dayFormat + '(T' +
+  hourFormat + '(\\:' + minuteFormat + '(\\:' + secondFormat +
+  '(\\.[0-9]+)?))(Z|([+-])' + timezoneOffsetFormat + '))))$');
 
 
 /**
@@ -190,6 +201,22 @@ class FP_Type {
    */
   round(/*precision*/) {
     throw new Error('round() is not implemented for ' + this.constructor.name);
+  }
+
+
+  /**
+   * Returns the low boundary of this value at the specified precision.
+   */
+  lowBoundary(/*precision*/) {
+    throw new Error('lowBoundary() is not implemented for ' + this.constructor.name);
+  }
+
+
+  /**
+   * Returns the high boundary of this value at the specified precision.
+   */
+  highBoundary(/*precision*/) {
+    throw new Error('highBoundary() is not implemented for ' + this.constructor.name);
   }
 
 
@@ -1624,6 +1651,60 @@ class FP_TimeBase extends FP_Type_WithContext {
 
 
   /**
+   * Returns the least possible value at the specified precision.
+   * @param {number} [precision] - requested FHIRPath digit precision.
+   * @returns {FP_TimeBase|null} low boundary, or null for unsupported precision.
+   */
+  lowBoundary(precision) {
+    return this._boundary(precision, false);
+  }
+
+
+  /**
+   * Returns the greatest possible value at the specified precision.
+   * @param {number} [precision] - requested FHIRPath digit precision.
+   * @returns {FP_TimeBase|null} high boundary, or null for unsupported precision.
+   */
+  highBoundary(precision) {
+    return this._boundary(precision, true);
+  }
+
+
+  /**
+   * Builds a date/time boundary value using parsed components so explicit
+   * timezone offsets are preserved and absent offsets stay absent.
+   * @param {number} [precision] - requested FHIRPath digit precision.
+   * @param {boolean} isHigh - whether to build the high boundary.
+   * @returns {FP_TimeBase|null} boundary value, or null for unsupported precision.
+   * @private
+   */
+  _boundary(precision, isHigh) {
+    const cls = this.constructor;
+    const requestedPrecision = precision === undefined ?
+      cls._boundaryDefaultPrecision : precision;
+    const componentPrecision =
+      cls._boundaryPrecisionToComponentPrecision[requestedPrecision];
+
+    if (componentPrecision === undefined) {
+      return null;
+    }
+
+    const parts = this._getTimeParts();
+    const components = this instanceof FP_Time ?
+      getBoundaryTimeComponents(parts, componentPrecision, isHigh) :
+      getBoundaryDateTimeComponents(parts, componentPrecision, isHigh);
+    const timezoneOffset = this instanceof FP_Time || componentPrecision < 3 ?
+      '' : this._getMatchData()[7] || '';
+    const boundaryStr = this instanceof FP_Time ?
+      formatBoundaryTime(components, componentPrecision) :
+      formatBoundaryDateTime(components, componentPrecision, timezoneOffset);
+    const resultClass = this instanceof FP_Instant ? FP_DateTime : cls;
+
+    return new resultClass(this.ctx, boundaryStr);
+  }
+
+
+  /**
    *  Returns a number representing the precision of the time string given to
    *  the constructor.  (Higher means more precise).  The number is the number
    *  of components of the time string (ignoring the time zone) produced by
@@ -1668,25 +1749,29 @@ class FP_TimeBase extends FP_Type_WithContext {
    *  into the constructor against the "timeRE" regular expression.
    */
   _getTimeParts(timeMatchData) {
-    var timeParts = [];
+    let timeParts;
     // Finish parsing the data into pieces, for later use in building
     // lower-precision versions of the date if needed.
     timeParts = [timeMatchData[0]];
-    var timeZone = timeMatchData[4];
+    let timeZone = timeMatchData[4];
     if (timeZone) { // remove time zone from hours
       let hours = timeParts[0];
       timeParts[0] = hours.slice(0, hours.length-timeZone.length);
     }
-    var min = timeMatchData[1];
+    let min = timeMatchData[1];
     if (min) { // remove minutes from hours
       let hours = timeParts[0];
       timeParts[0] = hours.slice(0, hours.length-min.length);
       timeParts[1] = min;
-      var sec = timeMatchData[2];
+      let sec = timeMatchData[2];
       if (sec) { // remove seconds from minutes
         timeParts[1] = min.slice(0, min.length-sec.length);
-        timeParts[2] = sec;
-        var ms = timeMatchData[3];
+        // Leap Seconds are allowed to comply with the FHIR spec
+        // https://hl7.org/fhir/datatypes.html#dateTime
+        // https://hl7.org/fhir/datatypes.html#time
+        // but they are treated as 59, since JS does not support leap seconds.
+        timeParts[2] = sec === ':60' ? ':59' : sec;
+        let ms = timeMatchData[3];
         if (ms) { // remove milliseconds from seconds
           timeParts[2] = sec.slice(0, sec.length-ms.length);
           timeParts[3] = ms;
@@ -1774,6 +1859,185 @@ FP_TimeBase.timeUnitToAddFn = {
 };
 
 
+const daysPerMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+
+/**
+ * Returns true when the given Gregorian year is a leap year.
+ * @param {number} year - full year.
+ * @returns {boolean} whether the year is a leap year.
+ */
+function isLeapYear(year) {
+  return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+}
+
+
+/**
+ * Returns the number of days in a Gregorian month.
+ * @param {number} year - full year.
+ * @param {number} month - month number, 1 through 12.
+ * @returns {number} number of days in the month.
+ */
+function getDaysInMonth(year, month) {
+  return month === 2 && isLeapYear(year) ? 29 : daysPerMonth[month - 1];
+}
+
+
+/**
+ * Returns true when a parsed date-like value names an existing calendar date.
+ * Missing month or day components are valid lower-precision values.
+ * @param {FP_TimeBase} value - date, dateTime, or instant value.
+ * @returns {boolean} whether the parsed date components are valid.
+ */
+function hasValidDateComponents(value) {
+  const parts = value._getTimeParts();
+  if (parts.length < 3) {
+    return true;
+  }
+
+  const year = parseInt(parts[0]);
+  const month = parseInt(parts[1].slice(1));
+  const day = parseInt(parts[2].slice(1));
+  return day <= getDaysInMonth(year, month);
+}
+
+
+/**
+ * Formats a FHIRPath year component.
+ * @param {number} year - full year.
+ * @returns {string} four-digit year.
+ */
+function formatYear(year) {
+  return String(year).padStart(4, '0');
+}
+
+
+/**
+ * Parses a milliseconds fragment such as ".123".
+ * @param {string} value - milliseconds string with a leading period.
+ * @returns {number} milliseconds value.
+ */
+function parseMilliseconds(value) {
+  return parseInt(value.slice(1).padEnd(3, '0').slice(0, 3));
+}
+
+
+/**
+ * Extracts and completes date/dateTime components for a boundary value.
+ * @param {Array<string>} parts - date/time parts from _getTimeParts().
+ * @param {number} componentPrecision - requested component precision.
+ * @param {boolean} isHigh - whether to fill missing components with maxima.
+ * @returns {Object} completed component values.
+ */
+function getBoundaryDateTimeComponents(parts, componentPrecision, isHigh) {
+  const components = {
+    year: parseInt(parts[0]),
+    month: parts.length > 1 ? parseInt(parts[1].slice(1)) : null,
+    day: parts.length > 2 ? parseInt(parts[2].slice(1)) : null,
+    hour: parts.length > 3 ? parseInt(parts[3]) : null,
+    minute: parts.length > 4 ? parseInt(parts[4].slice(1)) : null,
+    second: parts.length > 5 ? parseInt(parts[5].slice(1)) : null,
+    millisecond: parts.length > 6 ? parseMilliseconds(parts[6]) : null
+  };
+
+  if (componentPrecision > 0 && components.month === null) {
+    components.month = isHigh ? 12 : 1;
+  }
+  if (componentPrecision > 1 && components.day === null) {
+    components.day = isHigh ?
+      getDaysInMonth(components.year, components.month) : 1;
+  }
+  if (componentPrecision > 2 && components.hour === null) {
+    components.hour = isHigh ? 23 : 0;
+  }
+  if (componentPrecision > 3 && components.minute === null) {
+    components.minute = isHigh ? 59 : 0;
+  }
+  if (componentPrecision > 4 && components.second === null) {
+    components.second = isHigh ? 59 : 0;
+  }
+  if (componentPrecision > 5 && components.millisecond === null) {
+    components.millisecond = isHigh ? 999 : 0;
+  }
+
+  return components;
+}
+
+
+/**
+ * Extracts and completes time components for a boundary value.
+ * @param {Array<string>} parts - time parts from _getTimeParts().
+ * @param {number} componentPrecision - requested component precision.
+ * @param {boolean} isHigh - whether to fill missing components with maxima.
+ * @returns {Object} completed component values.
+ */
+function getBoundaryTimeComponents(parts, componentPrecision, isHigh) {
+  const components = {
+    hour: parseInt(parts[0]),
+    minute: parts.length > 1 ? parseInt(parts[1].slice(1)) : null,
+    second: parts.length > 2 ? parseInt(parts[2].slice(1)) : null,
+    millisecond: parts.length > 3 ? parseMilliseconds(parts[3]) : null
+  };
+
+  if (componentPrecision > 0 && components.minute === null) {
+    components.minute = isHigh ? 59 : 0;
+  }
+  if (componentPrecision > 1 && components.second === null) {
+    components.second = isHigh ? 59 : 0;
+  }
+  if (componentPrecision > 2 && components.millisecond === null) {
+    components.millisecond = isHigh ? 999 : 0;
+  }
+
+  return components;
+}
+
+
+/**
+ * Formats date/dateTime boundary components.
+ * @param {Object} components - completed component values.
+ * @param {number} componentPrecision - requested component precision.
+ * @param {string} timezoneOffset - explicit timezone offset to append.
+ * @returns {string} formatted date/dateTime string.
+ */
+function formatBoundaryDateTime(components, componentPrecision, timezoneOffset) {
+  let result = formatYear(components.year);
+  if (componentPrecision > 0) {
+    result += '-' + formatNum(components.month);
+    if (componentPrecision > 1) {
+      result += '-' + formatNum(components.day);
+      if (componentPrecision > 2) {
+        result += 'T' + formatBoundaryTime(components,
+          componentPrecision - 3);
+        result += timezoneOffset;
+      }
+    }
+  }
+  return result;
+}
+
+
+/**
+ * Formats time boundary components.
+ * @param {Object} components - completed component values.
+ * @param {number} componentPrecision - requested component precision.
+ * @returns {string} formatted time string without a leading "T".
+ */
+function formatBoundaryTime(components, componentPrecision) {
+  let result = '' + formatNum(components.hour);
+  if (componentPrecision > 0) {
+    result += ':' + formatNum(components.minute);
+    if (componentPrecision > 1) {
+      result += ':' + formatNum(components.second);
+      if (componentPrecision > 2) {
+        result += '.' + formatNum(components.millisecond, 3);
+      }
+    }
+  }
+  return result;
+}
+
+
 /**
  * A class representing a FHIRPath DateTime value.
  */
@@ -1819,6 +2083,8 @@ class FP_DateTime extends FP_TimeBase {
     if (!this.timeParts) {
       let timeMatchData =  this._getMatchData();
       let year = timeMatchData[0];
+      if (!timeMatchData[3])
+        year = year.replace(/T$/, '');
       this.timeParts = [year];
       var month = timeMatchData[1];
       if (month) { // Remove other information from year
@@ -1885,7 +2151,7 @@ class FP_DateTime extends FP_TimeBase {
  */
 FP_DateTime.checkString = function(ctx, str) {
   let d = new FP_DateTime(ctx, str);
-  if (!d._getMatchData())
+  if (!d._getMatchData() || !hasValidDateComponents(d))
     d = null;
   return d;
 };
@@ -1910,6 +2176,21 @@ FP_DateTime._timeUnitToDatePrecision = {
 FP_DateTime._datePrecisionToTimeUnit = [
   "year", "month", "day", "hour", "minute", "second", "millisecond"
 ];
+
+/**
+ * Maps FHIRPath digit precision to DateTime component precision.
+ */
+FP_DateTime._boundaryPrecisionToComponentPrecision = {
+  4: 0,
+  6: 1,
+  8: 2,
+  10: 3,
+  12: 4,
+  14: 5,
+  17: 6
+};
+
+FP_DateTime._boundaryDefaultPrecision = 17;
 
 
 
@@ -2031,6 +2312,18 @@ FP_Time._timeUnitToDatePrecision = {
  *  The inverse of _timeUnitToDatePrecision.
  */
 FP_Time._datePrecisionToTimeUnit = ["hour", "minute", "second", "millisecond"];
+
+/**
+ * Maps FHIRPath digit precision to Time component precision.
+ */
+FP_Time._boundaryPrecisionToComponentPrecision = {
+  2: 0,
+  4: 1,
+  6: 2,
+  9: 3
+};
+
+FP_Time._boundaryDefaultPrecision = 9;
 
 
 /**
@@ -2155,7 +2448,7 @@ class FP_Date extends FP_DateTime {
  */
 FP_Date.checkString = function(ctx, str) {
   let d = new FP_Date(ctx, str);
-  if (!d._getMatchData())
+  if (!d._getMatchData() || !hasValidDateComponents(d))
     d = null;
   return d;
 };
@@ -2174,6 +2467,17 @@ FP_Date.isoDate = function(date, precision) {
     precision = 2;
   return FP_DateTime.isoDateTime(date, precision);
 };
+
+/**
+ * Maps FHIRPath digit precision to Date component precision.
+ */
+FP_Date._boundaryPrecisionToComponentPrecision = {
+  4: 0,
+  6: 1,
+  8: 2
+};
+
+FP_Date._boundaryDefaultPrecision = 8;
 
 /**
  * A class representing a FHIR Instant value — a DateTime with at least
@@ -2206,7 +2510,7 @@ class FP_Instant extends FP_DateTime {
  */
 FP_Instant.checkString = function(ctx, str) {
   let d = new FP_Instant(ctx, str);
-  if (!d._getMatchData())
+  if (!d._getMatchData() || !hasValidDateComponents(d))
     d = null;
   return d;
 };
@@ -2950,6 +3254,50 @@ class FP_Decimal extends FP_Type {
       (fraction === '0' ? (exponent ? 0 : 1) : (fraction || '').length) - (exponent || 0)
     );
     this.decimalPrecision = this.decimalPlaces - trailingZeroes;
+  }
+
+
+  /**
+   * Returns the least possible decimal value at the specified precision.
+   * @param {number} [precision] - requested decimal places.
+   * @returns {FP_Decimal|null} low boundary, or null for invalid precision.
+   */
+  lowBoundary(precision) {
+    return this._boundary(precision, Decimal.ROUND_FLOOR, false);
+  }
+
+
+  /**
+   * Returns the greatest possible decimal value at the specified precision.
+   * @param {number} [precision] - requested decimal places.
+   * @returns {FP_Decimal|null} high boundary, or null for invalid precision.
+   */
+  highBoundary(precision) {
+    return this._boundary(precision, Decimal.ROUND_CEIL, true);
+  }
+
+
+  /**
+   * Applies the FHIRPath decimal boundary algorithm.
+   * @param {number} [precision] - requested decimal places.
+   * @param {number} roundingMode - decimal.js rounding mode.
+   * @param {boolean} addHalfUnit - whether to add or subtract the half unit.
+   * @returns {FP_Decimal|null} boundary value, or null for invalid precision.
+   * @private
+   */
+  _boundary(precision, roundingMode, addHalfUnit) {
+    const requestedPrecision = precision === undefined ?
+      FP_Decimal.MAX_PRECISION : precision;
+    if (!Number.isInteger(requestedPrecision) || requestedPrecision < 0 ||
+      requestedPrecision > FP_Decimal.MAX_PRECISION) {
+      return null;
+    }
+
+    const halfUnit = new Decimal(10).pow(-this.decimalPlaces).times(0.5);
+    const value = new Decimal(this.toString());
+    const boundaryValue = (addHalfUnit ? value.plus(halfUnit) :
+      value.minus(halfUnit)).toDecimalPlaces(requestedPrecision, roundingMode);
+    return new this.constructor(boundaryValue.toFixed(requestedPrecision));
   }
 
 }
