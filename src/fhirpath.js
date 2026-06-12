@@ -967,6 +967,138 @@ engine.ParenthesizedTerm = function(ctx, parentData, node) {
   return engine.doEval(ctx, parentData, node.children[0]);
 };
 
+/**
+ * Evaluates an InstanceSelectorTerm node in the FHIRPath AST.
+ * Delegates to the child InstanceSelector node.
+ *
+ * @param {Object} ctx - The evaluation context.
+ * @param {Array} parentData - The input collection.
+ * @param {Object} node - The AST node representing the InstanceSelectorTerm.
+ * @returns {Array} - The created instance wrapped in a collection.
+ */
+engine.InstanceSelectorTerm = function(ctx, parentData, node) {
+  return engine.doEval(ctx, parentData, node.children[0]);
+};
+
+
+/**
+ * Converts an evaluated element value into a representation suitable for
+ * storing inside the data object of a newly created instance (FHIR JSON form).
+ * FP_Type values (Date, DateTime, Time, Decimal, Quantity, ...) are converted
+ * via toJSON(); ResourceNode values are unwrapped to their plain data.
+ *
+ * @param {*} value - a single item from an evaluated element value collection.
+ * @returns {*} the storable value.
+ */
+function instanceElementValue(value) {
+  let data = util.valData(value);
+  if (data instanceof FP_Type) {
+    data = data.toJSON();
+  }
+  return data;
+}
+
+
+/**
+ * Evaluates an InstanceSelector node in the FHIRPath AST, implementing the
+ * Instance Selector / Object Creation syntax
+ * (e.g. `Coding { system: 'http://x', code: 'c1' }`).
+ * See https://hl7.org/fhirpath/#instance-selector for details.
+ *
+ * The input collection must contain at most one item: if it contains multiple
+ * items an error is signaled, and if it is empty the result is empty. Each
+ * element selector expression is evaluated against the input collection; an
+ * element whose value evaluates to an empty collection is omitted from the
+ * created object.
+ *
+ * @param {Object} ctx - The evaluation context (provides the model).
+ * @param {Array} parentData - The input collection.
+ * @param {Object} node - The AST node representing the InstanceSelector.
+ *   @param {string} node.text - The (optionally namespaced) type name.
+ *   @param {Array} node.children - The qualifiedIdentifier followed by the
+ *     InstanceElementSelector child nodes.
+ * @returns {Array<ResourceNode>} - A single-item collection with the created
+ *   instance, or an empty collection if the input collection is empty.
+ * @throws {Error} - If the input collection has more than one item, or the type
+ *   name cannot be resolved to a valid type.
+ */
+engine.InstanceSelector = function(ctx, parentData, node) {
+  if (parentData) {
+    if (parentData.length > 1) {
+      let msg = 'Instance selector requires an input collection with at most '
+        + 'one item, but it has ' + parentData.length + ' items.';
+      if (node.start) {
+        msg += ' (at ' + node.start.line + ':' + node.start.column + ')';
+      }
+      throw new Error(msg);
+    }
+    if (parentData.length === 0) {
+      return [];
+    }
+  }
+
+  // Resolve the type to create from the leading qualifiedIdentifier.
+  let namespace, name;
+  const identifiers = node.text.split('.').map(getDelimitedIdentifierVal);
+  switch (identifiers.length) {
+    case 2:
+      [namespace, name] = identifiers;
+      break;
+    case 1:
+      [name] = identifiers;
+      break;
+    default:
+      throw new Error('Invalid type name in instance selector: ' + node.text);
+  }
+
+  const typeInfo = new TypeInfo({ namespace, name });
+  if (!typeInfo.isValid(ctx.model)) {
+    throw new Error('"' + typeInfo +
+      '" cannot be resolved to a valid type identifier');
+  }
+
+  const isPrimitive = TypeInfo.isPrimitive(typeInfo);
+  let data = isPrimitive ? null : {};
+  let _data = null;
+
+  for (let i = 0; i < node.children.length; i++) {
+    const selector = node.children[i];
+    if (selector.type !== 'InstanceElementSelector') {
+      // Skip the leading qualifiedIdentifier node.
+      continue;
+    }
+
+    const elName = engine.doEval(ctx, parentData, selector.children[0])[0];
+    const valueColl = engine.doEval(ctx, parentData, selector.children[1]);
+
+    // An element whose value is empty is not added to the object.
+    if (!valueColl || valueColl.length === 0) {
+      continue;
+    }
+
+    // Primitive types may set their value using the special "value" element.
+    if (isPrimitive && elName === 'value') {
+      data = instanceElementValue(valueColl[0]);
+      continue;
+    }
+
+    // For primitives, non-value elements (e.g. extensions) live in the
+    // sibling "_" object, mirroring FHIR JSON representation.
+    const target = isPrimitive ? (_data = _data || {}) : data;
+    if (valueColl.length > 1) {
+      target[elName] = valueColl.map(instanceElementValue);
+    } else {
+      target[elName] = instanceElementValue(valueColl[0]);
+      const childData = valueColl[0]?._data;
+      if (childData && Object.keys(childData).length > 0) {
+        target['_' + elName] = childData;
+      }
+    }
+  }
+
+  return [makeResNode(ctx, data, null, name, _data, name)];
+};
+
 engine.SortDirectionArgument = function(ctx, parentData, node) {
   const expr = node.children[0]; // The expression to sort by
   // Use the direction captured by the parser, defaulting to 'asc'
@@ -1001,6 +1133,8 @@ engine.evalTable = { // not every evaluator is listed if they are defined on eng
   EntireExpression: engine.InvocationTerm,
   InvocationTerm: engine.InvocationTerm,
   LiteralTerm: engine.LiteralTerm,
+  InstanceSelectorTerm: engine.InstanceSelectorTerm,
+  InstanceSelector: engine.InstanceSelector,
   MemberInvocation: engine.MemberInvocation,
   NumberLiteral: engine.NumberLiteral,
   ParamList: engine.ParamList,
