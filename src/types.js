@@ -2554,14 +2554,14 @@ class ResourceNode {
     this.path = path || null;
 
     if (fhirNodeDataType === 'integer64') {
-      this.data = BigInt(data);
+      this.data = data != null ? BigInt(data) : null;
     } else if (typeof data === 'number') {
       this.data = ctx.getDecimal(data);
     } else {
       this.data = data;
     }
 
-    this._data = _data || {};
+    this._data = _data || null;
     this.fhirNodeDataType = fhirNodeDataType || null;
     this.model = ctx.model || null;
     this.propName = propName;

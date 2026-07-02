@@ -265,6 +265,8 @@ for (let p of Object.getOwnPropertyNames(Listener.prototype)) {
         /**
          * Handles instance selector nodes (object creation), capturing the
          * type name from the leading qualifiedIdentifier.
+         * @param {Object} ctx - the ANTLR instanceSelector parser context.
+         * @returns {void}
          */
         PathListener.prototype[p] = function (ctx) {
           let node = this.enterNode(ctx, nodeType);

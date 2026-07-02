@@ -218,6 +218,24 @@ standard JavaScript types you can use the special function "resolveInternalTypes
 const res = fhirpath.resolveInternalTypes(value);
 ```
 
+> **Note (changed in v5.0.0):** When `resolveInternalTypes` is `false`, the raw
+> result may include *metadata-only* `ResourceNode`s (see the `ResourceNode`
+> class in `src/types.js` / `src/fhirpath.d.ts`). These represent FHIR primitive
+> elements that carry only sibling `_`-metadata (e.g. an `id` or `extension`
+> under `_birthDate`) and no value, so their `data` is `null`/`undefined` while
+> `_data` is populated. Such nodes are now preserved in the raw output;
+> previously they were omitted. The default (resolved) output and
+> `fhirpath.resolveInternalTypes()` still drop them, so resolved results are
+> unchanged. If you consume the raw result directly and want the previous
+> behavior, filter these nodes out, for example:
+>
+> ```js
+> const withValues = rawResult.filter(
+>   node => !(node && typeof node === 'object'
+>     && node.data == null && node._data)
+> );
+> ```
+
 Also, there is a special API function to get the type of each element in FHIRPath
 result array which was obtained from evaluate() (unless you resolve the internal
 types). This function returns an array of strings.
@@ -572,6 +590,10 @@ fhirpath --expression '0.1 + 0.2' --resourceJSON '{}' --mathMode native
 > ]
 ```
 
+Internal FHIRPath types can be left unresolved with
+`--no-resolveInternalTypes`. By default, CLI output resolves them to standard
+JavaScript types.
+
 Also, you can pass in a filename or a string of JSON representing a part of the resource.
 In that case, you should pass in the base path from which this part of the resource was extracted.
 ```sh
@@ -707,6 +729,7 @@ open browser on localhost:8080
       pathsDefinedElsewhere,
       type2Parent,
       path2Type,
+      path2Repeating,
       resourcesWithUrlParam,
       path2TypeWithoutElements,
       path2RefType

@@ -262,7 +262,7 @@ util.makeChildResNodes = function(ctx, parentResNode, childProperty, model) {
       toAdd = data?.[childProperty];
       _toAdd = data?.['_' + childProperty];
       if (toAdd === undefined && _toAdd === undefined) {
-        toAdd = parentResNode._data[childProperty];
+        toAdd = parentResNode._data?.[childProperty];
       }
       if (childProperty === 'extension') {
         childPath = 'Extension';
@@ -277,7 +277,7 @@ util.makeChildResNodes = function(ctx, parentResNode, childProperty, model) {
     toAdd = data?.[childProperty];
     _toAdd = data?.['_' + childProperty];
     if (toAdd === undefined && _toAdd === undefined) {
-      toAdd = parentResNode._data[childProperty];
+      toAdd = parentResNode._data?.[childProperty];
     }}
 
   if (!util.isSome(toAdd) && !util.isSome(_toAdd)) {

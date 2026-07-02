@@ -3,7 +3,7 @@ const util = require('../src/utilities');
 const fs   = require('fs');
 const _    = require('lodash');
 const { calcExpression } = require("./test_utils");
-const FP_DateTime = require('../src/types').FP_DateTime;
+const { FP_DateTime, ResourceNode } = require('../src/types');
 
 // Get document, or throw exception on error
 // const testcase = yaml.load(fs.readFileSync( __dirname + '/cases/simple.yaml', 'utf8'));
@@ -69,6 +69,25 @@ const endWith = (s, postfix) => {
   return s.length >= postfix.length && s.substr(-postfix.length) === postfix;
 };
 
+
+/**
+ * In the generated YAML tests, just as when generating the result in
+ * `prepareEvalResult` with the `resolveInternalTypes=true` flag (the default),
+ * ResourceNode entries with nullish (`null` or `undefined`) data are ignored.
+ * The default path unwraps the node via `util.valData()` and drops it with a
+ * loose `!= null` check, so metadata-only primitives (e.g. a `date` node whose
+ * `data` is `undefined`, or an `integer64` node whose `data` is `null`) are
+ * excluded here as well.
+ * @param {Array<*>} result - raw result from fhirpath.evaluate().
+ * @returns {Array<*>} result without nullish-valued ResourceNode entries.
+ */
+function filterNullishResourceNodes(result) {
+  return result.filter(item =>
+    !(item instanceof ResourceNode && item.data == null)
+  );
+}
+
+
 const files = items.filter(fileName => endWith(fileName, '.yaml'))
   .map(fileName =>({ fileName, data: yaml.load(fs.readFileSync(__dirname + '/cases/' + fileName, 'utf8')) }));
 
@@ -105,13 +124,24 @@ const generateTest = (test, testResource) => {
   const processTestResult = (test, result, exception, done) => {
     if (!test.error) {
       expect(exception).isNotError();
+      const comparableResult = filterNullishResourceNodes(result);
       // Run the result through JSON so the FP_Type quantities get converted to
       // strings.  Also, if the result is an FP_DateTime, use compare() so that
       // timezone differences and leap seconds are handled.
-      if (result.length === 1 && test.result.length === 1 && result[0] instanceof FP_DateTime)
-        expect(FP_DateTime.checkString(result[0].ctx, test.result[0]).compare(result[0])).toEqual(0)
-      else
-        expect(JSON.parse(util.toJSON(result))).toEqual(test.result);
+      if (
+        comparableResult.length === 1 &&
+        test.result.length === 1 &&
+        comparableResult[0] instanceof FP_DateTime
+      ) {
+        expect(
+          FP_DateTime.checkString(
+            comparableResult[0].ctx,
+            test.result[0]
+          ).compare(comparableResult[0])
+        ).toEqual(0);
+      } else {
+        expect(JSON.parse(util.toJSON(comparableResult))).toEqual(test.result);
+      }
     }
     else if (test.error) {
       expect(exception).isError(result);

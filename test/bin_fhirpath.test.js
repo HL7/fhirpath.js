@@ -8,8 +8,18 @@ const {execSync} = require('child_process');
  *   is expected to match.
  */
 function checkOutput(fpCmd, pattern) {
+  expect(runFhirpath(fpCmd)).toMatch(pattern);
+}
+
+/**
+ * Runs the given fhirpath command and returns its stdout.
+ * @param {string} fpCmd - The command to run. It should start with
+ *   "bin/fhirpath" followed by the arguments.
+ * @returns {string} stdout from the command.
+ */
+function runFhirpath(fpCmd) {
   let output = execSync(__dirname +'/../'+fpCmd);
-  expect(output.toString()).toMatch(pattern);
+  return output.toString();
 }
 
 /**
@@ -31,6 +41,15 @@ describe ('bin/fhirpath', function () {
 
   it ('should evaluate when given a resource', function() {
     checkOutput("bin/fhirpath -e '1 + 2' -r '{}'", /3/g);
+  });
+
+  it ('should output resolved results as JSON by default', function() {
+    const output = runFhirpath(
+      "bin/fhirpath -e 'Patient.id' " +
+      "-r '{\"resourceType\":\"Patient\",\"id\":\"p1\"}'"
+    );
+
+    expect(output).toBe('fhirpath(Patient.id) =>\n[\n "p1"\n]\n');
   });
 
   it ('should evaluate when given a resource file', function() {
@@ -55,6 +74,13 @@ describe ('bin/fhirpath', function () {
 
   it ('should accept the -o parameter to disable precision-safe arithmetic', function() {
     checkOutput("bin/fhirpath -e '0.1 + 0.2' -r '{}' -o native", /\s0.300000/g);
+  });
+
+  it ('should accept the -n parameter to disable resolving internal types', function() {
+    checkOutput(
+      "bin/fhirpath -e '@2018-02-18T12:23:45-05:00' -r '{}' -n",
+      /FP_DateTime/
+    );
   });
 
   it ('should output help without arguments', function() {
@@ -90,6 +116,14 @@ describe ('bin/fhirpath', function () {
 
     it ('should accept the --mathMode parameter to enable precision-safe arithmetic', function() {
       checkOutput("bin/fhirpath -e '0.1 + 0.2' -r '{}' --mathMode precise", /\s0.3\s/g);
+    });
+
+    it ('should accept the --no-resolveInternalTypes parameter', function() {
+      checkOutput(
+        "bin/fhirpath -e '@2018-02-18T12:23:45-05:00' -r '{}' "
+        +"--no-resolveInternalTypes",
+        /FP_DateTime/
+      );
     });
   });
 })
