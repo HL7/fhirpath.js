@@ -5,7 +5,8 @@
  * @param path - FHIRPath expression string, or an object with `base` and
  *  `expression` when evaluating against a part of a resource.
  * @param model - optional FHIR model (e.g. R4, STU3) for type-aware evaluation.
- * @param options - additional evaluation options.
+ * @param options - evaluation options (`OptionVariants`), including the
+ *  `async` mode.
  * @returns a function that accepts a resource and optional environment variables
  *  and returns the evaluation result.
  */
@@ -24,7 +25,8 @@ export function compile<T extends OptionVariants>(
  *  `expression` when evaluating against a part of a resource.
  * @param envVars - optional hash of environment variable name/value pairs.
  * @param model - optional FHIR model (e.g. R4, STU3) for type-aware evaluation.
- * @param options - additional evaluation options.
+ * @param options - evaluation options (`OptionVariants`), including the
+ *  `async` mode.
  * @returns an array of evaluation results, or a Promise resolving to such an
  *  array when async mode is enabled.
  */
@@ -106,12 +108,58 @@ export class FP_Decimal {
   toJSON(): number;
 }
 
+
+/**
+ * Utility helpers exported for use in custom user-defined FHIRPath functions
+ * (via `options.userInvocationTable`). The most commonly used helpers are
+ * typed explicitly; other internal helpers stay available but loosely typed.
+ */
+export interface FhirPathUtil {
+  /**
+   * Returns the data value of the given parameter, unwrapping a ResourceNode
+   * to its `data` property, or returning the value as-is otherwise.
+   */
+  valData(val: any): any;
+
+  /**
+   * Returns the converted data value, unwrapping and converting a ResourceNode
+   * (e.g. a Quantity node to an FP_Quantity), or returning the value as-is.
+   */
+  valDataConverted(val: any): any;
+
+  /**
+   * Throws if the evaluation context does not allow asynchronous functions.
+   * Call this from a custom function before returning a Promise.
+   */
+  checkAllowAsync(ctx: any, fnName: string): void;
+
+  /** Other internal utility helpers (loosely typed). */
+  [key: string]: any;
+}
+
+
+/**
+ * Utility functions (e.g. valData, valDataConverted, checkAllowAsync) that can
+ * be used to implement custom user-defined FHIRPath functions.
+ */
+export const util: FhirPathUtil;
+
+
+/**
+ * An instance of the UCUM (Unified Code for Units of Measure) utilities
+ * library (`@lhncbc/ucum-lhc`), used internally for unit conversions and also
+ * exported for external use. Typed as `any` because the upstream library does
+ * not ship TypeScript declarations.
+ */
+export const ucumUtils: any;
+
+
 /**
  * Describes a FHIRPath expression that is relative to a base path in a
  * resource. Used when evaluating against a part of a resource rather than
  * the whole resource.
  */
-interface Path {
+export interface Path {
   /** The base path in the resource from which the data was extracted. */
   base: string;
   /** The FHIRPath expression relative to `base`. */
@@ -124,7 +172,7 @@ interface Path {
  * Provides type metadata, path definitions, and other model-specific information
  * needed for type-aware FHIRPath evaluation.
  */
-interface Model {
+export interface Model {
   /** Model version, e.g. 'r5', 'r4', 'stu3', or 'dstu2'. */
   version: 'r6' | 'r5' | 'r4' | 'stu3' | 'dstu2',
 
@@ -218,7 +266,7 @@ interface Model {
  * Represents a node in a FHIR resource tree, wrapping a data value together
  * with its path, type, and position metadata.
  */
-interface ResourceNode {
+export interface ResourceNode {
   /** The parent resource node, or null if this is a root node. */
   parentResNode: ResourceNode | null;
 
@@ -272,9 +320,10 @@ interface ResourceNode {
 
 
 /**
- * Options for controlling FHIRPath expression evaluation.
+ * Options for controlling FHIRPath expression evaluation. The `async` mode is
+ * added by `OptionVariants`, which is the type `evaluate` and `compile` accept.
  */
-interface Options {
+export interface Options {
   /**
    * Whether values of internal types should be converted to standard JavaScript
    * types. Defaults to true.
@@ -331,8 +380,11 @@ interface AlwaysAsyncOptions extends Options {
 }
 
 
-/** Union of all supported option variants. */
-type OptionVariants = NoAsyncOptions | AsyncOptions | AlwaysAsyncOptions;
+/**
+ * The full set of options accepted by `evaluate` and `compile`: the base
+ * `Options` plus the `async` mode (`false` | `true` | `'always'`).
+ */
+export type OptionVariants = NoAsyncOptions | AsyncOptions | AlwaysAsyncOptions;
 
 
 /**
@@ -362,7 +414,7 @@ type Context = void | Record<string, any>;
  * Describes a user-defined function entry in the user invocation table.
  * Allows replacing existing FHIRPath functions or defining new ones.
  */
-type UserInvocationTable = {
+export type UserInvocationTable = {
   [name: string]: {
     /** The function implementation. */
     fn: Function,

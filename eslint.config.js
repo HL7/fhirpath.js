@@ -12,7 +12,10 @@ module.exports = [
 
   {
     // Apply this configuration to source files and the converter module
-    files: ['src/**/*.js', 'src/parser/index.js', 'converter/**/*.js'],
+    files: [
+      'src/**/*.js', 'src/**/*.mjs', 'src/parser/index.js',
+      'converter/**/*.js', 'fhir-context/**/*.mjs'
+    ],
     languageOptions: {
       ecmaVersion: 2020,
       sourceType: 'module',

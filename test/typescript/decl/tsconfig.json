@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": false,
+    "types": [],
+    "lib": ["ES2020", "DOM"]
+  },
+  "files": ["entry.mts"]
+}
+
