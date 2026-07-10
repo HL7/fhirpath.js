@@ -30,15 +30,16 @@ Try it out on the [demo page](https://hl7.github.io/fhirpath.js/).
 npm install --save fhirpath
 ```
 
+The library ships both CommonJS and ES module entry points.
+
+For CommonJS:
 ```js
 const fhirpath = require('fhirpath');
 // For FHIR model data (choice type support) pull in the model file:
 const fhirpath_r4_model = require('fhirpath/fhir-context/r4');
 ```
 
-The library ships both CommonJS and ES module entry points, so ES module and
-TypeScript consumers can use `import` instead:
-
+For ESM:
 ```js
 import fhirpath from 'fhirpath';
 // Named exports are also available, e.g. `import { evaluate } from 'fhirpath'`.
