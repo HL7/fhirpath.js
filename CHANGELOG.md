@@ -3,8 +3,16 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [5.1.0] - 2026-07-09
+## [5.0.0] - 2026-07-13
 ### Added
+- Added support for FHIRPath Instance Selector/Object Creation syntax for
+  constructing FHIR instances, including nested objects, primitive values,
+  collection-valued elements, asynchronous element expressions, and validation
+  of element names against the active FHIR model.
+- Added the CLI `--no-resolveInternalTypes`/`-n` option for inspecting internal
+  `ResourceNode` and `FP_Type` results.
+- Added `path2Repeating` to FHIR model contexts for repeatability-aware object
+  construction.
 - ES module entry points so `fhirpath` and its `fhir-context/*` models load
   with `import` (default and named exports) as well as `require`; a
   `package.json` `exports` map, `module` field, and `.d.mts` declarations
@@ -30,17 +38,6 @@ This log documents significant changes for each release.  This project follows
   `OptionVariants`, `Path`, and `UserInvocationTable`, so consumers can import
   and reference these types by name (e.g.
   `import type { OptionVariants } from 'fhirpath'`).
-
-## [5.0.0] - 2026-06-18
-### Added
-- Added support for FHIRPath Instance Selector/Object Creation syntax for
-  constructing FHIR instances, including nested objects, primitive values,
-  collection-valued elements, asynchronous element expressions, and validation
-  of element names against the active FHIR model.
-- Added the CLI `--no-resolveInternalTypes`/`-n` option for inspecting internal
-  `ResourceNode` and `FP_Type` results.
-- Added `path2Repeating` to FHIR model contexts for repeatability-aware object
-  construction.
 
 ### Changed
 - Raw internal `ResourceNode` output now represents absent `_data` as `null` and
