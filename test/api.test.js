@@ -1,5 +1,6 @@
 const fhirpath = require('../src/fhirpath');
 const r4_model = require('../fhir-context/r4');
+const r5_model = require('../fhir-context/r5');
 const _ = require('lodash');
 const {
   FP_DateTime, FP_Quantity, FP_Decimal_Native, ResourceNode
@@ -188,6 +189,76 @@ describe('evaluate', () => {
     expect(r[0].fullPropertyName()).toBe('QuestionnaireResponse.item[1]');
   });
 
+  it('should preserve unresolved metadata-only primitive ResourceNodes', () => {
+    const patient = {
+      resourceType: 'Patient',
+      _birthDate: { id: 'bd1' },
+      name: [{
+        given: ['Ann'],
+        _given: [null, { id: 'g2' }]
+      }]
+    };
+
+    const birthDate = fhirpath.evaluate(
+      patient,
+      'Patient.birthDate',
+      null,
+      r4_model,
+      { resolveInternalTypes: false }
+    );
+
+    expect(birthDate).toHaveLength(1);
+    expect(birthDate[0]).toBeInstanceOf(ResourceNode);
+    expect(birthDate[0].data).toBeUndefined();
+    expect(birthDate[0]._data).toStrictEqual({ id: 'bd1' });
+    expect(birthDate[0].fullPropertyName()).toBe('Patient.birthDate');
+
+    const given = fhirpath.evaluate(
+      patient,
+      'Patient.name.given',
+      null,
+      r4_model,
+      { resolveInternalTypes: false }
+    );
+
+    expect(given).toHaveLength(2);
+    expect(given[1]).toBeInstanceOf(ResourceNode);
+    expect(given[1].data).toBeNull();
+    expect(given[1]._data).toStrictEqual({ id: 'g2' });
+    expect(given[1].fullPropertyName()).toBe('Patient.name[0].given[1]');
+  });
+
+  it('should preserve unresolved metadata-only integer64 ResourceNodes', () => {
+    const patient = {
+      resourceType: 'Patient',
+      extension: [{
+        url: 'http://example.org/fhir/StructureDefinition/integer64',
+        _valueInteger64: { id: 'v64' }
+      }]
+    };
+
+    const value = fhirpath.evaluate(
+      patient,
+      'Patient.extension.value',
+      null,
+      r5_model,
+      { resolveInternalTypes: false }
+    );
+
+    expect(value).toHaveLength(1);
+    expect(value[0]).toBeInstanceOf(ResourceNode);
+    expect(value[0].data).toBeNull();
+    expect(value[0]._data).toStrictEqual({ id: 'v64' });
+    expect(value[0].fullPropertyName()).toBe('Patient.extension[0].value');
+
+    expect(fhirpath.evaluate(
+      patient,
+      'Patient.extension.value',
+      null,
+      r5_model
+    )).toStrictEqual([]);
+  });
+
   it('should return [] for extension(url) when url is an empty string', () => {
     const resource = {
       resourceType: 'Patient',
@@ -285,6 +356,162 @@ describe('resolveInternalTypes', () => {
     expect(resolved[0]).toBe(3);
   });
 
+  it('should resolve BigInt values to strings', () => {
+    const raw = [
+      1n,
+      { value: 9007199254740993n }
+    ];
+
+    const resolved = fhirpath.resolveInternalTypes(raw);
+
+    expect(resolved).not.toBe(raw);
+    expect(resolved[1]).not.toBe(raw[1]);
+    expect(resolved).toStrictEqual([
+      '1',
+      { value: '9007199254740993' }
+    ]);
+    expect(raw[0]).toBe(1n);
+    expect(raw[1].value).toBe(9007199254740993n);
+  });
+
+  it('should preserve direct nullish scalar values while resolving internal types', () => {
+    expect(fhirpath.resolveInternalTypes(null)).toBeNull();
+    expect(fhirpath.resolveInternalTypes(undefined)).toBeUndefined();
+  });
+
+  it('should compact nullish array entries while resolving internal types', () => {
+    const nested = {
+      a: null,
+      b: new FP_DateTime(null, '2020-02-18T12:23:45-05:00')
+    };
+    const raw = [
+      null,
+      'x',
+      undefined,
+      nested
+    ];
+
+    const resolved = fhirpath.resolveInternalTypes(raw);
+
+    expect(resolved).not.toBe(raw);
+    expect(resolved[1]).not.toBe(nested);
+    expect(resolved).toStrictEqual([
+      'x',
+      {
+        a: null,
+        b: '2020-02-18T12:23:45-05:00'
+      }
+    ]);
+    expect(raw).toHaveLength(4);
+    expect(raw[0]).toBeNull();
+    expect(raw[2]).toBeUndefined();
+    expect(raw[3]).toBe(nested);
+    expect(raw[3].b).toBeInstanceOf(FP_DateTime);
+  });
+
+  it('should preserve null placeholders in nested primitive arrays', () => {
+    const patient = {
+      resourceType: 'Patient',
+      name: [{
+        // The second "given" has no value, only sibling "_"-metadata; the null
+        // placeholder keeps "given" index-aligned with "_given".
+        given: ['John', null],
+        _given: [null, { id: 'ext-2' }]
+      }]
+    };
+
+    const raw = fhirpath.evaluate(
+      patient,
+      'Patient.name',
+      null,
+      r4_model,
+      { resolveInternalTypes: false }
+    );
+    const resolved = fhirpath.resolveInternalTypes(raw);
+
+    // Nested value/"_"-metadata arrays must stay aligned (the null placeholder
+    // is not stripped from arrays nested inside a resolved object).
+    expect(resolved).toStrictEqual([{
+      given: ['John', null],
+      _given: [null, { id: 'ext-2' }]
+    }]);
+    // The manually resolved output matches the default resolved output.
+    expect(JSON.stringify(resolved)).toBe(JSON.stringify(
+      fhirpath.evaluate(patient, 'Patient.name', null, r4_model)
+    ));
+  });
+
+  it('should return dense arrays without custom array properties', () => {
+    const raw = [];
+    raw[1] = 'x';
+    raw[3] = new FP_DateTime(null, '2020-02-18');
+    raw.custom = 'ignored';
+    Object.defineProperty(raw, '__path__', {
+      value: { path: 'Patient.name.given' }
+    });
+
+    const resolved = fhirpath.resolveInternalTypes(raw);
+
+    expect(resolved).not.toBe(raw);
+    expect(resolved).toStrictEqual(['x', '2020-02-18']);
+    expect(resolved).toHaveLength(2);
+    expect(resolved.custom).toBeUndefined();
+    expect(resolved.__path__).toBe(raw.__path__);
+    expect(raw).toHaveLength(4);
+    expect(0 in raw).toBe(false);
+    expect(raw.custom).toBe('ignored');
+  });
+
+  it('should drop metadata-only primitive ResourceNodes while resolving raw arrays', () => {
+    const patient = {
+      resourceType: 'Patient',
+      _birthDate: { id: 'bd1' },
+      name: [{
+        given: ['Ann'],
+        _given: [null, { id: 'g2' }]
+      }]
+    };
+    const birthDateRaw = fhirpath.evaluate(
+      patient,
+      'Patient.birthDate',
+      null,
+      r4_model,
+      { resolveInternalTypes: false }
+    );
+    const givenRaw = fhirpath.evaluate(
+      patient,
+      'Patient.name.given',
+      null,
+      r4_model,
+      { resolveInternalTypes: false }
+    );
+
+    const birthDateResolved = fhirpath.resolveInternalTypes(birthDateRaw);
+    expect(birthDateResolved).not.toBe(birthDateRaw);
+    expect(birthDateResolved).toStrictEqual([]);
+    expect(birthDateRaw).toHaveLength(1);
+    expect(birthDateRaw[0]).toBeInstanceOf(ResourceNode);
+    expect(fhirpath.evaluate(
+      patient,
+      'Patient.birthDate',
+      null,
+      r4_model
+    )).toStrictEqual([]);
+
+    const givenResolved = fhirpath.resolveInternalTypes(givenRaw);
+    expect(givenResolved).not.toBe(givenRaw);
+    expect(givenResolved).toStrictEqual(['Ann']);
+    expect(givenRaw).toHaveLength(2);
+    expect(givenRaw[0]).toBeInstanceOf(ResourceNode);
+    expect(givenRaw[1]).toBeInstanceOf(ResourceNode);
+    expect(fhirpath.evaluate(
+      patient,
+      'Patient.name.given',
+      null,
+      r4_model
+    )).toStrictEqual(['Ann']);
+  });
+
   it('should resolve ResourceNode values returned by evaluate when options.resolveInternalTypes is false', () => {
     const raw = fhirpath.evaluate(
       input.quantityExample,
@@ -296,27 +523,138 @@ describe('resolveInternalTypes', () => {
     expect(raw[0]).toBeInstanceOf(ResourceNode);
 
     const resolved = fhirpath.resolveInternalTypes(raw);
+    expect(resolved).not.toBe(raw);
+    expect(raw[0]).toBeInstanceOf(ResourceNode);
+    expect(resolved[0]).not.toBe(raw[0].data);
     expect(resolved[0]).not.toBeInstanceOf(ResourceNode);
     expect(resolved[0].linkId).toBe('2');
     expect(resolved[0].__path__.path).toBe('QuestionnaireResponse.item');
   });
 
-  it('should handle null values while resolving internal types', () => {
-    expect(
-      fhirpath.resolveInternalTypes([
-        null,
-        {
-          a: null,
-          b: new FP_DateTime(null, '2020-02-18T12:23:45-05:00')
-        }
-      ])
-    ).toStrictEqual([
+  it('should copy objects while resolving internal types', () => {
+    const raw = {
+      a: null,
+      b: new FP_DateTime(null, '2020-02-18T12:23:45-05:00')
+    };
+    Object.defineProperty(raw, '__path__', {
+      value: { path: 'Patient.birthDate' }
+    });
+
+    const resolved = fhirpath.resolveInternalTypes(raw);
+
+    expect(resolved).not.toBe(raw);
+    expect(resolved.__path__).toBe(raw.__path__);
+    expect(resolved).toStrictEqual({
+      a: null,
+      b: '2020-02-18T12:23:45-05:00'
+    });
+    expect(raw).toStrictEqual({
+      a: null,
+      b: raw.b
+    });
+    expect(raw.b).toBeInstanceOf(FP_DateTime);
+  });
+
+  it('should drop an own __proto__ key while resolving internal types', () => {
+    // JSON.parse creates an own enumerable "__proto__" data property (unlike
+    // an object literal, whose "__proto__" would invoke the prototype setter).
+    const raw = JSON.parse('{"a": 1, "__proto__": {"polluted": true}}');
+    raw.b = new FP_DateTime(null, '2020-02-18');
+
+    const resolved = fhirpath.resolveInternalTypes(raw);
+
+    // The "__proto__" key is dropped rather than re-pointing the copy's
+    // prototype, so the output stays a plain object with an unchanged
+    // prototype and no injected members.
+    expect(resolved).not.toBe(raw);
+    expect(Object.getPrototypeOf(resolved)).toBe(Object.prototype);
+    const hasOwnProto =
+      Object.prototype.hasOwnProperty.call(resolved, '__proto__');
+    expect(hasOwnProto).toBe(false);
+    expect(resolved.polluted).toBeUndefined();
+    expect(resolved).toStrictEqual({ a: 1, b: '2020-02-18' });
+    // No global prototype pollution.
+    expect({}.polluted).toBeUndefined();
+  });
+
+  it('should let ResourceNode path metadata override wrapped data metadata', () => {
+    const wrapped = { value: 'x' };
+    Object.defineProperty(wrapped, '__path__', {
+      value: { path: 'Original.path' }
+    });
+    const node = new ResourceNode(
+      { getDecimal: FP_Decimal_Native.getDecimal, model: null },
+      wrapped,
       null,
-      {
-        a: null,
-        b: '2020-02-18T12:23:45-05:00'
+      'Wrapper.path',
+      null,
+      'WrapperType'
+    );
+
+    const resolved = fhirpath.resolveInternalTypes(node);
+
+    expect(resolved).not.toBe(wrapped);
+    expect(resolved).toStrictEqual({ value: 'x' });
+    expect(resolved.__path__.path).toBe('Wrapper.path');
+    expect(wrapped.__path__.path).toBe('Original.path');
+  });
+
+  it('should not attach path metadata to non-plain object instances', () => {
+    class CustomValue {
+      constructor() {
+        this.value = new FP_DateTime(null, '2020-02-18');
       }
-    ]);
+    }
+    const wrapped = new CustomValue();
+    const node = new ResourceNode(
+      { getDecimal: FP_Decimal_Native.getDecimal, model: null },
+      wrapped,
+      null,
+      'Wrapper.path',
+      null,
+      'WrapperType'
+    );
+
+    const resolved = fhirpath.resolveInternalTypes(node);
+
+    expect(resolved).toBe(wrapped);
+    expect(resolved.__path__).toBeUndefined();
+    expect(resolved.value).toBeInstanceOf(FP_DateTime);
+  });
+
+  it('should not attach path metadata to nested objects inside a top-level item', () => {
+    const nested = { value: new FP_DateTime(null, '2020-02-18') };
+    Object.defineProperty(nested, '__path__', {
+      value: { path: 'Nested.path' }
+    });
+    const raw = { nested };
+    Object.defineProperty(raw, '__path__', {
+      value: { path: 'Top.path' }
+    });
+
+    const resolved = fhirpath.resolveInternalTypes(raw);
+
+    expect(resolved).not.toBe(raw);
+    expect(resolved.__path__.path).toBe('Top.path');
+    expect(resolved.nested).not.toBe(nested);
+    expect(resolved.nested.__path__).toBeUndefined();
+    expect(resolved.nested).toStrictEqual({ value: '2020-02-18' });
+    expect(nested.__path__.path).toBe('Nested.path');
+  });
+
+  it('should not attach path metadata to nested arrays inside a top-level item', () => {
+    const nestedArray = [new FP_DateTime(null, '2020-02-18')];
+    Object.defineProperty(nestedArray, '__path__', {
+      value: { path: 'Nested.array' }
+    });
+    const raw = [{ items: nestedArray }];
+
+    const resolved = fhirpath.resolveInternalTypes(raw);
+
+    expect(resolved[0].__path__).toBeUndefined();
+    expect(resolved[0].items).not.toBe(nestedArray);
+    expect(resolved[0].items.__path__).toBeUndefined();
+    expect(resolved[0].items).toStrictEqual(['2020-02-18']);
   });
 });
 

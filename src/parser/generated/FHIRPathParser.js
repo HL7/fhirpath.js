@@ -4,120 +4,137 @@ const antlr4 = require('../antlr4-index');
 const FHIRPathListener = require('./FHIRPathListener');
 
 const serializedATN = ["\u0003\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786",
-    "\u5964\u0003H\u00b3\u0004\u0002\t\u0002\u0004\u0003\t\u0003\u0004\u0004",
+    "\u5964\u0003I\u00cb\u0004\u0002\t\u0002\u0004\u0003\t\u0003\u0004\u0004",
     "\t\u0004\u0004\u0005\t\u0005\u0004\u0006\t\u0006\u0004\u0007\t\u0007",
     "\u0004\b\t\b\u0004\t\t\t\u0004\n\t\n\u0004\u000b\t\u000b\u0004\f\t\f",
     "\u0004\r\t\r\u0004\u000e\t\u000e\u0004\u000f\t\u000f\u0004\u0010\t\u0010",
-    "\u0004\u0011\t\u0011\u0003\u0002\u0003\u0002\u0003\u0002\u0003\u0003",
-    "\u0003\u0003\u0003\u0003\u0003\u0003\u0005\u0003*\n\u0003\u0003\u0003",
+    "\u0004\u0011\t\u0011\u0004\u0012\t\u0012\u0004\u0013\t\u0013\u0003\u0002",
+    "\u0003\u0002\u0003\u0002\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003",
+    "\u0005\u0003.\n\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003",
     "\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003",
     "\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003",
     "\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003",
     "\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003",
     "\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003",
-    "\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003",
-    "\u0003\u0003\u0007\u0003R\n\u0003\f\u0003\u000e\u0003U\u000b\u0003\u0003",
-    "\u0004\u0003\u0004\u0003\u0004\u0003\u0004\u0003\u0004\u0003\u0004\u0003",
-    "\u0004\u0005\u0004^\n\u0004\u0003\u0005\u0003\u0005\u0003\u0005\u0003",
-    "\u0005\u0003\u0005\u0003\u0005\u0003\u0005\u0003\u0005\u0003\u0005\u0003",
-    "\u0005\u0005\u0005j\n\u0005\u0003\u0006\u0003\u0006\u0003\u0006\u0005",
-    "\u0006o\n\u0006\u0003\u0007\u0003\u0007\u0003\u0007\u0003\u0007\u0003",
-    "\u0007\u0005\u0007v\n\u0007\u0003\b\u0003\b\u0003\b\u0003\b\u0003\b",
-    "\u0007\b}\n\b\f\b\u000e\b\u0080\u000b\b\u0005\b\u0082\n\b\u0003\b\u0003",
-    "\b\u0003\b\u0003\b\u0005\b\u0088\n\b\u0003\b\u0003\b\u0005\b\u008c\n",
-    "\b\u0003\t\u0003\t\u0005\t\u0090\n\t\u0003\n\u0003\n\u0003\n\u0007\n",
-    "\u0095\n\n\f\n\u000e\n\u0098\u000b\n\u0003\u000b\u0003\u000b\u0005\u000b",
-    "\u009c\n\u000b\u0003\f\u0003\f\u0003\f\u0005\f\u00a1\n\f\u0003\r\u0003",
-    "\r\u0003\u000e\u0003\u000e\u0003\u000f\u0003\u000f\u0003\u0010\u0003",
-    "\u0010\u0003\u0010\u0007\u0010\u00ac\n\u0010\f\u0010\u000e\u0010\u00af",
-    "\u000b\u0010\u0003\u0011\u0003\u0011\u0003\u0011\u0002\u0003\u0004\u0012",
+    "\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0007\u0003V\n\u0003",
+    "\f\u0003\u000e\u0003Y\u000b\u0003\u0003\u0004\u0003\u0004\u0003\u0004",
+    "\u0003\u0004\u0003\u0004\u0003\u0004\u0003\u0004\u0003\u0004\u0005\u0004",
+    "c\n\u0004\u0003\u0005\u0003\u0005\u0003\u0005\u0003\u0005\u0003\u0005",
+    "\u0003\u0005\u0003\u0005\u0003\u0005\u0003\u0005\u0003\u0005\u0005\u0005",
+    "o\n\u0005\u0003\u0006\u0003\u0006\u0003\u0006\u0005\u0006t\n\u0006\u0003",
+    "\u0007\u0003\u0007\u0003\u0007\u0003\u0007\u0003\u0007\u0005\u0007{",
+    "\n\u0007\u0003\b\u0003\b\u0003\b\u0003\b\u0003\b\u0007\b\u0082\n\b\f",
+    "\b\u000e\b\u0085\u000b\b\u0005\b\u0087\n\b\u0003\b\u0003\b\u0003\b\u0003",
+    "\b\u0005\b\u008d\n\b\u0003\b\u0003\b\u0005\b\u0091\n\b\u0003\t\u0003",
+    "\t\u0005\t\u0095\n\t\u0003\n\u0003\n\u0003\n\u0007\n\u009a\n\n\f\n\u000e",
+    "\n\u009d\u000b\n\u0003\u000b\u0003\u000b\u0003\u000b\u0003\u000b\u0003",
+    "\u000b\u0003\u000b\u0007\u000b\u00a5\n\u000b\f\u000b\u000e\u000b\u00a8",
+    "\u000b\u000b\u0005\u000b\u00aa\n\u000b\u0003\u000b\u0003\u000b\u0003",
+    "\f\u0003\f\u0003\f\u0003\f\u0003\r\u0003\r\u0005\r\u00b4\n\r\u0003\u000e",
+    "\u0003\u000e\u0003\u000e\u0005\u000e\u00b9\n\u000e\u0003\u000f\u0003",
+    "\u000f\u0003\u0010\u0003\u0010\u0003\u0011\u0003\u0011\u0003\u0012\u0003",
+    "\u0012\u0003\u0012\u0007\u0012\u00c4\n\u0012\f\u0012\u000e\u0012\u00c7",
+    "\u000b\u0012\u0003\u0013\u0003\u0013\u0003\u0013\u0002\u0003\u0004\u0014",
     "\u0002\u0004\u0006\b\n\f\u000e\u0010\u0012\u0014\u0016\u0018\u001a\u001c",
-    "\u001e \u0002\u0011\u0003\u0002\u0006\u0007\u0003\u0002\b\u000b\u0004",
+    "\u001e \"$\u0002\u0011\u0003\u0002\u0006\u0007\u0003\u0002\b\u000b\u0004",
     "\u0002\u0006\u0007\f\f\u0003\u0002\u0010\u0013\u0003\u0002\u0014\u0017",
     "\u0003\u0002\u0018\u0019\u0003\u0002\u001b\u001c\u0003\u0002\r\u000e",
-    "\u0003\u0002\"#\u0003\u0002CD\u0003\u0002()\u0003\u0002+,\u0003\u0002",
-    "-4\u0003\u00025<\u0007\u0002\r\u000e\u0018\u0019((+,@A\u0002\u00c9\u0002",
-    "\"\u0003\u0002\u0002\u0002\u0004)\u0003\u0002\u0002\u0002\u0006]\u0003",
-    "\u0002\u0002\u0002\bi\u0003\u0002\u0002\u0002\nk\u0003\u0002\u0002\u0002",
-    "\fu\u0003\u0002\u0002\u0002\u000e\u008b\u0003\u0002\u0002\u0002\u0010",
-    "\u008d\u0003\u0002\u0002\u0002\u0012\u0091\u0003\u0002\u0002\u0002\u0014",
-    "\u0099\u0003\u0002\u0002\u0002\u0016\u00a0\u0003\u0002\u0002\u0002\u0018",
-    "\u00a2\u0003\u0002\u0002\u0002\u001a\u00a4\u0003\u0002\u0002\u0002\u001c",
-    "\u00a6\u0003\u0002\u0002\u0002\u001e\u00a8\u0003\u0002\u0002\u0002 ",
-    "\u00b0\u0003\u0002\u0002\u0002\"#\u0005\u0004\u0003\u0002#$\u0007\u0002",
-    "\u0002\u0003$\u0003\u0003\u0002\u0002\u0002%&\b\u0003\u0001\u0002&*",
-    "\u0005\u0006\u0004\u0002\'(\t\u0002\u0002\u0002(*\u0005\u0004\u0003",
-    "\r)%\u0003\u0002\u0002\u0002)\'\u0003\u0002\u0002\u0002*S\u0003\u0002",
-    "\u0002\u0002+,\f\f\u0002\u0002,-\t\u0003\u0002\u0002-R\u0005\u0004\u0003",
-    "\r./\f\u000b\u0002\u0002/0\t\u0004\u0002\u00020R\u0005\u0004\u0003\f",
-    "12\f\t\u0002\u000223\u0007\u000f\u0002\u00023R\u0005\u0004\u0003\n4",
-    "5\f\b\u0002\u000256\t\u0005\u0002\u00026R\u0005\u0004\u0003\t78\f\u0007",
-    "\u0002\u000289\t\u0006\u0002\u00029R\u0005\u0004\u0003\b:;\f\u0006\u0002",
-    "\u0002;<\t\u0007\u0002\u0002<R\u0005\u0004\u0003\u0007=>\f\u0005\u0002",
-    "\u0002>?\u0007\u001a\u0002\u0002?R\u0005\u0004\u0003\u0006@A\f\u0004",
-    "\u0002\u0002AB\t\b\u0002\u0002BR\u0005\u0004\u0003\u0005CD\f\u0003\u0002",
-    "\u0002DE\u0007\u001d\u0002\u0002ER\u0005\u0004\u0003\u0004FG\f\u000f",
-    "\u0002\u0002GH\u0007\u0003\u0002\u0002HR\u0005\f\u0007\u0002IJ\f\u000e",
-    "\u0002\u0002JK\u0007\u0004\u0002\u0002KL\u0005\u0004\u0003\u0002LM\u0007",
-    "\u0005\u0002\u0002MR\u0003\u0002\u0002\u0002NO\f\n\u0002\u0002OP\t\t",
-    "\u0002\u0002PR\u0005\u001c\u000f\u0002Q+\u0003\u0002\u0002\u0002Q.\u0003",
-    "\u0002\u0002\u0002Q1\u0003\u0002\u0002\u0002Q4\u0003\u0002\u0002\u0002",
-    "Q7\u0003\u0002\u0002\u0002Q:\u0003\u0002\u0002\u0002Q=\u0003\u0002\u0002",
-    "\u0002Q@\u0003\u0002\u0002\u0002QC\u0003\u0002\u0002\u0002QF\u0003\u0002",
-    "\u0002\u0002QI\u0003\u0002\u0002\u0002QN\u0003\u0002\u0002\u0002RU\u0003",
-    "\u0002\u0002\u0002SQ\u0003\u0002\u0002\u0002ST\u0003\u0002\u0002\u0002",
-    "T\u0005\u0003\u0002\u0002\u0002US\u0003\u0002\u0002\u0002V^\u0005\f",
-    "\u0007\u0002W^\u0005\b\u0005\u0002X^\u0005\n\u0006\u0002YZ\u0007\u001e",
-    "\u0002\u0002Z[\u0005\u0004\u0003\u0002[\\\u0007\u001f\u0002\u0002\\",
-    "^\u0003\u0002\u0002\u0002]V\u0003\u0002\u0002\u0002]W\u0003\u0002\u0002",
-    "\u0002]X\u0003\u0002\u0002\u0002]Y\u0003\u0002\u0002\u0002^\u0007\u0003",
-    "\u0002\u0002\u0002_`\u0007 \u0002\u0002`j\u0007!\u0002\u0002aj\t\n\u0002",
-    "\u0002bj\u0007B\u0002\u0002cj\t\u000b\u0002\u0002dj\u0007E\u0002\u0002",
-    "ej\u0007=\u0002\u0002fj\u0007>\u0002\u0002gj\u0007?\u0002\u0002hj\u0005",
-    "\u0014\u000b\u0002i_\u0003\u0002\u0002\u0002ia\u0003\u0002\u0002\u0002",
-    "ib\u0003\u0002\u0002\u0002ic\u0003\u0002\u0002\u0002id\u0003\u0002\u0002",
-    "\u0002ie\u0003\u0002\u0002\u0002if\u0003\u0002\u0002\u0002ig\u0003\u0002",
-    "\u0002\u0002ih\u0003\u0002\u0002\u0002j\t\u0003\u0002\u0002\u0002kn",
-    "\u0007$\u0002\u0002lo\u0005 \u0011\u0002mo\u0007B\u0002\u0002nl\u0003",
-    "\u0002\u0002\u0002nm\u0003\u0002\u0002\u0002o\u000b\u0003\u0002\u0002",
-    "\u0002pv\u0005 \u0011\u0002qv\u0005\u000e\b\u0002rv\u0007%\u0002\u0002",
-    "sv\u0007&\u0002\u0002tv\u0007\'\u0002\u0002up\u0003\u0002\u0002\u0002",
-    "uq\u0003\u0002\u0002\u0002ur\u0003\u0002\u0002\u0002us\u0003\u0002\u0002",
-    "\u0002ut\u0003\u0002\u0002\u0002v\r\u0003\u0002\u0002\u0002wx\t\f\u0002",
-    "\u0002x\u0081\u0007\u001e\u0002\u0002y~\u0005\u0010\t\u0002z{\u0007",
-    "*\u0002\u0002{}\u0005\u0010\t\u0002|z\u0003\u0002\u0002\u0002}\u0080",
-    "\u0003\u0002\u0002\u0002~|\u0003\u0002\u0002\u0002~\u007f\u0003\u0002",
-    "\u0002\u0002\u007f\u0082\u0003\u0002\u0002\u0002\u0080~\u0003\u0002",
-    "\u0002\u0002\u0081y\u0003\u0002\u0002\u0002\u0081\u0082\u0003\u0002",
-    "\u0002\u0002\u0082\u0083\u0003\u0002\u0002\u0002\u0083\u008c\u0007\u001f",
-    "\u0002\u0002\u0084\u0085\u0005 \u0011\u0002\u0085\u0087\u0007\u001e",
-    "\u0002\u0002\u0086\u0088\u0005\u0012\n\u0002\u0087\u0086\u0003\u0002",
-    "\u0002\u0002\u0087\u0088\u0003\u0002\u0002\u0002\u0088\u0089\u0003\u0002",
-    "\u0002\u0002\u0089\u008a\u0007\u001f\u0002\u0002\u008a\u008c\u0003\u0002",
-    "\u0002\u0002\u008bw\u0003\u0002\u0002\u0002\u008b\u0084\u0003\u0002",
-    "\u0002\u0002\u008c\u000f\u0003\u0002\u0002\u0002\u008d\u008f\u0005\u0004",
-    "\u0003\u0002\u008e\u0090\t\r\u0002\u0002\u008f\u008e\u0003\u0002\u0002",
-    "\u0002\u008f\u0090\u0003\u0002\u0002\u0002\u0090\u0011\u0003\u0002\u0002",
-    "\u0002\u0091\u0096\u0005\u0004\u0003\u0002\u0092\u0093\u0007*\u0002",
-    "\u0002\u0093\u0095\u0005\u0004\u0003\u0002\u0094\u0092\u0003\u0002\u0002",
-    "\u0002\u0095\u0098\u0003\u0002\u0002\u0002\u0096\u0094\u0003\u0002\u0002",
-    "\u0002\u0096\u0097\u0003\u0002\u0002\u0002\u0097\u0013\u0003\u0002\u0002",
-    "\u0002\u0098\u0096\u0003\u0002\u0002\u0002\u0099\u009b\t\u000b\u0002",
-    "\u0002\u009a\u009c\u0005\u0016\f\u0002\u009b\u009a\u0003\u0002\u0002",
-    "\u0002\u009b\u009c\u0003\u0002\u0002\u0002\u009c\u0015\u0003\u0002\u0002",
-    "\u0002\u009d\u00a1\u0005\u0018\r\u0002\u009e\u00a1\u0005\u001a\u000e",
-    "\u0002\u009f\u00a1\u0007B\u0002\u0002\u00a0\u009d\u0003\u0002\u0002",
-    "\u0002\u00a0\u009e\u0003\u0002\u0002\u0002\u00a0\u009f\u0003\u0002\u0002",
-    "\u0002\u00a1\u0017\u0003\u0002\u0002\u0002\u00a2\u00a3\t\u000e\u0002",
-    "\u0002\u00a3\u0019\u0003\u0002\u0002\u0002\u00a4\u00a5\t\u000f\u0002",
-    "\u0002\u00a5\u001b\u0003\u0002\u0002\u0002\u00a6\u00a7\u0005\u001e\u0010",
-    "\u0002\u00a7\u001d\u0003\u0002\u0002\u0002\u00a8\u00ad\u0005 \u0011",
-    "\u0002\u00a9\u00aa\u0007\u0003\u0002\u0002\u00aa\u00ac\u0005 \u0011",
-    "\u0002\u00ab\u00a9\u0003\u0002\u0002\u0002\u00ac\u00af\u0003\u0002\u0002",
-    "\u0002\u00ad\u00ab\u0003\u0002\u0002\u0002\u00ad\u00ae\u0003\u0002\u0002",
-    "\u0002\u00ae\u001f\u0003\u0002\u0002\u0002\u00af\u00ad\u0003\u0002\u0002",
-    "\u0002\u00b0\u00b1\t\u0010\u0002\u0002\u00b1!\u0003\u0002\u0002\u0002",
-    "\u0012)QS]inu~\u0081\u0087\u008b\u008f\u0096\u009b\u00a0\u00ad"].join("");
+    "\u0003\u0002\"#\u0003\u0002DE\u0003\u0002()\u0003\u0002+,\u0003\u0002",
+    ".5\u0003\u00026=\u0007\u0002\r\u000e\u0018\u0019((+,AB\u0002\u00e2\u0002",
+    "&\u0003\u0002\u0002\u0002\u0004-\u0003\u0002\u0002\u0002\u0006b\u0003",
+    "\u0002\u0002\u0002\bn\u0003\u0002\u0002\u0002\np\u0003\u0002\u0002\u0002",
+    "\fz\u0003\u0002\u0002\u0002\u000e\u0090\u0003\u0002\u0002\u0002\u0010",
+    "\u0092\u0003\u0002\u0002\u0002\u0012\u0096\u0003\u0002\u0002\u0002\u0014",
+    "\u009e\u0003\u0002\u0002\u0002\u0016\u00ad\u0003\u0002\u0002\u0002\u0018",
+    "\u00b1\u0003\u0002\u0002\u0002\u001a\u00b8\u0003\u0002\u0002\u0002\u001c",
+    "\u00ba\u0003\u0002\u0002\u0002\u001e\u00bc\u0003\u0002\u0002\u0002 ",
+    "\u00be\u0003\u0002\u0002\u0002\"\u00c0\u0003\u0002\u0002\u0002$\u00c8",
+    "\u0003\u0002\u0002\u0002&\'\u0005\u0004\u0003\u0002\'(\u0007\u0002\u0002",
+    "\u0003(\u0003\u0003\u0002\u0002\u0002)*\b\u0003\u0001\u0002*.\u0005",
+    "\u0006\u0004\u0002+,\t\u0002\u0002\u0002,.\u0005\u0004\u0003\r-)\u0003",
+    "\u0002\u0002\u0002-+\u0003\u0002\u0002\u0002.W\u0003\u0002\u0002\u0002",
+    "/0\f\f\u0002\u000201\t\u0003\u0002\u00021V\u0005\u0004\u0003\r23\f\u000b",
+    "\u0002\u000234\t\u0004\u0002\u00024V\u0005\u0004\u0003\f56\f\t\u0002",
+    "\u000267\u0007\u000f\u0002\u00027V\u0005\u0004\u0003\n89\f\b\u0002\u0002",
+    "9:\t\u0005\u0002\u0002:V\u0005\u0004\u0003\t;<\f\u0007\u0002\u0002<",
+    "=\t\u0006\u0002\u0002=V\u0005\u0004\u0003\b>?\f\u0006\u0002\u0002?@",
+    "\t\u0007\u0002\u0002@V\u0005\u0004\u0003\u0007AB\f\u0005\u0002\u0002",
+    "BC\u0007\u001a\u0002\u0002CV\u0005\u0004\u0003\u0006DE\f\u0004\u0002",
+    "\u0002EF\t\b\u0002\u0002FV\u0005\u0004\u0003\u0005GH\f\u0003\u0002\u0002",
+    "HI\u0007\u001d\u0002\u0002IV\u0005\u0004\u0003\u0004JK\f\u000f\u0002",
+    "\u0002KL\u0007\u0003\u0002\u0002LV\u0005\f\u0007\u0002MN\f\u000e\u0002",
+    "\u0002NO\u0007\u0004\u0002\u0002OP\u0005\u0004\u0003\u0002PQ\u0007\u0005",
+    "\u0002\u0002QV\u0003\u0002\u0002\u0002RS\f\n\u0002\u0002ST\t\t\u0002",
+    "\u0002TV\u0005 \u0011\u0002U/\u0003\u0002\u0002\u0002U2\u0003\u0002",
+    "\u0002\u0002U5\u0003\u0002\u0002\u0002U8\u0003\u0002\u0002\u0002U;\u0003",
+    "\u0002\u0002\u0002U>\u0003\u0002\u0002\u0002UA\u0003\u0002\u0002\u0002",
+    "UD\u0003\u0002\u0002\u0002UG\u0003\u0002\u0002\u0002UJ\u0003\u0002\u0002",
+    "\u0002UM\u0003\u0002\u0002\u0002UR\u0003\u0002\u0002\u0002VY\u0003\u0002",
+    "\u0002\u0002WU\u0003\u0002\u0002\u0002WX\u0003\u0002\u0002\u0002X\u0005",
+    "\u0003\u0002\u0002\u0002YW\u0003\u0002\u0002\u0002Zc\u0005\f\u0007\u0002",
+    "[c\u0005\b\u0005\u0002\\c\u0005\n\u0006\u0002]^\u0007\u001e\u0002\u0002",
+    "^_\u0005\u0004\u0003\u0002_`\u0007\u001f\u0002\u0002`c\u0003\u0002\u0002",
+    "\u0002ac\u0005\u0014\u000b\u0002bZ\u0003\u0002\u0002\u0002b[\u0003\u0002",
+    "\u0002\u0002b\\\u0003\u0002\u0002\u0002b]\u0003\u0002\u0002\u0002ba",
+    "\u0003\u0002\u0002\u0002c\u0007\u0003\u0002\u0002\u0002de\u0007 \u0002",
+    "\u0002eo\u0007!\u0002\u0002fo\t\n\u0002\u0002go\u0007C\u0002\u0002h",
+    "o\t\u000b\u0002\u0002io\u0007F\u0002\u0002jo\u0007>\u0002\u0002ko\u0007",
+    "?\u0002\u0002lo\u0007@\u0002\u0002mo\u0005\u0018\r\u0002nd\u0003\u0002",
+    "\u0002\u0002nf\u0003\u0002\u0002\u0002ng\u0003\u0002\u0002\u0002nh\u0003",
+    "\u0002\u0002\u0002ni\u0003\u0002\u0002\u0002nj\u0003\u0002\u0002\u0002",
+    "nk\u0003\u0002\u0002\u0002nl\u0003\u0002\u0002\u0002nm\u0003\u0002\u0002",
+    "\u0002o\t\u0003\u0002\u0002\u0002ps\u0007$\u0002\u0002qt\u0005$\u0013",
+    "\u0002rt\u0007C\u0002\u0002sq\u0003\u0002\u0002\u0002sr\u0003\u0002",
+    "\u0002\u0002t\u000b\u0003\u0002\u0002\u0002u{\u0005$\u0013\u0002v{\u0005",
+    "\u000e\b\u0002w{\u0007%\u0002\u0002x{\u0007&\u0002\u0002y{\u0007\'\u0002",
+    "\u0002zu\u0003\u0002\u0002\u0002zv\u0003\u0002\u0002\u0002zw\u0003\u0002",
+    "\u0002\u0002zx\u0003\u0002\u0002\u0002zy\u0003\u0002\u0002\u0002{\r",
+    "\u0003\u0002\u0002\u0002|}\t\f\u0002\u0002}\u0086\u0007\u001e\u0002",
+    "\u0002~\u0083\u0005\u0010\t\u0002\u007f\u0080\u0007*\u0002\u0002\u0080",
+    "\u0082\u0005\u0010\t\u0002\u0081\u007f\u0003\u0002\u0002\u0002\u0082",
+    "\u0085\u0003\u0002\u0002\u0002\u0083\u0081\u0003\u0002\u0002\u0002\u0083",
+    "\u0084\u0003\u0002\u0002\u0002\u0084\u0087\u0003\u0002\u0002\u0002\u0085",
+    "\u0083\u0003\u0002\u0002\u0002\u0086~\u0003\u0002\u0002\u0002\u0086",
+    "\u0087\u0003\u0002\u0002\u0002\u0087\u0088\u0003\u0002\u0002\u0002\u0088",
+    "\u0091\u0007\u001f\u0002\u0002\u0089\u008a\u0005$\u0013\u0002\u008a",
+    "\u008c\u0007\u001e\u0002\u0002\u008b\u008d\u0005\u0012\n\u0002\u008c",
+    "\u008b\u0003\u0002\u0002\u0002\u008c\u008d\u0003\u0002\u0002\u0002\u008d",
+    "\u008e\u0003\u0002\u0002\u0002\u008e\u008f\u0007\u001f\u0002\u0002\u008f",
+    "\u0091\u0003\u0002\u0002\u0002\u0090|\u0003\u0002\u0002\u0002\u0090",
+    "\u0089\u0003\u0002\u0002\u0002\u0091\u000f\u0003\u0002\u0002\u0002\u0092",
+    "\u0094\u0005\u0004\u0003\u0002\u0093\u0095\t\r\u0002\u0002\u0094\u0093",
+    "\u0003\u0002\u0002\u0002\u0094\u0095\u0003\u0002\u0002\u0002\u0095\u0011",
+    "\u0003\u0002\u0002\u0002\u0096\u009b\u0005\u0004\u0003\u0002\u0097\u0098",
+    "\u0007*\u0002\u0002\u0098\u009a\u0005\u0004\u0003\u0002\u0099\u0097",
+    "\u0003\u0002\u0002\u0002\u009a\u009d\u0003\u0002\u0002\u0002\u009b\u0099",
+    "\u0003\u0002\u0002\u0002\u009b\u009c\u0003\u0002\u0002\u0002\u009c\u0013",
+    "\u0003\u0002\u0002\u0002\u009d\u009b\u0003\u0002\u0002\u0002\u009e\u009f",
+    "\u0005\"\u0012\u0002\u009f\u00a9\u0007 \u0002\u0002\u00a0\u00aa\u0007",
+    "-\u0002\u0002\u00a1\u00a6\u0005\u0016\f\u0002\u00a2\u00a3\u0007*\u0002",
+    "\u0002\u00a3\u00a5\u0005\u0016\f\u0002\u00a4\u00a2\u0003\u0002\u0002",
+    "\u0002\u00a5\u00a8\u0003\u0002\u0002\u0002\u00a6\u00a4\u0003\u0002\u0002",
+    "\u0002\u00a6\u00a7\u0003\u0002\u0002\u0002\u00a7\u00aa\u0003\u0002\u0002",
+    "\u0002\u00a8\u00a6\u0003\u0002\u0002\u0002\u00a9\u00a0\u0003\u0002\u0002",
+    "\u0002\u00a9\u00a1\u0003\u0002\u0002\u0002\u00aa\u00ab\u0003\u0002\u0002",
+    "\u0002\u00ab\u00ac\u0007!\u0002\u0002\u00ac\u0015\u0003\u0002\u0002",
+    "\u0002\u00ad\u00ae\u0005$\u0013\u0002\u00ae\u00af\u0007-\u0002\u0002",
+    "\u00af\u00b0\u0005\u0004\u0003\u0002\u00b0\u0017\u0003\u0002\u0002\u0002",
+    "\u00b1\u00b3\t\u000b\u0002\u0002\u00b2\u00b4\u0005\u001a\u000e\u0002",
+    "\u00b3\u00b2\u0003\u0002\u0002\u0002\u00b3\u00b4\u0003\u0002\u0002\u0002",
+    "\u00b4\u0019\u0003\u0002\u0002\u0002\u00b5\u00b9\u0005\u001c\u000f\u0002",
+    "\u00b6\u00b9\u0005\u001e\u0010\u0002\u00b7\u00b9\u0007C\u0002\u0002",
+    "\u00b8\u00b5\u0003\u0002\u0002\u0002\u00b8\u00b6\u0003\u0002\u0002\u0002",
+    "\u00b8\u00b7\u0003\u0002\u0002\u0002\u00b9\u001b\u0003\u0002\u0002\u0002",
+    "\u00ba\u00bb\t\u000e\u0002\u0002\u00bb\u001d\u0003\u0002\u0002\u0002",
+    "\u00bc\u00bd\t\u000f\u0002\u0002\u00bd\u001f\u0003\u0002\u0002\u0002",
+    "\u00be\u00bf\u0005\"\u0012\u0002\u00bf!\u0003\u0002\u0002\u0002\u00c0",
+    "\u00c5\u0005$\u0013\u0002\u00c1\u00c2\u0007\u0003\u0002\u0002\u00c2",
+    "\u00c4\u0005$\u0013\u0002\u00c3\u00c1\u0003\u0002\u0002\u0002\u00c4",
+    "\u00c7\u0003\u0002\u0002\u0002\u00c5\u00c3\u0003\u0002\u0002\u0002\u00c5",
+    "\u00c6\u0003\u0002\u0002\u0002\u00c6#\u0003\u0002\u0002\u0002\u00c7",
+    "\u00c5\u0003\u0002\u0002\u0002\u00c8\u00c9\t\u0010\u0002\u0002\u00c9",
+    "%\u0003\u0002\u0002\u0002\u0014-UWbnsz\u0083\u0086\u008c\u0090\u0094",
+    "\u009b\u00a6\u00a9\u00b3\u00b8\u00c5"].join("");
 
 
 const atn = new antlr4.atn.ATNDeserializer().deserialize(serializedATN);
@@ -136,11 +153,11 @@ class FHIRPathParser extends antlr4.Parser {
                             "'and'", "'or'", "'xor'", "'implies'", "'('", 
                             "')'", "'{'", "'}'", "'true'", "'false'", "'%'", 
                             "'$this'", "'$index'", "'$total'", "'sort'", 
-                            "'`sort`'", "','", "'asc'", "'desc'", "'year'", 
-                            "'month'", "'week'", "'day'", "'hour'", "'minute'", 
-                            "'second'", "'millisecond'", "'years'", "'months'", 
-                            "'weeks'", "'days'", "'hours'", "'minutes'", 
-                            "'seconds'", "'milliseconds'" ];
+                            "'`sort`'", "','", "'asc'", "'desc'", "':'", 
+                            "'year'", "'month'", "'week'", "'day'", "'hour'", 
+                            "'minute'", "'second'", "'millisecond'", "'years'", 
+                            "'months'", "'weeks'", "'days'", "'hours'", 
+                            "'minutes'", "'seconds'", "'milliseconds'" ];
     static symbolicNames = [ null, null, null, null, null, null, null, null, 
                              null, null, null, null, null, null, null, null, 
                              null, null, null, null, null, null, null, null, 
@@ -148,15 +165,15 @@ class FHIRPathParser extends antlr4.Parser {
                              null, null, null, null, null, null, null, null, 
                              null, null, null, null, null, null, null, null, 
                              null, null, null, null, null, null, null, null, 
-                             null, null, null, "DATE", "DATETIME", "TIME", 
-                             "IDENTIFIER", "DELIMITEDIDENTIFIER", "STRING", 
-                             "INTEGER", "DECIMAL", "LONGNUMBER", "WS", "COMMENT", 
-                             "LINE_COMMENT" ];
+                             null, null, null, null, "DATE", "DATETIME", 
+                             "TIME", "IDENTIFIER", "DELIMITEDIDENTIFIER", 
+                             "STRING", "INTEGER", "DECIMAL", "LONGNUMBER", 
+                             "WS", "COMMENT", "LINE_COMMENT" ];
     static ruleNames = [ "entireExpression", "expression", "term", "literal", 
                          "externalConstant", "invocation", "functn", "sortArgument", 
-                         "paramList", "quantity", "unit", "dateTimePrecision", 
-                         "pluralDateTimePrecision", "typeSpecifier", "qualifiedIdentifier", 
-                         "identifier" ];
+                         "paramList", "instanceSelector", "instanceElementSelector", 
+                         "quantity", "unit", "dateTimePrecision", "pluralDateTimePrecision", 
+                         "typeSpecifier", "qualifiedIdentifier", "identifier" ];
 
     constructor(input) {
         super(input);
@@ -218,9 +235,9 @@ class FHIRPathParser extends antlr4.Parser {
 	    this.enterRule(localctx, 0, FHIRPathParser.RULE_entireExpression);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 32;
+	        this.state = 36;
 	        this.expression(0);
-	        this.state = 33;
+	        this.state = 37;
 	        this.match(FHIRPathParser.EOF);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -250,7 +267,7 @@ class FHIRPathParser extends antlr4.Parser {
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 39;
+	        this.state = 43;
 	        this._errHandler.sync(this);
 	        switch(this._input.LA(1)) {
 	        case FHIRPathParser.T__10:
@@ -282,7 +299,7 @@ class FHIRPathParser extends antlr4.Parser {
 	            this._ctx = localctx;
 	            _prevctx = localctx;
 
-	            this.state = 36;
+	            this.state = 40;
 	            this.term();
 	            break;
 	        case FHIRPathParser.T__3:
@@ -290,7 +307,7 @@ class FHIRPathParser extends antlr4.Parser {
 	            localctx = new PolarityExpressionContext(this, localctx);
 	            this._ctx = localctx;
 	            _prevctx = localctx;
-	            this.state = 37;
+	            this.state = 41;
 	            _la = this._input.LA(1);
 	            if(!(_la===FHIRPathParser.T__3 || _la===FHIRPathParser.T__4)) {
 	            this._errHandler.recoverInline(this);
@@ -299,14 +316,14 @@ class FHIRPathParser extends antlr4.Parser {
 	            	this._errHandler.reportMatch(this);
 	                this.consume();
 	            }
-	            this.state = 38;
+	            this.state = 42;
 	            this.expression(11);
 	            break;
 	        default:
 	            throw new antlr4.error.NoViableAltException(this);
 	        }
 	        this._ctx.stop = this._input.LT(-1);
-	        this.state = 81;
+	        this.state = 85;
 	        this._errHandler.sync(this);
 	        var _alt = this._interp.adaptivePredict(this._input,2,this._ctx)
 	        while(_alt!=2 && _alt!=antlr4.atn.ATN.INVALID_ALT_NUMBER) {
@@ -315,18 +332,18 @@ class FHIRPathParser extends antlr4.Parser {
 	                    this.triggerExitRuleEvent();
 	                }
 	                _prevctx = localctx;
-	                this.state = 79;
+	                this.state = 83;
 	                this._errHandler.sync(this);
 	                var la_ = this._interp.adaptivePredict(this._input,1,this._ctx);
 	                switch(la_) {
 	                case 1:
 	                    localctx = new MultiplicativeExpressionContext(this, new ExpressionContext(this, _parentctx, _parentState));
 	                    this.pushNewRecursionContext(localctx, _startState, FHIRPathParser.RULE_expression);
-	                    this.state = 41;
+	                    this.state = 45;
 	                    if (!( this.precpred(this._ctx, 10))) {
 	                        throw new antlr4.error.FailedPredicateException(this, "this.precpred(this._ctx, 10)");
 	                    }
-	                    this.state = 42;
+	                    this.state = 46;
 	                    _la = this._input.LA(1);
 	                    if(!((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << FHIRPathParser.T__5) | (1 << FHIRPathParser.T__6) | (1 << FHIRPathParser.T__7) | (1 << FHIRPathParser.T__8))) !== 0))) {
 	                    this._errHandler.recoverInline(this);
@@ -335,18 +352,18 @@ class FHIRPathParser extends antlr4.Parser {
 	                    	this._errHandler.reportMatch(this);
 	                        this.consume();
 	                    }
-	                    this.state = 43;
+	                    this.state = 47;
 	                    this.expression(11);
 	                    break;
 
 	                case 2:
 	                    localctx = new AdditiveExpressionContext(this, new ExpressionContext(this, _parentctx, _parentState));
 	                    this.pushNewRecursionContext(localctx, _startState, FHIRPathParser.RULE_expression);
-	                    this.state = 44;
+	                    this.state = 48;
 	                    if (!( this.precpred(this._ctx, 9))) {
 	                        throw new antlr4.error.FailedPredicateException(this, "this.precpred(this._ctx, 9)");
 	                    }
-	                    this.state = 45;
+	                    this.state = 49;
 	                    _la = this._input.LA(1);
 	                    if(!((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << FHIRPathParser.T__3) | (1 << FHIRPathParser.T__4) | (1 << FHIRPathParser.T__9))) !== 0))) {
 	                    this._errHandler.recoverInline(this);
@@ -355,31 +372,31 @@ class FHIRPathParser extends antlr4.Parser {
 	                    	this._errHandler.reportMatch(this);
 	                        this.consume();
 	                    }
-	                    this.state = 46;
+	                    this.state = 50;
 	                    this.expression(10);
 	                    break;
 
 	                case 3:
 	                    localctx = new UnionExpressionContext(this, new ExpressionContext(this, _parentctx, _parentState));
 	                    this.pushNewRecursionContext(localctx, _startState, FHIRPathParser.RULE_expression);
-	                    this.state = 47;
+	                    this.state = 51;
 	                    if (!( this.precpred(this._ctx, 7))) {
 	                        throw new antlr4.error.FailedPredicateException(this, "this.precpred(this._ctx, 7)");
 	                    }
-	                    this.state = 48;
+	                    this.state = 52;
 	                    this.match(FHIRPathParser.T__12);
-	                    this.state = 49;
+	                    this.state = 53;
 	                    this.expression(8);
 	                    break;
 
 	                case 4:
 	                    localctx = new InequalityExpressionContext(this, new ExpressionContext(this, _parentctx, _parentState));
 	                    this.pushNewRecursionContext(localctx, _startState, FHIRPathParser.RULE_expression);
-	                    this.state = 50;
+	                    this.state = 54;
 	                    if (!( this.precpred(this._ctx, 6))) {
 	                        throw new antlr4.error.FailedPredicateException(this, "this.precpred(this._ctx, 6)");
 	                    }
-	                    this.state = 51;
+	                    this.state = 55;
 	                    _la = this._input.LA(1);
 	                    if(!((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << FHIRPathParser.T__13) | (1 << FHIRPathParser.T__14) | (1 << FHIRPathParser.T__15) | (1 << FHIRPathParser.T__16))) !== 0))) {
 	                    this._errHandler.recoverInline(this);
@@ -388,18 +405,18 @@ class FHIRPathParser extends antlr4.Parser {
 	                    	this._errHandler.reportMatch(this);
 	                        this.consume();
 	                    }
-	                    this.state = 52;
+	                    this.state = 56;
 	                    this.expression(7);
 	                    break;
 
 	                case 5:
 	                    localctx = new EqualityExpressionContext(this, new ExpressionContext(this, _parentctx, _parentState));
 	                    this.pushNewRecursionContext(localctx, _startState, FHIRPathParser.RULE_expression);
-	                    this.state = 53;
+	                    this.state = 57;
 	                    if (!( this.precpred(this._ctx, 5))) {
 	                        throw new antlr4.error.FailedPredicateException(this, "this.precpred(this._ctx, 5)");
 	                    }
-	                    this.state = 54;
+	                    this.state = 58;
 	                    _la = this._input.LA(1);
 	                    if(!((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << FHIRPathParser.T__17) | (1 << FHIRPathParser.T__18) | (1 << FHIRPathParser.T__19) | (1 << FHIRPathParser.T__20))) !== 0))) {
 	                    this._errHandler.recoverInline(this);
@@ -408,18 +425,18 @@ class FHIRPathParser extends antlr4.Parser {
 	                    	this._errHandler.reportMatch(this);
 	                        this.consume();
 	                    }
-	                    this.state = 55;
+	                    this.state = 59;
 	                    this.expression(6);
 	                    break;
 
 	                case 6:
 	                    localctx = new MembershipExpressionContext(this, new ExpressionContext(this, _parentctx, _parentState));
 	                    this.pushNewRecursionContext(localctx, _startState, FHIRPathParser.RULE_expression);
-	                    this.state = 56;
+	                    this.state = 60;
 	                    if (!( this.precpred(this._ctx, 4))) {
 	                        throw new antlr4.error.FailedPredicateException(this, "this.precpred(this._ctx, 4)");
 	                    }
-	                    this.state = 57;
+	                    this.state = 61;
 	                    _la = this._input.LA(1);
 	                    if(!(_la===FHIRPathParser.T__21 || _la===FHIRPathParser.T__22)) {
 	                    this._errHandler.recoverInline(this);
@@ -428,31 +445,31 @@ class FHIRPathParser extends antlr4.Parser {
 	                    	this._errHandler.reportMatch(this);
 	                        this.consume();
 	                    }
-	                    this.state = 58;
+	                    this.state = 62;
 	                    this.expression(5);
 	                    break;
 
 	                case 7:
 	                    localctx = new AndExpressionContext(this, new ExpressionContext(this, _parentctx, _parentState));
 	                    this.pushNewRecursionContext(localctx, _startState, FHIRPathParser.RULE_expression);
-	                    this.state = 59;
+	                    this.state = 63;
 	                    if (!( this.precpred(this._ctx, 3))) {
 	                        throw new antlr4.error.FailedPredicateException(this, "this.precpred(this._ctx, 3)");
 	                    }
-	                    this.state = 60;
+	                    this.state = 64;
 	                    this.match(FHIRPathParser.T__23);
-	                    this.state = 61;
+	                    this.state = 65;
 	                    this.expression(4);
 	                    break;
 
 	                case 8:
 	                    localctx = new OrExpressionContext(this, new ExpressionContext(this, _parentctx, _parentState));
 	                    this.pushNewRecursionContext(localctx, _startState, FHIRPathParser.RULE_expression);
-	                    this.state = 62;
+	                    this.state = 66;
 	                    if (!( this.precpred(this._ctx, 2))) {
 	                        throw new antlr4.error.FailedPredicateException(this, "this.precpred(this._ctx, 2)");
 	                    }
-	                    this.state = 63;
+	                    this.state = 67;
 	                    _la = this._input.LA(1);
 	                    if(!(_la===FHIRPathParser.T__24 || _la===FHIRPathParser.T__25)) {
 	                    this._errHandler.recoverInline(this);
@@ -461,59 +478,59 @@ class FHIRPathParser extends antlr4.Parser {
 	                    	this._errHandler.reportMatch(this);
 	                        this.consume();
 	                    }
-	                    this.state = 64;
+	                    this.state = 68;
 	                    this.expression(3);
 	                    break;
 
 	                case 9:
 	                    localctx = new ImpliesExpressionContext(this, new ExpressionContext(this, _parentctx, _parentState));
 	                    this.pushNewRecursionContext(localctx, _startState, FHIRPathParser.RULE_expression);
-	                    this.state = 65;
+	                    this.state = 69;
 	                    if (!( this.precpred(this._ctx, 1))) {
 	                        throw new antlr4.error.FailedPredicateException(this, "this.precpred(this._ctx, 1)");
 	                    }
-	                    this.state = 66;
+	                    this.state = 70;
 	                    this.match(FHIRPathParser.T__26);
-	                    this.state = 67;
+	                    this.state = 71;
 	                    this.expression(2);
 	                    break;
 
 	                case 10:
 	                    localctx = new InvocationExpressionContext(this, new ExpressionContext(this, _parentctx, _parentState));
 	                    this.pushNewRecursionContext(localctx, _startState, FHIRPathParser.RULE_expression);
-	                    this.state = 68;
+	                    this.state = 72;
 	                    if (!( this.precpred(this._ctx, 13))) {
 	                        throw new antlr4.error.FailedPredicateException(this, "this.precpred(this._ctx, 13)");
 	                    }
-	                    this.state = 69;
+	                    this.state = 73;
 	                    this.match(FHIRPathParser.T__0);
-	                    this.state = 70;
+	                    this.state = 74;
 	                    this.invocation();
 	                    break;
 
 	                case 11:
 	                    localctx = new IndexerExpressionContext(this, new ExpressionContext(this, _parentctx, _parentState));
 	                    this.pushNewRecursionContext(localctx, _startState, FHIRPathParser.RULE_expression);
-	                    this.state = 71;
+	                    this.state = 75;
 	                    if (!( this.precpred(this._ctx, 12))) {
 	                        throw new antlr4.error.FailedPredicateException(this, "this.precpred(this._ctx, 12)");
 	                    }
-	                    this.state = 72;
+	                    this.state = 76;
 	                    this.match(FHIRPathParser.T__1);
-	                    this.state = 73;
+	                    this.state = 77;
 	                    this.expression(0);
-	                    this.state = 74;
+	                    this.state = 78;
 	                    this.match(FHIRPathParser.T__2);
 	                    break;
 
 	                case 12:
 	                    localctx = new TypeExpressionContext(this, new ExpressionContext(this, _parentctx, _parentState));
 	                    this.pushNewRecursionContext(localctx, _startState, FHIRPathParser.RULE_expression);
-	                    this.state = 76;
+	                    this.state = 80;
 	                    if (!( this.precpred(this._ctx, 8))) {
 	                        throw new antlr4.error.FailedPredicateException(this, "this.precpred(this._ctx, 8)");
 	                    }
-	                    this.state = 77;
+	                    this.state = 81;
 	                    _la = this._input.LA(1);
 	                    if(!(_la===FHIRPathParser.T__10 || _la===FHIRPathParser.T__11)) {
 	                    this._errHandler.recoverInline(this);
@@ -522,13 +539,13 @@ class FHIRPathParser extends antlr4.Parser {
 	                    	this._errHandler.reportMatch(this);
 	                        this.consume();
 	                    }
-	                    this.state = 78;
+	                    this.state = 82;
 	                    this.typeSpecifier();
 	                    break;
 
 	                } 
 	            }
-	            this.state = 83;
+	            this.state = 87;
 	            this._errHandler.sync(this);
 	            _alt = this._interp.adaptivePredict(this._input,2,this._ctx);
 	        }
@@ -553,60 +570,49 @@ class FHIRPathParser extends antlr4.Parser {
 	    let localctx = new TermContext(this, this._ctx, this.state);
 	    this.enterRule(localctx, 4, FHIRPathParser.RULE_term);
 	    try {
-	        this.state = 91;
+	        this.state = 96;
 	        this._errHandler.sync(this);
-	        switch(this._input.LA(1)) {
-	        case FHIRPathParser.T__10:
-	        case FHIRPathParser.T__11:
-	        case FHIRPathParser.T__21:
-	        case FHIRPathParser.T__22:
-	        case FHIRPathParser.T__34:
-	        case FHIRPathParser.T__35:
-	        case FHIRPathParser.T__36:
-	        case FHIRPathParser.T__37:
-	        case FHIRPathParser.T__38:
-	        case FHIRPathParser.T__40:
-	        case FHIRPathParser.T__41:
-	        case FHIRPathParser.IDENTIFIER:
-	        case FHIRPathParser.DELIMITEDIDENTIFIER:
+	        var la_ = this._interp.adaptivePredict(this._input,3,this._ctx);
+	        switch(la_) {
+	        case 1:
 	            localctx = new InvocationTermContext(this, localctx);
 	            this.enterOuterAlt(localctx, 1);
-	            this.state = 84;
+	            this.state = 88;
 	            this.invocation();
 	            break;
-	        case FHIRPathParser.T__29:
-	        case FHIRPathParser.T__31:
-	        case FHIRPathParser.T__32:
-	        case FHIRPathParser.DATE:
-	        case FHIRPathParser.DATETIME:
-	        case FHIRPathParser.TIME:
-	        case FHIRPathParser.STRING:
-	        case FHIRPathParser.INTEGER:
-	        case FHIRPathParser.DECIMAL:
-	        case FHIRPathParser.LONGNUMBER:
+
+	        case 2:
 	            localctx = new LiteralTermContext(this, localctx);
 	            this.enterOuterAlt(localctx, 2);
-	            this.state = 85;
+	            this.state = 89;
 	            this.literal();
 	            break;
-	        case FHIRPathParser.T__33:
+
+	        case 3:
 	            localctx = new ExternalConstantTermContext(this, localctx);
 	            this.enterOuterAlt(localctx, 3);
-	            this.state = 86;
+	            this.state = 90;
 	            this.externalConstant();
 	            break;
-	        case FHIRPathParser.T__27:
+
+	        case 4:
 	            localctx = new ParenthesizedTermContext(this, localctx);
 	            this.enterOuterAlt(localctx, 4);
-	            this.state = 87;
+	            this.state = 91;
 	            this.match(FHIRPathParser.T__27);
-	            this.state = 88;
+	            this.state = 92;
 	            this.expression(0);
-	            this.state = 89;
+	            this.state = 93;
 	            this.match(FHIRPathParser.T__28);
 	            break;
-	        default:
-	            throw new antlr4.error.NoViableAltException(this);
+
+	        case 5:
+	            localctx = new InstanceSelectorTermContext(this, localctx);
+	            this.enterOuterAlt(localctx, 5);
+	            this.state = 95;
+	            this.instanceSelector();
+	            break;
+
 	        }
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -629,23 +635,23 @@ class FHIRPathParser extends antlr4.Parser {
 	    this.enterRule(localctx, 6, FHIRPathParser.RULE_literal);
 	    var _la = 0; // Token type
 	    try {
-	        this.state = 103;
+	        this.state = 108;
 	        this._errHandler.sync(this);
 	        var la_ = this._interp.adaptivePredict(this._input,4,this._ctx);
 	        switch(la_) {
 	        case 1:
 	            localctx = new NullLiteralContext(this, localctx);
 	            this.enterOuterAlt(localctx, 1);
-	            this.state = 93;
+	            this.state = 98;
 	            this.match(FHIRPathParser.T__29);
-	            this.state = 94;
+	            this.state = 99;
 	            this.match(FHIRPathParser.T__30);
 	            break;
 
 	        case 2:
 	            localctx = new BooleanLiteralContext(this, localctx);
 	            this.enterOuterAlt(localctx, 2);
-	            this.state = 95;
+	            this.state = 100;
 	            _la = this._input.LA(1);
 	            if(!(_la===FHIRPathParser.T__31 || _la===FHIRPathParser.T__32)) {
 	            this._errHandler.recoverInline(this);
@@ -659,14 +665,14 @@ class FHIRPathParser extends antlr4.Parser {
 	        case 3:
 	            localctx = new StringLiteralContext(this, localctx);
 	            this.enterOuterAlt(localctx, 3);
-	            this.state = 96;
+	            this.state = 101;
 	            this.match(FHIRPathParser.STRING);
 	            break;
 
 	        case 4:
 	            localctx = new NumberLiteralContext(this, localctx);
 	            this.enterOuterAlt(localctx, 4);
-	            this.state = 97;
+	            this.state = 102;
 	            _la = this._input.LA(1);
 	            if(!(_la===FHIRPathParser.INTEGER || _la===FHIRPathParser.DECIMAL)) {
 	            this._errHandler.recoverInline(this);
@@ -680,35 +686,35 @@ class FHIRPathParser extends antlr4.Parser {
 	        case 5:
 	            localctx = new LongNumberLiteralContext(this, localctx);
 	            this.enterOuterAlt(localctx, 5);
-	            this.state = 98;
+	            this.state = 103;
 	            this.match(FHIRPathParser.LONGNUMBER);
 	            break;
 
 	        case 6:
 	            localctx = new DateLiteralContext(this, localctx);
 	            this.enterOuterAlt(localctx, 6);
-	            this.state = 99;
+	            this.state = 104;
 	            this.match(FHIRPathParser.DATE);
 	            break;
 
 	        case 7:
 	            localctx = new DateTimeLiteralContext(this, localctx);
 	            this.enterOuterAlt(localctx, 7);
-	            this.state = 100;
+	            this.state = 105;
 	            this.match(FHIRPathParser.DATETIME);
 	            break;
 
 	        case 8:
 	            localctx = new TimeLiteralContext(this, localctx);
 	            this.enterOuterAlt(localctx, 8);
-	            this.state = 101;
+	            this.state = 106;
 	            this.match(FHIRPathParser.TIME);
 	            break;
 
 	        case 9:
 	            localctx = new QuantityLiteralContext(this, localctx);
 	            this.enterOuterAlt(localctx, 9);
-	            this.state = 102;
+	            this.state = 107;
 	            this.quantity();
 	            break;
 
@@ -734,9 +740,9 @@ class FHIRPathParser extends antlr4.Parser {
 	    this.enterRule(localctx, 8, FHIRPathParser.RULE_externalConstant);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 105;
+	        this.state = 110;
 	        this.match(FHIRPathParser.T__33);
-	        this.state = 108;
+	        this.state = 113;
 	        this._errHandler.sync(this);
 	        switch(this._input.LA(1)) {
 	        case FHIRPathParser.T__10:
@@ -748,11 +754,11 @@ class FHIRPathParser extends antlr4.Parser {
 	        case FHIRPathParser.T__41:
 	        case FHIRPathParser.IDENTIFIER:
 	        case FHIRPathParser.DELIMITEDIDENTIFIER:
-	            this.state = 106;
+	            this.state = 111;
 	            this.identifier();
 	            break;
 	        case FHIRPathParser.STRING:
-	            this.state = 107;
+	            this.state = 112;
 	            this.match(FHIRPathParser.STRING);
 	            break;
 	        default:
@@ -778,42 +784,42 @@ class FHIRPathParser extends antlr4.Parser {
 	    let localctx = new InvocationContext(this, this._ctx, this.state);
 	    this.enterRule(localctx, 10, FHIRPathParser.RULE_invocation);
 	    try {
-	        this.state = 115;
+	        this.state = 120;
 	        this._errHandler.sync(this);
 	        var la_ = this._interp.adaptivePredict(this._input,6,this._ctx);
 	        switch(la_) {
 	        case 1:
 	            localctx = new MemberInvocationContext(this, localctx);
 	            this.enterOuterAlt(localctx, 1);
-	            this.state = 110;
+	            this.state = 115;
 	            this.identifier();
 	            break;
 
 	        case 2:
 	            localctx = new FunctionInvocationContext(this, localctx);
 	            this.enterOuterAlt(localctx, 2);
-	            this.state = 111;
+	            this.state = 116;
 	            this.functn();
 	            break;
 
 	        case 3:
 	            localctx = new ThisInvocationContext(this, localctx);
 	            this.enterOuterAlt(localctx, 3);
-	            this.state = 112;
+	            this.state = 117;
 	            this.match(FHIRPathParser.T__34);
 	            break;
 
 	        case 4:
 	            localctx = new IndexInvocationContext(this, localctx);
 	            this.enterOuterAlt(localctx, 4);
-	            this.state = 113;
+	            this.state = 118;
 	            this.match(FHIRPathParser.T__35);
 	            break;
 
 	        case 5:
 	            localctx = new TotalInvocationContext(this, localctx);
 	            this.enterOuterAlt(localctx, 5);
-	            this.state = 114;
+	            this.state = 119;
 	            this.match(FHIRPathParser.T__36);
 	            break;
 
@@ -839,13 +845,13 @@ class FHIRPathParser extends antlr4.Parser {
 	    this.enterRule(localctx, 12, FHIRPathParser.RULE_functn);
 	    var _la = 0; // Token type
 	    try {
-	        this.state = 137;
+	        this.state = 142;
 	        this._errHandler.sync(this);
 	        var la_ = this._interp.adaptivePredict(this._input,10,this._ctx);
 	        switch(la_) {
 	        case 1:
 	            this.enterOuterAlt(localctx, 1);
-	            this.state = 117;
+	            this.state = 122;
 	            _la = this._input.LA(1);
 	            if(!(_la===FHIRPathParser.T__37 || _la===FHIRPathParser.T__38)) {
 	            this._errHandler.recoverInline(this);
@@ -854,47 +860,47 @@ class FHIRPathParser extends antlr4.Parser {
 	            	this._errHandler.reportMatch(this);
 	                this.consume();
 	            }
-	            this.state = 118;
+	            this.state = 123;
 	            this.match(FHIRPathParser.T__27);
-	            this.state = 127;
+	            this.state = 132;
 	            this._errHandler.sync(this);
 	            _la = this._input.LA(1);
-	            if(((((_la - 4)) & ~0x1f) == 0 && ((1 << (_la - 4)) & ((1 << (FHIRPathParser.T__3 - 4)) | (1 << (FHIRPathParser.T__4 - 4)) | (1 << (FHIRPathParser.T__10 - 4)) | (1 << (FHIRPathParser.T__11 - 4)) | (1 << (FHIRPathParser.T__21 - 4)) | (1 << (FHIRPathParser.T__22 - 4)) | (1 << (FHIRPathParser.T__27 - 4)) | (1 << (FHIRPathParser.T__29 - 4)) | (1 << (FHIRPathParser.T__31 - 4)) | (1 << (FHIRPathParser.T__32 - 4)) | (1 << (FHIRPathParser.T__33 - 4)) | (1 << (FHIRPathParser.T__34 - 4)))) !== 0) || ((((_la - 36)) & ~0x1f) == 0 && ((1 << (_la - 36)) & ((1 << (FHIRPathParser.T__35 - 36)) | (1 << (FHIRPathParser.T__36 - 36)) | (1 << (FHIRPathParser.T__37 - 36)) | (1 << (FHIRPathParser.T__38 - 36)) | (1 << (FHIRPathParser.T__40 - 36)) | (1 << (FHIRPathParser.T__41 - 36)) | (1 << (FHIRPathParser.DATE - 36)) | (1 << (FHIRPathParser.DATETIME - 36)) | (1 << (FHIRPathParser.TIME - 36)) | (1 << (FHIRPathParser.IDENTIFIER - 36)) | (1 << (FHIRPathParser.DELIMITEDIDENTIFIER - 36)) | (1 << (FHIRPathParser.STRING - 36)) | (1 << (FHIRPathParser.INTEGER - 36)) | (1 << (FHIRPathParser.DECIMAL - 36)) | (1 << (FHIRPathParser.LONGNUMBER - 36)))) !== 0)) {
-	                this.state = 119;
-	                this.sortArgument();
+	            if((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << FHIRPathParser.T__3) | (1 << FHIRPathParser.T__4) | (1 << FHIRPathParser.T__10) | (1 << FHIRPathParser.T__11) | (1 << FHIRPathParser.T__21) | (1 << FHIRPathParser.T__22) | (1 << FHIRPathParser.T__27) | (1 << FHIRPathParser.T__29))) !== 0) || ((((_la - 32)) & ~0x1f) == 0 && ((1 << (_la - 32)) & ((1 << (FHIRPathParser.T__31 - 32)) | (1 << (FHIRPathParser.T__32 - 32)) | (1 << (FHIRPathParser.T__33 - 32)) | (1 << (FHIRPathParser.T__34 - 32)) | (1 << (FHIRPathParser.T__35 - 32)) | (1 << (FHIRPathParser.T__36 - 32)) | (1 << (FHIRPathParser.T__37 - 32)) | (1 << (FHIRPathParser.T__38 - 32)) | (1 << (FHIRPathParser.T__40 - 32)) | (1 << (FHIRPathParser.T__41 - 32)) | (1 << (FHIRPathParser.DATE - 32)) | (1 << (FHIRPathParser.DATETIME - 32)) | (1 << (FHIRPathParser.TIME - 32)) | (1 << (FHIRPathParser.IDENTIFIER - 32)))) !== 0) || ((((_la - 64)) & ~0x1f) == 0 && ((1 << (_la - 64)) & ((1 << (FHIRPathParser.DELIMITEDIDENTIFIER - 64)) | (1 << (FHIRPathParser.STRING - 64)) | (1 << (FHIRPathParser.INTEGER - 64)) | (1 << (FHIRPathParser.DECIMAL - 64)) | (1 << (FHIRPathParser.LONGNUMBER - 64)))) !== 0)) {
 	                this.state = 124;
+	                this.sortArgument();
+	                this.state = 129;
 	                this._errHandler.sync(this);
 	                _la = this._input.LA(1);
 	                while(_la===FHIRPathParser.T__39) {
-	                    this.state = 120;
+	                    this.state = 125;
 	                    this.match(FHIRPathParser.T__39);
-	                    this.state = 121;
-	                    this.sortArgument();
 	                    this.state = 126;
+	                    this.sortArgument();
+	                    this.state = 131;
 	                    this._errHandler.sync(this);
 	                    _la = this._input.LA(1);
 	                }
 	            }
 
-	            this.state = 129;
+	            this.state = 134;
 	            this.match(FHIRPathParser.T__28);
 	            break;
 
 	        case 2:
 	            this.enterOuterAlt(localctx, 2);
-	            this.state = 130;
+	            this.state = 135;
 	            this.identifier();
-	            this.state = 131;
+	            this.state = 136;
 	            this.match(FHIRPathParser.T__27);
-	            this.state = 133;
+	            this.state = 138;
 	            this._errHandler.sync(this);
 	            _la = this._input.LA(1);
-	            if(((((_la - 4)) & ~0x1f) == 0 && ((1 << (_la - 4)) & ((1 << (FHIRPathParser.T__3 - 4)) | (1 << (FHIRPathParser.T__4 - 4)) | (1 << (FHIRPathParser.T__10 - 4)) | (1 << (FHIRPathParser.T__11 - 4)) | (1 << (FHIRPathParser.T__21 - 4)) | (1 << (FHIRPathParser.T__22 - 4)) | (1 << (FHIRPathParser.T__27 - 4)) | (1 << (FHIRPathParser.T__29 - 4)) | (1 << (FHIRPathParser.T__31 - 4)) | (1 << (FHIRPathParser.T__32 - 4)) | (1 << (FHIRPathParser.T__33 - 4)) | (1 << (FHIRPathParser.T__34 - 4)))) !== 0) || ((((_la - 36)) & ~0x1f) == 0 && ((1 << (_la - 36)) & ((1 << (FHIRPathParser.T__35 - 36)) | (1 << (FHIRPathParser.T__36 - 36)) | (1 << (FHIRPathParser.T__37 - 36)) | (1 << (FHIRPathParser.T__38 - 36)) | (1 << (FHIRPathParser.T__40 - 36)) | (1 << (FHIRPathParser.T__41 - 36)) | (1 << (FHIRPathParser.DATE - 36)) | (1 << (FHIRPathParser.DATETIME - 36)) | (1 << (FHIRPathParser.TIME - 36)) | (1 << (FHIRPathParser.IDENTIFIER - 36)) | (1 << (FHIRPathParser.DELIMITEDIDENTIFIER - 36)) | (1 << (FHIRPathParser.STRING - 36)) | (1 << (FHIRPathParser.INTEGER - 36)) | (1 << (FHIRPathParser.DECIMAL - 36)) | (1 << (FHIRPathParser.LONGNUMBER - 36)))) !== 0)) {
-	                this.state = 132;
+	            if((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << FHIRPathParser.T__3) | (1 << FHIRPathParser.T__4) | (1 << FHIRPathParser.T__10) | (1 << FHIRPathParser.T__11) | (1 << FHIRPathParser.T__21) | (1 << FHIRPathParser.T__22) | (1 << FHIRPathParser.T__27) | (1 << FHIRPathParser.T__29))) !== 0) || ((((_la - 32)) & ~0x1f) == 0 && ((1 << (_la - 32)) & ((1 << (FHIRPathParser.T__31 - 32)) | (1 << (FHIRPathParser.T__32 - 32)) | (1 << (FHIRPathParser.T__33 - 32)) | (1 << (FHIRPathParser.T__34 - 32)) | (1 << (FHIRPathParser.T__35 - 32)) | (1 << (FHIRPathParser.T__36 - 32)) | (1 << (FHIRPathParser.T__37 - 32)) | (1 << (FHIRPathParser.T__38 - 32)) | (1 << (FHIRPathParser.T__40 - 32)) | (1 << (FHIRPathParser.T__41 - 32)) | (1 << (FHIRPathParser.DATE - 32)) | (1 << (FHIRPathParser.DATETIME - 32)) | (1 << (FHIRPathParser.TIME - 32)) | (1 << (FHIRPathParser.IDENTIFIER - 32)))) !== 0) || ((((_la - 64)) & ~0x1f) == 0 && ((1 << (_la - 64)) & ((1 << (FHIRPathParser.DELIMITEDIDENTIFIER - 64)) | (1 << (FHIRPathParser.STRING - 64)) | (1 << (FHIRPathParser.INTEGER - 64)) | (1 << (FHIRPathParser.DECIMAL - 64)) | (1 << (FHIRPathParser.LONGNUMBER - 64)))) !== 0)) {
+	                this.state = 137;
 	                this.paramList();
 	            }
 
-	            this.state = 135;
+	            this.state = 140;
 	            this.match(FHIRPathParser.T__28);
 	            break;
 
@@ -922,13 +928,13 @@ class FHIRPathParser extends antlr4.Parser {
 	    try {
 	        localctx = new SortDirectionArgumentContext(this, localctx);
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 139;
+	        this.state = 144;
 	        this.expression(0);
-	        this.state = 141;
+	        this.state = 146;
 	        this._errHandler.sync(this);
 	        _la = this._input.LA(1);
 	        if(_la===FHIRPathParser.T__40 || _la===FHIRPathParser.T__41) {
-	            this.state = 140;
+	            this.state = 145;
 	            _la = this._input.LA(1);
 	            if(!(_la===FHIRPathParser.T__40 || _la===FHIRPathParser.T__41)) {
 	            this._errHandler.recoverInline(this);
@@ -961,17 +967,17 @@ class FHIRPathParser extends antlr4.Parser {
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 143;
-	        this.expression(0);
 	        this.state = 148;
+	        this.expression(0);
+	        this.state = 153;
 	        this._errHandler.sync(this);
 	        _la = this._input.LA(1);
 	        while(_la===FHIRPathParser.T__39) {
-	            this.state = 144;
+	            this.state = 149;
 	            this.match(FHIRPathParser.T__39);
-	            this.state = 145;
-	            this.expression(0);
 	            this.state = 150;
+	            this.expression(0);
+	            this.state = 155;
 	            this._errHandler.sync(this);
 	            _la = this._input.LA(1);
 	        }
@@ -991,13 +997,102 @@ class FHIRPathParser extends antlr4.Parser {
 
 
 
-	quantity() {
-	    let localctx = new QuantityContext(this, this._ctx, this.state);
-	    this.enterRule(localctx, 18, FHIRPathParser.RULE_quantity);
+	instanceSelector() {
+	    let localctx = new InstanceSelectorContext(this, this._ctx, this.state);
+	    this.enterRule(localctx, 18, FHIRPathParser.RULE_instanceSelector);
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 151;
+	        this.state = 156;
+	        this.qualifiedIdentifier();
+	        this.state = 157;
+	        this.match(FHIRPathParser.T__29);
+	        this.state = 167;
+	        this._errHandler.sync(this);
+	        switch(this._input.LA(1)) {
+	        case FHIRPathParser.T__42:
+	            this.state = 158;
+	            this.match(FHIRPathParser.T__42);
+	            break;
+	        case FHIRPathParser.T__10:
+	        case FHIRPathParser.T__11:
+	        case FHIRPathParser.T__21:
+	        case FHIRPathParser.T__22:
+	        case FHIRPathParser.T__37:
+	        case FHIRPathParser.T__40:
+	        case FHIRPathParser.T__41:
+	        case FHIRPathParser.IDENTIFIER:
+	        case FHIRPathParser.DELIMITEDIDENTIFIER:
+	            this.state = 159;
+	            this.instanceElementSelector();
+	            this.state = 164;
+	            this._errHandler.sync(this);
+	            _la = this._input.LA(1);
+	            while(_la===FHIRPathParser.T__39) {
+	                this.state = 160;
+	                this.match(FHIRPathParser.T__39);
+	                this.state = 161;
+	                this.instanceElementSelector();
+	                this.state = 166;
+	                this._errHandler.sync(this);
+	                _la = this._input.LA(1);
+	            }
+	            break;
+	        default:
+	            throw new antlr4.error.NoViableAltException(this);
+	        }
+	        this.state = 169;
+	        this.match(FHIRPathParser.T__30);
+	    } catch (re) {
+	    	if(re instanceof antlr4.error.RecognitionException) {
+		        localctx.exception = re;
+		        this._errHandler.reportError(this, re);
+		        this._errHandler.recover(this, re);
+		    } else {
+		    	throw re;
+		    }
+	    } finally {
+	        this.exitRule();
+	    }
+	    return localctx;
+	}
+
+
+
+	instanceElementSelector() {
+	    let localctx = new InstanceElementSelectorContext(this, this._ctx, this.state);
+	    this.enterRule(localctx, 20, FHIRPathParser.RULE_instanceElementSelector);
+	    try {
+	        this.enterOuterAlt(localctx, 1);
+	        this.state = 171;
+	        this.identifier();
+	        this.state = 172;
+	        this.match(FHIRPathParser.T__42);
+	        this.state = 173;
+	        this.expression(0);
+	    } catch (re) {
+	    	if(re instanceof antlr4.error.RecognitionException) {
+		        localctx.exception = re;
+		        this._errHandler.reportError(this, re);
+		        this._errHandler.recover(this, re);
+		    } else {
+		    	throw re;
+		    }
+	    } finally {
+	        this.exitRule();
+	    }
+	    return localctx;
+	}
+
+
+
+	quantity() {
+	    let localctx = new QuantityContext(this, this._ctx, this.state);
+	    this.enterRule(localctx, 22, FHIRPathParser.RULE_quantity);
+	    var _la = 0; // Token type
+	    try {
+	        this.enterOuterAlt(localctx, 1);
+	        this.state = 175;
 	        _la = this._input.LA(1);
 	        if(!(_la===FHIRPathParser.INTEGER || _la===FHIRPathParser.DECIMAL)) {
 	        this._errHandler.recoverInline(this);
@@ -1006,11 +1101,11 @@ class FHIRPathParser extends antlr4.Parser {
 	        	this._errHandler.reportMatch(this);
 	            this.consume();
 	        }
-	        this.state = 153;
+	        this.state = 177;
 	        this._errHandler.sync(this);
-	        var la_ = this._interp.adaptivePredict(this._input,13,this._ctx);
+	        var la_ = this._interp.adaptivePredict(this._input,15,this._ctx);
 	        if(la_===1) {
-	            this.state = 152;
+	            this.state = 176;
 	            this.unit();
 
 	        }
@@ -1032,12 +1127,11 @@ class FHIRPathParser extends antlr4.Parser {
 
 	unit() {
 	    let localctx = new UnitContext(this, this._ctx, this.state);
-	    this.enterRule(localctx, 20, FHIRPathParser.RULE_unit);
+	    this.enterRule(localctx, 24, FHIRPathParser.RULE_unit);
 	    try {
-	        this.state = 158;
+	        this.state = 182;
 	        this._errHandler.sync(this);
 	        switch(this._input.LA(1)) {
-	        case FHIRPathParser.T__42:
 	        case FHIRPathParser.T__43:
 	        case FHIRPathParser.T__44:
 	        case FHIRPathParser.T__45:
@@ -1045,11 +1139,11 @@ class FHIRPathParser extends antlr4.Parser {
 	        case FHIRPathParser.T__47:
 	        case FHIRPathParser.T__48:
 	        case FHIRPathParser.T__49:
+	        case FHIRPathParser.T__50:
 	            this.enterOuterAlt(localctx, 1);
-	            this.state = 155;
+	            this.state = 179;
 	            this.dateTimePrecision();
 	            break;
-	        case FHIRPathParser.T__50:
 	        case FHIRPathParser.T__51:
 	        case FHIRPathParser.T__52:
 	        case FHIRPathParser.T__53:
@@ -1057,13 +1151,14 @@ class FHIRPathParser extends antlr4.Parser {
 	        case FHIRPathParser.T__55:
 	        case FHIRPathParser.T__56:
 	        case FHIRPathParser.T__57:
+	        case FHIRPathParser.T__58:
 	            this.enterOuterAlt(localctx, 2);
-	            this.state = 156;
+	            this.state = 180;
 	            this.pluralDateTimePrecision();
 	            break;
 	        case FHIRPathParser.STRING:
 	            this.enterOuterAlt(localctx, 3);
-	            this.state = 157;
+	            this.state = 181;
 	            this.match(FHIRPathParser.STRING);
 	            break;
 	        default:
@@ -1087,13 +1182,13 @@ class FHIRPathParser extends antlr4.Parser {
 
 	dateTimePrecision() {
 	    let localctx = new DateTimePrecisionContext(this, this._ctx, this.state);
-	    this.enterRule(localctx, 22, FHIRPathParser.RULE_dateTimePrecision);
+	    this.enterRule(localctx, 26, FHIRPathParser.RULE_dateTimePrecision);
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 160;
+	        this.state = 184;
 	        _la = this._input.LA(1);
-	        if(!(((((_la - 43)) & ~0x1f) == 0 && ((1 << (_la - 43)) & ((1 << (FHIRPathParser.T__42 - 43)) | (1 << (FHIRPathParser.T__43 - 43)) | (1 << (FHIRPathParser.T__44 - 43)) | (1 << (FHIRPathParser.T__45 - 43)) | (1 << (FHIRPathParser.T__46 - 43)) | (1 << (FHIRPathParser.T__47 - 43)) | (1 << (FHIRPathParser.T__48 - 43)) | (1 << (FHIRPathParser.T__49 - 43)))) !== 0))) {
+	        if(!(((((_la - 44)) & ~0x1f) == 0 && ((1 << (_la - 44)) & ((1 << (FHIRPathParser.T__43 - 44)) | (1 << (FHIRPathParser.T__44 - 44)) | (1 << (FHIRPathParser.T__45 - 44)) | (1 << (FHIRPathParser.T__46 - 44)) | (1 << (FHIRPathParser.T__47 - 44)) | (1 << (FHIRPathParser.T__48 - 44)) | (1 << (FHIRPathParser.T__49 - 44)) | (1 << (FHIRPathParser.T__50 - 44)))) !== 0))) {
 	        this._errHandler.recoverInline(this);
 	        }
 	        else {
@@ -1118,13 +1213,13 @@ class FHIRPathParser extends antlr4.Parser {
 
 	pluralDateTimePrecision() {
 	    let localctx = new PluralDateTimePrecisionContext(this, this._ctx, this.state);
-	    this.enterRule(localctx, 24, FHIRPathParser.RULE_pluralDateTimePrecision);
+	    this.enterRule(localctx, 28, FHIRPathParser.RULE_pluralDateTimePrecision);
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 162;
+	        this.state = 186;
 	        _la = this._input.LA(1);
-	        if(!(((((_la - 51)) & ~0x1f) == 0 && ((1 << (_la - 51)) & ((1 << (FHIRPathParser.T__50 - 51)) | (1 << (FHIRPathParser.T__51 - 51)) | (1 << (FHIRPathParser.T__52 - 51)) | (1 << (FHIRPathParser.T__53 - 51)) | (1 << (FHIRPathParser.T__54 - 51)) | (1 << (FHIRPathParser.T__55 - 51)) | (1 << (FHIRPathParser.T__56 - 51)) | (1 << (FHIRPathParser.T__57 - 51)))) !== 0))) {
+	        if(!(((((_la - 52)) & ~0x1f) == 0 && ((1 << (_la - 52)) & ((1 << (FHIRPathParser.T__51 - 52)) | (1 << (FHIRPathParser.T__52 - 52)) | (1 << (FHIRPathParser.T__53 - 52)) | (1 << (FHIRPathParser.T__54 - 52)) | (1 << (FHIRPathParser.T__55 - 52)) | (1 << (FHIRPathParser.T__56 - 52)) | (1 << (FHIRPathParser.T__57 - 52)) | (1 << (FHIRPathParser.T__58 - 52)))) !== 0))) {
 	        this._errHandler.recoverInline(this);
 	        }
 	        else {
@@ -1149,10 +1244,10 @@ class FHIRPathParser extends antlr4.Parser {
 
 	typeSpecifier() {
 	    let localctx = new TypeSpecifierContext(this, this._ctx, this.state);
-	    this.enterRule(localctx, 26, FHIRPathParser.RULE_typeSpecifier);
+	    this.enterRule(localctx, 30, FHIRPathParser.RULE_typeSpecifier);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 164;
+	        this.state = 188;
 	        this.qualifiedIdentifier();
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -1172,24 +1267,24 @@ class FHIRPathParser extends antlr4.Parser {
 
 	qualifiedIdentifier() {
 	    let localctx = new QualifiedIdentifierContext(this, this._ctx, this.state);
-	    this.enterRule(localctx, 28, FHIRPathParser.RULE_qualifiedIdentifier);
+	    this.enterRule(localctx, 32, FHIRPathParser.RULE_qualifiedIdentifier);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 166;
+	        this.state = 190;
 	        this.identifier();
-	        this.state = 171;
+	        this.state = 195;
 	        this._errHandler.sync(this);
-	        var _alt = this._interp.adaptivePredict(this._input,15,this._ctx)
+	        var _alt = this._interp.adaptivePredict(this._input,17,this._ctx)
 	        while(_alt!=2 && _alt!=antlr4.atn.ATN.INVALID_ALT_NUMBER) {
 	            if(_alt===1) {
-	                this.state = 167;
+	                this.state = 191;
 	                this.match(FHIRPathParser.T__0);
-	                this.state = 168;
+	                this.state = 192;
 	                this.identifier(); 
 	            }
-	            this.state = 173;
+	            this.state = 197;
 	            this._errHandler.sync(this);
-	            _alt = this._interp.adaptivePredict(this._input,15,this._ctx);
+	            _alt = this._interp.adaptivePredict(this._input,17,this._ctx);
 	        }
 
 	    } catch (re) {
@@ -1210,11 +1305,11 @@ class FHIRPathParser extends antlr4.Parser {
 
 	identifier() {
 	    let localctx = new IdentifierContext(this, this._ctx, this.state);
-	    this.enterRule(localctx, 30, FHIRPathParser.RULE_identifier);
+	    this.enterRule(localctx, 34, FHIRPathParser.RULE_identifier);
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 174;
+	        this.state = 198;
 	        _la = this._input.LA(1);
 	        if(!((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << FHIRPathParser.T__10) | (1 << FHIRPathParser.T__11) | (1 << FHIRPathParser.T__21) | (1 << FHIRPathParser.T__22))) !== 0) || ((((_la - 38)) & ~0x1f) == 0 && ((1 << (_la - 38)) & ((1 << (FHIRPathParser.T__37 - 38)) | (1 << (FHIRPathParser.T__40 - 38)) | (1 << (FHIRPathParser.T__41 - 38)) | (1 << (FHIRPathParser.IDENTIFIER - 38)) | (1 << (FHIRPathParser.DELIMITEDIDENTIFIER - 38)))) !== 0))) {
 	        this._errHandler.recoverInline(this);
@@ -1299,18 +1394,19 @@ FHIRPathParser.T__54 = 55;
 FHIRPathParser.T__55 = 56;
 FHIRPathParser.T__56 = 57;
 FHIRPathParser.T__57 = 58;
-FHIRPathParser.DATE = 59;
-FHIRPathParser.DATETIME = 60;
-FHIRPathParser.TIME = 61;
-FHIRPathParser.IDENTIFIER = 62;
-FHIRPathParser.DELIMITEDIDENTIFIER = 63;
-FHIRPathParser.STRING = 64;
-FHIRPathParser.INTEGER = 65;
-FHIRPathParser.DECIMAL = 66;
-FHIRPathParser.LONGNUMBER = 67;
-FHIRPathParser.WS = 68;
-FHIRPathParser.COMMENT = 69;
-FHIRPathParser.LINE_COMMENT = 70;
+FHIRPathParser.T__58 = 59;
+FHIRPathParser.DATE = 60;
+FHIRPathParser.DATETIME = 61;
+FHIRPathParser.TIME = 62;
+FHIRPathParser.IDENTIFIER = 63;
+FHIRPathParser.DELIMITEDIDENTIFIER = 64;
+FHIRPathParser.STRING = 65;
+FHIRPathParser.INTEGER = 66;
+FHIRPathParser.DECIMAL = 67;
+FHIRPathParser.LONGNUMBER = 68;
+FHIRPathParser.WS = 69;
+FHIRPathParser.COMMENT = 70;
+FHIRPathParser.LINE_COMMENT = 71;
 
 FHIRPathParser.RULE_entireExpression = 0;
 FHIRPathParser.RULE_expression = 1;
@@ -1321,13 +1417,15 @@ FHIRPathParser.RULE_invocation = 5;
 FHIRPathParser.RULE_functn = 6;
 FHIRPathParser.RULE_sortArgument = 7;
 FHIRPathParser.RULE_paramList = 8;
-FHIRPathParser.RULE_quantity = 9;
-FHIRPathParser.RULE_unit = 10;
-FHIRPathParser.RULE_dateTimePrecision = 11;
-FHIRPathParser.RULE_pluralDateTimePrecision = 12;
-FHIRPathParser.RULE_typeSpecifier = 13;
-FHIRPathParser.RULE_qualifiedIdentifier = 14;
-FHIRPathParser.RULE_identifier = 15;
+FHIRPathParser.RULE_instanceSelector = 9;
+FHIRPathParser.RULE_instanceElementSelector = 10;
+FHIRPathParser.RULE_quantity = 11;
+FHIRPathParser.RULE_unit = 12;
+FHIRPathParser.RULE_dateTimePrecision = 13;
+FHIRPathParser.RULE_pluralDateTimePrecision = 14;
+FHIRPathParser.RULE_typeSpecifier = 15;
+FHIRPathParser.RULE_qualifiedIdentifier = 16;
+FHIRPathParser.RULE_identifier = 17;
 
 class EntireExpressionContext extends antlr4.ParserRuleContext {
 
@@ -1996,6 +2094,34 @@ class InvocationTermContext extends TermContext {
 
 FHIRPathParser.InvocationTermContext = InvocationTermContext;
 
+class InstanceSelectorTermContext extends TermContext {
+
+    constructor(parser, ctx) {
+        super(parser);
+        super.copyFrom(ctx);
+    }
+
+	instanceSelector() {
+	    return this.getTypedRuleContext(InstanceSelectorContext,0);
+	};
+
+	enterRule(listener) {
+	    if(listener instanceof FHIRPathListener ) {
+	        listener.enterInstanceSelectorTerm(this);
+		}
+	}
+
+	exitRule(listener) {
+	    if(listener instanceof FHIRPathListener ) {
+	        listener.exitInstanceSelectorTerm(this);
+		}
+	}
+
+
+}
+
+FHIRPathParser.InstanceSelectorTermContext = InstanceSelectorTermContext;
+
 class LiteralContext extends antlr4.ParserRuleContext {
 
     constructor(parser, parent, invokingState) {
@@ -2605,6 +2731,91 @@ class ParamListContext extends antlr4.ParserRuleContext {
 
 
 
+class InstanceSelectorContext extends antlr4.ParserRuleContext {
+
+    constructor(parser, parent, invokingState) {
+        if(parent===undefined) {
+            parent = null;
+        }
+        if(invokingState===undefined || invokingState===null) {
+            invokingState = -1;
+        }
+        super(parent, invokingState);
+        this.parser = parser;
+        this.ruleIndex = FHIRPathParser.RULE_instanceSelector;
+    }
+
+	qualifiedIdentifier() {
+	    return this.getTypedRuleContext(QualifiedIdentifierContext,0);
+	};
+
+	instanceElementSelector = function(i) {
+	    if(i===undefined) {
+	        i = null;
+	    }
+	    if(i===null) {
+	        return this.getTypedRuleContexts(InstanceElementSelectorContext);
+	    } else {
+	        return this.getTypedRuleContext(InstanceElementSelectorContext,i);
+	    }
+	};
+
+	enterRule(listener) {
+	    if(listener instanceof FHIRPathListener ) {
+	        listener.enterInstanceSelector(this);
+		}
+	}
+
+	exitRule(listener) {
+	    if(listener instanceof FHIRPathListener ) {
+	        listener.exitInstanceSelector(this);
+		}
+	}
+
+
+}
+
+
+
+class InstanceElementSelectorContext extends antlr4.ParserRuleContext {
+
+    constructor(parser, parent, invokingState) {
+        if(parent===undefined) {
+            parent = null;
+        }
+        if(invokingState===undefined || invokingState===null) {
+            invokingState = -1;
+        }
+        super(parent, invokingState);
+        this.parser = parser;
+        this.ruleIndex = FHIRPathParser.RULE_instanceElementSelector;
+    }
+
+	identifier() {
+	    return this.getTypedRuleContext(IdentifierContext,0);
+	};
+
+	expression() {
+	    return this.getTypedRuleContext(ExpressionContext,0);
+	};
+
+	enterRule(listener) {
+	    if(listener instanceof FHIRPathListener ) {
+	        listener.enterInstanceElementSelector(this);
+		}
+	}
+
+	exitRule(listener) {
+	    if(listener instanceof FHIRPathListener ) {
+	        listener.exitInstanceElementSelector(this);
+		}
+	}
+
+
+}
+
+
+
 class QuantityContext extends antlr4.ParserRuleContext {
 
     constructor(parser, parent, invokingState) {
@@ -2881,6 +3092,8 @@ FHIRPathParser.InvocationContext = InvocationContext;
 FHIRPathParser.FunctnContext = FunctnContext; 
 FHIRPathParser.SortArgumentContext = SortArgumentContext; 
 FHIRPathParser.ParamListContext = ParamListContext; 
+FHIRPathParser.InstanceSelectorContext = InstanceSelectorContext; 
+FHIRPathParser.InstanceElementSelectorContext = InstanceElementSelectorContext; 
 FHIRPathParser.QuantityContext = QuantityContext; 
 FHIRPathParser.UnitContext = UnitContext; 
 FHIRPathParser.DateTimePrecisionContext = DateTimePrecisionContext; 

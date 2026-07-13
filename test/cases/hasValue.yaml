@@ -90,6 +90,11 @@ tests:
       result:
         - false
 
+    - desc: 'xhtml is not a primitive type'
+      inputfile: patient-example.json
+      expression: Patient.text.`div`.hasValue()
+      model: 'r4'
+      result: [false]
 
     - desc: 'collection only contains an element of a non-FHIR primitive type'
       expression: >-

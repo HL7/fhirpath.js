@@ -60,6 +60,11 @@ const {
 let makeResNode = ResourceNode.makeResNode;
 const Terminologies = require('./terminologies');
 const Factory = require('./factory');
+const {
+  getInstanceElementInfo, buildInstanceSelectorResult,
+  prepareInstanceSelectorResultValue
+} = require('./instance-selector');
+
 
 // * fn: handler
 // * arity: map of params count to type signature (must be present for
@@ -967,11 +972,168 @@ engine.ParenthesizedTerm = function(ctx, parentData, node) {
   return engine.doEval(ctx, parentData, node.children[0]);
 };
 
+/**
+ * Evaluates an InstanceSelectorTerm node in the FHIRPath AST.
+ * Delegates to the child InstanceSelector node.
+ *
+ * @param {Object} ctx - The evaluation context.
+ * @param {Array} parentData - The input collection.
+ * @param {Object} node - The AST node representing the InstanceSelectorTerm.
+ * @returns {Array|Promise<Array>} - The created instance wrapped in a
+ *   collection.
+ */
+engine.InstanceSelectorTerm = function(ctx, parentData, node) {
+  return engine.doEval(ctx, parentData, node.children[0]);
+};
+
+
+/**
+ * Evaluates an InstanceSelector node in the FHIRPath AST, implementing the
+ * Instance Selector / Object Creation syntax
+ * (e.g. `Coding { system: 'http://x', code: 'c1' }`).
+ * See https://hl7.org/fhirpath/#instance-selector for details.
+ *
+ * The input collection must contain at most one item: if it contains multiple
+ * items an error is signaled, and if it is empty the result is empty. Each
+ * element selector expression is evaluated against the input collection; an
+ * element whose value evaluates to an empty collection is omitted from the
+ * created object.
+ *
+ * @param {Object} ctx - The evaluation context (provides the model).
+ * @param {Array} parentData - The input collection.
+ * @param {Object} node - The AST node representing the InstanceSelector.
+ *   @param {string} node.text - The (optionally namespaced) type name.
+ *   @param {Array} node.children - The qualifiedIdentifier followed by the
+ *     InstanceElementSelector child nodes. If no namespace is specified, FHIR
+ *     is assumed. Explicit namespaces other than FHIR are rejected.
+ * @returns {Array<ResourceNode>|Promise<Array<ResourceNode>>} - A single-item
+ *   collection with the created instance, or an empty collection if the input
+ *   collection is empty.
+ * @throws {Error} - If the input collection has more than one item, or the type
+ *   name or an element name cannot be resolved to a valid type/model element.
+ */
+engine.InstanceSelector = function(ctx, parentData, node) {
+  if (parentData.length > 1) {
+    let msg = 'Instance selector requires an input collection with at most '
+      + 'one item, but it has ' + parentData.length + ' items.';
+    msg += ' (at ' + node.start.line + ':' + node.start.column + ')';
+    throw new Error(msg);
+  }
+  // If the input collection is empty, the result is empty.
+  if (parentData.length === 0) {
+    return [];
+  }
+
+  const nodeLocation =
+    ' (at ' + node.start.line + ':' + node.start.column + ')';
+
+  // Resolve the type to create from the leading qualifiedIdentifier.
+  let namespace, name;
+  const identifiers = node.text.split('.').map(getDelimitedIdentifierVal);
+  switch (identifiers.length) {
+    case 2:
+      [namespace, name] = identifiers;
+      if (namespace !== TypeInfo.FHIR) {
+        throw new Error('Instance selector only supports the FHIR namespace, ' +
+          'got "' + namespace + '"' + nodeLocation);
+      }
+      break;
+    case 1:
+      [name] = identifiers;
+      namespace = TypeInfo.FHIR;
+      break;
+    default:
+      throw new Error('Invalid type name in instance selector: ' + node.text +
+        nodeLocation);
+  }
+
+  // It is expected that if the model is passed, it contains the necessary
+  // information.
+  if (!ctx.model) {
+    throw new Error('Instance selector requires a FHIR model context' +
+      nodeLocation);
+  }
+
+  const typeInfo = new TypeInfo({ namespace, name });
+  if (!typeInfo.isValid(ctx.model)) {
+    throw new Error('"' + typeInfo +
+      '" cannot be resolved to a valid type identifier' + nodeLocation);
+  }
+
+  const isPrimitive = TypeInfo.isPrimitive(typeInfo) || name === 'xhtml';
+  const selectors = [];
+  const assignedElementPaths = new Set();
+
+  // Skip the leading qualifiedIdentifier; remaining children are selectors.
+  for (let i = 1; i < node.children.length; i++) {
+    const selector = node.children[i];
+    const elName = engine.doEval(ctx, parentData, selector.children[0])[0];
+    const elementInfo = getInstanceElementInfo(
+      ctx, typeInfo, isPrimitive, elName, selector
+    );
+    if (assignedElementPaths.has(elementInfo.path)) {
+      const location = selector.children[0].start;
+      throw new Error('Instance selector element "' + elName +
+        '" is already assigned (at ' + location.line + ':' +
+        location.column + ')');
+    }
+    assignedElementPaths.add(elementInfo.path);
+    selectors.push({
+      selector,
+      elName,
+      elementInfo
+    });
+  }
+
+  const entries = [];
+  const pendingEntries = [];
+  let isAsync = false;
+
+  try {
+    for (let i = 0; i < selectors.length; i++) {
+      const selectorInfo = selectors[i];
+      const valueColl = engine.doEval(
+        ctx, parentData, selectorInfo.selector.children[1]
+      );
+      if (valueColl instanceof Promise) {
+        isAsync = true;
+        const pendingEntry = valueColl.then(
+          resolvedValueColl => ({
+            ...selectorInfo,
+            valueColl: resolvedValueColl
+          })
+        );
+        pendingEntries.push(pendingEntry);
+        entries.push(pendingEntry);
+      } else {
+        entries.push({
+          ...selectorInfo,
+          valueColl
+        });
+      }
+    }
+  } catch (err) {
+    // Consume pending async value rejections before rethrowing the sync error.
+    pendingEntries.forEach(pendingEntry => pendingEntry.catch(() => {}));
+    throw err;
+  }
+
+  if (isAsync) {
+    return Promise.all(entries).then(resolvedEntries =>
+      buildInstanceSelectorResult(
+        ctx, typeInfo, name, isPrimitive, resolvedEntries
+      )
+    );
+  }
+
+  return buildInstanceSelectorResult(ctx, typeInfo, name, isPrimitive, entries);
+};
+
 engine.SortDirectionArgument = function(ctx, parentData, node) {
   const expr = node.children[0]; // The expression to sort by
   // Use the direction captured by the parser, defaulting to 'asc'
   const direction = node.direction || 'asc';
-  
+
   return {
     expr: expr, // Return the raw AST node for later processing
     direction: direction
@@ -979,7 +1141,7 @@ engine.SortDirectionArgument = function(ctx, parentData, node) {
 };
 
 engine.SortArgument = function(ctx, parentData, node) {
-  // For compatibility with SortDirectionArgument 
+  // For compatibility with SortDirectionArgument
   return engine.SortDirectionArgument(ctx, parentData, node);
 };
 
@@ -1001,6 +1163,8 @@ engine.evalTable = { // not every evaluator is listed if they are defined on eng
   EntireExpression: engine.InvocationTerm,
   InvocationTerm: engine.InvocationTerm,
   LiteralTerm: engine.LiteralTerm,
+  InstanceSelectorTerm: engine.InstanceSelectorTerm,
+  InstanceSelector: engine.InstanceSelector,
   MemberInvocation: engine.MemberInvocation,
   NumberLiteral: engine.NumberLiteral,
   ParamList: engine.ParamList,
@@ -1109,6 +1273,12 @@ function applyParsedPath(resource, parsedPath, envVars, model, options, baseInfo
   let ctx = {
     processedUserVarNames: new Set(),
     vars: envVars || {},
+    // Lazily populated with a WeakMap by the instance selector (see
+    // rememberInstanceSelectorType in src/instance-selector.js). Kept as a
+    // declared property so the ctx object shape stays stable; evaluations that
+    // do not construct objects avoid both the WeakMap allocation and the
+    // per-result lookup in prepareEvalResult.
+    instanceSelectorTypeByData: null,
     model
   };
   let dataRoot;
@@ -1197,7 +1367,10 @@ function applyParsedPath(resource, parsedPath, envVars, model, options, baseInfo
  * evaluations. Otherwise, resolves "ResourceNode" instances to plain objects.
  * If options.resolveInternalTypes is true, resolves any internal "FP_Type"
  * instances to standard JavaScript types (unless options.keepDecimalTypes is
- * true, in which case FP_Decimal instances are preserved).
+ * true, in which case FP_Decimal instances are preserved). For objects created
+ * by instance selectors, nested FP_Decimal and bigint values are preserved when
+ * options.keepDecimalTypes is true; otherwise they are converted to JSON-safe
+ * values.
  * @param {object} defContext - the default evaluation context, used when a
  *  result node does not carry its own context.
  * @param {Array} result - result of expression evaluation.
@@ -1209,9 +1382,7 @@ function prepareEvalResult(defContext, result, options) {
   return result
     .reduce((acc, n) => {
       if (n instanceof ResourceNode && !shouldResolveInternalTypes) {
-        if (n.data != null) {
-          acc.push(n);
-        }
+        acc.push(n);
         return acc;
       }
 
@@ -1237,6 +1408,15 @@ function prepareEvalResult(defContext, result, options) {
             n = n.toJSON();
           }
         }
+      } else if (typeof n === 'bigint') {
+        if (shouldResolveInternalTypes && !options.keepDecimalTypes) {
+          n = n.toString();
+        }
+      } else if (
+        shouldResolveInternalTypes &&
+        ctx?.instanceSelectorTypeByData?.has(n)
+      ) {
+        n = prepareInstanceSelectorResultValue(n, options.keepDecimalTypes);
       }
       // Exclude nulls
       if (n != null) {
@@ -1257,18 +1437,102 @@ function prepareEvalResult(defContext, result, options) {
 
 
 /**
- * Resolves any internal "FP_Type" instances in a result of FHIRPath expression
- * evaluation to standard JavaScript types.
- * @param {any} val - a result of FHIRPath expression evaluation
- * @returns {any} a new object with resolved values.
+ * Resolves internal FHIRPath values in an evaluation result to standard
+ * JavaScript values. ResourceNode values are unwrapped to their data values,
+ * FP_Type values are converted with toJSON(), and BigInt values are converted
+ * to strings for JSON safety. Arrays and plain objects are copied instead of
+ * updated in place; the top-level result array is compacted by removing nullish
+ * resolved entries, while arrays nested inside resolved objects keep all their
+ * entries (including null placeholders that keep FHIR primitive value arrays
+ * aligned with their sibling "_"-metadata arrays). Other object instances are
+ * returned unchanged unless they are known internal FHIRPath types. Hidden
+ * "__path__" metadata is attached only to top-level results (a directly passed
+ * object/ResourceNode or the elements of a top-level array); objects and arrays
+ * nested inside those items do not receive metadata.
+ * @param {any} val - a result of FHIRPath expression evaluation.
+ * @returns {any} the resolved value.
  */
 function resolveInternalTypes(val) {
+  return resolveInternalTypesImpl(val);
+}
+
+
+/**
+ * Checks whether a value is a JSON-like object that should be copied.
+ * @param {*} val - the value to check.
+ * @returns {boolean} true if the value is a plain object.
+ */
+function isPlainObjectLike(val) {
+  if (!val || typeof val !== 'object') {
+    return false;
+  }
+  const proto = Object.getPrototypeOf(val);
+  return proto === Object.prototype || proto === null;
+}
+
+
+/**
+ * Copies hidden path metadata from one container to another when present.
+ * @param {object} source - the source array or plain object.
+ * @param {object} target - the copied array or plain object.
+ * @returns {void}
+ */
+function copyPathMetadata(source, target) {
+  const descriptor = Object.getOwnPropertyDescriptor(source, '__path__');
+  if (descriptor) {
+    Object.defineProperty(target, '__path__', descriptor);
+  }
+}
+
+
+/**
+ * Attaches ResourceNode path metadata to a copied resolved container.
+ * @param {object} target - the copied array or plain object.
+ * @param {object} pathInfo - the ResourceNode path information.
+ * @returns {void}
+ */
+function setPathMetadata(target, pathInfo) {
+  if (pathInfo?.path) {
+    Object.defineProperty(target, '__path__', { value: pathInfo });
+  }
+}
+
+
+/**
+ * Resolves internal FHIRPath values, optionally assigning wrapper path
+ * metadata to the copied root container. Metadata is only attached to
+ * top-level results; objects and arrays nested inside a top-level item are
+ * copied without "__path__" metadata.
+ * @param {any} val - the value to resolve.
+ * @param {object} [pathInfo] - ResourceNode path metadata to assign.
+ * @param {boolean} [isTopLevel] - whether "val" is a top-level result that may
+ *  receive "__path__" metadata.
+ * @returns {any} the resolved value.
+ */
+function resolveInternalTypesImpl(val, pathInfo, isTopLevel = true) {
   if (Array.isArray(val)) {
-    for (let i=0, len=val.length; i<len; ++i)
-      val[i] = resolveInternalTypes(val[i]);
+    const resolved = [];
+    for (let i=0, len=val.length; i<len; ++i) {
+      const item = resolveInternalTypesImpl(val[i], undefined, isTopLevel);
+      // Only the top-level result array is compacted (mirroring
+      // prepareEvalResult). Arrays nested inside a resolved object keep all
+      // their entries, including null placeholders that keep FHIR primitive
+      // value arrays index-aligned with their sibling "_"-metadata arrays.
+      if (!isTopLevel || item != null) {
+        resolved.push(item);
+      }
+    }
+    if (isTopLevel) {
+      if (pathInfo) {
+        setPathMetadata(resolved, pathInfo);
+      } else {
+        copyPathMetadata(val, resolved);
+      }
+    }
+    val = resolved;
   }
   else if (val instanceof ResourceNode) {
-    const pathInfo = {
+    const nodePathInfo = {
       ctx: val.ctx,
       path: val.path,
       fhirNodeDataType: val.fhirNodeDataType,
@@ -1276,17 +1540,32 @@ function resolveInternalTypes(val) {
       propName: val.propName,
       index: val.index
     };
-    val = resolveInternalTypes(val.data);
-    if (val != null && pathInfo.path && typeof val === 'object' && !val.__path__) {
-      Object.defineProperty(val, '__path__', { value: pathInfo });
-    }
+    val = resolveInternalTypesImpl(val.data, nodePathInfo, isTopLevel);
   }
   else if (val instanceof FP_Type) {
     val = val.toJSON();
   }
-  else if (val && typeof val === 'object') {
-    for (let k of Object.keys(val))
-      val[k] = resolveInternalTypes(val[k]);
+  else if (typeof val === 'bigint') {
+    val = val.toString();
+  }
+  else if (isPlainObjectLike(val)) {
+    const resolved = {};
+    for (let k of Object.keys(val)) {
+      // Skip a "__proto__" own key so a copied plain object cannot have its
+      // prototype re-pointed via the inherited "__proto__" setter.
+      if (k === '__proto__') {
+        continue;
+      }
+      resolved[k] = resolveInternalTypesImpl(val[k], undefined, false);
+    }
+    if (isTopLevel) {
+      if (pathInfo) {
+        setPathMetadata(resolved, pathInfo);
+      } else {
+        copyPathMetadata(val, resolved);
+      }
+    }
+    val = resolved;
   }
   return val;
 }
@@ -1453,7 +1732,8 @@ function _compile(path, model, options) {
         });
       } while(changed);
       basePath = model.pathsDefinedElsewhere[basePath] || basePath;
-      baseFhirNodeDataType = model && model.path2Type[basePath];
+      baseFhirNodeDataType = model.availableTypes.has(basePath) ? basePath
+        : model.path2Type[basePath];
       basePath =
         baseFhirNodeDataType === 'BackboneElement' ||
         baseFhirNodeDataType === 'Element' ?

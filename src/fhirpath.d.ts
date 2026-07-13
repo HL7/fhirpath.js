@@ -179,6 +179,14 @@ interface Model {
   };
 
   /**
+   * Mapping from repeating element paths to true. Bundled FHIR model contexts
+   * include this metadata for instance selector object construction.
+   */
+  path2Repeating: {
+    [path: string]: true;
+  };
+
+  /**
    * A hash map of FHIR resource types that support the 'url' search parameter,
    * mapped to `true`.
    */
@@ -241,7 +249,7 @@ interface ResourceNode {
    * (e.g. extensions and ids on primitive elements).
    * See https://www.hl7.org/fhir/element.html#json for details.
    */
-  _data: Record<string, any>;
+  _data: Record<string, any> | null;
 
   /** FHIR data type of this node, if described in the FHIR model. */
   fhirNodeDataType: string | null;

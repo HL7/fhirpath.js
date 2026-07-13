@@ -7,6 +7,7 @@ export const {
     pathsDefinedElsewhere,
     type2Parent,
     path2Type,
+    path2Repeating,
     resourcesWithUrlParam,
     path2TypeWithoutElements,
     path2RefType
