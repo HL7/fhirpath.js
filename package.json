@@ -3,7 +3,62 @@
   "version": "5.0.0",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
+  "module": "esm/fhirpath.mjs",
   "types": "src/fhirpath.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./src/fhirpath.d.mts",
+        "default": "./esm/fhirpath.mjs"
+      },
+      "require": {
+        "types": "./src/fhirpath.d.ts",
+        "default": "./src/fhirpath.js"
+      }
+    },
+    "./fhir-context/dstu2": {
+      "import": {
+        "types": "./fhir-context/dstu2/index.d.mts",
+        "default": "./fhir-context/dstu2/index.mjs"
+      },
+      "require": {
+        "types": "./fhir-context/dstu2/index.d.ts",
+        "default": "./fhir-context/dstu2/index.js"
+      }
+    },
+    "./fhir-context/stu3": {
+      "import": {
+        "types": "./fhir-context/stu3/index.d.mts",
+        "default": "./fhir-context/stu3/index.mjs"
+      },
+      "require": {
+        "types": "./fhir-context/stu3/index.d.ts",
+        "default": "./fhir-context/stu3/index.js"
+      }
+    },
+    "./fhir-context/r4": {
+      "import": {
+        "types": "./fhir-context/r4/index.d.mts",
+        "default": "./fhir-context/r4/index.mjs"
+      },
+      "require": {
+        "types": "./fhir-context/r4/index.d.ts",
+        "default": "./fhir-context/r4/index.js"
+      }
+    },
+    "./fhir-context/r5": {
+      "import": {
+        "types": "./fhir-context/r5/index.d.mts",
+        "default": "./fhir-context/r5/index.mjs"
+      },
+      "require": {
+        "types": "./fhir-context/r5/index.d.ts",
+        "default": "./fhir-context/r5/index.js"
+      }
+    },
+    "./package.json": "./package.json",
+    "./*": "./*"
+  },
   "dependencies": {
     "@lhncbc/ucum-lhc": "^5.0.0",
     "@loxjs/url-join": "^1.0.2",
@@ -14,6 +69,7 @@
     "js-yaml": "^4.1.1"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.4",
     "@babel/core": "^7.21.4",
     "@babel/eslint-parser": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
@@ -24,6 +80,7 @@
     "bestzip": "^2.2.0",
     "copy-webpack-plugin": "^14.0.0",
     "cypress": "^13.7.2",
+    "esbuild": "^0.28.1",
     "eslint": "^9.39.3",
     "fhir": "^4.10.3",
     "glob": "^13.0.6",
@@ -36,6 +93,7 @@
     "tinybench": "^6.0.0",
     "tmp": "^0.2.5",
     "tsd": "^0.31.1",
+    "typescript": "6.0.3",
     "webpack": "^5.102.1",
     "webpack-bundle-analyzer": "^4.4.2",
     "webpack-cli": "^4.9.1",
@@ -52,13 +110,20 @@
     "preinstall": "node bin/install-demo.js",
     "generateParser": "cd src/parser; rimraf ./generated/*; java -Xmx500M -cp \"../../antlr-4.9.3-complete.jar:$CLASSPATH\" org.antlr.v4.Tool -o generated -Dlanguage=JavaScript FHIRPath.g4; node ../../scripts/fix-parser-imports.js",
     "build": "cd browser-build && webpack && rimraf fhirpath.zip && bestzip fhirpath.zip LICENSE.md fhirpath.min.js fhirpath.r5.min.js fhirpath.r4.min.js fhirpath.stu3.min.js fhirpath.dstu2.min.js && rimraf  LICENSE.md",
+    "build:esm": "node scripts/build-esm.mjs",
+    "prepare": "npm run build:esm",
     "test:unit": "node --use_strict node_modules/jest/bin/jest.js && TZ=America/New_York node --use_strict node_modules/jest/bin/jest.js && TZ=Europe/Paris node --use_strict node_modules/jest/bin/jest.js",
     "test:unit:debug": "echo 'open chrome chrome://inspect/' && node --inspect node_modules/jest/bin/jest.js --runInBand",
     "build:demo": "npm run build && cd demo && npm run build",
     "test:e2e": "npm run build:demo && cypress run",
     "test:tsd": "tsd",
-    "test": "npm run lint && npm run test:tsd && npm run test:unit && npm run test:e2e && echo \"For tests specific to IE 11, open browser-build/test/index.html in IE 11, and confirm that the tests on that page pass.\"",
-    "lint": "eslint src/parser/index.js src/*.js converter/",
+    "test:types-resolution": "tsc -p test/typescript/resolution/tsconfig.json",
+    "test:types-decl": "tsc -p test/typescript/decl/tsconfig.json",
+    "test:attw": "attw --pack .",
+    "pretest:esm": "npm run build:esm",
+    "test:esm": "node test/esm/smoke.mjs",
+    "test": "npm run lint && npm run test:tsd && npm run test:types-resolution && npm run test:types-decl && npm run test:attw && npm run test:unit && npm run test:esm && npm run test:e2e && echo \"For tests specific to IE 11, open browser-build/test/index.html in IE 11, and confirm that the tests on that page pass.\"",
+    "lint": "eslint src/parser/index.js src/*.js src/*.mjs fhir-context/*/index.mjs converter/",
     "compare-performance": "node --max-old-space-size=4096 --initial-old-space-size=4096 --max-semi-space-size=128 --min-semi-space-size=128 ./test/benchmark.js"
   },
   "bin": {
@@ -68,6 +133,8 @@
     "CHANGELOG.md",
     "LICENSE.md",
     "bin",
+    "esm",
+    "!esm/**/*.map",
     "fhir-context",
     "scripts",
     "src"

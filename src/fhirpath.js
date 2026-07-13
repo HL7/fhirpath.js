@@ -54,7 +54,7 @@ let additional  = require("./additional");
 let logic  = require("./logic");
 const types = require("./types");
 const {
-  FP_Date, FP_DateTime, FP_Time, FP_Quantity,
+  FP_Date, FP_DateTime, FP_Time, FP_Quantity, ucumUtils,
   FP_Type, ResourceNode, TypeInfo, FP_Decimal
 } = types;
 let makeResNode = ResourceNode.makeResNode;
@@ -1818,7 +1818,7 @@ module.exports = {
    * library, used internally for unit conversions and also exported for
    * external use.
    */
-  ucumUtils: require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance(),
+  ucumUtils,
   /**
    * Utility functions (e.g. arraify, valData, isEmpty) that can be used to
    * implement custom user-defined FHIRPath functions.

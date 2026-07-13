@@ -4139,5 +4139,6 @@ module.exports = {
   isFn,
   asFn,
   toJSON,
+  ucumUtils,
   hasOwnProperty
 };
