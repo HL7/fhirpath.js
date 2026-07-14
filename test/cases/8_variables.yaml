@@ -41,6 +41,15 @@ tests:
       variables:
         "a.b() - 1": 5
       result: [2]
+    - desc: 'Variable bound to an array of resource-shaped objects'
+      expression: '%procedures.count()'
+      variables:
+        procedures:
+          - resourceType: Procedure
+            id: p1
+          - resourceType: Procedure
+            id: p2
+      result: [2]
 
 subject:
   n1: 1

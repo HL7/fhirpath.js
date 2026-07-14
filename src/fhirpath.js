@@ -347,7 +347,7 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
           ? makeResNode(i.__path__.ctx, i, i.__path__.parentResNode, i.__path__.path, null,
             i.__path__.fhirNodeDataType)
           : i?.resourceType
-            ? makeResNode(i.__path__.ctx, i, null, null, null, null)
+            ? makeResNode(ctx, i, null, null, null, null)
             : i );
     } else {
       value = value?.__path__
