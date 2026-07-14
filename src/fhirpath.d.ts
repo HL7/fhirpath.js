@@ -353,7 +353,7 @@ export interface Options {
    * HTTP headers to use when making requests to FHIR servers. Keys are server
    * base URLs, values are objects mapping header names to header values.
    */
-  httpHeaders?: Record<string, string>;
+  httpHeaders?: Record<string, Record<string, string>>;
   /**
    * Whether to use precision-safe decimal arithmetic instead of native
    * JavaScript number arithmetic. Defaults to false.
