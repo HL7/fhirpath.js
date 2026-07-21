@@ -102,6 +102,9 @@ expectAssignable<Model['version']>('r4');
 // Options is the base (async-free) options interface; OptionVariants adds the
 // async mode and is the type evaluate/compile accept.
 expectAssignable<Options>({resolveInternalTypes: false, preciseMath: true});
+// terminologyUrl accepts either a single URL or an ordered array of URLs.
+expectAssignable<Options>({terminologyUrl: 'https://ts.example'});
+expectAssignable<Options>({terminologyUrl: ['https://a.example', 'https://b.example']});
 expectAssignable<OptionVariants>({async: 'always'});
 const evalOpts: OptionVariants = {async: 'always'};
 expectType<Promise<any[]>>(

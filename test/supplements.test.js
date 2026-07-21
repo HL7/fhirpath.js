@@ -1100,4 +1100,214 @@ describe("supplements", () => {
 
   });
 
+
+  describe('weight() with multiple terminology servers', () => {
+
+    afterEach(() => {
+      mockRestore();
+    });
+
+
+    it('falls back to the next server when the first responds with an error',
+      (done) => {
+        mockFetchResults([
+          // The first server responds with a server error (not merely an empty
+          // result), so the request falls through to the second server.
+          ['https://ts-a-w.example/CodeSystem?url=some-system-multi', null,
+            {resourceType: 'OperationOutcome'}],
+          // The second server resolves it and provides the score.
+          ['https://ts-b-w.example/CodeSystem?url=some-system-multi', {
+            resourceType: 'Bundle',
+            entry: [{
+              resource: {
+                resourceType: 'CodeSystem',
+                url: 'some-system-multi',
+                concept: [{
+                  code: 'some-code-multi',
+                  extension: [{
+                    url: r4_model.score.extensionURI[0],
+                    valueDecimal: 7
+                  }]
+                }]
+              }
+            }]
+          }]
+        ]);
+
+        const res = fhirpath.evaluate(
+          {
+            resourceType: 'Observation',
+            valueCodeableConcept: {
+              coding: [{system: 'some-system-multi', code: 'some-code-multi'}]
+            }
+          },
+          '%context.value.coding.weight()',
+          null,
+          r4_model,
+          {
+            async: true,
+            terminologyUrl: [
+              'https://ts-a-w.example', 'https://ts-b-w.example'
+            ]
+          }
+        );
+
+        Promise.resolve(res).then(r => {
+          expect(r).toStrictEqual([7]);
+          done();
+        }, done);
+      });
+
+
+    it('falls back to the next server when the first responds without the '
+      + 'CodeSystem', (done) => {
+        mockFetchResults([
+          // The first server responds successfully but does not hold the code
+          // system (an empty bundle); this "not found without an error" case
+          // must still fall through to the second server.
+          ['https://ts-a-w.example/CodeSystem?url=some-system-empty',
+            {resourceType: 'Bundle'}],
+          // The second server holds it and provides the score.
+          ['https://ts-b-w.example/CodeSystem?url=some-system-empty', {
+            resourceType: 'Bundle',
+            entry: [{
+              resource: {
+                resourceType: 'CodeSystem',
+                url: 'some-system-empty',
+                concept: [{
+                  code: 'some-code-empty',
+                  extension: [{
+                    url: r4_model.score.extensionURI[0],
+                    valueDecimal: 5
+                  }]
+                }]
+              }
+            }]
+          }]
+        ]);
+
+        const res = fhirpath.evaluate(
+          {
+            resourceType: 'Observation',
+            valueCodeableConcept: {
+              coding: [{system: 'some-system-empty', code: 'some-code-empty'}]
+            }
+          },
+          '%context.value.coding.weight()',
+          null,
+          r4_model,
+          {
+            async: true,
+            terminologyUrl: [
+              'https://ts-a-w.example', 'https://ts-b-w.example'
+            ]
+          }
+        );
+
+        Promise.resolve(res).then(r => {
+          expect(r).toStrictEqual([5]);
+          done();
+        }, done);
+      });
+
+
+    it('returns no score when every server fails', (done) => {
+        mockFetchResults([
+          ['https://ts-a-w.example/CodeSystem?url=some-system-err', null,
+            {resourceType: 'OperationOutcome'}],
+          ['https://ts-b-w.example/CodeSystem?url=some-system-err', null,
+            {resourceType: 'OperationOutcome'}]
+        ]);
+
+        const res = fhirpath.evaluate(
+          {
+            resourceType: 'Observation',
+            valueCodeableConcept: {
+              coding: [{system: 'some-system-err', code: 'some-code-err'}]
+            }
+          },
+          '%context.value.coding.weight()',
+          null,
+          r4_model,
+          {
+            async: true,
+            terminologyUrl: [
+              'https://ts-a-w.example', 'https://ts-b-w.example'
+            ]
+          }
+        );
+
+        Promise.resolve(res).then((r) => {
+          // A failed request on every server means the artifact is treated as
+          // absent, so no score is added rather than the error being propagated.
+          expect(r).toStrictEqual([]);
+          done();
+        }, done);
+      });
+
+  });
+
+
+  describe('weight() with a single server that lacks the CodeSystem', () => {
+
+    afterEach(() => {
+      mockRestore();
+    });
+
+
+    it('adds no score when the CodeSystem search responds with an error',
+      (done) => {
+        mockFetchResults([
+          ['https://ts-single-w.example/CodeSystem?url=some-system-404', null,
+            {resourceType: 'OperationOutcome'}]
+        ]);
+
+        const res = fhirpath.evaluate(
+          {
+            resourceType: 'Observation',
+            valueCodeableConcept: {
+              coding: [{system: 'some-system-404', code: 'some-code-404'}]
+            }
+          },
+          '%context.value.coding.weight()',
+          null,
+          r4_model,
+          {async: true, terminologyUrl: 'https://ts-single-w.example'}
+        );
+
+        Promise.resolve(res).then((r) => {
+          expect(r).toStrictEqual([]);
+          done();
+        }, done);
+      });
+
+
+    it('adds no score when the CodeSystem search returns an empty bundle',
+      (done) => {
+        mockFetchResults([
+          ['https://ts-single-w.example/CodeSystem?url=some-system-empty',
+            {resourceType: 'Bundle'}]
+        ]);
+
+        const res = fhirpath.evaluate(
+          {
+            resourceType: 'Observation',
+            valueCodeableConcept: {
+              coding: [{system: 'some-system-empty', code: 'some-code-empty'}]
+            }
+          },
+          '%context.value.coding.weight()',
+          null,
+          r4_model,
+          {async: true, terminologyUrl: 'https://ts-single-w.example'}
+        );
+
+        Promise.resolve(res).then((r) => {
+          expect(r).toStrictEqual([]);
+          done();
+        }, done);
+      });
+
+  });
+
 });

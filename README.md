@@ -122,9 +122,13 @@ where:
           an exception,
         * true or similar to true - return Promise, only for asynchronous functions,
         * "always" - return Promise always.
-    * options.terminologyUrl - a URL that points to a terminology server. This
-      URL is used to initialize %terminologies, as defined in the FHIR FHIRPath
+    * options.terminologyUrl - a URL, or an array of URLs, that point to
+      terminology server(s). These URLs are used to initialize %terminologies,
+      as defined in the FHIR FHIRPath
       [Terminology Service API](https://www.hl7.org/fhir/fhirpath.html#txapi).
+      When an array of URLs is provided, the servers are tried in order, and the
+      server that first resolves a given ValueSet/CodeSystem is preferred (tried
+      first) for subsequent operations on that ValueSet/CodeSystem.
       See the [Implementation Status](#implementation-status) section for the
       currently supported %terminologies APIs.
     * options.fhirServerUrl - a URL pointing to a FHIR RESTful API server that
@@ -449,6 +453,28 @@ fhirpath.evaluate(
 
 Please note that for the `memberOf` function to work you must pass in
 a terminologyUrl option.
+
+The `terminologyUrl` option also accepts an array of URLs when you want to
+support multiple default terminology servers (for example, the servers a
+Questionnaire lists as preferred, plus the server it was fetched from). The
+servers are tried in order, and once a ValueSet/CodeSystem is resolved at one
+server, that server is preferred (tried first) for the remaining operations on
+that ValueSet/CodeSystem:
+```js
+fhirpath.evaluate(
+  resource,
+  "Observation.code.coding.where(memberOf('http://hl7.org/fhir/ValueSet/observation-vitalsignresult'))",
+  {},
+  model,
+  {
+    async: true,
+    terminologyUrl: [
+      'https://tx.example.org/fhir',
+      'https://lforms-fhir.nlm.nih.gov/baseR4'
+    ]
+  }
+)
+```
 
 ### User-defined functions
 

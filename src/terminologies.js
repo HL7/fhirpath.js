@@ -6,10 +6,232 @@ const util = require("./utilities");
 const {ResourceNode, TypeInfo} = require('./types');
 
 
+// Module-level cache of preferred terminology servers. When an operation on a
+// ValueSet/CodeSystem/ConceptMap succeeds against one of the configured
+// terminology servers, that server is remembered here and tried first for
+// subsequent operations on the same artifact (across evaluations). The cache is
+// a bounded LRU: a Map keeps entries in access order so the least-recently-used
+// entry is evicted once the cache exceeds "preferredServerCacheMaxSize". A stale
+// preference (a server that no longer has the artifact) is self-correcting:
+// fetchFromServers() falls back to the other servers and re-records whichever
+// now resolves it. The keys are strings of the form
+// "<resourceType>|<canonical URL>" (see "preferredServerKey"); the values are
+// terminology server base URLs.
+const preferredServerCache = new Map();
+// Maximum number of preferred-server entries to retain before evicting the
+// least-recently-used one.
+const preferredServerCacheMaxSize = 500;
+
+
+/**
+ * Builds a key for the preferred terminology server cache.
+ * @param {string} resourceType - the artifact resource type (e.g. "ValueSet",
+ *  "CodeSystem", "ConceptMap").
+ * @param {string|undefined|null} url - the canonical URL of the artifact.
+ * @return {string|null} - the cache key, or null when there is no URL to key on
+ *  (e.g. an inline resource without a URL), in which case no preference is
+ *  recorded or applied.
+ */
+function preferredServerKey(resourceType, url) {
+  return url ? resourceType + '|' + url : null;
+}
+
+
+/**
+ * Returns the preferred server for the given cache key, or undefined if there
+ * is no such preference. Accessing a preference marks it as most-recently-used.
+ * @param {string} key - the cache key (see "preferredServerKey").
+ * @return {string|undefined}
+ */
+function getPreferredServer(key) {
+  const server = preferredServerCache.get(key);
+  if (server !== undefined) {
+    // Mark the entry as most-recently-used by re-inserting it.
+    preferredServerCache.delete(key);
+    preferredServerCache.set(key, server);
+  }
+  return server;
+}
+
+
+/**
+ * Remembers, as the most-recently-used entry, the server that successfully
+ * resolved the artifact identified by the given cache key, evicting the
+ * least-recently-used entry if the cache exceeds its maximum size.
+ * @param {string} key - the cache key (see "preferredServerKey").
+ * @param {string} server - the terminology server base URL.
+ */
+function rememberPreferredServer(key, server) {
+  // (Re)insert as the most-recently-used entry.
+  preferredServerCache.delete(key);
+  preferredServerCache.set(key, server);
+  // Evict the least-recently-used entry (the first key in insertion order) when
+  // the cache has grown beyond its maximum size.
+  if (preferredServerCache.size > preferredServerCacheMaxSize) {
+    preferredServerCache.delete(preferredServerCache.keys().next().value);
+  }
+}
+
+
 class Terminologies {
-  constructor(terminologyUrl) {
-    this.terminologyUrl = terminologyUrl;
+  constructor(terminologyUrls) {
+    // The ordered list of terminology server base URLs.
+    this.terminologyUrls = terminologyUrls;
     this.invocationTable = Terminologies.invocationTable;
+  }
+
+  /**
+   * The primary terminology server URL (the first configured server). Kept for
+   * backward compatibility with callers that expect a single URL.
+   * @return {string|undefined}
+   */
+  get terminologyUrl() {
+    return this.terminologyUrls[0];
+  }
+
+
+  /**
+   * Returns the configured terminology servers ordered so that the preferred
+   * server for the given cache key (if any and if configured) comes first.
+   * @param {string|null} key - the preferred-server cache key, or null.
+   * @return {string[]}
+   */
+  orderServers(key) {
+    const urls = this.terminologyUrls;
+    if (key && urls.length > 1) {
+      const preferred = getPreferredServer(key);
+      if (preferred && urls.indexOf(preferred) > 0) {
+        return [preferred, ...urls.filter(u => u !== preferred)];
+      }
+    }
+    return urls;
+  }
+
+
+  /**
+   * Performs a terminology request against the configured servers, trying them
+   * in order (preferred server first, see "orderServers") until one returns an
+   * acceptable response. The first server that succeeds for the given cache key
+   * is remembered as preferred for subsequent operations on the same artifact.
+   *
+   * Any failed request (a rejected promise - e.g. a network error, a non-OK
+   * HTTP status, or an OperationOutcome response) is treated as "the artifact is
+   * absent on that server", so the next server is tried. When no server returns
+   * an acceptable response, the returned promise rejects; callers treat that
+   * rejection as an empty result.
+   *
+   * @param {Object} ctx - object describing the context of expression
+   *  evaluation (see the "applyParsedPath" function).
+   * @param {string|null} key - the preferred-server cache key (see
+   *  "preferredServerKey"), or null to disable server preference tracking.
+   * @param {string|function} isFound - either the expected "resourceType" of a
+   *  successful response, or a predicate "(response) => boolean" that returns
+   *  true when the response indicates the artifact was found on the server.
+   * @param {function} buildRequest - a function
+   *  "(baseUrl) => Promise|null|undefined" that returns a promise of the
+   *  response fetched from the given server, or null/undefined if the request
+   *  cannot be built (in which case the returned promise rejects and callers
+   *  treat it as an empty result). Whether a request can be built should not
+   *  depend on "baseUrl": the null/undefined decision is expected to be the
+   *  same for every server.
+   * @return {Promise<Object>} - a promise resolving to the successful response.
+   *  The promise rejects when "buildRequest" yields no request, or when no
+   *  server produces an acceptable response (indicating the artifact is absent
+   *  from every configured server); callers treat either rejection as an empty
+   *  result.
+   */
+  fetchFromServers(ctx, key, isFound, buildRequest) {
+    const servers = this.orderServers(key);
+    const accepts = typeof isFound === 'function'
+      ? isFound
+      : (obj) => obj?.resourceType === isFound;
+    const attempt = (i) => {
+      if (i >= servers.length) {
+        // No server returned an acceptable response: every request either
+        // failed or did not contain the artifact. Callers treat this rejection
+        // as an empty result.
+        return Promise.reject(
+          new Error('No terminology server could satisfy the request.')
+        );
+      }
+      const baseUrl = servers[i];
+      const built = buildRequest(baseUrl);
+      if (built == null) {
+        // The request cannot be built (e.g. insufficient data); trying other
+        // servers would not help. Reject (rather than returning null) so this
+        // method always returns a promise; callers treat the rejection as an
+        // empty result.
+        return Promise.reject(
+          new Error('The terminology request could not be built.')
+        );
+      }
+      return Promise.resolve(built).then(
+        (obj) => {
+          if (accepts(obj)) {
+            // Only track a preferred server when there is more than one server
+            // to choose between; with a single server orderServers() never
+            // consults the cache, so recording would only churn the global LRU.
+            if (key && servers.length > 1) {
+              rememberPreferredServer(key, baseUrl);
+            }
+            return obj;
+          }
+          return attempt(i + 1);
+        },
+        // Any rejection (network error, non-OK status, or an OperationOutcome)
+        // means the artifact is absent on this server; try the next one.
+        () => attempt(i + 1)
+      );
+    };
+    return attempt(0);
+  }
+
+
+  /**
+   * Locates the configured terminology server that holds the artifact with the
+   * given canonical URL by searching each server (in preferred-then-configured
+   * order, see "orderServers") for "<searchType>?url=<url>". The first server
+   * whose search returns a matching resource is recorded as the preferred
+   * server (see "fetchFromServers") and its base URL is captured, so the caller
+   * can send the follow-up operation to that same server without an additional
+   * lookup. Intended for the multi-server case; the caller decides when to use
+   * it (e.g. only when more than one server is configured).
+   *
+   * @param {Object} ctx - object describing the context of expression
+   *  evaluation (see the "applyParsedPath" function).
+   * @param {string|null} key - the preferred-server cache key (see
+   *  "preferredServerKey").
+   * @param {string} searchType - the resource type to search for (e.g.
+   *  "ValueSet", "CodeSystem", "ConceptMap").
+   * @param {string} url - the canonical URL of the artifact to locate,
+   *  optionally suffixed with "|version"; the version is sent as a separate
+   *  "version" search parameter.
+   * @return {Promise<{baseUrl: string, resource: Object}>} - a promise
+   *  resolving to the base URL of the holding server and the located resource.
+   *  When no server holds the artifact, the promise rejects (see
+   *  "fetchFromServers").
+   */
+  locateServer(ctx, key, searchType, url) {
+    // Captured (via closure) when a server's search returns the artifact, so the
+    // caller can operate on that same server without re-querying the cache.
+    let located;
+    // Split "url|version" so the version is matched by the FHIR "version" search
+    // parameter instead of being appended to the "url" value (which the server
+    // would not match against an unversioned canonical).
+    const query = new URLSearchParams(util.splitCanonicalUrl(url)).toString();
+    return this.fetchFromServers(
+      ctx, key,
+      (bundle) => !!bundle?.entry?.[0]?.resource,
+      (baseUrl) => util.fetchWithCache(
+        `${baseUrl}/${searchType}?${query}`, ctx
+      ).then((bundle) => {
+        const resource = bundle?.entry?.[0]?.resource;
+        if (resource) {
+          located = {baseUrl, resource};
+        }
+        return bundle;
+      })
+    ).then(() => located);
   }
 
   // Same as fhirpath.invocationTable, but for %terminologies methods
@@ -68,9 +290,12 @@ class Terminologies {
       const valueSet = util.valData(valueSetColl[0]);
 
       if (typeInfo.is(TypeInfo.FhirUri, ctx.model) || typeInfo.is(TypeInfo.SystemString, ctx.model)) {
-        response = util.fetchWithCache(
-          `${self[0].terminologyUrl}/ValueSet/$expand?url=${encodeURIComponent(valueSet)}${params ? '&' + params : ''}`,
-          ctx
+        response = self[0].fetchFromServers(
+          ctx, preferredServerKey('ValueSet', valueSet), 'ValueSet',
+          (baseUrl) => util.fetchWithCache(
+            `${baseUrl}/ValueSet/$expand?url=${encodeURIComponent(valueSet)}${params ? '&' + params : ''}`,
+            ctx
+          )
         );
       } else if (typeInfo.is(TypeInfo.FhirValueSet, ctx.model)) {
         const parameters = [{
@@ -78,13 +303,16 @@ class Terminologies {
           "resource": valueSet
         }, ...toFhirParameters(params)];
 
-        response = util.fetchWithCache(`${self[0].terminologyUrl}/ValueSet/$expand`, ctx, {
-          method: 'POST',
-          body: util.toJSON({
-            "resourceType": "Parameters",
-            "parameter": parameters
+        response = self[0].fetchFromServers(
+          ctx, preferredServerKey('ValueSet', valueSet?.url), 'ValueSet',
+          (baseUrl) => util.fetchWithCache(`${baseUrl}/ValueSet/$expand`, ctx, {
+            method: 'POST',
+            body: util.toJSON({
+              "resourceType": "Parameters",
+              "parameter": parameters
+            })
           })
-        });
+        );
       }
     }
 
@@ -118,6 +346,11 @@ class Terminologies {
       if (isCodeableConcept || isCoding || isCode) {
         const coded = util.valData(codedColl[0]);
         const codedParamName = isCodeableConcept || isCoding ? 'coding' : 'code';
+        // Identify the CodeSystem by the coding's system (when available) so
+        // that the server that resolves it can be preferred later.
+        const system = isCoding ? coded?.system
+          : isCodeableConcept ? coded?.coding?.[0]?.system
+            : undefined;
         const parameters = {
           resourceType: 'Parameters',
           parameter: [
@@ -128,11 +361,14 @@ class Terminologies {
             ...toFhirParameters(params)
           ]
         };
-        response = util.fetchWithCache(
-          `${self[0].terminologyUrl}/CodeSystem/$lookup`, ctx, {
-            method: "POST",
-            body: util.toJSON(parameters)
-          }
+        response = self[0].fetchFromServers(
+          ctx, preferredServerKey('CodeSystem', system), 'Parameters',
+          (baseUrl) => util.fetchWithCache(
+            `${baseUrl}/CodeSystem/$lookup`, ctx, {
+              method: "POST",
+              body: util.toJSON(parameters)
+            }
+          )
         );
       }
     }
@@ -169,7 +405,7 @@ class Terminologies {
     util.checkAllowAsync(ctx, 'validateVS');
 
     const valueSet = valueSetColl.length === 1 && util.valData(valueSetColl[0]);
-    let coded = codedColl.length === 1 && util.valData(codedColl[0]);
+    const coded = codedColl.length === 1 && util.valData(codedColl[0]);
 
     // If valueSet or coded are empty, we can predict that the $validate-code
     // operation will return an error.
@@ -181,50 +417,54 @@ class Terminologies {
       if (isActualValueSet || isValueSetUrl) {
         const {isCodeableConcept, isCoding, isCode} = getCodedType(ctx, codedColl);
         if (isCodeableConcept || isCoding || isCode) {
-          const requestUrl =
-            `${self[0].terminologyUrl}/ValueSet/$validate-code`;
+          const vsKeyUrl = isValueSetUrl ? valueSet : valueSet?.url;
+          const key = preferredServerKey('ValueSet', vsKeyUrl);
 
-          // Use a POST request if the passed valueSet is an actual ValueSet or
-          // the passed coded value is a CodeableConcept with more than one
-          // coding or no coding.
-          if (isActualValueSet || isCodeableConcept && coded.coding?.length !== 1) {
-            // getSystemFromVS() is a workaround for the case where we don't
-            // have a system. See discussion here:
+          // Builds and sends the $validate-code request to "baseUrl". "foundVs"
+          // is the ValueSet resource located on that server (see "locateServer")
+          // and lets us derive the system for a bare code without an extra
+          // request; when it is not provided, getSystemFromVS() is used instead.
+          const operate = (baseUrl, foundVs) => {
+            const requestUrl = `${baseUrl}/ValueSet/$validate-code`;
+            // getSystemFromVS()/getSystemFromValueSetResource() are a workaround
+            // for the case where we don't have a system. See discussion here:
             //  https://chat.fhir.org/#narrow/stream/179266-fhirpath/topic/Problem.20with.20the.20.22memberOf.22.20function.20and.20R4.20servers
-            response = (isCode ?
-              getSystemFromVS(ctx, self[0].terminologyUrl, valueSet)
-              : Promise.resolve()).then(system => {
-              const codedParamName = isCodeableConcept ?
-                'codeableConcept' : isCoding ? 'coding' : 'code';
-              const parameters = {
-                resourceType: 'Parameters',
-                parameter: [
-                  {
-                    name: isActualValueSet ? 'valueSet' : 'url',
-                    [isActualValueSet ? 'resource' : 'valueUri']: valueSet
-                  },
-                  {
-                    name: codedParamName,
-                    [paramName2valueXName[codedParamName]]: coded
-                  },
-                  ...(system ? [{name: 'system', valueUri: system}] : []),
-                  ...toFhirParameters(params)
-                ]
-              };
-              return util.fetchWithCache(
-                requestUrl, ctx, {
-                  method: "POST",
-                  body: util.toJSON(parameters)
-                }
-              );
-            });
-          } else  { // Otherwise use a GET request.
-            if (isCode) {
-              // Workaround for the case where we don't have a system.
-              // See discussion here:
-              //  https://chat.fhir.org/#narrow/stream/179266-fhirpath/topic/Problem.20with.20the.20.22memberOf.22.20function.20and.20R4.20servers
-              response = getSystemFromVS(ctx, self[0].terminologyUrl, valueSet)
-                .then((system) => {
+            const resolveSystem = () => foundVs
+              ? Promise.resolve(foundVs).then(getSystemFromValueSetResource)
+              : getSystemFromVS(ctx, baseUrl, valueSet);
+
+            // Use a POST request if the passed valueSet is an actual ValueSet or
+            // the passed coded value is a CodeableConcept with more than one
+            // coding or no coding.
+            if (isActualValueSet || isCodeableConcept && coded.coding?.length !== 1) {
+              return (isCode ? resolveSystem() : Promise.resolve()).then(system => {
+                const codedParamName = isCodeableConcept ?
+                  'codeableConcept' : isCoding ? 'coding' : 'code';
+                const parameters = {
+                  resourceType: 'Parameters',
+                  parameter: [
+                    {
+                      name: isActualValueSet ? 'valueSet' : 'url',
+                      [isActualValueSet ? 'resource' : 'valueUri']: valueSet
+                    },
+                    {
+                      name: codedParamName,
+                      [paramName2valueXName[codedParamName]]: coded
+                    },
+                    ...(system ? [{name: 'system', valueUri: system}] : []),
+                    ...toFhirParameters(params)
+                  ]
+                };
+                return util.fetchWithCache(
+                  requestUrl, ctx, {
+                    method: "POST",
+                    body: util.toJSON(parameters)
+                  }
+                );
+              });
+            } else { // Otherwise use a GET request.
+              if (isCode) {
+                return resolveSystem().then((system) => {
                   const queryParams2 = new URLSearchParams({
                     url: valueSet,
                     code: coded,
@@ -235,26 +475,41 @@ class Terminologies {
                     ctx
                   );
                 });
-            } else {
-              // If the coded value is a CodeableConcept with only one Coding
-              if (isCodeableConcept) {
-                coded = coded.coding[0];
-              }
-              // If the coded value is Coding and has system and code, we can
-              // use it in the request URL; otherwise, the $validate-code
-              // operation will return an error.
-              if (coded?.system && coded?.code) {
-                const queryParams = new URLSearchParams({
-                  url: valueSet,
-                  system: coded.system,
-                  code: coded.code
-                });
-                response = util.fetchWithCache(
-                  `${requestUrl}?${queryParams.toString() + (params ? '&' + params : '')}`,
-                  ctx
-                );
+              } else {
+                // If the coded value is a CodeableConcept with only one Coding
+                const codedForReq = isCodeableConcept ? coded.coding[0] : coded;
+                // If the coded value is Coding and has system and code, we can
+                // use it in the request URL; otherwise, the $validate-code
+                // operation will return an error.
+                if (codedForReq?.system && codedForReq?.code) {
+                  const queryParams = new URLSearchParams({
+                    url: valueSet,
+                    system: codedForReq.system,
+                    code: codedForReq.code
+                  });
+                  return util.fetchWithCache(
+                    `${requestUrl}?${queryParams.toString() + (params ? '&' + params : '')}`,
+                    ctx
+                  );
+                }
+                return null;
               }
             }
+          };
+
+          if (isValueSetUrl && self[0].terminologyUrls.length > 1) {
+            // Multiple servers and a canonical URL reference: find the server
+            // that holds the ValueSet first, then validate only against it
+            // (trusting its result), instead of inspecting each response for
+            // "not resolved" issues.
+            response = self[0].locateServer(ctx, key, 'ValueSet', valueSet)
+              .then(located => operate(located.baseUrl, located.resource));
+          } else {
+            // A single server, or an inline ValueSet that every server can
+            // process: send the operation directly (trying servers in order).
+            response = self[0].fetchFromServers(
+              ctx, key, 'Parameters', (baseUrl) => operate(baseUrl)
+            );
           }
         }
       }
@@ -301,8 +556,8 @@ class Terminologies {
         if (isCodeableConcept || isCoding || isCode) {
           const codeSystem = util.valData(codeSystemColl[0]);
           const coded = util.valData(codedColl[0]);
-          const requestUrl =
-            `${self[0].terminologyUrl}/CodeSystem/$validate-code`;
+          const csKeyUrl = isCodeSystemUrl ? codeSystem : codeSystem?.url;
+          const key = preferredServerKey('CodeSystem', csKeyUrl);
           const codedParamName = isCodeableConcept ?
             'codeableConcept' : isCoding ? 'coding' : 'code';
           const parameters = {
@@ -319,12 +574,24 @@ class Terminologies {
               ...toFhirParameters(params)
             ]
           };
-          response = util.fetchWithCache(
-            requestUrl, ctx, {
+          const operate = (baseUrl) => util.fetchWithCache(
+            `${baseUrl}/CodeSystem/$validate-code`, ctx, {
               method: "POST",
               body: util.toJSON(parameters)
             }
           );
+
+          if (isCodeSystemUrl && self[0].terminologyUrls.length > 1) {
+            // Multiple servers and a canonical URL reference: find the server
+            // that holds the CodeSystem first, then validate only against it
+            // (trusting its result).
+            response = self[0].locateServer(ctx, key, 'CodeSystem', codeSystem)
+              .then(located => operate(located.baseUrl));
+          } else {
+            // A single server, or an inline CodeSystem that every server can
+            // process: send the operation directly (trying servers in order).
+            response = self[0].fetchFromServers(ctx, key, 'Parameters', operate);
+          }
         }
       }
     }
@@ -378,7 +645,6 @@ class Terminologies {
           const system = util.valData(systemColl[0]);
           const coded1 = util.valData(coded1Coll[0]);
           const coded2 = util.valData(coded2Coll[0]);
-          const requestUrl = `${self[0].terminologyUrl}/CodeSystem/$subsumes`;
           const coded1ParamName = isCoding1 ? 'codingA' : 'codeA';
           const coded2ParamName = isCoding1 ? 'codingB' : 'codeB';
           const coded1ValueName = isCoding2 ? 'valueCoding' : 'valueCode';
@@ -401,23 +667,25 @@ class Terminologies {
               ...toFhirParameters(params)
             ]
           };
-          response = util.fetchWithCache(
-            requestUrl, ctx, {
-              method: "POST",
-              body: util.toJSON(parameters),
-            }
+          response = self[0].fetchFromServers(
+            ctx, preferredServerKey('CodeSystem', system), 'Parameters',
+            (baseUrl) => util.fetchWithCache(
+              `${baseUrl}/CodeSystem/$subsumes`, ctx, {
+                method: "POST",
+                body: util.toJSON(parameters),
+              }
+            )
           );
         }
       }
     }
 
     return response && response.then(obj => {
-      if (obj?.resourceType === 'Parameters') {
-        const code = obj.parameter?.find(p => p.name === 'outcome')?.valueCode;
-        return ResourceNode.makeResNode(
-          ctx, code, null, 'code', null, 'code');
-      }
-      throw new Error(obj);
+      // "fetchFromServers" only resolves with an accepted Parameters response
+      // (otherwise it rejects), so the outcome can be read directly here.
+      const code = obj.parameter?.find(p => p.name === 'outcome')?.valueCode;
+      return ResourceNode.makeResNode(
+        ctx, code, null, 'code', null, 'code');
     }).catch(() => null);
 
   }
@@ -461,7 +729,8 @@ class Terminologies {
         if (isCoding || isCode) {
           const conceptMap = util.valData(conceptMapColl[0]);
           const coded = util.valData(codedColl[0]);
-          const requestUrl = `${self[0].terminologyUrl}/CodeSystem/$translate`;
+          const cmKeyUrl = isConceptMapUrl ? conceptMap : conceptMap?.url;
+          const key = preferredServerKey('ConceptMap', cmKeyUrl);
           const m = modelToTranslateSourceParamName[ctx.model.version];
           const codedParamName = isCodeableConcept ?
             m.sourceCodeableConcept : isCoding ? m.sourceCoding : m.sourceCode;
@@ -479,12 +748,24 @@ class Terminologies {
               ...toFhirParameters(params)
             ]
           };
-          response = util.fetchWithCache(
-            requestUrl, ctx, {
+          const operate = (baseUrl) => util.fetchWithCache(
+            `${baseUrl}/CodeSystem/$translate`, ctx, {
               method: "POST",
               body: util.toJSON(parameters)
             }
           );
+
+          if (isConceptMapUrl && self[0].terminologyUrls.length > 1) {
+            // Multiple servers and a canonical URL reference: find the server
+            // that holds the ConceptMap first, then translate only against it
+            // (trusting its result).
+            response = self[0].locateServer(ctx, key, 'ConceptMap', conceptMap)
+              .then(located => operate(located.baseUrl));
+          } else {
+            // A single server, or an inline ConceptMap that every server can
+            // process: send the operation directly (trying servers in order).
+            response = self[0].fetchFromServers(ctx, key, 'Parameters', operate);
+          }
         }
       }
     }
@@ -524,20 +805,18 @@ function checkParams(params) {
  *
  * @param {Object} ctx - object describing the context of expression
  *  evaluation (see the "applyParsedPath" function).
- * @param {Object} terminologyUrl - a URL that points to a terminology server
+ * @param {string} baseUrl - the base URL of the terminology server to query.
  * @param {Object|string} valueSet -  either an actual ValueSet, or a canonical URL
  *  reference to a value set.
  * @return {Promise<string>} - a promise that resolves to the code system.
  */
-function getSystemFromVS(ctx, terminologyUrl, valueSet) {
-  const queryParams = new URLSearchParams({
-    url: valueSet
-  });
-
+function getSystemFromVS(ctx, baseUrl, valueSet) {
   return (
     typeof valueSet === 'string' ?
       util.fetchWithCache(
-        `${terminologyUrl}/ValueSet?${queryParams.toString()}`,
+        `${baseUrl}/ValueSet?${
+          new URLSearchParams(util.splitCanonicalUrl(valueSet)).toString()
+        }`,
         ctx
       ).then(
         (bundle) =>
@@ -545,17 +824,29 @@ function getSystemFromVS(ctx, terminologyUrl, valueSet) {
       )
       : Promise.resolve(valueSet)
   )
-    .then((vs) => {
-      const system = vs && (
-        getSystemFromArrayItems(vs.expansion?.contains)
-        || getSystemFromArrayItems(vs.compose?.include)
-      );
-      if (system) {
-        return system;
-      } else {
-        throw new Error('The valueset does not have a single code system.');
-      }
-    });
+    .then(getSystemFromValueSetResource);
+}
+
+
+/**
+ * Returns the single code system URI shared by all items of the given ValueSet
+ * resource. Throws if the value set does not resolve to a single code system.
+ * Extracted so that a ValueSet already fetched while locating the terminology
+ * server (see "locateServer") can be reused without an extra request.
+ *
+ * @param {Object|null|undefined} vs - a ValueSet resource.
+ * @return {string} - the code system URI.
+ * @throws {Error} - if the value set does not have a single code system.
+ */
+function getSystemFromValueSetResource(vs) {
+  const system = vs && (
+    getSystemFromArrayItems(vs.expansion?.contains)
+    || getSystemFromArrayItems(vs.compose?.include)
+  );
+  if (system) {
+    return system;
+  }
+  throw new Error('The valueset does not have a single code system.');
 }
 
 
@@ -769,6 +1060,7 @@ function getCodedType(ctx, codedColl) {
   return {isCodeableConcept, isCoding, isCode};
 }
 
+
 /**
  * Transforms a response object into a ResourceNode if the response matches
  * the expected resource type.
@@ -793,5 +1085,59 @@ function transformResponseToResource(ctx, response, resourceType) {
     throw new Error('Unexpected resourceType in response: ' + obj?.resourceType);
   }).catch(() => null) || null;
 }
+
+
+/**
+ * Builds a preferred-server cache key. Exposed so that other modules (e.g. the
+ * SDC supplements that implement weight()/ordinal()) can share the same
+ * preferred terminology server logic via "fetchFromServers".
+ * @type {function(string, (string|undefined|null)): (string|null)}
+ */
+Terminologies.preferredServerKey = preferredServerKey;
+
+
+/**
+ * Clears the module-level cache of preferred terminology servers. Intended for
+ * internal use only (e.g. test isolation); not part of the public API.
+ */
+Terminologies._clearPreferredServers = function () {
+  preferredServerCache.clear();
+};
+
+
+/**
+ * Returns the preferred server for the given cache key (marking it as
+ * most-recently-used), or undefined. Intended for internal use only (e.g.
+ * tests); not part of the public API.
+ * @type {function(string): (string|undefined)}
+ */
+Terminologies._getPreferredServer = getPreferredServer;
+
+
+/**
+ * Records the preferred server for the given cache key. Intended for internal
+ * use only (e.g. tests); not part of the public API.
+ * @type {function(string, string): void}
+ */
+Terminologies._rememberPreferredServer = rememberPreferredServer;
+
+
+/**
+ * Returns the current number of entries in the preferred-server cache. Intended
+ * for internal use only (e.g. tests); not part of the public API.
+ * @return {number}
+ */
+Terminologies._preferredServerCacheSize = function () {
+  return preferredServerCache.size;
+};
+
+
+/**
+ * The maximum number of preferred-server entries retained before eviction.
+ * Intended for internal use only (e.g. tests); not part of the public API.
+ * @type {number}
+ */
+Terminologies._preferredServerCacheMaxSize = preferredServerCacheMaxSize;
+
 
 module.exports = Terminologies;

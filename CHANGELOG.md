@@ -3,6 +3,41 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [5.1.0] - 2026-07-20
+### Added
+- The `terminologyUrl` option now accepts an array of terminology server URLs
+  in addition to a single URL string. When multiple servers are provided,
+  `validateVS`/`validateCS`/`translate` first locate the server that holds the
+  referenced ValueSet/CodeSystem/ConceptMap (searching the configured servers in
+  turn) and send the operation only to that server; `expand`/`lookup`/`subsumes`
+  try the servers in order until one responds. The server that resolves a given
+  artifact is preferred (tried first) for subsequent operations on that
+  artifact, and the preference is remembered across evaluations (retained in a
+  bounded LRU cache; least-recently-used entries are evicted). When no configured
+  server holds the artifact, the operation yields an empty result. The `fhirpath`
+  CLI `--terminologyUrl`/`-t` option can be repeated to configure multiple
+  servers.
+
+### Changed
+- `weight()`/`ordinal()`: when the score is looked up from a `CodeSystem` on a
+  terminology server and that lookup does not yield a score - because the code
+  system is absent from every configured server, or because a request fails
+  (e.g. a network or server error) - the function now adds no score for that
+  code instead of raising an error. This aligns with the multi-server fallback
+  and the "absent artifact yields an empty result" behavior of the
+  `%terminologies` functions. Previously a failing request rejected the result.
+- `memberOf`/`validateVS` now return a promise under async evaluation even when
+  no request can be built (for example, a coded value with neither a system nor
+  a code). Previously such a case could return a synchronous empty result.
+
+### Fixed
+- Per-server HTTP header matching: `httpHeaders` entries are now applied only to
+  requests whose URL matches the entry's base URL at a path/query boundary, and
+  when several configured base URLs match the most specific (longest) one wins.
+  Previously the first configured header set could be applied to every request
+  regardless of URL, which could leak one terminology server's credentials to
+  another.
+
 ## [5.0.0] - 2026-07-13
 ### Added
 - Added support for FHIRPath Instance Selector/Object Creation syntax for

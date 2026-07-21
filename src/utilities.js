@@ -211,6 +211,27 @@ util.escapeStringForRegExp = function (str) {
 
 
 /**
+ * Splits a canonical URL of the form "url[|version]" into its "url" and
+ * "version" parts, suitable for use as FHIR search parameters (the "version"
+ * search parameter is supported by ValueSet, CodeSystem, and ConceptMap). This
+ * is a pure splitter: it always returns an object with a "url" key (listed
+ * first, so a URLSearchParams built from it emits "url" before "version"), and
+ * adds a "version" key only when a non-empty version is present. A value that
+ * is not an absolute http(s) URL is returned unchanged as {url: canonical}.
+ * @param {string} canonical - a canonical URL, optionally suffixed with
+ *  "|version".
+ * @returns {{url: string, version?: string}}
+ */
+util.splitCanonicalUrl = function (canonical) {
+  const match = /^(https?:\/\/[^|]*)(\|(.*))?/.exec(canonical);
+  if (match) {
+    return match[3] ? {url: match[1], version: match[3]} : {url: match[1]};
+  }
+  return {url: canonical};
+};
+
+
+/**
  * Binding to the Array.prototype.push.apply function to define a function to
  * push the contents of the source array to the destination array.
  * @name pushFn
@@ -348,9 +369,26 @@ util.fetchWithCache = function(url, ctx, options) {
   // If the URL starts with one of the keys, the corresponding headers will be
   // applied to the request.
   if (ctx.httpHeaders) {
-    const urlWithHeaders = Object.keys(ctx.httpHeaders)
-      .find(i =>
-        (new RegExp('^' + util.escapeStringForRegExp(i) + '\\b').test(i)));
+    // Find the configured base URL (key) that the request URL belongs to. The
+    // key must be a prefix of the request URL at a path/query boundary, so that
+    // when several terminology servers are configured each server receives only
+    // its own headers (e.g. its own Authorization token) instead of another
+    // server's credentials. When more than one configured base URL matches
+    // (e.g. overlapping bases such as "https://x" and "https://x/fhir"), the
+    // longest (most specific) match wins so the selection is deterministic
+    // regardless of key order.
+    let urlWithHeaders;
+    let longestBaseLength = -1;
+    for (const key of Object.keys(ctx.httpHeaders)) {
+      const base = key.endsWith('/') ? key.slice(0, -1) : key;
+      if (url === base || url.startsWith(base + '/') ||
+        url.startsWith(base + '?') || url.startsWith(base + '#')) {
+        if (base.length > longestBaseLength) {
+          longestBaseLength = base.length;
+          urlWithHeaders = key;
+        }
+      }
+    }
 
     if (urlWithHeaders) {
       const commonHeaders = ctx.httpHeaders[urlWithHeaders];
@@ -427,6 +465,18 @@ util.fetchWithCache = function(url, ctx, options) {
   }
 
   return requestCache[requestKey].promise;
+};
+
+
+/**
+ * Clears the module-level fetch response cache used by "fetchWithCache".
+ * Intended for internal use only (e.g. test isolation, to prevent cached
+ * responses from leaking between tests); not part of the public API.
+ */
+util._clearRequestCache = function() {
+  for (const key in requestCache) {
+    delete requestCache[key];
+  }
 };
 
 

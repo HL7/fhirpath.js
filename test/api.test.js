@@ -5,6 +5,7 @@ const _ = require('lodash');
 const {
   FP_DateTime, FP_Quantity, FP_Decimal_Native, ResourceNode
 } = require('../src/types');
+const util = require('../src/utilities');
 
 const observationResource = require('./resources/r4/observation-example.json');
 const input = {
@@ -841,3 +842,34 @@ describe('FP_Decimal in evaluate', () => {
   });
 
 });
+
+
+describe('util.splitCanonicalUrl', () => {
+
+  it('splits a versioned canonical into url and version', () => {
+    expect(util.splitCanonicalUrl('http://example.org/vs|2.0.0'))
+      .toStrictEqual({url: 'http://example.org/vs', version: '2.0.0'});
+  });
+
+
+  it('returns only the url for an unversioned canonical', () => {
+    expect(util.splitCanonicalUrl('http://example.org/vs'))
+      .toStrictEqual({url: 'http://example.org/vs'});
+  });
+
+
+  it('emits url before version so the query is url=...&version=...', () => {
+    const params = new URLSearchParams(
+      util.splitCanonicalUrl('https://example.org/vs|1.0')
+    ).toString();
+    expect(params).toBe('url=https%3A%2F%2Fexample.org%2Fvs&version=1.0');
+  });
+
+
+  it('returns the value unchanged for a non-http reference', () => {
+    expect(util.splitCanonicalUrl('ValueSet/123'))
+      .toStrictEqual({url: 'ValueSet/123'});
+  });
+
+});
+

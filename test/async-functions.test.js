@@ -9,6 +9,8 @@ const observationResource = require('./resources/r4/observation-example.json');
 const administrativeGenderVS = require('./resources/r4/administrative-gender-valueset.json');
 const observationCategoryVS = require('./resources/r4/observation-category-valuset.json');
 const {mockRestore, mockFetchResults} = require('./mock-fetch-results');
+const Terminologies = require('../src/terminologies');
+const util = require('../src/utilities');
 
 
 
@@ -16,6 +18,441 @@ describe('Async functions', () => {
 
   afterEach(() => {
     mockRestore();
+  })
+
+
+  describe('multiple terminology servers', () => {
+
+    it('tries the servers in order and falls back when one fails', (done) => {
+      mockFetchResults([
+        // The first server does not have the value set.
+        ['https://ts-a.example/ValueSet/$expand', null,
+          {resourceType: 'OperationOutcome'}],
+        // The second server resolves it.
+        ['https://ts-b.example/ValueSet/$expand', administrativeGenderVS]
+      ]);
+
+      const result = fhirpath.evaluate(
+        emptyResource,
+        "%terminologies.expand('http://example.org/vs/fallback') is ValueSet",
+        {},
+        modelR4,
+        { async: true,
+          terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'] }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([true]);
+        done();
+      }, done);
+    });
+
+
+    it('prefers the server that first resolved a value set for later ' +
+      'operations', (done) => {
+      let serverACalls = 0;
+      const vsUrl = 'http://example.org/vs/preferred';
+      mockFetchResults([
+        // The first server fails to expand; the second resolves it and becomes
+        // the preferred server for this value set.
+        ['https://ts-a.example/ValueSet/$expand', null,
+          {resourceType: 'OperationOutcome'}],
+        ['https://ts-b.example/ValueSet/$expand', administrativeGenderVS],
+        // Count any request that reaches the first server after the preference
+        // is established; with ts-b preferred they should never happen. (The
+        // earlier ts-a $expand entry above is matched first, so it is not
+        // counted here.)
+        [(url) => {
+          if (/^https:\/\/ts-a\.example\//.test(url)) {
+            serverACalls++;
+            return true;
+          }
+          return false;
+        }, null, {resourceType: 'OperationOutcome'}],
+        // Multi-server validateVS first locates the value set (a search), then
+        // validates against the holding server; the preferred server (ts-b) is
+        // tried first for both requests.
+        [/^https:\/\/ts-b\.example\/ValueSet\?url=/, {
+          resourceType: 'Bundle',
+          entry: [{resource: administrativeGenderVS}]
+        }],
+        [/^https:\/\/ts-b\.example\/ValueSet\/\$validate-code/, {
+          resourceType: 'Parameters',
+          parameter: [{name: 'result', valueBoolean: true}]
+        }]
+      ]);
+
+      const options = { async: true,
+        terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'] };
+
+      fhirpath.evaluate(
+        emptyResource,
+        `%terminologies.expand('${vsUrl}') is ValueSet`,
+        {}, modelR4, options
+      ).then((r1) => {
+        expect(r1).toEqual([true]);
+        return fhirpath.evaluate(
+          observationResource,
+          `%terminologies.validateVS('${vsUrl}', Observation.code.coding[0])`
+          + '.parameter.value',
+          {}, modelR4, options
+        );
+      }).then((r2) => {
+        expect(r2).toEqual([true]);
+        // The preferred server (ts-b) was tried first for both the locate
+        // search and the validate-code, so the first server was never queried.
+        expect(serverACalls).toBe(0);
+        done();
+      }, done);
+    });
+
+
+    it('works with a single terminology server URL passed as a string',
+      (done) => {
+        mockFetchResults([
+          ['https://ts-single.example/ValueSet/$expand', administrativeGenderVS]
+        ]);
+
+        const result = fhirpath.evaluate(
+          emptyResource,
+          "%terminologies.expand('http://example.org/vs/single') is ValueSet",
+          {},
+          modelR4,
+          { async: true, terminologyUrl: 'https://ts-single.example' }
+        );
+        expect(result instanceof Promise).toBe(true);
+        result.then((r) => {
+          expect(r).toEqual([true]);
+          done();
+        }, done);
+      });
+
+
+    it('returns an empty result when all servers fail', (done) => {
+      mockFetchResults([
+        ['https://ts-a.example/ValueSet/$expand', null,
+          {resourceType: 'OperationOutcome'}],
+        ['https://ts-b.example/ValueSet/$expand', null,
+          {resourceType: 'OperationOutcome'}]
+      ]);
+
+      const result = fhirpath.evaluate(
+        emptyResource,
+        "%terminologies.expand('http://example.org/vs/none')",
+        {},
+        modelR4,
+        { async: true,
+          terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'] }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([]);
+        done();
+      }, done);
+    });
+
+
+    it('applies each server\'s own headers to that server\'s requests',
+      (done) => {
+        let authSentToA, authSentToB;
+        mockFetchResults([
+          // The first server fails, forcing a fallback to the second one.
+          [{
+            url: /^https:\/\/ts-a\.example\/ValueSet\/\$expand/,
+            headers: (h) => {
+              authSentToA = h?.get('Authorization');
+              return true;
+            }
+          }, null, {resourceType: 'OperationOutcome'}],
+          [{
+            url: /^https:\/\/ts-b\.example\/ValueSet\/\$expand/,
+            headers: (h) => {
+              authSentToB = h?.get('Authorization');
+              return true;
+            }
+          }, administrativeGenderVS]
+        ]);
+
+        const result = fhirpath.evaluate(
+          emptyResource,
+          "%terminologies.expand('http://example.org/vs/headers') is ValueSet",
+          {},
+          modelR4,
+          {
+            async: true,
+            terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'],
+            httpHeaders: {
+              'https://ts-a.example': {Authorization: 'auth-a'},
+              'https://ts-b.example': {Authorization: 'auth-b'}
+            }
+          }
+        );
+        result.then((r) => {
+          expect(r).toEqual([true]);
+          // Each server must receive only its own Authorization header; with
+          // multiple servers, one server's credentials must not leak to another.
+          expect(authSentToA).toBe('auth-a');
+          expect(authSentToB).toBe('auth-b');
+          done();
+        }, done);
+      });
+
+
+    it('falls back to the next server for lookup', (done) => {
+      mockFetchResults([
+        // The first server returns a non-Parameters response, so the request
+        // falls through to the second server.
+        ['https://ts-a.example/CodeSystem/$lookup',
+          {resourceType: 'OperationOutcome'}],
+        ['https://ts-b.example/CodeSystem/$lookup', {
+          resourceType: 'Parameters',
+          parameter: [{name: 'display', valueString: 'Body weight'}]
+        }]
+      ]);
+
+      const result = fhirpath.evaluate(
+        observationResource,
+        '%terminologies.lookup(Observation.code.coding[0]).parameter.value',
+        {},
+        modelR4,
+        { async: true,
+          terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'] }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual(['Body weight']);
+        done();
+      }, done);
+    });
+
+
+    it('falls back to the next server for validateCS', (done) => {
+      mockFetchResults([
+        // The first server does not have the code system (its search returns an
+        // empty bundle), so the request falls through to the second server,
+        // which holds it and validates the code.
+        [/^https:\/\/ts-a\.example\/CodeSystem\?url=/, {resourceType: 'Bundle'}],
+        [/^https:\/\/ts-b\.example\/CodeSystem\?url=/, {
+          resourceType: 'Bundle',
+          entry: [{resource: {
+            resourceType: 'CodeSystem',
+            url: 'http://hl7.org/fhir/administrative-gender'
+          }}]
+        }],
+        [/^https:\/\/ts-b\.example\/CodeSystem\/\$validate-code/, {
+          resourceType: 'Parameters',
+          parameter: [{name: 'result', valueBoolean: true}]
+        }]
+      ]);
+
+      const result = fhirpath.evaluate(
+        emptyResource,
+        "%terminologies.validateCS('http://hl7.org/fhir/administrative-gender', "
+        + "'Male').parameter.value",
+        {},
+        modelR4,
+        { async: true,
+          terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'] }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([true]);
+        done();
+      }, done);
+    });
+
+
+    it('falls back to the next server for subsumes', (done) => {
+      mockFetchResults([
+        ['https://ts-a.example/CodeSystem/$subsumes',
+          {resourceType: 'OperationOutcome'}],
+        ['https://ts-b.example/CodeSystem/$subsumes', {
+          resourceType: 'Parameters',
+          parameter: [{name: 'outcome', valueCode: 'subsumed-by'}]
+        }]
+      ]);
+
+      const result = fhirpath.evaluate(
+        observationResource,
+        "%terminologies.subsumes('http://snomed.info/sct', '3738000', "
+        + "'235856003').where($this is FHIR.code) = 'subsumed-by'",
+        {},
+        modelR4,
+        { async: true,
+          terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'] }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([true]);
+        done();
+      }, done);
+    });
+
+
+    it('falls back to the next server for translate', (done) => {
+      mockFetchResults([
+        // The first server does not have the concept map (its search returns an
+        // empty bundle), so the request falls through to the second server,
+        // which holds it and performs the translation.
+        [/^https:\/\/ts-a\.example\/ConceptMap\?url=/, {resourceType: 'Bundle'}],
+        [/^https:\/\/ts-b\.example\/ConceptMap\?url=/, {
+          resourceType: 'Bundle',
+          entry: [{resource: {
+            resourceType: 'ConceptMap',
+            url: 'http://hl7.org/fhir/ConceptMap/example'
+          }}]
+        }],
+        [/^https:\/\/ts-b\.example\/CodeSystem\/\$translate/, {
+          resourceType: 'Parameters',
+          parameter: [{name: 'result', valueBoolean: true}]
+        }]
+      ]);
+
+      const result = fhirpath.evaluate(
+        observationResource,
+        "%terminologies.translate('http://hl7.org/fhir/ConceptMap/example', "
+        + 'Observation.code.coding[0]).parameter.value',
+        {},
+        modelR4,
+        { async: true,
+          terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'] }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([true]);
+        done();
+      }, done);
+    });
+
+
+    it('splits a versioned canonical, searching by url and version separately',
+      (done) => {
+        mockFetchResults([
+          // The locate search must split "|2.0.0" into a separate "version"
+          // search parameter (url first, then version); ts-a lacks this version.
+          ['https://ts-a.example/ValueSet?url=http%3A%2F%2Fexample.org%2Fvs%2F'
+            + 'ver&version=2.0.0', {resourceType: 'Bundle'}],
+          ['https://ts-b.example/ValueSet?url=http%3A%2F%2Fexample.org%2Fvs%2F'
+            + 'ver&version=2.0.0', {
+            resourceType: 'Bundle',
+            entry: [{resource: administrativeGenderVS}]
+          }],
+          [/^https:\/\/ts-b\.example\/ValueSet\/\$validate-code/, {
+            resourceType: 'Parameters',
+            parameter: [{name: 'result', valueBoolean: true}]
+          }]
+        ]);
+
+        const result = fhirpath.evaluate(
+          observationResource,
+          "%terminologies.validateVS('http://example.org/vs/ver|2.0.0', "
+          + 'Observation.code.coding[0]).parameter.value',
+          {},
+          modelR4,
+          { async: true,
+            terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'] }
+        );
+        expect(result instanceof Promise).toBe(true);
+        result.then((r) => {
+          expect(r).toEqual([true]);
+          done();
+        }, done);
+      });
+
+  })
+
+
+  describe('preferred terminology server cache (LRU)', () => {
+
+    it('evicts the least-recently-used entry beyond the max size and keeps '
+      + 'recently-used entries', () => {
+      Terminologies._clearPreferredServers();
+      const max = Terminologies._preferredServerCacheMaxSize;
+      for (let i = 0; i < max; i++) {
+        Terminologies._rememberPreferredServer('ValueSet|vs-' + i, 'srv-' + i);
+      }
+      expect(Terminologies._preferredServerCacheSize()).toBe(max);
+
+      // Touch the oldest entry so it becomes most-recently-used and survives
+      // the next eviction.
+      expect(Terminologies._getPreferredServer('ValueSet|vs-0')).toBe('srv-0');
+
+      // Inserting one more entry evicts the current least-recently-used entry,
+      // which is now "vs-1" ("vs-0" was just touched above).
+      Terminologies._rememberPreferredServer(
+        'ValueSet|vs-' + max, 'srv-' + max);
+
+      expect(Terminologies._preferredServerCacheSize()).toBe(max);
+      expect(Terminologies._getPreferredServer('ValueSet|vs-1'))
+        .toBeUndefined();
+      expect(Terminologies._getPreferredServer('ValueSet|vs-0')).toBe('srv-0');
+      expect(Terminologies._getPreferredServer('ValueSet|vs-' + max))
+        .toBe('srv-' + max);
+    });
+
+  })
+
+
+  describe('fetchWithCache HTTP header selection', () => {
+
+    it('applies the headers of the longest matching base URL regardless of '
+      + 'key order', (done) => {
+      let sentAuth;
+      mockFetchResults([
+        [{
+          url: 'https://x.example/fhir/ValueSet/$expand',
+          headers: (h) => {
+            sentAuth = h?.get('Authorization');
+            return true;
+          }
+        }, {resourceType: 'ValueSet'}]
+      ]);
+
+      // Keys are listed shortest-first; the longer, more specific base URL must
+      // win so header selection is independent of key order.
+      const ctx = {
+        httpHeaders: {
+          'https://x.example': {Authorization: 'short'},
+          'https://x.example/fhir': {Authorization: 'long'}
+        }
+      };
+      util.fetchWithCache(
+        'https://x.example/fhir/ValueSet/$expand', ctx
+      ).then(() => {
+        expect(sentAuth).toBe('long');
+        done();
+      }, done);
+    });
+
+
+    it('does not apply a base URL\'s headers when the match is not at a '
+      + 'path/query boundary', (done) => {
+      let sentAuth;
+      mockFetchResults([
+        [{
+          url: 'https://x.example/fhirELSE/ValueSet/$expand',
+          headers: (h) => {
+            sentAuth = h?.get('Authorization');
+            return true;
+          }
+        }, {resourceType: 'ValueSet'}]
+      ]);
+
+      // "https://x.example/fhir" is a string prefix of the request URL but not a
+      // path/query-boundary match, so its headers must not be applied.
+      const ctx = {
+        httpHeaders: {
+          'https://x.example/fhir': {Authorization: 'fhir'}
+        }
+      };
+      util.fetchWithCache(
+        'https://x.example/fhirELSE/ValueSet/$expand', ctx
+      ).then(() => {
+        expect(sentAuth).toBeNull();
+        done();
+      }, done);
+    });
+
   })
 
 
@@ -509,6 +946,58 @@ describe('Async functions', () => {
       expect(result).toThrow('The asynchronous function "validateVS" is not allowed.');
     });
 
+
+    it('trusts a single server result:false even when it reports an error '
+      + 'issue', (done) => {
+      // A unique value set URL and coding keep this request out of the
+      // module-level fetch cache shared with the other validateVS tests.
+      mockFetchResults([
+        // With a single configured server there is no other server to look the
+        // value set up on, so the server's result is trusted as-is: result
+        // false yields [false] (any accompanying issues are ignored).
+        [/code=single-server-code/, {
+          "resourceType": "Parameters",
+          "parameter": [
+            {
+              "name": "result",
+              "valueBoolean": false
+            },
+            {
+              "name": "issues",
+              "resource": {
+                "resourceType": "OperationOutcome",
+                "issue": [{
+                  "severity": "error",
+                  "code": "not-found"
+                }]
+              }
+            }
+          ]
+        }]
+      ]);
+
+      const result = fhirpath.evaluate(
+        {
+          "resourceType": "Observation",
+          "code": {
+            "coding": [{
+              "system": "http://example.org/cs/single-server",
+              "code": "single-server-code"
+            }]
+          }
+        },
+        "%terminologies.validateVS('http://example.org/vs/single-server-not-found', Observation.code.coding[0]).parameter.value",
+        {},
+        modelR4,
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([false]);
+        done();
+      }, done);
+    });
+
   });
 
 
@@ -825,7 +1314,7 @@ describe('Async functions', () => {
       })
     });
 
-    it('should work when Coding in a CodeableConcept has no system and code', () => {
+    it('should work when Coding in a CodeableConcept has no system and code', (done) => {
       mockFetchResults([]);
       let result = fhirpath.evaluate(
         {},
@@ -834,7 +1323,16 @@ describe('Async functions', () => {
         modelR4,
         { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
       );
-      expect(result).toEqual([]);
+      // The coded value has neither system nor code, so no $validate-code
+      // request can be built. memberOf now always returns a promise for async
+      // evaluation (fetchFromServers rejects when no request can be built, and
+      // the rejection is treated as an empty result) rather than
+      // short-circuiting to a synchronous empty array.
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([]);
+        done();
+      }, done);
     });
 
 

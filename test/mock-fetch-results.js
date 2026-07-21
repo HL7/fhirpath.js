@@ -1,3 +1,6 @@
+const Terminologies = require('../src/terminologies');
+const util = require('../src/utilities');
+
 let fetchSpy;
 
 
@@ -142,10 +145,18 @@ function reportError(msg) {
 
 
 /**
- * Restore the spy created with mockFetchResults.
+ * Restore the spy created with mockFetchResults. Also clears module-level
+ * caches that terminology operations populate as a side effect: the preferred
+ * terminology server cache and the fetchWithCache() response cache. Resetting
+ * them here (where every terminology-touching suite already calls mockRestore()
+ * in afterEach) prevents cached responses/preferences from leaking between
+ * tests. For non-terminology suites these caches are empty, so clearing them is
+ * a no-op.
  */
 function mockRestore() {
   fetchSpy?.mockRestore();
+  Terminologies._clearPreferredServers();
+  util._clearRequestCache();
 }
 
 

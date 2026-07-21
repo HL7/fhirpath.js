@@ -37,7 +37,7 @@ engine.memberOf = function (coll, valueSetColl ) {
       return Terminologies.validateVS.call(this,
         [terminologies], valueSetColl, coll, ''
       )?.then(params => {
-        return util.valData(params)?.parameter.find((p) => p.name === "result").valueBoolean;
+        return util.valData(params)?.parameter?.find((p) => p.name === "result")?.valueBoolean;
       }, () => []);
     }
   }
@@ -47,7 +47,7 @@ engine.memberOf = function (coll, valueSetColl ) {
 
 
 /**
- * Requests a FHIR resource by its canonical URL (see
+ * Requests a FHIR resource by its absolute http(s) canonical URL (see
  * https://hl7.org/fhir/references.html#canonical) from the FHIR server.
  * To request a resource by a canonical URL of the form "someUrl[|version]",
  * we need to make a request: "<resourceType>?url=<someUrl>[&version=version]"
@@ -58,23 +58,18 @@ engine.memberOf = function (coll, valueSetColl ) {
  * @param {Object} ctx - The execution context containing processedVars and
  *  model information.
  * @param {string} refType - The FHIR resource type to query (e.g., 'ValueSet').
- * @param {string} url - The canonical URL of the resource to fetch.
+ * @param {string} url - The absolute http(s) canonical URL of the resource to fetch.
  * @returns {Promise<Object|null>} A promise resolving to the resource object if found, or null.
  */
-function requestResourceByCanonicalUrl(ctx, refType, url) {
+function requestResByAbsHttpCanonicalUrl(ctx, refType, url) {
   const fhirServerUrl = ctx.processedVars.fhirServerUrl;
   if (!fhirServerUrl) {
     throw new Error('Option "fhirServerUrl" is not specified.');
   }
-  const match = /^(https?:\/\/[^|]*)(\|(.*))?/.exec(url);
-  if (refType && match && ctx.model.resourcesWithUrlParam[refType]) {
-    const params = {url: match[1]};
-    if (match[3]) {
-      params.version = match[3];
-    }
-    return  util.fetchWithCache(
+  if (ctx.model.resourcesWithUrlParam[refType]) {
+    return util.fetchWithCache(
       urlJoin(fhirServerUrl, refType) + '?' +
-      new URLSearchParams(params).toString(),
+      new URLSearchParams(util.splitCanonicalUrl(url)).toString(),
       ctx
     ).then((bundle) => {
       // Assuming the bundle contains a single resource.
@@ -135,14 +130,14 @@ function requestResourceByUrl(ctx, node, refType, url, isCanonical) {
       // If the reference is a canonical URL of specified type,
       // we can use this type to resolve it.
       if (refType) {
-        promiseOfResource = requestResourceByCanonicalUrl(ctx, refType, url);
+        promiseOfResource = requestResByAbsHttpCanonicalUrl(ctx, refType, url);
       }
     } else if (refType) {
       // If the reference is an absolute URL, we can use it directly.
       promiseOfResource = util.fetchWithCache(url, ctx).catch(
         // If the reference can be a canonical URL of specified type,
         // we can use this type to resolve it.
-        () => requestResourceByCanonicalUrl(ctx, refType, url));
+        () => requestResByAbsHttpCanonicalUrl(ctx, refType, url));
     } else {
       promiseOfResource = util.fetchWithCache(url, ctx);
     }

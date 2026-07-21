@@ -3,6 +3,7 @@
 
 let engine = {};
 const util = require("./utilities");
+const Terminologies = require('./terminologies');
 // Cannot use util.hasOwnProperty directly because it triggers the error:
 // "Do not access Object.prototype method 'hasOwnProperty' from target object"
 const { hasOwnProperty } = util;
@@ -324,7 +325,7 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire,
   const cacheKey = [
     modelVersion,
     questionnaire?.url || questionnaire?.id,
-    ctx.processedVars.terminologies?.terminologyUrl,
+    ctx.processedVars.terminologies?.terminologyUrls?.join(','),
     vsURL, code, system
   ].join('|');
 
@@ -427,52 +428,70 @@ function getWeightFromTerminologyCodeSet(ctx, code, system) {
   const scorePropertyUri = ctx.model?.score.propertyURI;
   const codeSystemExt = ctx.model?.score.extensionURI;
 
-  const terminologyUrl = getTerminologyUrl(ctx);
-  return util.fetchWithCache(`${terminologyUrl}/CodeSystem?` + new URLSearchParams({
-    url: system,
-    ...(scorePropertyUri ? {_elements: 'property'}: {})
-  }).toString(), ctx)
-    .then(bundle => {
-      if (scorePropertyUri) {
-        const scorePropertyCode = getPropertyCode(bundle?.entry?.[0]?.resource?.property, scorePropertyUri);
-        if (scorePropertyCode) {
-          return util.fetchWithCache(`${terminologyUrl}/CodeSystem/$lookup?` + new URLSearchParams({
+  const terminologies = getTerminologies(ctx);
+  // Prefer/record the server that provides the CodeSystem so that both the
+  // CodeSystem search and the follow-up $lookup target the same server first.
+  const key = Terminologies.preferredServerKey('CodeSystem', system);
+
+  return terminologies.fetchFromServers(
+    ctx, key,
+    (bundle) => !!bundle?.entry?.[0]?.resource,
+    (baseUrl) => util.fetchWithCache(`${baseUrl}/CodeSystem?` + new URLSearchParams({
+      url: system,
+      ...(scorePropertyUri ? {_elements: 'property'}: {})
+    }).toString(), ctx)
+  ).then(bundle => {
+    const resource = bundle.entry[0].resource;
+    if (scorePropertyUri) {
+      const scorePropertyCode = getPropertyCode(resource?.property, scorePropertyUri);
+      if (scorePropertyCode) {
+        return terminologies.fetchFromServers(
+          ctx, key, 'Parameters',
+          (baseUrl) => util.fetchWithCache(`${baseUrl}/CodeSystem/$lookup?` + new URLSearchParams({
             code, system, property: scorePropertyCode
           }).toString(), ctx)
-            .then((parameters) => {
-              return parameters.parameter
-                .find(p => p.name === 'property' && p.part
-                  .find(part => part.name === 'code' && part.valueCode === scorePropertyCode))
-                ?.part?.find(p => p.name === 'value')?.valueDecimal;
-            });
-        }
-      } else {
-        const item = getCodeSystemItem(bundle?.entry?.[0]?.resource.concept, code);
-        return getScoreExtensionValue(item, codeSystemExt);
+        ).then((parameters) => {
+          return parameters.parameter
+            ?.find(p => p.name === 'property' && p.part
+              ?.find(part => part.name === 'code' && part.valueCode === scorePropertyCode))
+            ?.part?.find(p => p.name === 'value')?.valueDecimal;
+        });
       }
-    });
+    } else {
+      const item = getCodeSystemItem(resource?.concept, code);
+      return getScoreExtensionValue(item, codeSystemExt);
+    }
+    // The CodeSystem was found but it does not define a score for this code.
+    return undefined;
+  }).catch(() => {
+    // Any failure - the CodeSystem is absent from every configured server, or a
+    // request to a server failed - means there is no score to add for this code.
+    return undefined;
+  });
 }
 
 
 /**
- * Returns the URL of the terminology server.
+ * Returns the Terminologies instance for the current evaluation, throwing if
+ * asynchronous functions are not allowed or no terminology server has been
+ * configured.
  * @param {Object} ctx - object describing the context of expression
  *  evaluation (see the "applyParsedPath" function).
- * @return {string}
+ * @return {Terminologies}
  */
-function getTerminologyUrl(ctx) {
+function getTerminologies(ctx) {
   if (!ctx.async) {
     throw new Error('The asynchronous function "weight"/"ordinal" is not allowed. ' +
       'To enable asynchronous functions, use the async=true or async="always"' +
       ' option.');
   }
 
-  const terminologyUrl = ctx.processedVars.terminologies?.terminologyUrl;
-  if (!terminologyUrl) {
+  const terminologies = ctx.processedVars.terminologies;
+  if (!terminologies?.terminologyUrl) {
     throw new Error('Option "terminologyUrl" is not specified.');
   }
 
-  return terminologyUrl;
+  return terminologies;
 }
 
 
