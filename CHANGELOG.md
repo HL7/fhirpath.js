@@ -5,8 +5,9 @@ This log documents significant changes for each release.  This project follows
 
 ## [5.1.0] - 2026-07-20
 ### Added
-- The `terminologyUrl` option now accepts an array of terminology server URLs
-  in addition to a single URL string. When multiple servers are provided,
+- The `terminologyUrl` option for the `evaluate()` and `compile()` methods now
+  accepts an array of terminology server URLs in addition to a single URL
+  string. When multiple servers are provided,
   `validateVS`/`validateCS`/`translate` first locate the server that holds the
   referenced ValueSet/CodeSystem/ConceptMap (searching the configured servers in
   turn) and send the operation only to that server; `expand`/`lookup`/`subsumes`

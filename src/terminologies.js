@@ -80,15 +80,6 @@ class Terminologies {
     this.invocationTable = Terminologies.invocationTable;
   }
 
-  /**
-   * The primary terminology server URL (the first configured server). Kept for
-   * backward compatibility with callers that expect a single URL.
-   * @return {string|undefined}
-   */
-  get terminologyUrl() {
-    return this.terminologyUrls[0];
-  }
-
 
   /**
    * Returns the configured terminology servers ordered so that the preferred

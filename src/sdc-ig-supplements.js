@@ -472,7 +472,7 @@ function getWeightFromTerminologyCodeSet(ctx, code, system) {
 
 
 /**
- * Returns the Terminologies instance for the current evaluation, throwing if
+ * Returns the Terminologies instance for the current evaluation, throws if
  * asynchronous functions are not allowed or no terminology server has been
  * configured.
  * @param {Object} ctx - object describing the context of expression
@@ -487,7 +487,7 @@ function getTerminologies(ctx) {
   }
 
   const terminologies = ctx.processedVars.terminologies;
-  if (!terminologies?.terminologyUrl) {
+  if (!terminologies?.terminologyUrls.length) {
     throw new Error('Option "terminologyUrl" is not specified.');
   }
 
