@@ -359,6 +359,43 @@ describe('Async functions', () => {
         }, done);
       });
 
+
+    it('splits a versioned non-http(s) canonical (urn:oid), searching by url '
+      + 'and version separately',
+      (done) => {
+        mockFetchResults([
+          // The locate search must split "|2.0.0" off the "urn:oid:..."
+          // canonical into a separate "version" search parameter (url first,
+          // then version); ts-a lacks this version.
+          ['https://ts-a.example/ValueSet?url=urn%3Aoid%3A2.16.840.1.113883'
+            + '&version=2.0.0', {resourceType: 'Bundle'}],
+          ['https://ts-b.example/ValueSet?url=urn%3Aoid%3A2.16.840.1.113883'
+            + '&version=2.0.0', {
+            resourceType: 'Bundle',
+            entry: [{resource: administrativeGenderVS}]
+          }],
+          [/^https:\/\/ts-b\.example\/ValueSet\/\$validate-code/, {
+            resourceType: 'Parameters',
+            parameter: [{name: 'result', valueBoolean: true}]
+          }]
+        ]);
+
+        const result = fhirpath.evaluate(
+          observationResource,
+          "%terminologies.validateVS('urn:oid:2.16.840.1.113883|2.0.0', "
+          + 'Observation.code.coding[0]).parameter.value',
+          {},
+          modelR4,
+          { async: true,
+            terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'] }
+        );
+        expect(result instanceof Promise).toBe(true);
+        result.then((r) => {
+          expect(r).toEqual([true]);
+          done();
+        }, done);
+      });
+
   })
 
 
@@ -1650,6 +1687,7 @@ describe('Async functions', () => {
         }],
         [/https:\/\/some-fhir-server\/ValueSet\?url=http%3A%2F%2Fsome-canonical-value-set-url$/, valueSetResource],
         [/https:\/\/some-fhir-server\/ValueSet\?url=http%3A%2F%2Fsome-canonical-value-set-url&version=1.0$/, valueSetResource],
+        [/https:\/\/some-fhir-server\/ValueSet\?url=urn%3Aoid%3A2\.16\.840\.1\.113883$/, valueSetResource],
         [/https:\/\/some-fhir-server\/Questionnaire\?url=http%3A%2F%2Fsome-canonical-questionnaire-url&version=2.0$/, {
           "resourceType": "Bundle",
           "entry": [{
@@ -1749,6 +1787,16 @@ describe('Async functions', () => {
         {
           "resourceType": "CodeSystem",
           "valueSet": "http://some-canonical-value-set-url",
+        },
+        'CodeSystem.valueSet.resolve() is ValueSet',
+        [true]
+      ],
+      [
+        [modelR4, modelR5],
+        'non-http(s) canonical (urn:oid) that resolves to a resource',
+        {
+          "resourceType": "CodeSystem",
+          "valueSet": "urn:oid:2.16.840.1.113883",
         },
         'CodeSystem.valueSet.resolve() is ValueSet',
         [true]

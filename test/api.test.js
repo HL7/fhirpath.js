@@ -866,7 +866,37 @@ describe('util.splitCanonicalUrl', () => {
   });
 
 
-  it('returns the value unchanged for a non-http reference', () => {
+  it('splits a versioned non-http(s) absolute URI (urn:oid)', () => {
+    expect(util.splitCanonicalUrl('urn:oid:1.2.3|2026'))
+      .toStrictEqual({url: 'urn:oid:1.2.3', version: '2026'});
+  });
+
+
+  it('returns only the url for an unversioned non-http(s) absolute URI', () => {
+    expect(util.splitCanonicalUrl('urn:oid:1.2.3'))
+      .toStrictEqual({url: 'urn:oid:1.2.3'});
+  });
+
+
+  it('splits a versioned urn:uuid absolute URI', () => {
+    expect(util.splitCanonicalUrl(
+      'urn:uuid:53fefa32-fcbb-4ff8-8a92-55ee120877b7|1.0'
+    )).toStrictEqual({
+      url: 'urn:uuid:53fefa32-fcbb-4ff8-8a92-55ee120877b7', version: '1.0'
+    });
+  });
+
+
+  it('emits url before version for a urn so the query is url=...&version=...',
+    () => {
+      const params = new URLSearchParams(
+        util.splitCanonicalUrl('urn:oid:1.2.3|2026')
+      ).toString();
+      expect(params).toBe('url=urn%3Aoid%3A1.2.3&version=2026');
+    });
+
+
+  it('returns the value unchanged for a relative reference', () => {
     expect(util.splitCanonicalUrl('ValueSet/123'))
       .toStrictEqual({url: 'ValueSet/123'});
   });

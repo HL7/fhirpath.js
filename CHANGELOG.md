@@ -3,7 +3,7 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [5.1.0] - 2026-07-20
+## [5.1.0] - 2026-07-23
 ### Added
 - The `terminologyUrl` option for the `evaluate()` and `compile()` methods now
   accepts an array of terminology server URLs in addition to a single URL
@@ -32,6 +32,12 @@ This log documents significant changes for each release.  This project follows
   a code). Previously such a case could return a synchronous empty result.
 
 ### Fixed
+- Versioned non-HTTP(S) canonical URLs (for example `urn:oid:1.2.3|2026`) are
+  now split into separate `url` and `version` search parameters when resolving
+  artifacts (via `resolve()` and the `%terminologies` server-location search).
+  Previously only `http(s)://` canonicals were split, so the `|version` suffix
+  was percent-encoded into the `url` value (e.g. `url=urn:oid:1.2.3%7C2026`),
+  which prevented the artifact from being located.
 - Per-server HTTP header matching: `httpHeaders` entries are now applied only to
   requests whose URL matches the entry's base URL at a path/query boundary, and
   when several configured base URLs match the most specific (longest) one wins.

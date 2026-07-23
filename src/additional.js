@@ -47,8 +47,10 @@ engine.memberOf = function (coll, valueSetColl ) {
 
 
 /**
- * Requests a FHIR resource by its absolute http(s) canonical URL (see
- * https://hl7.org/fhir/references.html#canonical) from the FHIR server.
+ * Requests a FHIR resource by its canonical URL (see
+ * https://hl7.org/fhir/references.html#canonical) from the FHIR server. The
+ * canonical URL may use any absolute URI scheme (for example "http:", "https:",
+ * or "urn:").
  * To request a resource by a canonical URL of the form "someUrl[|version]",
  * we need to make a request: "<resourceType>?url=<someUrl>[&version=version]"
  * In general, we don't know how to get the resource type from the canonical
@@ -58,10 +60,10 @@ engine.memberOf = function (coll, valueSetColl ) {
  * @param {Object} ctx - The execution context containing processedVars and
  *  model information.
  * @param {string} refType - The FHIR resource type to query (e.g., 'ValueSet').
- * @param {string} url - The absolute http(s) canonical URL of the resource to fetch.
+ * @param {string} url - The canonical URL of the resource to fetch.
  * @returns {Promise<Object|null>} A promise resolving to the resource object if found, or null.
  */
-function requestResByAbsHttpCanonicalUrl(ctx, refType, url) {
+function requestResByCanonicalUrl(ctx, refType, url) {
   const fhirServerUrl = ctx.processedVars.fhirServerUrl;
   if (!fhirServerUrl) {
     throw new Error('Option "fhirServerUrl" is not specified.');
@@ -103,11 +105,13 @@ const baseResourceTypes = {Resource: 1, DomainResource: 1};
 
 /**
  * Requests a FHIR resource by its URL, which may be absolute or relative.
- * If the URL is absolute, it is fetched directly. If the fetch fails and
- * a refType is provided, attempts to resolve as a canonical URL. If the URL is
- * relative and starts with a resource type, it is resolved against the FHIR
- * server URL. Returns null if the resource cannot be resolved. If a fragment
- * is specified, it retrieves the contained resource by its ID.
+ * If the URL is an absolute HTTP(S) URL, it is fetched directly; if the fetch
+ * fails and a refType is provided, it attempts to resolve as a canonical URL.
+ * If the URL is an absolute non-HTTP(S) URI (e.g. "urn:oid:..."), it is
+ * resolved as a canonical URL of the provided refType. If the URL is relative
+ * and starts with a resource type, it is resolved against the FHIR server URL.
+ * Returns null if the resource cannot be resolved. If a fragment is specified,
+ * it retrieves the contained resource by its ID.
  *
  * @param {Object} ctx - The execution context containing processedVars and
  *  model information.
@@ -130,16 +134,23 @@ function requestResourceByUrl(ctx, node, refType, url, isCanonical) {
       // If the reference is a canonical URL of specified type,
       // we can use this type to resolve it.
       if (refType) {
-        promiseOfResource = requestResByAbsHttpCanonicalUrl(ctx, refType, url);
+        promiseOfResource = requestResByCanonicalUrl(ctx, refType, url);
       }
     } else if (refType) {
       // If the reference is an absolute URL, we can use it directly.
       promiseOfResource = util.fetchWithCache(url, ctx).catch(
         // If the reference can be a canonical URL of specified type,
         // we can use this type to resolve it.
-        () => requestResByAbsHttpCanonicalUrl(ctx, refType, url));
+        () => requestResByCanonicalUrl(ctx, refType, url));
     } else {
       promiseOfResource = util.fetchWithCache(url, ctx);
+    }
+  } else if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url)) {
+    // If the reference is an absolute non-HTTP(S) URI (e.g. "urn:oid:..."), it
+    // cannot be fetched directly; resolve it as a canonical URL of the
+    // specified type when the type is known.
+    if (refType) {
+      promiseOfResource = requestResByCanonicalUrl(ctx, refType, url);
     }
   } else {
     const match = /([A-Za-z]*)\//.exec(url);

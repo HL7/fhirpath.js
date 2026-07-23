@@ -216,14 +216,18 @@ util.escapeStringForRegExp = function (str) {
  * search parameter is supported by ValueSet, CodeSystem, and ConceptMap). This
  * is a pure splitter: it always returns an object with a "url" key (listed
  * first, so a URLSearchParams built from it emits "url" before "version"), and
- * adds a "version" key only when a non-empty version is present. A value that
- * is not an absolute http(s) URL is returned unchanged as {url: canonical}.
+ * adds a "version" key only when a non-empty version is present. Any absolute
+ * URI - one that begins with a scheme such as "http:", "https:", or "urn:" - is
+ * split. A relative reference (e.g. "ValueSet/123") has no scheme and is
+ * returned unchanged as {url: canonical}.
  * @param {string} canonical - a canonical URL, optionally suffixed with
  *  "|version".
  * @returns {{url: string, version?: string}}
  */
 util.splitCanonicalUrl = function (canonical) {
-  const match = /^(https?:\/\/[^|]*)(\|(.*))?/.exec(canonical);
+  // Match any absolute URI by its RFC 3986 scheme ("scheme:...") up to the
+  // first "|"; a value with no scheme (a relative reference) is left unchanged.
+  const match = /^([a-zA-Z][a-zA-Z0-9+.-]*:[^|]*)(\|(.*))?/.exec(canonical);
   if (match) {
     return match[3] ? {url: match[1], version: match[3]} : {url: match[1]};
   }
