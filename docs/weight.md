@@ -53,5 +53,6 @@ the first one that provides the `CodeSystem` is used; that server is then
 preferred for the follow-up `$lookup` request (for R5 properties) and for later
 evaluations. If no configured server provides the `CodeSystem` - whether a
 server responds without it or a request fails (e.g. a network/server error) - no
-score is added for that code.
-
+score is added for that code. Request failures are not cached, so a later
+evaluation retries the terminology lookup. Successfully resolved scores and
+confirmed absence of a score in a retrieved `CodeSystem` remain cached.

@@ -1381,6 +1381,147 @@ describe("supplements", () => {
         }, done);
       });
 
+
+    it('retries after a transient failure instead of caching no score',
+      async () => {
+        const resource = {
+          resourceType: 'Observation',
+          valueCodeableConcept: {
+            coding: [{
+              system: 'some-system-recovery',
+              code: 'some-code-recovery'
+            }]
+          }
+        };
+        const options = {
+          async: true,
+          terminologyUrl: 'https://ts-recovery.example'
+        };
+
+        mockFetchResults([
+          ['https://ts-recovery.example/CodeSystem?'
+            + 'url=some-system-recovery', null,
+          {resourceType: 'OperationOutcome'}]
+        ]);
+        await expect(fhirpath.evaluate(
+          resource, '%context.value.coding.weight()', null, r4_model, options
+        )).resolves.toStrictEqual([]);
+
+        mockRestore();
+        mockFetchResults([
+          ['https://ts-recovery.example/CodeSystem?'
+            + 'url=some-system-recovery', {
+            resourceType: 'Bundle',
+            entry: [{
+              resource: {
+                resourceType: 'CodeSystem',
+                url: 'some-system-recovery',
+                concept: [{
+                  code: 'some-code-recovery',
+                  extension: [{
+                    url: r4_model.score.extensionURI[0],
+                    valueDecimal: 7
+                  }]
+                }]
+              }
+            }]
+          }]
+        ]);
+
+        await expect(fhirpath.evaluate(
+          resource, '%context.value.coding.weight()', null, r4_model, options
+        )).resolves.toStrictEqual([7]);
+      });
+
+
+    it('keeps a shared lookup running for a consumer that has not cancelled',
+      async () => {
+        let resolveFetch;
+        let underlyingSignal;
+        const fetchMock = jest.spyOn(global, 'fetch').mockImplementation(
+          (url, options) => {
+            underlyingSignal = options.signal;
+            return new Promise((resolve, reject) => {
+              resolveFetch = () => resolve({
+                ok: true,
+                headers: {get: () => 'application/fhir+json'},
+                json: () => Promise.resolve({
+                  resourceType: 'Bundle',
+                  entry: [{
+                    resource: {
+                      resourceType: 'CodeSystem',
+                      url: 'some-system-shared-weight',
+                      concept: [{
+                        code: 'some-code-shared-weight',
+                        extension: [{
+                          url: r4_model.score.extensionURI[0],
+                          valueDecimal: 8
+                        }]
+                      }]
+                    }
+                  }]
+                })
+              });
+              options.signal.addEventListener(
+                'abort',
+                () => reject(new DOMException('Aborted', 'AbortError')),
+                {once: true}
+              );
+            });
+          }
+        );
+        const resource = {
+          resourceType: 'Observation',
+          valueCodeableConcept: {
+            coding: [{
+              system: 'some-system-shared-weight',
+              code: 'some-code-shared-weight'
+            }]
+          }
+        };
+        const firstController = new AbortController();
+        const secondController = new AbortController();
+
+        try {
+          const first = fhirpath.evaluate(
+            resource,
+            '%context.value.coding.weight()',
+            null,
+            r4_model,
+            {
+              async: true,
+              terminologyUrl: 'https://ts-shared-weight.example',
+              signal: firstController.signal
+            }
+          );
+          const second = fhirpath.evaluate(
+            resource,
+            '%context.value.coding.weight()',
+            null,
+            r4_model,
+            {
+              async: true,
+              terminologyUrl: 'https://ts-shared-weight.example',
+              signal: secondController.signal
+            }
+          );
+          await new Promise(resolve => setImmediate(resolve));
+
+          const firstRejection = expect(first).rejects.toHaveProperty(
+            'name', 'AbortError');
+          firstController.abort();
+          await firstRejection;
+
+          expect(fetchMock).toHaveBeenCalledTimes(1);
+          expect(underlyingSignal.aborted).toBe(false);
+
+          resolveFetch();
+          await expect(second).resolves.toStrictEqual([8]);
+        } finally {
+          fetchMock.mockRestore();
+        }
+      });
+
   });
 
 });

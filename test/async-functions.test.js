@@ -455,7 +455,19 @@ describe('Async functions', () => {
             resourceType: 'Bundle',
             entry: [{resource: administrativeGenderVS}]
           }],
-          [/^https:\/\/ts-b\.example\/ValueSet\/\$validate-code/, {
+          [{
+            url: url => {
+              const parsed = new URL(url);
+              return parsed.origin === 'https://ts-b.example' &&
+                parsed.pathname === '/ValueSet/$validate-code' &&
+                parsed.searchParams.get('url') ===
+                  'http://example.org/vs/ver' &&
+                parsed.searchParams.get('valueSetVersion') === '2.0.0' &&
+                parsed.searchParams.get('system') === 'http://loinc.org' &&
+                parsed.searchParams.get('code') === '29463-7';
+            },
+            method: 'GET'
+          }, {
             resourceType: 'Parameters',
             parameter: [{name: 'result', valueBoolean: true}]
           }]
@@ -492,7 +504,19 @@ describe('Async functions', () => {
             resourceType: 'Bundle',
             entry: [{resource: administrativeGenderVS}]
           }],
-          [/^https:\/\/ts-b\.example\/ValueSet\/\$validate-code/, {
+          [{
+            url: url => {
+              const parsed = new URL(url);
+              return parsed.origin === 'https://ts-b.example' &&
+                parsed.pathname === '/ValueSet/$validate-code' &&
+                parsed.searchParams.get('url') ===
+                  'urn:oid:2.16.840.1.113883' &&
+                parsed.searchParams.get('valueSetVersion') === '2.0.0' &&
+                parsed.searchParams.get('system') === 'http://loinc.org' &&
+                parsed.searchParams.get('code') === '29463-7';
+            },
+            method: 'GET'
+          }, {
             resourceType: 'Parameters',
             parameter: [{name: 'result', valueBoolean: true}]
           }]
@@ -646,6 +670,134 @@ describe('Async functions', () => {
   })
 
 
+  describe('fetchWithCache shared cancellation', () => {
+
+    it('rejects only the cancelled consumer and resolves the other consumer',
+      async () => {
+        let resolveFetch;
+        let underlyingSignal;
+        const fetchMock = jest.spyOn(global, 'fetch').mockImplementation(
+          (url, options) => {
+            underlyingSignal = options.signal;
+            return new Promise((resolve, reject) => {
+              resolveFetch = () => resolve({
+                ok: true,
+                headers: {get: () => 'application/fhir+json'},
+                json: () => Promise.resolve({resourceType: 'ValueSet'})
+              });
+              options.signal.addEventListener(
+                'abort',
+                () => reject(new DOMException('Aborted', 'AbortError')),
+                {once: true}
+              );
+            });
+          }
+        );
+        const firstController = new AbortController();
+        const secondController = new AbortController();
+
+        try {
+          const first = util.fetchWithCache(
+            'https://shared.example/ValueSet',
+            {signal: firstController.signal}
+          );
+          const second = util.fetchWithCache(
+            'https://shared.example/ValueSet',
+            {signal: secondController.signal}
+          );
+          await Promise.resolve();
+
+          const firstRejection = expect(first).rejects.toHaveProperty(
+            'name', 'AbortError');
+          firstController.abort();
+
+          await firstRejection;
+          expect(fetchMock).toHaveBeenCalledTimes(1);
+          expect(underlyingSignal.aborted).toBe(false);
+
+          resolveFetch();
+          await expect(second).resolves.toEqual({
+            resourceType: 'ValueSet'
+          });
+        } finally {
+          fetchMock.mockRestore();
+        }
+      });
+
+
+    it('aborts the shared request only after every consumer cancels',
+      async () => {
+        let underlyingSignal;
+        const fetchMock = jest.spyOn(global, 'fetch').mockImplementation(
+          (url, options) => {
+            underlyingSignal = options.signal;
+            return new Promise((resolve, reject) => {
+              options.signal.addEventListener(
+                'abort',
+                () => reject(new DOMException('Aborted', 'AbortError')),
+                {once: true}
+              );
+            });
+          }
+        );
+        const firstController = new AbortController();
+        const secondController = new AbortController();
+
+        try {
+          const first = util.fetchWithCache(
+            'https://all-cancel.example/ValueSet',
+            {signal: firstController.signal}
+          );
+          const second = util.fetchWithCache(
+            'https://all-cancel.example/ValueSet',
+            {signal: secondController.signal}
+          );
+          await Promise.resolve();
+
+          const firstRejection = expect(first).rejects.toHaveProperty(
+            'name', 'AbortError');
+          firstController.abort();
+          await firstRejection;
+          expect(underlyingSignal.aborted).toBe(false);
+
+          const secondRejection = expect(second).rejects.toHaveProperty(
+            'name', 'AbortError');
+          secondController.abort();
+          await secondRejection;
+          expect(underlyingSignal.aborted).toBe(true);
+          expect(fetchMock).toHaveBeenCalledTimes(1);
+        } finally {
+          fetchMock.mockRestore();
+        }
+      });
+
+
+    it('evicts a rejected shared request so a later consumer can retry',
+      async () => {
+        const fetchMock = jest.spyOn(global, 'fetch')
+          .mockRejectedValueOnce(new Error('temporary failure'))
+          .mockResolvedValueOnce({
+            ok: true,
+            headers: {get: () => 'application/fhir+json'},
+            json: () => Promise.resolve({resourceType: 'ValueSet'})
+          });
+
+        try {
+          await expect(util.fetchWithCache(
+            'https://retry.example/ValueSet', {}
+          )).rejects.toThrow('temporary failure');
+          await expect(util.fetchWithCache(
+            'https://retry.example/ValueSet', {}
+          )).resolves.toEqual({resourceType: 'ValueSet'});
+          expect(fetchMock).toHaveBeenCalledTimes(2);
+        } finally {
+          fetchMock.mockRestore();
+        }
+      });
+
+  })
+
+
   describe('fetchWithCache HTTP header selection', () => {
 
     it('applies the headers of the longest matching base URL regardless of '
@@ -749,6 +901,65 @@ describe('Async functions', () => {
         done();
       })
     });
+
+
+    it('splits a versioned canonical into url and valueSetVersion',
+      (done) => {
+        mockFetchResults([
+          [{
+            url: url => {
+              const parsed = new URL(url);
+              return parsed.pathname.endsWith('/ValueSet/$expand') &&
+                parsed.searchParams.get('url') === 'urn:oid:1.2.3' &&
+                parsed.searchParams.get('valueSetVersion') === '2026';
+            }
+          }, administrativeGenderVS]
+        ]);
+
+        const result = fhirpath.evaluate(
+          emptyResource,
+          "%terminologies.expand('urn:oid:1.2.3|2026') is ValueSet",
+          {},
+          modelR4,
+          {async: true, terminologyUrl: 'https://tx.example'}
+        );
+
+        result.then(r => {
+          expect(r).toEqual([true]);
+          done();
+        }, done);
+      });
+
+
+    it('prefers an explicit valueSetVersion without sending a duplicate',
+      (done) => {
+        mockFetchResults([
+          [{
+            url: url => {
+              const parsed = new URL(url);
+              const versions =
+                parsed.searchParams.getAll('valueSetVersion');
+              return parsed.searchParams.get('url') ===
+                  'http://example.org/vs' &&
+                versions.length === 1 && versions[0] === 'explicit';
+            }
+          }, administrativeGenderVS]
+        ]);
+
+        const result = fhirpath.evaluate(
+          emptyResource,
+          "%terminologies.expand('http://example.org/vs|canonical', "
+          + "'valueSetVersion=explicit') is ValueSet",
+          {},
+          modelR4,
+          {async: true, terminologyUrl: 'https://tx.example'}
+        );
+
+        result.then(r => {
+          expect(r).toEqual([true]);
+          done();
+        }, done);
+      });
 
 
     it('should throw an error when the async function is not allowed', () => {
@@ -1302,6 +1513,39 @@ describe('Async functions', () => {
     });
 
 
+    it('splits a versioned canonical into url and version', (done) => {
+      mockFetchResults([
+        [{
+          url: 'CodeSystem/$validate-code',
+          body: bodyStr => {
+            const parameters = JSON.parse(bodyStr).parameter;
+            return parameters.find(p => p.name === 'url')?.valueUri ===
+                'urn:oid:1.2.3' &&
+              parameters.find(p => p.name === 'version')?.valueString ===
+                '2026';
+          }
+        }, {
+          resourceType: 'Parameters',
+          parameter: [{name: 'result', valueBoolean: true}]
+        }]
+      ]);
+
+      const result = fhirpath.evaluate(
+        observationResource,
+        "%terminologies.validateCS('urn:oid:1.2.3|2026', 'Male')"
+        + '.parameter.value',
+        {},
+        modelR4,
+        {async: true, terminologyUrl: 'https://tx.example'}
+      );
+
+      result.then(r => {
+        expect(r).toEqual([true]);
+        done();
+      }, done);
+    });
+
+
     it('should throw an error when the async function is not allowed', () => {
       let result = () => fhirpath.evaluate(
         observationResource,
@@ -1326,12 +1570,12 @@ describe('Async functions', () => {
             let result = false;
             const bodyObj = JSON.parse(bodyStr);
             if (bodyObj.resourceType === 'Parameters') {
-              const url = bodyObj.parameter.find(p => p.name === 'url')?.valueUri;
+              const system = bodyObj.parameter.find(p => p.name === 'system')?.valueUri;
               const valueCode1 = bodyObj.parameter.find(p => p.name === 'codeA')?.valueCode;
               const valueCode2 = bodyObj.parameter.find(p => p.name === 'codeB')?.valueCode;
               const version = bodyObj.parameter.find(p => p.name === 'version')?.valueString;
 
-              result = url === 'http://snomed.info/sct' &&
+              result = system === 'http://snomed.info/sct' &&
                 valueCode1 === '3738000' &&
                 valueCode2 === '235856003' &&
                 version === '2014-05-06';
@@ -1361,6 +1605,39 @@ describe('Async functions', () => {
         expect(r).toEqual([true]);
         done();
       })
+    });
+
+
+    it('splits a versioned canonical into system and version', (done) => {
+      mockFetchResults([
+        [{
+          url: 'CodeSystem/$subsumes',
+          body: bodyStr => {
+            const parameters = JSON.parse(bodyStr).parameter;
+            return parameters.find(p => p.name === 'system')?.valueUri ===
+                'http://snomed.info/sct' &&
+              parameters.find(p => p.name === 'version')?.valueString ===
+                '2026';
+          }
+        }, {
+          resourceType: 'Parameters',
+          parameter: [{name: 'outcome', valueCode: 'subsumed-by'}]
+        }]
+      ]);
+
+      const result = fhirpath.evaluate(
+        observationResource,
+        "%terminologies.subsumes('http://snomed.info/sct|2026', "
+        + "'3738000', '235856003') = 'subsumed-by'",
+        {},
+        modelR4,
+        {async: true, terminologyUrl: 'https://tx.example'}
+      );
+
+      result.then(r => {
+        expect(r).toEqual([true]);
+        done();
+      }, done);
     });
 
 
@@ -1443,6 +1720,41 @@ describe('Async functions', () => {
           })
         });
     });
+
+
+    it('splits a versioned canonical into url and conceptMapVersion',
+      (done) => {
+        mockFetchResults([
+          [{
+            url: 'CodeSystem/$translate',
+            body: bodyStr => {
+              const parameters = JSON.parse(bodyStr).parameter;
+              return parameters.find(p => p.name === 'url')?.valueUri ===
+                  'urn:oid:1.2.3' &&
+                parameters.find(
+                  p => p.name === 'conceptMapVersion'
+                )?.valueString === '2026';
+            }
+          }, {
+            resourceType: 'Parameters',
+            parameter: [{name: 'result', valueBoolean: true}]
+          }]
+        ]);
+
+        const result = fhirpath.evaluate(
+          observationResource,
+          "%terminologies.translate('urn:oid:1.2.3|2026', "
+          + "'preliminary').parameter.value",
+          {},
+          modelR4,
+          {async: true, terminologyUrl: 'https://tx.example'}
+        );
+
+        result.then(r => {
+          expect(r).toEqual([true]);
+          done();
+        }, done);
+      });
 
 
     it('should throw an error when the async function is not allowed', () => {

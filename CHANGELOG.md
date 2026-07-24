@@ -18,8 +18,10 @@ This log documents significant changes for each release.  This project follows
   server holds the artifact, the operation yields an empty result. When the
   evaluation is aborted (via the `signal` option), the server fallback stops,
   and the operation rejects with an `AbortError` instead of dispatching requests
-  to the remaining servers. The `fhirpath` CLI `--terminologyUrl`/`-t` option can
-  be repeated to configure multiple servers.
+  to the remaining servers. Identical requests are shared across evaluations;
+  cancelling one evaluation rejects only its consumer, and the underlying
+  request is aborted only when all consumers have cancelled. The `fhirpath` CLI
+  `--terminologyUrl`/`-t` option can be repeated to configure multiple servers.
 
 ### Changed
 - `weight()`/`ordinal()`: when the score is looked up from a `CodeSystem` on a
@@ -29,6 +31,7 @@ This log documents significant changes for each release.  This project follows
   code instead of raising an error. This aligns with the multi-server fallback
   and the "absent artifact yields an empty result" behavior of the
   `%terminologies` functions. Previously a failing request rejected the result.
+  Transient request failures are not cached, so later evaluations can retry.
 - `memberOf`/`validateVS` now return a promise under async evaluation even when
   no request can be built (for example, a coded value with neither a system nor
   a code). Previously such a case could return a synchronous empty result.
@@ -40,6 +43,11 @@ This log documents significant changes for each release.  This project follows
   Previously only `http(s)://` canonicals were split, so the `|version` suffix
   was percent-encoded into the `url` value (e.g. `url=urn:oid:1.2.3%7C2026`),
   which prevented the artifact from being located.
+- Versioned canonical URLs are also split into the operation-specific URL and
+  version parameters for `expand`, `validateVS`, `validateCS`, `subsumes`, and
+  `translate`, so the operation uses the same artifact version selected during
+  server discovery. `subsumes` now sends the CodeSystem canonical in the
+  standard `system` parameter instead of `url`.
 - Per-server HTTP header matching: `httpHeaders` entries are now applied only to
   requests whose URL matches the entry's base URL at a path/query boundary, and
   when several configured base URLs match the most specific (longest) one wins.

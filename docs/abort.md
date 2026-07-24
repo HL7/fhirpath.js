@@ -17,3 +17,9 @@ let res = evalExpr(resource, environment, {signal});
 // Abort the evaluation of the compiled expression
 abortController.abort();
 ```
+
+Identical in-flight server requests are shared across evaluations. Aborting one
+evaluation rejects only that evaluation's request consumer; the shared network
+request continues while at least one other consumer is still active. The
+network request itself is aborted only after all of its consumers have
+cancelled.

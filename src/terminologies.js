@@ -326,10 +326,20 @@ class Terminologies {
       const valueSet = util.valData(valueSetColl[0]);
 
       if (typeInfo.is(TypeInfo.FhirUri, ctx.model) || typeInfo.is(TypeInfo.SystemString, ctx.model)) {
+        const canonical = splitCanonicalForOperation(
+          valueSet, 'valueSetVersion', params);
+        const query = new URLSearchParams({
+          url: canonical.url,
+          ...(canonical.version
+            ? {valueSetVersion: canonical.version}
+            : {})
+        }).toString();
         response = self[0].fetchFromServers(
           ctx, preferredServerKey('ValueSet', valueSet), 'ValueSet',
           (baseUrl) => util.fetchWithCache(
-            `${baseUrl}/ValueSet/$expand?url=${encodeURIComponent(valueSet)}${params ? '&' + params : ''}`,
+            `${baseUrl}/ValueSet/$expand?${query}${
+              params ? '&' + params : ''
+            }`,
             ctx
           )
         );
@@ -455,6 +465,11 @@ class Terminologies {
         if (isCodeableConcept || isCoding || isCode) {
           const vsKeyUrl = isValueSetUrl ? valueSet : valueSet?.url;
           const key = preferredServerKey('ValueSet', vsKeyUrl);
+          const canonical = isValueSetUrl
+            ? splitCanonicalForOperation(
+              valueSet, 'valueSetVersion', params)
+            : null;
+          const operationValueSet = canonical?.url ?? valueSet;
 
           // Builds and sends the $validate-code request to "baseUrl". "foundVs"
           // is the ValueSet resource located on that server (see "locateServer")
@@ -481,8 +496,11 @@ class Terminologies {
                   parameter: [
                     {
                       name: isActualValueSet ? 'valueSet' : 'url',
-                      [isActualValueSet ? 'resource' : 'valueUri']: valueSet
+                      [isActualValueSet ? 'resource' : 'valueUri']:
+                        operationValueSet
                     },
+                    ...makeVersionParameter(
+                      'valueSetVersion', canonical?.version),
                     {
                       name: codedParamName,
                       [paramName2valueXName[codedParamName]]: coded
@@ -502,7 +520,10 @@ class Terminologies {
               if (isCode) {
                 return resolveSystem().then((system) => {
                   const queryParams2 = new URLSearchParams({
-                    url: valueSet,
+                    url: operationValueSet,
+                    ...(canonical?.version
+                      ? {valueSetVersion: canonical.version}
+                      : {}),
                     code: coded,
                     system
                   });
@@ -519,7 +540,10 @@ class Terminologies {
                 // operation will return an error.
                 if (codedForReq?.system && codedForReq?.code) {
                   const queryParams = new URLSearchParams({
-                    url: valueSet,
+                    url: operationValueSet,
+                    ...(canonical?.version
+                      ? {valueSetVersion: canonical.version}
+                      : {}),
                     system: codedForReq.system,
                     code: codedForReq.code
                   });
@@ -594,6 +618,10 @@ class Terminologies {
           const coded = util.valData(codedColl[0]);
           const csKeyUrl = isCodeSystemUrl ? codeSystem : codeSystem?.url;
           const key = preferredServerKey('CodeSystem', csKeyUrl);
+          const canonical = isCodeSystemUrl
+            ? splitCanonicalForOperation(codeSystem, 'version', params)
+            : null;
+          const operationCodeSystem = canonical?.url ?? codeSystem;
           const codedParamName = isCodeableConcept ?
             'codeableConcept' : isCoding ? 'coding' : 'code';
           const parameters = {
@@ -601,8 +629,10 @@ class Terminologies {
             parameter: [
               {
                 name: isActualCodeSystem ? 'codeSystem' : 'url',
-                [isActualCodeSystem ? 'resource' : 'valueUri']: codeSystem
+                [isActualCodeSystem ? 'resource' : 'valueUri']:
+                  operationCodeSystem
               },
+              ...makeVersionParameter('version', canonical?.version),
               {
                 name: codedParamName,
                 [paramName2valueXName[codedParamName]]: coded
@@ -679,6 +709,8 @@ class Terminologies {
           coded2TypeInfo.is(TypeInfo.SystemString, ctx.model);
         if ((isCoding1 || isCode1) && (isCoding2 || isCode2)) {
           const system = util.valData(systemColl[0]);
+          const canonical = splitCanonicalForOperation(
+            system, 'version', params);
           const coded1 = util.valData(coded1Coll[0]);
           const coded2 = util.valData(coded2Coll[0]);
           const coded1ParamName = isCoding1 ? 'codingA' : 'codeA';
@@ -689,9 +721,10 @@ class Terminologies {
             resourceType: 'Parameters',
             parameter: [
               {
-                name: 'url',
-                valueUri: system
+                name: 'system',
+                valueUri: canonical.url
               },
+              ...makeVersionParameter('version', canonical.version),
               {
                 name: coded1ParamName,
                 [coded1ValueName]: coded1
@@ -767,6 +800,11 @@ class Terminologies {
           const coded = util.valData(codedColl[0]);
           const cmKeyUrl = isConceptMapUrl ? conceptMap : conceptMap?.url;
           const key = preferredServerKey('ConceptMap', cmKeyUrl);
+          const canonical = isConceptMapUrl
+            ? splitCanonicalForOperation(
+              conceptMap, 'conceptMapVersion', params)
+            : null;
+          const operationConceptMap = canonical?.url ?? conceptMap;
           const m = modelToTranslateSourceParamName[ctx.model.version];
           const codedParamName = isCodeableConcept ?
             m.sourceCodeableConcept : isCoding ? m.sourceCoding : m.sourceCode;
@@ -775,8 +813,11 @@ class Terminologies {
             parameter: [
               {
                 name: isActualConceptMap ? 'conceptMap' : 'url',
-                [isActualConceptMap ? 'resource' : 'valueUri']: conceptMap
+                [isActualConceptMap ? 'resource' : 'valueUri']:
+                  operationConceptMap
               },
+              ...makeVersionParameter(
+                'conceptMapVersion', canonical?.version),
               {
                 name: codedParamName,
                 [paramName2valueXName[codedParamName]]: coded
@@ -831,6 +872,38 @@ function checkParams(params) {
       }
     }
   );
+}
+
+
+/**
+ * Splits a versioned canonical for use in a terminology operation. A version
+ * supplied explicitly in the operation parameters takes precedence over the
+ * canonical suffix, preventing duplicate version parameters.
+ *
+ * @param {string} canonical - canonical URL, optionally suffixed with a version.
+ * @param {string} versionParamName - operation-specific version parameter name.
+ * @param {string} params - URL-encoded additional operation parameters.
+ * @returns {{url: string, version?: string}}
+ */
+function splitCanonicalForOperation(canonical, versionParamName, params) {
+  const parts = util.splitCanonicalUrl(canonical);
+  if (parts.version &&
+    new URLSearchParams(params).has(versionParamName)) {
+    delete parts.version;
+  }
+  return parts;
+}
+
+
+/**
+ * Builds a FHIR Parameters entry for an operation-specific canonical version.
+ * @param {string} name - operation parameter name.
+ * @param {string|undefined} version - canonical version.
+ * @returns {Object[]} an empty array when no version is present, otherwise a
+ *  singleton array containing the version parameter.
+ */
+function makeVersionParameter(name, version) {
+  return version ? [{name, valueString: version}] : [];
 }
 
 

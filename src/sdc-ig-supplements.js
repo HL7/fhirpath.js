@@ -271,7 +271,7 @@ const cacheStorageTime = 3600000; // 1 hour = 60 * 60 * 1000
 /**
  * Caches score.
  * @param {string} key - key to store score in cache.
- * @param {number|Promise} value - value of score or promise of value.
+ * @param {number|undefined} value - settled score value.
  */
 function putScoreToCache(key, value) {
   weightCache[key] = {
@@ -292,11 +292,10 @@ function hasScoreInCache(key) {
 
 
 /**
- * Returns a score or promise of score from the cache. Does not check the
- * expiration time. {@link hasScoreInCache} should be called before this
- * function.
+ * Returns a settled score from the cache. Does not check the expiration time.
+ * {@link hasScoreInCache} should be called before this function.
  * @param {string} key - key to store score in cache.
- * @return {number | Promise}
+ * @return {number|undefined}
  */
 function getScoreFromCache(key) {
   return weightCache[key].value;
@@ -363,7 +362,30 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire,
       }
     }
 
-    putScoreToCache(cacheKey, score);
+    if (score instanceof Promise) {
+      // Do not cache an in-flight promise. Each evaluation must register as its
+      // own consumer of fetchWithCache() so cancelling one evaluation does not
+      // cancel or suppress the result for another evaluation. Cache only a
+      // successfully settled score (including a confirmed absence).
+      score = score.then(
+        value => {
+          putScoreToCache(cacheKey, value);
+          return value;
+        },
+        error => {
+          if (error?.name === 'AbortError' || ctx.signal?.aborted) {
+            throw error?.name === 'AbortError' ? error : new DOMException(
+              'Evaluation of the expression was aborted.', 'AbortError');
+          }
+          // A transient request/server failure produces no score for this
+          // evaluation, but is deliberately not cached so a later evaluation
+          // can retry.
+          return undefined;
+        }
+      );
+    } else {
+      putScoreToCache(cacheKey, score);
+    }
   }
 
   if (score !== undefined) {
@@ -462,10 +484,6 @@ function getWeightFromTerminologyCodeSet(ctx, code, system) {
       return getScoreExtensionValue(item, codeSystemExt);
     }
     // The CodeSystem was found but it does not define a score for this code.
-    return undefined;
-  }).catch(() => {
-    // Any failure - the CodeSystem is absent from every configured server, or a
-    // request to a server failed - means there is no score to add for this code.
     return undefined;
   });
 }
