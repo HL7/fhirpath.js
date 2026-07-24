@@ -430,6 +430,104 @@ describe('Async functions', () => {
   })
 
 
+  describe('fetchFromServers cancellation', () => {
+
+    it('re-throws an AbortError from a server without trying the next one',
+      async () => {
+        const term = new Terminologies(
+          ['https://ts-a.example', 'https://ts-b.example']);
+        let secondServerCalled = false;
+        // ctx has no signal, so detection relies on the AbortError name alone.
+        const buildRequest = (baseUrl) => {
+          if (baseUrl === 'https://ts-a.example') {
+            return Promise.reject(new DOMException('Aborted', 'AbortError'));
+          }
+          secondServerCalled = true;
+          return Promise.resolve({resourceType: 'Parameters'});
+        };
+
+        await expect(
+          term.fetchFromServers({}, null, 'Parameters', buildRequest)
+        ).rejects.toHaveProperty('name', 'AbortError');
+        // Cancellation must not fall through to the remaining server.
+        expect(secondServerCalled).toBe(false);
+      });
+
+
+    it('stops after a rejection when ctx.signal is already aborted, '
+      + 'rejecting with an AbortError', async () => {
+      const term = new Terminologies(
+        ['https://ts-a.example', 'https://ts-b.example']);
+      const abortController = new AbortController();
+      abortController.abort();
+      const ctx = {signal: abortController.signal};
+      let secondServerCalled = false;
+      const buildRequest = (baseUrl) => {
+        if (baseUrl === 'https://ts-a.example') {
+          // A generic rejection (not an AbortError) that coincides with an
+          // aborted signal must stop the fallback and surface as an AbortError.
+          return Promise.reject(new Error('network error'));
+        }
+        secondServerCalled = true;
+        return Promise.resolve({resourceType: 'Parameters'});
+      };
+
+      // The generic error is normalized to a standardized AbortError.
+      await expect(
+        term.fetchFromServers(ctx, null, 'Parameters', buildRequest)
+      ).rejects.toHaveProperty('name', 'AbortError');
+      expect(secondServerCalled).toBe(false);
+    });
+
+
+    it('stops after an unusable response when ctx.signal is already aborted',
+      async () => {
+        const term = new Terminologies(
+          ['https://ts-a.example', 'https://ts-b.example']);
+        const abortController = new AbortController();
+        abortController.abort();
+        const ctx = {signal: abortController.signal};
+        let secondServerCalled = false;
+        const buildRequest = (baseUrl) => {
+          if (baseUrl === 'https://ts-a.example') {
+            // Resolves successfully but is not an accepted "Parameters"
+            // response, which normally triggers a fallback to the next server.
+            return Promise.resolve({resourceType: 'OperationOutcome'});
+          }
+          secondServerCalled = true;
+          return Promise.resolve({resourceType: 'Parameters'});
+        };
+
+        await expect(
+          term.fetchFromServers(ctx, null, 'Parameters', buildRequest)
+        ).rejects.toHaveProperty('name', 'AbortError');
+        expect(secondServerCalled).toBe(false);
+      });
+
+
+    it('still falls back to the next server for a non-cancellation rejection',
+      async () => {
+        const term = new Terminologies(
+          ['https://ts-a.example', 'https://ts-b.example']);
+        let secondServerCalled = false;
+        const buildRequest = (baseUrl) => {
+          if (baseUrl === 'https://ts-a.example') {
+            return Promise.reject(new Error('network error'));
+          }
+          secondServerCalled = true;
+          return Promise.resolve({resourceType: 'Parameters'});
+        };
+
+        const result = await term.fetchFromServers(
+          {}, null, 'Parameters', buildRequest);
+        // Without cancellation, a plain failure still tries the next server.
+        expect(secondServerCalled).toBe(true);
+        expect(result).toEqual({resourceType: 'Parameters'});
+      });
+
+  })
+
+
   describe('fetchWithCache HTTP header selection', () => {
 
     it('applies the headers of the longest matching base URL regardless of '

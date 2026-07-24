@@ -15,9 +15,11 @@ This log documents significant changes for each release.  This project follows
   artifact is preferred (tried first) for subsequent operations on that
   artifact, and the preference is remembered across evaluations (retained in a
   bounded LRU cache; least-recently-used entries are evicted). When no configured
-  server holds the artifact, the operation yields an empty result. The `fhirpath`
-  CLI `--terminologyUrl`/`-t` option can be repeated to configure multiple
-  servers.
+  server holds the artifact, the operation yields an empty result. When the
+  evaluation is aborted (via the `signal` option), the server fallback stops,
+  and the operation rejects with an `AbortError` instead of dispatching requests
+  to the remaining servers. The `fhirpath` CLI `--terminologyUrl`/`-t` option can
+  be repeated to configure multiple servers.
 
 ### Changed
 - `weight()`/`ordinal()`: when the score is looked up from a `CodeSystem` on a

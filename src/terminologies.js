@@ -73,6 +73,19 @@ function rememberPreferredServer(key, server) {
 }
 
 
+/**
+ * Rejects the current terminology operation as cancelled by throwing an
+ * AbortError. Used by "fetchFromServers" so that every cancellation path
+ * surfaces the same standardized error (matching the abort handling in
+ * "applyParsedPath") instead of a leftover network/OperationOutcome rejection.
+ * @throws {DOMException} - always throws an "AbortError" DOMException.
+ */
+function throwAbortError() {
+  throw new DOMException(
+    'Evaluation of the expression was aborted.', 'AbortError');
+}
+
+
 class Terminologies {
   constructor(terminologyUrls) {
     // The ordered list of terminology server base URLs.
@@ -110,6 +123,11 @@ class Terminologies {
    * absent on that server", so the next server is tried. When no server returns
    * an acceptable response, the returned promise rejects; callers treat that
    * rejection as an empty result.
+   *
+   * Cancellation is the exception: when a request rejects with an AbortError or
+   * "ctx.signal" is already aborted, the returned promise rejects immediately
+   * with an AbortError instead of falling back to the remaining servers, so
+   * aborting the evaluation does not dispatch further requests.
    *
    * @param {Object} ctx - object describing the context of expression
    *  evaluation (see the "applyParsedPath" function).
@@ -167,11 +185,25 @@ class Terminologies {
             }
             return obj;
           }
+          // A response that resolved unusably (not "accepted") normally falls
+          // through to the next server; but if the evaluation was aborted while
+          // it was in flight, stop here instead of dispatching more requests.
+          if (ctx.signal?.aborted) {
+            throwAbortError();
+          }
           return attempt(i + 1);
         },
-        // Any rejection (network error, non-OK status, or an OperationOutcome)
-        // means the artifact is absent on this server; try the next one.
-        () => attempt(i + 1)
+        // A rejection normally means the artifact is absent on this server (a
+        // network error, non-OK status, or an OperationOutcome), so try the
+        // next one. Cancellation is different: on an AbortError, or when
+        // ctx.signal is already aborted, reject with an AbortError instead of
+        // falling back, so aborting does not dispatch requests to more servers.
+        (err) => {
+          if (err?.name === 'AbortError' || ctx.signal?.aborted) {
+            throwAbortError();
+          }
+          return attempt(i + 1);
+        }
       );
     };
     return attempt(0);
