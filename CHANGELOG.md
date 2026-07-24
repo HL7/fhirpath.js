@@ -3,7 +3,7 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [5.1.0] - 2026-07-23
+## [5.1.0] - 2026-07-24
 ### Added
 - The `terminologyUrl` option for the `evaluate()` and `compile()` methods now
   accepts an array of terminology server URLs in addition to a single URL

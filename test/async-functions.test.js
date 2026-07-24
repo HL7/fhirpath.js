@@ -48,6 +48,124 @@ describe('Async functions', () => {
     });
 
 
+    it('falls back when a successful search Bundle only contains an outcome',
+      (done) => {
+        const vsUrl = 'http://example.org/vs/outcome-only';
+        const key = Terminologies.preferredServerKey('ValueSet', vsUrl);
+        mockFetchResults([
+          [/^https:\/\/ts-a\.example\/ValueSet\?url=/, {
+            resourceType: 'Bundle',
+            type: 'searchset',
+            entry: [{
+              resource: {resourceType: 'OperationOutcome'},
+              search: {mode: 'outcome'}
+            }]
+          }],
+          [/^https:\/\/ts-b\.example\/ValueSet\?url=/, {
+            resourceType: 'Bundle',
+            type: 'searchset',
+            entry: [{
+              resource: administrativeGenderVS,
+              search: {mode: 'match'}
+            }]
+          }],
+          [/^https:\/\/ts-b\.example\/ValueSet\/\$validate-code/, {
+            resourceType: 'Parameters',
+            parameter: [{name: 'result', valueBoolean: true}]
+          }]
+        ]);
+
+        const result = fhirpath.evaluate(
+          observationResource,
+          `%terminologies.validateVS('${vsUrl}', `
+          + 'Observation.code.coding[0]).parameter.value',
+          {},
+          modelR4,
+          {async: true,
+            terminologyUrl: ['https://ts-a.example', 'https://ts-b.example']}
+        );
+
+        result.then((r) => {
+          expect(r).toEqual([true]);
+          expect(Terminologies._getPreferredServer(key))
+            .toBe('https://ts-b.example');
+          done();
+        }, done);
+      });
+
+
+    it('uses a matching ValueSet after an outcome entry for a bare code',
+      (done) => {
+        const vsUrl = 'http://example.org/vs/warning-before-match';
+        mockFetchResults([
+          [/^https:\/\/ts-a\.example\/ValueSet\?url=/, {
+            resourceType: 'Bundle',
+            type: 'searchset',
+            entry: [{
+              resource: {resourceType: 'OperationOutcome'},
+              search: {mode: 'outcome'}
+            }, {
+              resource: administrativeGenderVS,
+              search: {mode: 'match'}
+            }]
+          }],
+          [{
+            url: /^https:\/\/ts-a\.example\/ValueSet\/\$validate-code/,
+            method: 'GET'
+          }, {
+            resourceType: 'Parameters',
+            parameter: [{name: 'result', valueBoolean: true}]
+          }]
+        ]);
+
+        const result = fhirpath.evaluate(
+          emptyResource,
+          `%terminologies.validateVS('${vsUrl}', 'male').parameter.value`,
+          {},
+          modelR4,
+          {async: true,
+            terminologyUrl: ['https://ts-a.example', 'https://ts-b.example']}
+        );
+
+        result.then((r) => {
+          expect(r).toEqual([true]);
+          done();
+        }, done);
+      });
+
+
+    it.each(['ValueSet', 'CodeSystem', 'ConceptMap'])(
+      'locateServer selects a later matching %s entry',
+      async (searchType) => {
+        const canonical = `http://example.org/${searchType}/later-match`;
+        const resource = {resourceType: searchType, url: canonical};
+        mockFetchResults([
+          [`https://ts-a.example/${searchType}?`, {
+            resourceType: 'Bundle',
+            type: 'searchset',
+            entry: [{
+              resource: {resourceType: 'OperationOutcome'},
+              search: {mode: 'outcome'}
+            }, {
+              resource,
+              search: {mode: 'match'}
+            }]
+          }]
+        ]);
+        const term = new Terminologies(
+          ['https://ts-a.example', 'https://ts-b.example']);
+
+        await expect(term.locateServer(
+          {}, Terminologies.preferredServerKey(searchType, canonical),
+          searchType, canonical
+        )).resolves.toEqual({
+          baseUrl: 'https://ts-a.example',
+          resource
+        });
+      }
+    );
+
+
     it('prefers the server that first resolved a value set for later ' +
       'operations', (done) => {
       let serverACalls = 0;
@@ -1502,11 +1620,20 @@ describe('Async functions', () => {
 
 
 
-    it('should work with "code" when async functions are enabled', (done) => {
+    it('should work with "code" when a search outcome precedes the ValueSet',
+      (done) => {
       mockFetchResults([
         [/ValueSet\?url=http%3A%2F%2Fhl7\.org%2Ffhir%2FValueSet%2Fobservation-vitalsignresult/, {
           "resourceType": "Bundle",
           "entry": [
+            {
+              "resource": {
+                "resourceType": "OperationOutcome"
+              },
+              "search": {
+                "mode": "outcome"
+              }
+            },
             {
               "resource": {
                 "resourceType": "ValueSet",
@@ -1517,6 +1644,9 @@ describe('Async functions', () => {
                     }
                   ]
                 }
+              },
+              "search": {
+                "mode": "match"
               }
             }
           ]
@@ -1735,8 +1865,18 @@ describe('Async functions', () => {
       "resourceType": "Bundle",
       "entry": [{
         "resource": {
+          "resourceType": "OperationOutcome"
+        },
+        "search": {
+          "mode": "outcome"
+        }
+      }, {
+        "resource": {
           "resourceType": "ValueSet",
           "url": "http://some-canonical-value-set-url"
+        },
+        "search": {
+          "mode": "match"
         }
       }]
     };
@@ -2021,5 +2161,3 @@ describe('Async functions', () => {
   });
 
 });
-
-

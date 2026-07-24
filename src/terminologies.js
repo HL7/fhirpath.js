@@ -38,6 +38,23 @@ function preferredServerKey(resourceType, url) {
 
 
 /**
+ * Returns the first resource of the requested type from a FHIR search Bundle.
+ * Search Bundles can also contain informational resources, such as an
+ * OperationOutcome with "search.mode" set to "outcome", so callers must not
+ * assume that the first entry is a search match.
+ *
+ * @param {Object|null|undefined} bundle - a FHIR search Bundle.
+ * @param {string} resourceType - the resource type to find.
+ * @return {Object|undefined} - the first resource with the requested type.
+ */
+function findBundleResource(bundle, resourceType) {
+  return bundle?.entry?.find(
+    entry => entry?.resource?.resourceType === resourceType
+  )?.resource;
+}
+
+
+/**
  * Returns the preferred server for the given cache key, or undefined if there
  * is no such preference. Accessing a preference marks it as most-recently-used.
  * @param {string} key - the cache key (see "preferredServerKey").
@@ -235,26 +252,22 @@ class Terminologies {
    *  "fetchFromServers").
    */
   locateServer(ctx, key, searchType, url) {
-    // Captured (via closure) when a server's search returns the artifact, so the
-    // caller can operate on that same server without re-querying the cache.
-    let located;
     // Split "url|version" so the version is matched by the FHIR "version" search
     // parameter instead of being appended to the "url" value (which the server
     // would not match against an unversioned canonical).
     const query = new URLSearchParams(util.splitCanonicalUrl(url)).toString();
     return this.fetchFromServers(
       ctx, key,
-      (bundle) => !!bundle?.entry?.[0]?.resource,
+      (located) => !!located.resource,
       (baseUrl) => util.fetchWithCache(
         `${baseUrl}/${searchType}?${query}`, ctx
       ).then((bundle) => {
-        const resource = bundle?.entry?.[0]?.resource;
-        if (resource) {
-          located = {baseUrl, resource};
-        }
-        return bundle;
+        return {
+          baseUrl,
+          resource: findBundleResource(bundle, searchType)
+        };
       })
-    ).then(() => located);
+    );
   }
 
   // Same as fhirpath.invocationTable, but for %terminologies methods
@@ -842,8 +855,7 @@ function getSystemFromVS(ctx, baseUrl, valueSet) {
         }`,
         ctx
       ).then(
-        (bundle) =>
-          bundle?.entry?.length === 1 ? bundle.entry[0].resource : null
+        bundle => findBundleResource(bundle, 'ValueSet') ?? null
       )
       : Promise.resolve(valueSet)
   )
@@ -1117,6 +1129,15 @@ function transformResponseToResource(ctx, response, resourceType) {
  * @type {function(string, (string|undefined|null)): (string|null)}
  */
 Terminologies.preferredServerKey = preferredServerKey;
+
+
+/**
+ * Returns the first resource of a requested type from a FHIR search Bundle.
+ * Exposed for internal consumers such as the SDC supplements; not part of the
+ * public FHIRPath API.
+ * @type {function(Object, string): (Object|undefined)}
+ */
+Terminologies.findBundleResource = findBundleResource;
 
 
 /**

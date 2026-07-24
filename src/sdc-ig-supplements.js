@@ -434,14 +434,14 @@ function getWeightFromTerminologyCodeSet(ctx, code, system) {
   const key = Terminologies.preferredServerKey('CodeSystem', system);
 
   return terminologies.fetchFromServers(
-    ctx, key,
-    (bundle) => !!bundle?.entry?.[0]?.resource,
+    ctx, key, 'CodeSystem',
     (baseUrl) => util.fetchWithCache(`${baseUrl}/CodeSystem?` + new URLSearchParams({
       url: system,
       ...(scorePropertyUri ? {_elements: 'property'}: {})
-    }).toString(), ctx)
-  ).then(bundle => {
-    const resource = bundle.entry[0].resource;
+    }).toString(), ctx).then(
+      bundle => Terminologies.findBundleResource(bundle, 'CodeSystem')
+    )
+  ).then(resource => {
     if (scorePropertyUri) {
       const scorePropertyCode = getPropertyCode(resource?.property, scorePropertyUri);
       if (scorePropertyCode) {

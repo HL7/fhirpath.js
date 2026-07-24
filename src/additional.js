@@ -73,10 +73,9 @@ function requestResByCanonicalUrl(ctx, refType, url) {
       urlJoin(fhirServerUrl, refType) + '?' +
       new URLSearchParams(util.splitCanonicalUrl(url)).toString(),
       ctx
-    ).then((bundle) => {
-      // Assuming the bundle contains a single resource.
-      return bundle.entry?.[0]?.resource ?? null;
-    });
+    ).then(
+      bundle => Terminologies.findBundleResource(bundle, refType) ?? null
+    );
   }
   return Promise.resolve(null);
 }

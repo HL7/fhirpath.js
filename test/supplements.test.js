@@ -29,6 +29,7 @@ describe("supplements", () => {
                   "resourceType": "Bundle",
                   "entry": [{
                     "resource": {
+                      "resourceType": "CodeSystem",
                       "property": [{
                         "code": "itemWeight",
                         "uri": "http://hl7.org/fhir/concept-properties#itemWeight"
@@ -65,6 +66,7 @@ describe("supplements", () => {
                   "resourceType": "Bundle",
                   "entry": [{
                     "resource": {
+                      "resourceType": "CodeSystem",
                       "url": "some-system-1",
                       "concept": [{
                         "code" : "some-code-1",
@@ -1108,13 +1110,19 @@ describe("supplements", () => {
     });
 
 
-    it('falls back to the next server when the first responds with an error',
-      (done) => {
+    it('falls back when the first server returns an outcome-only search '
+      + 'Bundle', (done) => {
         mockFetchResults([
-          // The first server responds with a server error (not merely an empty
-          // result), so the request falls through to the second server.
-          ['https://ts-a-w.example/CodeSystem?url=some-system-multi', null,
-            {resourceType: 'OperationOutcome'}],
+          // A successful search can include an informational outcome without
+          // containing a matching CodeSystem.
+          ['https://ts-a-w.example/CodeSystem?url=some-system-multi', {
+            resourceType: 'Bundle',
+            type: 'searchset',
+            entry: [{
+              resource: {resourceType: 'OperationOutcome'},
+              search: {mode: 'outcome'}
+            }]
+          }],
           // The second server resolves it and provides the score.
           ['https://ts-b-w.example/CodeSystem?url=some-system-multi', {
             resourceType: 'Bundle',
@@ -1157,6 +1165,71 @@ describe("supplements", () => {
           done();
         }, done);
       });
+
+
+    it('uses a CodeSystem entry that follows an outcome entry', (done) => {
+      mockFetchResults([
+        ['https://ts-a-w.example/CodeSystem?url=some-system-warning'
+          + '&_elements=property', {
+          resourceType: 'Bundle',
+          type: 'searchset',
+          entry: [{
+            resource: {resourceType: 'OperationOutcome'},
+            search: {mode: 'outcome'}
+          }, {
+            resource: {
+              resourceType: 'CodeSystem',
+              property: [{
+                code: 'itemWeight',
+                uri: r5_model.score.propertyURI
+              }]
+            },
+            search: {mode: 'match'}
+          }]
+        }],
+        ['https://ts-a-w.example/CodeSystem/$lookup?'
+          + 'code=some-code-warning&system=some-system-warning'
+          + '&property=itemWeight', {
+          resourceType: 'Parameters',
+          parameter: [{
+            name: 'property',
+            part: [{
+              name: 'code',
+              valueCode: 'itemWeight'
+            }, {
+              name: 'value',
+              valueDecimal: 9
+            }]
+          }]
+        }]
+      ]);
+
+      const res = fhirpath.evaluate(
+        {
+          resourceType: 'Observation',
+          valueCodeableConcept: {
+            coding: [{
+              system: 'some-system-warning',
+              code: 'some-code-warning'
+            }]
+          }
+        },
+        '%context.value.coding.weight()',
+        null,
+        r5_model,
+        {
+          async: true,
+          terminologyUrl: [
+            'https://ts-a-w.example', 'https://ts-b-w.example'
+          ]
+        }
+      );
+
+      Promise.resolve(res).then(r => {
+        expect(r).toStrictEqual([9]);
+        done();
+      }, done);
+    });
 
 
     it('falls back to the next server when the first responds without the '
