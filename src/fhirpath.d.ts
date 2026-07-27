@@ -345,7 +345,7 @@ export interface Options {
    * order and the server that first resolves a given ValueSet/CodeSystem is
    * preferred for subsequent operations on that artifact.
    */
-  terminologyUrl?: string | string[];
+  terminologyUrl?: string | readonly string[];
   /** An AbortSignal for cancelling asynchronous expression evaluation. */
   signal?: AbortSignal;
   /**

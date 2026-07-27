@@ -7,7 +7,8 @@ This log documents significant changes for each release.  This project follows
 ### Added
 - The `terminologyUrl` option for the `evaluate()` and `compile()` methods now
   accepts an array of terminology server URLs in addition to a single URL
-  string. When multiple servers are provided,
+  string. The TypeScript declaration also accepts readonly URL arrays and
+  tuples. When multiple servers are provided,
   `validateVS`/`validateCS`/`translate` first locate the server that holds the
   referenced ValueSet/CodeSystem/ConceptMap (searching the configured servers in
   turn) and send the operation only to that server; `expand`/`lookup`/`subsumes`
@@ -37,9 +38,16 @@ This log documents significant changes for each release.  This project follows
   `util.fetchWithCache()` request cache. Later `resolve()` and terminology
   operations can therefore retry transient failures; successful responses
   continue to be cached.
+- Shared server requests that remain pending for one hour now reject
+  with a `TimeoutError`, are removed from the request cache, and abort their
+  underlying fetch when the runtime supports `AbortController`. Terminology
+  operations can then try another configured server, and later evaluations can
+  retry the timed-out request.
 - `memberOf`/`validateVS` now return a promise under async evaluation even when
   no request can be built (for example, a coded value with neither a system nor
-  a code). Previously such a case could return a synchronous empty result.
+  a code). `memberOf` also normalizes a missing validation result to an empty
+  collection. Previously such cases could return a synchronous or internal
+  undefined result.
 
 ### Fixed
 - Versioned non-HTTP(S) canonical URLs (for example `urn:oid:1.2.3|2026`) are
@@ -59,6 +67,9 @@ This log documents significant changes for each release.  This project follows
   Previously the first configured header set could be applied to every request
   regardless of URL, which could leak one terminology server's credentials to
   another.
+- `weight()`/`ordinal()` score-cache entries now include the supplied
+  `httpHeaders`, preventing a score obtained with one authorization or tenant
+  configuration from being reused by an evaluation with different headers.
 
 ## [5.0.0] - 2026-07-13
 ### Added

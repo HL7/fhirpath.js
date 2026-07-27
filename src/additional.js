@@ -16,9 +16,9 @@ let engine = {};
  *  CodeableConcept, or code element.
  * @param {(ResourceNode|string)[]} valueSetColl - an array that should have one
  *  element, which is value set URL.
- * @return {Promise<boolean>|[]} - promise of a boolean value indicating that
- *  there is one element in the input collection whose code is a member of the
- *  specified value set.
+ * @return {Promise<boolean|[]>|[]} - a promise resolving to a boolean value
+ *  when validation returns a result, or an empty collection when validation
+ *  fails or returns no result; invalid inputs return an empty collection.
  */
 engine.memberOf = function (coll, valueSetColl ) {
   const ctx = this;
@@ -34,11 +34,13 @@ engine.memberOf = function (coll, valueSetColl ) {
       if (!terminologies) {
         throw new Error('Option "terminologyUrl" is not specified.');
       }
-      return Terminologies.validateVS.call(this,
+      const validation = Terminologies.validateVS.call(this,
         [terminologies], valueSetColl, coll, ''
-      )?.then(params => {
-        return util.valData(params)?.parameter?.find((p) => p.name === "result")?.valueBoolean;
-      }, () => []);
+      );
+      return validation?.then(params => {
+        return util.valData(params)?.parameter
+          ?.find((p) => p.name === "result")?.valueBoolean ?? [];
+      }, () => []) ?? [];
     }
   }
 

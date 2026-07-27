@@ -263,9 +263,51 @@ function getQuestionnaireItemInfo(ctx, qItem, value, valueType) {
 
 
 // Object for storing received scores
-const weightCache = {};
+const weightCache = new Map();
+// Serialized HTTP headers by evaluation. processedVars is shared by the
+// short-lived context copies created within one evaluation.
+const weightCacheHeaderKeys = new WeakMap();
 // Duration of data storage in cache.
 const cacheStorageTime = 3600000; // 1 hour = 60 * 60 * 1000
+
+
+/**
+ * Returns the serialized HTTP headers for a weight cache key.
+ * @param {Object} ctx - object describing the evaluation context.
+ * @return {string|undefined}
+ */
+function getWeightCacheHeaderKey(ctx) {
+  const evaluationKey = ctx.processedVars;
+  if (!weightCacheHeaderKeys.has(evaluationKey)) {
+    // Convert the supplied header maps to normalized primitive tuples before
+    // serializing. This prevents a user-defined toJSON() on a header object
+    // from redacting distinct values into the same score-cache key.
+    const headerEntries = ctx.httpHeaders && Object.entries(ctx.httpHeaders)
+      .map(([url, headers]) => [
+        url,
+        headers ? Object.entries(headers)
+          .map(([name, value]) => [name.toLowerCase(), String(value)])
+          .sort(([nameA], [nameB]) => nameA.localeCompare(nameB)) : []
+      ])
+      .sort(([urlA], [urlB]) => urlA.localeCompare(urlB));
+    weightCacheHeaderKeys.set(evaluationKey, util.toJSON(headerEntries));
+  }
+  return weightCacheHeaderKeys.get(evaluationKey);
+}
+
+
+/**
+ * Deletes expired scores from the oldest end of the insertion-ordered cache.
+ * @param {number} timestamp - current timestamp.
+ */
+function removeExpiredScores(timestamp) {
+  for (const [key, entry] of weightCache) {
+    if (timestamp - entry.timestamp < cacheStorageTime) {
+      break;
+    }
+    weightCache.delete(key);
+  }
+}
 
 
 /**
@@ -274,20 +316,25 @@ const cacheStorageTime = 3600000; // 1 hour = 60 * 60 * 1000
  * @param {number|undefined} value - settled score value.
  */
 function putScoreToCache(key, value) {
-  weightCache[key] = {
-    timestamp: Date.now(),
+  const timestamp = Date.now();
+  removeExpiredScores(timestamp);
+  // Reinsert an existing key so insertion order continues to match timestamps.
+  weightCache.delete(key);
+  weightCache.set(key, {
+    timestamp,
     value
-  };
+  });
 }
 
 
 /**
  * Checks if there is an unexpired score in the cache.
  * @param {string} key - key to store score in cache.
- * @return {boolean|undefined}
+ * @return {boolean}
  */
 function hasScoreInCache(key) {
-  return weightCache[key] && Date.now() - weightCache[key].timestamp < cacheStorageTime;
+  removeExpiredScores(Date.now());
+  return weightCache.has(key);
 }
 
 
@@ -298,7 +345,7 @@ function hasScoreInCache(key) {
  * @return {number|undefined}
  */
 function getScoreFromCache(key) {
-  return weightCache[key].value;
+  return weightCache.get(key).value;
 }
 
 
@@ -321,12 +368,13 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire,
   vsURL, code, system, elem) {
   let score;
   const modelVersion = ctx.model?.version;
-  const cacheKey = [
+  const cacheKey = util.toJSON([
     modelVersion,
     questionnaire?.url || questionnaire?.id,
-    ctx.processedVars.terminologies?.terminologyUrls?.join(','),
+    ctx.processedVars.terminologies?.terminologyUrls,
+    getWeightCacheHeaderKey(ctx),
     vsURL, code, system
-  ].join('|');
+  ]);
 
   if (hasScoreInCache(cacheKey)) {
     score =  getScoreFromCache(cacheKey);
@@ -764,9 +812,7 @@ function getQItemByLinkIds(modelVersion, questionnaire, linkIds) {
  * use only (e.g. test isolation); not part of the public FHIRPath API.
  */
 engine._clearWeightCache = function () {
-  for (const key in weightCache) {
-    delete weightCache[key];
-  }
+  weightCache.clear();
 };
 
 

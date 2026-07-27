@@ -361,6 +361,19 @@ function makeAbortError() {
 
 
 /**
+ * Creates the standardized error returned when a shared request remains
+ * pending beyond its lifetime.
+ * @returns {DOMException}
+ */
+function makeTimeoutError() {
+  return new DOMException(
+    'The request exceeded the one-hour pending request limit.',
+    'TimeoutError'
+  );
+}
+
+
+/**
  * Removes a shared request from the cache if it is still the current entry for
  * its key.
  * @param {string} requestKey - cache key of the shared request.
@@ -370,6 +383,30 @@ function removeRequestCacheEntry(requestKey, entry) {
   if (requestCache[requestKey] === entry) {
     delete requestCache[requestKey];
   }
+}
+
+
+/**
+ * Stops a pending shared request and rejects its consumers independently of
+ * whether the underlying fetch honors its abort signal.
+ * @param {string} requestKey - cache key of the shared request.
+ * @param {Object} entry - shared request cache entry.
+ * @param {Error|DOMException} error - error with which to reject consumers.
+ */
+function disposePendingRequest(requestKey, entry, error) {
+  if (entry.settled || entry.disposed) {
+    return;
+  }
+
+  entry.disposed = true;
+  removeRequestCacheEntry(requestKey, entry);
+  clearTimeout(entry.timeoutId);
+  entry.timeoutId = null;
+  // Settle the shared promise before aborting. In particular, a timeout must
+  // remain a TimeoutError even when aborting synchronously rejects fetch with
+  // an AbortError.
+  entry.rejectDisposal(error);
+  entry.controller?.abort();
 }
 
 
@@ -406,8 +443,7 @@ function attachRequestConsumer(requestKey, entry, signal) {
       reject(makeAbortError());
 
       if (!entry.settled && entry.consumers.size === 0) {
-        removeRequestCacheEntry(requestKey, entry);
-        entry.controller?.abort();
+        disposePendingRequest(requestKey, entry, makeAbortError());
       }
     };
 
@@ -440,6 +476,9 @@ function attachRequestConsumer(requestKey, entry, signal) {
  * consumer does not cancel the fetch while another consumer remains active.
  * Request options are merged with the context options, and successful responses
  * are cached for a set duration to avoid redundant network requests.
+ * A request that remains pending for one hour is removed from the cache, its
+ * consumers reject with a TimeoutError, and its underlying fetch is aborted
+ * when the runtime supports AbortController.
  * Automatically applies default FHIR headers based on the request method.
  * Cleans up expired cache entries before making a new request.
  * Handles JSON and text responses, rejecting on error or non-OK status.
@@ -506,43 +545,57 @@ util.fetchWithCache = function(url, ctx, options) {
     }
   }
 
-  const requestKey = [
-    url, options ? util.toJSON(options) : ''
-  ].join('|');
-
   // Apply default headers based on the request method.
   const defaultHeaders = options?.method === 'POST' ?
     defaultPostHeaders : defaultGetHeaders;
+  const headers = new Headers({
+    ...defaultHeaders,
+    ...(options?.headers || {})
+  });
   options = {
     ...options,
-    headers: new Headers({
-      ...defaultHeaders,
-      ...(options?.headers || {})
-    })
+    headers
   };
+  // Build the key from the normalized primitive header entries. Serializing a
+  // caller-provided header object directly would invoke a custom toJSON(),
+  // which could hide values that are still sent with the request.
+  const requestKey = util.toJSON([
+    url,
+    {
+      ...options,
+      headers: Array.from(headers.entries())
+    }
+  ]);
 
   const timestamp = Date.now();
   for (const key in requestCache) {
     const entry = requestCache[key];
-    if (entry.settled &&
-      timestamp - entry.timestamp > requestCacheStorageTime) {
-      // Remove only settled responses older than an hour. Pending requests
-      // remain shareable until they settle or every consumer cancels.
-      delete requestCache[key];
+    if (timestamp - entry.timestamp >= requestCacheStorageTime) {
+      if (entry.settled) {
+        removeRequestCacheEntry(key, entry);
+      } else {
+        // Timers can be throttled in inactive browser tabs. Expire an overdue
+        // pending entry opportunistically before deciding whether to share it.
+        disposePendingRequest(key, entry, makeTimeoutError());
+      }
     }
   }
 
   if (!requestCache[requestKey]) {
-    // Avoid allocating an AbortController on the common non-cancellable path.
-    // If the first consumer has no signal, it cannot cancel, so a later
-    // cancellable consumer can never be the last active consumer.
-    const controller = consumerSignal ? new AbortController() : null;
+    // AbortController is unavailable in some supported browser runtimes. The
+    // shared promise can still time out and be evicted there; only cancellation
+    // of the underlying network operation becomes best-effort.
+    const controller = typeof AbortController === 'function' ?
+      new AbortController() : null;
     const entry = {
       timestamp,
       controller,
       consumers: new Set(),
+      disposed: false,
+      rejectDisposal: null,
       settled: false,
-      promise: null
+      promise: null,
+      timeoutId: null
     };
     if (controller) {
       options.signal = controller.signal;
@@ -553,7 +606,7 @@ util.fetchWithCache = function(url, ctx, options) {
       resolveFetch = resolve;
       rejectFetch = reject;
     });
-    entry.promise = fetchPromise.then(r => {
+    const requestPromise = fetchPromise.then(r => {
       const contentType = r.headers.get('Content-Type');
       const isJson = contentType.includes('application/json') ||
         contentType.includes('application/fhir+json');
@@ -567,16 +620,28 @@ util.fetchWithCache = function(url, ctx, options) {
         return Promise.reject(new Error(e));
       }
     });
+    const disposalPromise = new Promise((resolve, reject) => {
+      entry.rejectDisposal = reject;
+    });
+    entry.promise = Promise.race([requestPromise, disposalPromise]);
     requestCache[requestKey] = entry;
+    entry.timeoutId = setTimeout(() => {
+      disposePendingRequest(requestKey, entry, makeTimeoutError());
+    }, requestCacheStorageTime);
+    entry.timeoutId.unref?.();
     entry.promise.then(
       () => {
         entry.settled = true;
+        clearTimeout(entry.timeoutId);
+        entry.timeoutId = null;
         // Start the response TTL when the request successfully settles. A
         // long-running request should not produce an immediately stale result.
         entry.timestamp = Date.now();
       },
       () => {
         entry.settled = true;
+        clearTimeout(entry.timeoutId);
+        entry.timeoutId = null;
         // Rejected requests are never cached. In particular, this prevents an
         // aborted or transiently failed request from poisoning later
         // evaluations for the full cache storage period.
@@ -613,10 +678,13 @@ util.fetchWithCache = function(url, ctx, options) {
  */
 util._clearRequestCache = function() {
   for (const key in requestCache) {
-    if (!requestCache[key].settled) {
-      requestCache[key].controller?.abort();
+    const entry = requestCache[key];
+    if (entry.settled) {
+      clearTimeout(entry.timeoutId);
+      removeRequestCacheEntry(key, entry);
+    } else {
+      disposePendingRequest(key, entry, makeAbortError());
     }
-    delete requestCache[key];
   }
 };
 

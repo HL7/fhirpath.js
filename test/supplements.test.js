@@ -1572,4 +1572,161 @@ describe("supplements", () => {
 
   });
 
+
+  describe('weight() score cache', () => {
+    const serverUrl = 'https://ts-weight-cache.example';
+    const system = 'some-system-weight-cache';
+    const code = 'some-code-weight-cache';
+    const requestUrl = `${serverUrl}/CodeSystem?url=${system}`;
+    const resource = {
+      resourceType: 'Observation',
+      valueCodeableConcept: {
+        coding: [{system, code}]
+      }
+    };
+    const expression = '%context.value.coding.weight()';
+    const response = (valueDecimal) => ({
+      resourceType: 'Bundle',
+      entry: [{
+        resource: {
+          resourceType: 'CodeSystem',
+          url: system,
+          concept: [{
+            code,
+            extension: [{
+              url: r4_model.score.extensionURI[0],
+              valueDecimal
+            }]
+          }]
+        }
+      }]
+    });
+    const headersWithToken = token => ({
+      [serverUrl]: {Authorization: `Bearer ${token}`}
+    });
+    const headersWithRedactedJSON = token => {
+      const headers = {Authorization: `Bearer ${token}`};
+      Object.defineProperty(headers, 'toJSON', {
+        value: () => ({Authorization: '[redacted]'})
+      });
+      return {[serverUrl]: headers};
+    };
+    const matchesToken = token => headers =>
+      headers.get('Authorization') === `Bearer ${token}`;
+    const evaluateWeight = httpHeaders => fhirpath.evaluate(
+      resource,
+      expression,
+      null,
+      r4_model,
+      {
+        async: true,
+        terminologyUrl: serverUrl,
+        ...(httpHeaders ? {httpHeaders} : {})
+      }
+    );
+
+
+    afterEach(() => {
+      mockRestore();
+    });
+
+
+    it('partitions scores by HTTP header contents', async () => {
+      mockFetchResults([
+        [{
+          url: requestUrl,
+          headers: matchesToken('tenant-a')
+        }, response(3)],
+        [{
+          url: requestUrl,
+          headers: matchesToken('tenant-b')
+        }, response(7)]
+      ]);
+
+      await expect(
+        evaluateWeight(headersWithToken('tenant-a'))
+      ).resolves.toStrictEqual([3]);
+      await expect(
+        evaluateWeight(headersWithToken('tenant-b'))
+      ).resolves.toStrictEqual([7]);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+
+
+    it('reflects mutations to reused HTTP headers between evaluations',
+      async () => {
+        const httpHeaders = headersWithToken('tenant-a');
+        mockFetchResults([
+          [{
+            url: requestUrl,
+            headers: matchesToken('tenant-a')
+          }, response(11)],
+          [{
+            url: requestUrl,
+            headers: matchesToken('tenant-b')
+          }, response(13)]
+        ]);
+
+        await expect(evaluateWeight(httpHeaders)).resolves.toStrictEqual([11]);
+        httpHeaders[serverUrl].Authorization = 'Bearer tenant-b';
+        await expect(evaluateWeight(httpHeaders)).resolves.toStrictEqual([13]);
+        expect(global.fetch).toHaveBeenCalledTimes(2);
+      });
+
+
+    it('does not let a header toJSON() collapse distinct cache keys',
+      async () => {
+        mockFetchResults([
+          [{
+            url: requestUrl,
+            headers: matchesToken('tenant-a')
+          }, response(23)],
+          [{
+            url: requestUrl,
+            headers: matchesToken('tenant-b')
+          }, response(29)]
+        ]);
+
+        await expect(
+          evaluateWeight(headersWithRedactedJSON('tenant-a'))
+        ).resolves.toStrictEqual([23]);
+        await expect(
+          evaluateWeight(headersWithRedactedJSON('tenant-b'))
+        ).resolves.toStrictEqual([29]);
+        expect(global.fetch).toHaveBeenCalledTimes(2);
+      });
+
+
+    it('shares scores for separate equivalent HTTP header objects',
+      async () => {
+        mockFetchResults([
+          [{
+            url: requestUrl,
+            headers: matchesToken('tenant-a')
+          }, response(17)]
+        ]);
+
+        await expect(
+          evaluateWeight(headersWithToken('tenant-a'))
+        ).resolves.toStrictEqual([17]);
+        fhirpath.util._clearRequestCache();
+        expect(
+          evaluateWeight(headersWithToken('tenant-a'))
+        ).toStrictEqual([17]);
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+      });
+
+
+    it('continues sharing scores when HTTP headers are absent', async () => {
+      mockFetchResults([[requestUrl, response(19)]]);
+
+      await expect(evaluateWeight()).resolves.toStrictEqual([19]);
+      fhirpath.util._clearRequestCache();
+      expect(evaluateWeight()).toStrictEqual([19]);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+  });
+
+
 });

@@ -11,6 +11,7 @@ const observationCategoryVS = require('./resources/r4/observation-category-valus
 const {mockRestore, mockFetchResults} = require('./mock-fetch-results');
 const Terminologies = require('../src/terminologies');
 const util = require('../src/utilities');
+const additional = require('../src/additional');
 
 
 
@@ -905,6 +906,47 @@ describe('Async functions', () => {
         expect(result).toEqual({resourceType: 'Parameters'});
       });
 
+
+    it('falls back after a terminology request exceeds its pending lifetime',
+      async () => {
+        jest.useFakeTimers();
+        let firstSignal;
+        const fetchMock = jest.spyOn(global, 'fetch')
+          .mockImplementationOnce((url, options) => {
+            firstSignal = options.signal;
+            return new Promise(() => {});
+          })
+          .mockResolvedValueOnce({
+            ok: true,
+            headers: {get: () => 'application/fhir+json'},
+            json: () => Promise.resolve({resourceType: 'Parameters'})
+          });
+        const term = new Terminologies(
+          ['https://ts-a.example', 'https://ts-b.example']);
+
+        try {
+          const request = term.fetchFromServers(
+            {}, null, 'Parameters',
+            baseUrl => util.fetchWithCache(
+              `${baseUrl}/Parameters`, {}
+            )
+          );
+          expect(fetchMock).toHaveBeenCalledTimes(1);
+
+          await jest.advanceTimersByTimeAsync(3600000);
+
+          await expect(request).resolves.toEqual({
+            resourceType: 'Parameters'
+          });
+          expect(firstSignal.aborted).toBe(true);
+          expect(fetchMock).toHaveBeenCalledTimes(2);
+        } finally {
+          util._clearRequestCache();
+          fetchMock.mockRestore();
+          jest.useRealTimers();
+        }
+      });
+
   })
 
 
@@ -1042,56 +1084,159 @@ describe('Async functions', () => {
       });
 
 
-    it('does not expire or abort a pending request older than one hour',
+    it('times out all consumers, evicts the request, and allows a retry',
       async () => {
-        let now = 0;
+        jest.useFakeTimers();
+        let resolveLateBody;
+        let underlyingSignal;
+        const fetchMock = jest.spyOn(global, 'fetch')
+          .mockImplementationOnce((url, options) => {
+            underlyingSignal = options.signal;
+            return Promise.resolve({
+              ok: true,
+              headers: {get: () => 'application/fhir+json'},
+              json: () => new Promise((resolve) => {
+                resolveLateBody = resolve;
+              })
+            });
+          })
+          .mockResolvedValueOnce({
+            ok: true,
+            headers: {get: () => 'application/fhir+json'},
+            json: () => Promise.resolve({
+              resourceType: 'ValueSet',
+              id: 'replacement'
+            })
+          });
+
+        try {
+          const first = util.fetchWithCache(
+            'https://pending.example/ValueSet', {}
+          );
+          const second = util.fetchWithCache(
+            'https://pending.example/ValueSet', {}
+          );
+          const firstRejection = expect(first).rejects.toHaveProperty(
+            'name', 'TimeoutError');
+          const secondRejection = expect(second).rejects.toHaveProperty(
+            'name', 'TimeoutError');
+
+          expect(fetchMock).toHaveBeenCalledTimes(1);
+          await jest.advanceTimersByTimeAsync(3600000);
+
+          await Promise.all([firstRejection, secondRejection]);
+          expect(underlyingSignal.aborted).toBe(true);
+
+          await expect(util.fetchWithCache(
+            'https://pending.example/ValueSet', {}
+          )).resolves.toEqual({
+            resourceType: 'ValueSet',
+            id: 'replacement'
+          });
+          expect(fetchMock).toHaveBeenCalledTimes(2);
+
+          // A response body that finishes after timeout must not displace the
+          // replacement entry.
+          resolveLateBody({
+            resourceType: 'ValueSet',
+            id: 'late'
+          });
+          await Promise.resolve();
+          await expect(util.fetchWithCache(
+            'https://pending.example/ValueSet', {}
+          )).resolves.toEqual({
+            resourceType: 'ValueSet',
+            id: 'replacement'
+          });
+          expect(fetchMock).toHaveBeenCalledTimes(2);
+        } finally {
+          util._clearRequestCache();
+          fetchMock.mockRestore();
+          jest.useRealTimers();
+        }
+      });
+
+
+    it('clears the pending timer when a request succeeds before the deadline',
+      async () => {
+        jest.useFakeTimers();
         let resolveFetch;
         let underlyingSignal;
-        const nowSpy = jest.spyOn(Date, 'now')
-          .mockImplementation(() => now);
         const fetchMock = jest.spyOn(global, 'fetch').mockImplementation(
           (url, options) => {
             underlyingSignal = options.signal;
             return new Promise((resolve) => {
-              resolveFetch = () => resolve({
-                ok: true,
-                headers: {get: () => 'application/fhir+json'},
-                json: () => Promise.resolve({resourceType: 'ValueSet'})
-              });
+              resolveFetch = resolve;
             });
           }
         );
-        const abortController = new AbortController();
 
         try {
-          const first = util.fetchWithCache(
-            'https://pending.example/ValueSet',
-            {signal: abortController.signal}
-          );
-          now = 3600001;
-          const second = util.fetchWithCache(
-            'https://pending.example/ValueSet', {}
+          const request = util.fetchWithCache(
+            'https://before-timeout.example/ValueSet', {}
           );
 
-          expect(fetchMock).toHaveBeenCalledTimes(1);
+          await jest.advanceTimersByTimeAsync(3599999);
+          resolveFetch({
+            ok: true,
+            headers: {get: () => 'application/fhir+json'},
+            json: () => Promise.resolve({resourceType: 'ValueSet'})
+          });
+          await expect(request).resolves.toEqual({
+            resourceType: 'ValueSet'
+          });
+
+          expect(jest.getTimerCount()).toBe(0);
+          await jest.advanceTimersByTimeAsync(3600000);
           expect(underlyingSignal.aborted).toBe(false);
-
-          resolveFetch();
-          await expect(first).resolves.toEqual({
-            resourceType: 'ValueSet'
-          });
-          await expect(second).resolves.toEqual({
-            resourceType: 'ValueSet'
-          });
-
-          await expect(util.fetchWithCache(
-            'https://pending.example/ValueSet', {}
-          )).resolves.toEqual({resourceType: 'ValueSet'});
-          expect(fetchMock).toHaveBeenCalledTimes(1);
         } finally {
           util._clearRequestCache();
           fetchMock.mockRestore();
-          nowSpy.mockRestore();
+          jest.useRealTimers();
+        }
+      });
+
+
+    it('times out and retries when AbortController is unavailable',
+      async () => {
+        jest.useFakeTimers();
+        const savedAbortController = global.AbortController;
+        global.AbortController = undefined;
+        const fetchMock = jest.spyOn(global, 'fetch')
+          .mockImplementationOnce((url, options) => {
+            expect(options.signal).toBeUndefined();
+            return new Promise(() => {});
+          })
+          .mockResolvedValueOnce({
+            ok: true,
+            headers: {get: () => 'application/fhir+json'},
+            json: () => Promise.resolve({
+              resourceType: 'ValueSet',
+              id: 'retry'
+            })
+          });
+
+        try {
+          const request = util.fetchWithCache(
+            'https://no-abort-controller.example/ValueSet', {}
+          );
+          const timeoutRejection = expect(request).rejects.toHaveProperty(
+            'name', 'TimeoutError');
+
+          await jest.advanceTimersByTimeAsync(3600000);
+          await timeoutRejection;
+          await expect(util.fetchWithCache(
+            'https://no-abort-controller.example/ValueSet', {}
+          )).resolves.toEqual({
+            resourceType: 'ValueSet',
+            id: 'retry'
+          });
+          expect(fetchMock).toHaveBeenCalledTimes(2);
+        } finally {
+          util._clearRequestCache();
+          fetchMock.mockRestore();
+          global.AbortController = savedAbortController;
+          jest.useRealTimers();
         }
       });
 
@@ -2211,6 +2356,51 @@ describe('Async functions', () => {
 
 
   describe('memberOf', () => {
+
+    const callMemberOf = validationResult => {
+      const validationSpy = jest.spyOn(Terminologies, 'validateVS')
+        .mockResolvedValue(validationResult);
+      const result = additional.memberOf.call(
+        {
+          async: true,
+          model: modelR4,
+          processedVars: {terminologies: {}}
+        },
+        [{system: 'http://example.org/system', code: 'code'}],
+        ['http://example.org/ValueSet/example']
+      );
+      return {result, validationSpy};
+    };
+
+
+    it('preserves an explicit false validation result', async () => {
+      const {result, validationSpy} = callMemberOf({
+        resourceType: 'Parameters',
+        parameter: [{name: 'result', valueBoolean: false}]
+      });
+
+      try {
+        await expect(result).resolves.toBe(false);
+      } finally {
+        validationSpy.mockRestore();
+      }
+    });
+
+
+    it('normalizes a missing validation result to an empty collection',
+      async () => {
+        const {result, validationSpy} = callMemberOf({
+          resourceType: 'Parameters',
+          parameter: [{name: 'message', valueString: 'No result'}]
+        });
+
+        try {
+          await expect(result).resolves.toEqual([]);
+        } finally {
+          validationSpy.mockRestore();
+        }
+      });
+
 
     it('should work with Codings when async functions are enabled', (done) => {
       mockFetchResults([
