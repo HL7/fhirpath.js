@@ -34,4 +34,3 @@ When the `terminologyUrl` option contains multiple servers (an array of URLs),
 add an entry to `httpHeaders` for each server base URL that requires
 authentication; the headers whose key matches the server being requested are
 applied automatically.
-

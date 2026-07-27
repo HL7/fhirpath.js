@@ -105,6 +105,13 @@ expectAssignable<Options>({resolveInternalTypes: false, preciseMath: true});
 // terminologyUrl accepts either a single URL or an ordered array of URLs.
 expectAssignable<Options>({terminologyUrl: 'https://ts.example'});
 expectAssignable<Options>({terminologyUrl: ['https://a.example', 'https://b.example']});
+// httpHeaders maps each server URL to its own header-name/value map.
+expectAssignable<Options>({
+    httpHeaders: {
+        'https://a.example': {Authorization: 'Bearer token-a'},
+        'https://b.example': {'X-Tenant': 'tenant-b'}
+    }
+});
 expectAssignable<OptionVariants>({async: 'always'});
 const evalOpts: OptionVariants = {async: 'always'};
 expectType<Promise<any[]>>(
@@ -129,5 +136,4 @@ declare const node: ResourceNode;
 expectType<string | null>(node.path);
 expectType<Model>(node.model);
 expectType<any>(node.convertData());
-
 

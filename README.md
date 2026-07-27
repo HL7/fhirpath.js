@@ -127,8 +127,8 @@ where:
       as defined in the FHIR FHIRPath
       [Terminology Service API](https://www.hl7.org/fhir/fhirpath.html#txapi).
       When an array of URLs is provided, the servers are tried in order, and the
-      server that first resolves a given ValueSet/CodeSystem is preferred (tried
-      first) for subsequent operations on that ValueSet/CodeSystem.
+      server that first resolves a given ValueSet, CodeSystem, or ConceptMap is
+      preferred (tried first) for subsequent operations on that artifact.
       See the [Implementation Status](#implementation-status) section for the
       currently supported %terminologies APIs.
     * options.fhirServerUrl - a URL pointing to a FHIR RESTful API server that
@@ -457,9 +457,9 @@ a terminologyUrl option.
 The `terminologyUrl` option also accepts an array of URLs when you want to
 support multiple default terminology servers (for example, the servers a
 Questionnaire lists as preferred, plus the server it was fetched from). The
-servers are tried in order, and once a ValueSet/CodeSystem is resolved at one
-server, that server is preferred (tried first) for the remaining operations on
-that ValueSet/CodeSystem:
+servers are tried in order, and once a ValueSet, CodeSystem, or ConceptMap is
+resolved at one server, that server is preferred (tried first) for the remaining
+operations on that artifact:
 ```js
 fhirpath.evaluate(
   resource,

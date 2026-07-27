@@ -902,4 +902,3 @@ describe('util.splitCanonicalUrl', () => {
   });
 
 });
-

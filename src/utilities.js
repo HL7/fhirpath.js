@@ -523,11 +523,11 @@ util.fetchWithCache = function(url, ctx, options) {
 
   const timestamp = Date.now();
   for (const key in requestCache) {
-    if (timestamp - requestCache[key].timestamp > requestCacheStorageTime) {
-      // Remove responses older than an hour
-      if (!requestCache[key].settled) {
-        requestCache[key].controller?.abort();
-      }
+    const entry = requestCache[key];
+    if (entry.settled &&
+      timestamp - entry.timestamp > requestCacheStorageTime) {
+      // Remove only settled responses older than an hour. Pending requests
+      // remain shareable until they settle or every consumer cancels.
       delete requestCache[key];
     }
   }
@@ -547,30 +547,33 @@ util.fetchWithCache = function(url, ctx, options) {
     if (controller) {
       options.signal = controller.signal;
     }
-    entry.promise =
-      // In Jest unit tests, a promise returned by 'fetch' is not an instance of
-      // Promise that we have in our application context, so we use Promise.resolve
-      // to do the conversion.
-      Promise.resolve()
-        .then(() => fetch(url, options))
-        .then(r => {
-          const contentType = r.headers.get('Content-Type');
-          const isJson = contentType.includes('application/json') ||
-            contentType.includes('application/fhir+json');
-          try {
-            if (isJson) {
-              return r.json().then((json) => r.ok ? json : Promise.reject(json));
-            } else {
-              return r.text().then((text) => Promise.reject(text));
-            }
-          } catch (e) {
-            return Promise.reject(new Error(e));
-          }
-        });
+    let resolveFetch;
+    let rejectFetch;
+    const fetchPromise = new Promise((resolve, reject) => {
+      resolveFetch = resolve;
+      rejectFetch = reject;
+    });
+    entry.promise = fetchPromise.then(r => {
+      const contentType = r.headers.get('Content-Type');
+      const isJson = contentType.includes('application/json') ||
+        contentType.includes('application/fhir+json');
+      try {
+        if (isJson) {
+          return r.json().then((json) => r.ok ? json : Promise.reject(json));
+        } else {
+          return r.text().then((text) => Promise.reject(text));
+        }
+      } catch (e) {
+        return Promise.reject(new Error(e));
+      }
+    });
     requestCache[requestKey] = entry;
     entry.promise.then(
       () => {
         entry.settled = true;
+        // Start the response TTL when the request successfully settles. A
+        // long-running request should not produce an immediately stale result.
+        entry.timestamp = Date.now();
       },
       () => {
         entry.settled = true;
@@ -580,6 +583,21 @@ util.fetchWithCache = function(url, ctx, options) {
         removeRequestCacheEntry(requestKey, entry);
       }
     );
+
+    // Attach the first consumer before dispatch so that its cancellation is
+    // observed even by a synchronously behaving fetch implementation.
+    const consumerPromise = attachRequestConsumer(
+      requestKey, entry, consumerSignal
+    );
+    try {
+      // A promise returned by fetch in Jest can come from another realm.
+      // Resolving the local bridge assimilates that promise while invoking the
+      // currently installed fetch implementation before this function returns.
+      resolveFetch(fetch(url, options));
+    } catch (error) {
+      rejectFetch(error);
+    }
+    return consumerPromise;
   }
 
   return attachRequestConsumer(

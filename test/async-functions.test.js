@@ -443,6 +443,210 @@ describe('Async functions', () => {
     });
 
 
+    it('uses an explicit ValueSet version for discovery and preference',
+      async () => {
+        const valueSetUrl = 'http://example.org/ValueSet/version-override';
+        const system = 'http://example.org/CodeSystem/effective';
+        const matchesSearch = (requestUrl, origin) => {
+          const parsed = new URL(requestUrl);
+          return parsed.origin === origin &&
+            parsed.pathname === '/ValueSet' &&
+            parsed.searchParams.get('url') === valueSetUrl &&
+            parsed.searchParams.get('version') === 'effective';
+        };
+        mockFetchResults([
+          [{
+            url: url => matchesSearch(url, 'https://ts-a.example'),
+            method: 'GET'
+          }, {resourceType: 'Bundle'}],
+          [{
+            url: url => matchesSearch(url, 'https://ts-b.example'),
+            method: 'GET'
+          }, {
+            resourceType: 'Bundle',
+            entry: [{resource: {
+              resourceType: 'ValueSet',
+              url: valueSetUrl,
+              version: 'effective',
+              compose: {include: [{system}]}
+            }}]
+          }],
+          [{
+            url: url => {
+              const parsed = new URL(url);
+              return parsed.origin === 'https://ts-b.example' &&
+                parsed.pathname === '/ValueSet/$validate-code' &&
+                parsed.searchParams.get('url') === valueSetUrl &&
+                parsed.searchParams.getAll('valueSetVersion')
+                  .toString() === 'effective' &&
+                parsed.searchParams.get('system') === system &&
+                parsed.searchParams.get('code') === 'male';
+            },
+            method: 'GET'
+          }, {
+            resourceType: 'Parameters',
+            parameter: [{name: 'result', valueBoolean: true}]
+          }]
+        ]);
+
+        await expect(fhirpath.evaluate(
+          emptyResource,
+          `%terminologies.validateVS('${valueSetUrl}|canonical', 'male', `
+          + "'valueSetVersion=effective').parameter.value",
+          {},
+          modelR4,
+          {async: true,
+            terminologyUrl: ['https://ts-a.example', 'https://ts-b.example']}
+        )).resolves.toEqual([true]);
+
+        const effectiveKey = Terminologies.preferredServerKey(
+          'ValueSet', valueSetUrl + '|effective'
+        );
+        const canonicalKey = Terminologies.preferredServerKey(
+          'ValueSet', valueSetUrl + '|canonical'
+        );
+        expect(Terminologies._getPreferredServer(effectiveKey))
+          .toBe('https://ts-b.example');
+        expect(Terminologies._getPreferredServer(canonicalKey))
+          .toBeUndefined();
+      });
+
+
+    it('uses an explicit CodeSystem version for discovery and preference',
+      async () => {
+        const codeSystemUrl =
+          'http://example.org/CodeSystem/version-override';
+        const matchesSearch = (requestUrl, origin) => {
+          const parsed = new URL(requestUrl);
+          return parsed.origin === origin &&
+            parsed.pathname === '/CodeSystem' &&
+            parsed.searchParams.get('url') === codeSystemUrl &&
+            parsed.searchParams.get('version') === 'effective';
+        };
+        mockFetchResults([
+          [{
+            url: url => matchesSearch(url, 'https://ts-a.example'),
+            method: 'GET'
+          }, {resourceType: 'Bundle'}],
+          [{
+            url: url => matchesSearch(url, 'https://ts-b.example'),
+            method: 'GET'
+          }, {
+            resourceType: 'Bundle',
+            entry: [{resource: {
+              resourceType: 'CodeSystem',
+              url: codeSystemUrl,
+              version: 'effective'
+            }}]
+          }],
+          [{
+            url: 'https://ts-b.example/CodeSystem/$validate-code',
+            method: 'POST',
+            body: body => {
+              const parameters = JSON.parse(body).parameter;
+              const versions =
+                parameters.filter(p => p.name === 'version');
+              return parameters.find(p => p.name === 'url')?.valueUri ===
+                  codeSystemUrl &&
+                versions.length === 1 &&
+                versions[0].valueString === 'effective';
+            }
+          }, {
+            resourceType: 'Parameters',
+            parameter: [{name: 'result', valueBoolean: true}]
+          }]
+        ]);
+
+        await expect(fhirpath.evaluate(
+          emptyResource,
+          `%terminologies.validateCS('${codeSystemUrl}|canonical', 'male', `
+          + "'version=effective').parameter.value",
+          {},
+          modelR4,
+          {async: true,
+            terminologyUrl: ['https://ts-a.example', 'https://ts-b.example']}
+        )).resolves.toEqual([true]);
+
+        const effectiveKey = Terminologies.preferredServerKey(
+          'CodeSystem', codeSystemUrl + '|effective'
+        );
+        const canonicalKey = Terminologies.preferredServerKey(
+          'CodeSystem', codeSystemUrl + '|canonical'
+        );
+        expect(Terminologies._getPreferredServer(effectiveKey))
+          .toBe('https://ts-b.example');
+        expect(Terminologies._getPreferredServer(canonicalKey))
+          .toBeUndefined();
+      });
+
+
+    it('uses an explicit ConceptMap version for discovery and preference',
+      async () => {
+        const conceptMapUrl = 'http://example.org/ConceptMap/version-override';
+        const matchesSearch = (requestUrl, origin) => {
+          const parsed = new URL(requestUrl);
+          return parsed.origin === origin &&
+            parsed.pathname === '/ConceptMap' &&
+            parsed.searchParams.get('url') === conceptMapUrl &&
+            parsed.searchParams.get('version') === 'effective';
+        };
+        mockFetchResults([
+          [{
+            url: url => matchesSearch(url, 'https://ts-a.example'),
+            method: 'GET'
+          }, {resourceType: 'Bundle'}],
+          [{
+            url: url => matchesSearch(url, 'https://ts-b.example'),
+            method: 'GET'
+          }, {
+            resourceType: 'Bundle',
+            entry: [{resource: {
+              resourceType: 'ConceptMap',
+              url: conceptMapUrl,
+              version: 'effective'
+            }}]
+          }],
+          [{
+            url: 'https://ts-b.example/CodeSystem/$translate',
+            method: 'POST',
+            body: body => {
+              const parameters = JSON.parse(body).parameter;
+              const versions =
+                parameters.filter(p => p.name === 'conceptMapVersion');
+              return parameters.find(p => p.name === 'url')?.valueUri ===
+                  conceptMapUrl &&
+                versions.length === 1 &&
+                versions[0].valueString === 'effective';
+            }
+          }, {
+            resourceType: 'Parameters',
+            parameter: [{name: 'result', valueBoolean: true}]
+          }]
+        ]);
+
+        await expect(fhirpath.evaluate(
+          emptyResource,
+          `%terminologies.translate('${conceptMapUrl}|canonical', `
+          + "'preliminary', 'conceptMapVersion=effective').parameter.value",
+          {},
+          modelR4,
+          {async: true,
+            terminologyUrl: ['https://ts-a.example', 'https://ts-b.example']}
+        )).resolves.toEqual([true]);
+
+        const effectiveKey = Terminologies.preferredServerKey(
+          'ConceptMap', conceptMapUrl + '|effective'
+        );
+        const canonicalKey = Terminologies.preferredServerKey(
+          'ConceptMap', conceptMapUrl + '|canonical'
+        );
+        expect(Terminologies._getPreferredServer(effectiveKey))
+          .toBe('https://ts-b.example');
+        expect(Terminologies._getPreferredServer(canonicalKey))
+          .toBeUndefined();
+      });
+
+
     it('splits a versioned canonical, searching by url and version separately',
       (done) => {
         mockFetchResults([
@@ -574,6 +778,40 @@ describe('Async functions', () => {
 
   describe('fetchFromServers cancellation', () => {
 
+    it('does not fall through to a restored fetch during mock teardown',
+      async () => {
+        const term = new Terminologies(
+          ['https://ts-a.example', 'https://ts-b.example']);
+        const key = Terminologies.preferredServerKey(
+          'ValueSet', 'http://example.org/ValueSet/delayed'
+        );
+        mockFetchResults([
+          ['https://ts-a.example/ValueSet/$expand', {
+            resourceType: 'ValueSet'
+          }]
+        ], {timeout: 1000});
+
+        const request = term.fetchFromServers(
+          {}, key, 'ValueSet',
+          baseUrl => util.fetchWithCache(
+            `${baseUrl}/ValueSet/$expand`, {}
+          )
+        );
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+
+        mockRestore();
+        const replacementFetch = jest.spyOn(global, 'fetch')
+          .mockRejectedValue(new Error('replacement fetch was called'));
+        try {
+          await expect(request).rejects.toHaveProperty('name', 'AbortError');
+          expect(replacementFetch).not.toHaveBeenCalled();
+          expect(Terminologies._getPreferredServer(key)).toBeUndefined();
+        } finally {
+          replacementFetch.mockRestore();
+        }
+      });
+
+
     it('re-throws an AbortError from a server without trying the next one',
       async () => {
         const term = new Terminologies(
@@ -672,6 +910,38 @@ describe('Async functions', () => {
 
   describe('fetchWithCache shared cancellation', () => {
 
+    it('dispatches immediately and evicts a synchronous fetch failure',
+      async () => {
+        let dispatched = false;
+        const fetchMock = jest.spyOn(global, 'fetch')
+          .mockImplementationOnce(() => {
+            dispatched = true;
+            throw new Error('synchronous failure');
+          })
+          .mockResolvedValueOnce({
+            ok: true,
+            headers: {get: () => 'application/fhir+json'},
+            json: () => Promise.resolve({resourceType: 'ValueSet'})
+          });
+
+        try {
+          const first = util.fetchWithCache(
+            'https://sync-failure.example/ValueSet', {}
+          );
+          expect(dispatched).toBe(true);
+          await expect(first).rejects.toThrow('synchronous failure');
+
+          await expect(util.fetchWithCache(
+            'https://sync-failure.example/ValueSet', {}
+          )).resolves.toEqual({resourceType: 'ValueSet'});
+          expect(fetchMock).toHaveBeenCalledTimes(2);
+        } finally {
+          util._clearRequestCache();
+          fetchMock.mockRestore();
+        }
+      });
+
+
     it('rejects only the cancelled consumer and resolves the other consumer',
       async () => {
         let resolveFetch;
@@ -768,6 +1038,89 @@ describe('Async functions', () => {
           expect(fetchMock).toHaveBeenCalledTimes(1);
         } finally {
           fetchMock.mockRestore();
+        }
+      });
+
+
+    it('does not expire or abort a pending request older than one hour',
+      async () => {
+        let now = 0;
+        let resolveFetch;
+        let underlyingSignal;
+        const nowSpy = jest.spyOn(Date, 'now')
+          .mockImplementation(() => now);
+        const fetchMock = jest.spyOn(global, 'fetch').mockImplementation(
+          (url, options) => {
+            underlyingSignal = options.signal;
+            return new Promise((resolve) => {
+              resolveFetch = () => resolve({
+                ok: true,
+                headers: {get: () => 'application/fhir+json'},
+                json: () => Promise.resolve({resourceType: 'ValueSet'})
+              });
+            });
+          }
+        );
+        const abortController = new AbortController();
+
+        try {
+          const first = util.fetchWithCache(
+            'https://pending.example/ValueSet',
+            {signal: abortController.signal}
+          );
+          now = 3600001;
+          const second = util.fetchWithCache(
+            'https://pending.example/ValueSet', {}
+          );
+
+          expect(fetchMock).toHaveBeenCalledTimes(1);
+          expect(underlyingSignal.aborted).toBe(false);
+
+          resolveFetch();
+          await expect(first).resolves.toEqual({
+            resourceType: 'ValueSet'
+          });
+          await expect(second).resolves.toEqual({
+            resourceType: 'ValueSet'
+          });
+
+          await expect(util.fetchWithCache(
+            'https://pending.example/ValueSet', {}
+          )).resolves.toEqual({resourceType: 'ValueSet'});
+          expect(fetchMock).toHaveBeenCalledTimes(1);
+        } finally {
+          util._clearRequestCache();
+          fetchMock.mockRestore();
+          nowSpy.mockRestore();
+        }
+      });
+
+
+    it('evicts and refetches a settled response older than one hour',
+      async () => {
+        let now = 0;
+        const nowSpy = jest.spyOn(Date, 'now')
+          .mockImplementation(() => now);
+        const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({
+          ok: true,
+          headers: {get: () => 'application/fhir+json'},
+          json: () => Promise.resolve({resourceType: 'ValueSet'})
+        });
+
+        try {
+          await expect(util.fetchWithCache(
+            'https://expired.example/ValueSet', {}
+          )).resolves.toEqual({resourceType: 'ValueSet'});
+
+          now = 3600001;
+          await expect(util.fetchWithCache(
+            'https://expired.example/ValueSet', {}
+          )).resolves.toEqual({resourceType: 'ValueSet'});
+          expect(fetchMock).toHaveBeenCalledTimes(2);
+        } finally {
+          util._clearRequestCache();
+          fetchMock.mockRestore();
+          nowSpy.mockRestore();
         }
       });
 
@@ -952,11 +1305,25 @@ describe('Async functions', () => {
           + "'valueSetVersion=explicit') is ValueSet",
           {},
           modelR4,
-          {async: true, terminologyUrl: 'https://tx.example'}
+          {async: true,
+            terminologyUrl: [
+              'https://tx.example',
+              'https://unused.example'
+            ]}
         );
 
         result.then(r => {
           expect(r).toEqual([true]);
+          const effectiveKey = Terminologies.preferredServerKey(
+            'ValueSet', 'http://example.org/vs|explicit'
+          );
+          const canonicalKey = Terminologies.preferredServerKey(
+            'ValueSet', 'http://example.org/vs|canonical'
+          );
+          expect(Terminologies._getPreferredServer(effectiveKey))
+            .toBe('https://tx.example');
+          expect(Terminologies._getPreferredServer(canonicalKey))
+            .toBeUndefined();
           done();
         }, done);
       });
@@ -1190,6 +1557,59 @@ describe('Async functions', () => {
     });
 
     
+    it('uses an explicit version for a bare-code ValueSet lookup',
+      async () => {
+        const valueSetUrl =
+          'http://example.org/ValueSet/single-version-override';
+        const system = 'http://example.org/CodeSystem/single-effective';
+        mockFetchResults([
+          [{
+            url: url => {
+              const parsed = new URL(url);
+              return parsed.origin === 'https://tx.example' &&
+                parsed.pathname === '/ValueSet' &&
+                parsed.searchParams.get('url') === valueSetUrl &&
+                parsed.searchParams.get('version') === 'effective';
+            },
+            method: 'GET'
+          }, {
+            resourceType: 'Bundle',
+            entry: [{resource: {
+              resourceType: 'ValueSet',
+              url: valueSetUrl,
+              version: 'effective',
+              compose: {include: [{system}]}
+            }}]
+          }],
+          [{
+            url: url => {
+              const parsed = new URL(url);
+              return parsed.origin === 'https://tx.example' &&
+                parsed.pathname === '/ValueSet/$validate-code' &&
+                parsed.searchParams.get('url') === valueSetUrl &&
+                parsed.searchParams.getAll('valueSetVersion')
+                  .toString() === 'effective' &&
+                parsed.searchParams.get('system') === system &&
+                parsed.searchParams.get('code') === 'male';
+            },
+            method: 'GET'
+          }, {
+            resourceType: 'Parameters',
+            parameter: [{name: 'result', valueBoolean: true}]
+          }]
+        ]);
+
+        await expect(fhirpath.evaluate(
+          emptyResource,
+          `%terminologies.validateVS('${valueSetUrl}|canonical', 'male', `
+          + "'valueSetVersion=effective').parameter.value",
+          {},
+          modelR4,
+          {async: true, terminologyUrl: 'https://tx.example'}
+        )).resolves.toEqual([true]);
+      });
+
+
     it('should work with a code and URL passed as a resource node', (done) => {
       mockFetchResults([
         ['ValueSet?url=http%3A%2F%2Fterminology.hl7.org%2FValueSet%2Fobservation-category', {
@@ -1573,12 +1993,14 @@ describe('Async functions', () => {
               const system = bodyObj.parameter.find(p => p.name === 'system')?.valueUri;
               const valueCode1 = bodyObj.parameter.find(p => p.name === 'codeA')?.valueCode;
               const valueCode2 = bodyObj.parameter.find(p => p.name === 'codeB')?.valueCode;
-              const version = bodyObj.parameter.find(p => p.name === 'version')?.valueString;
+              const versions =
+                bodyObj.parameter.filter(p => p.name === 'version');
 
               result = system === 'http://snomed.info/sct' &&
                 valueCode1 === '3738000' &&
                 valueCode2 === '235856003' &&
-                version === '2014-05-06';
+                versions.length === 1 &&
+                versions[0].valueString === '2014-05-06';
             }
             return result;
           }
@@ -1595,14 +2017,30 @@ describe('Async functions', () => {
 
       let result = fhirpath.evaluate(
         observationResource,
-        "%terminologies.subsumes('http://snomed.info/sct', '3738000', '235856003', 'version=2014-05-06').where($this is FHIR.code) = 'subsumed-by'",
+        "%terminologies.subsumes('http://snomed.info/sct|canonical', "
+        + "'3738000', '235856003', 'version=2014-05-06')"
+        + ".where($this is FHIR.code) = 'subsumed-by'",
         {},
         modelR4,
-        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+        {async: true,
+          terminologyUrl: [
+            'https://lforms-fhir.nlm.nih.gov/baseR4',
+            'https://unused.example'
+          ]}
       );
       expect(result instanceof Promise).toBe(true);
       result.then((r) => {
         expect(r).toEqual([true]);
+        const effectiveKey = Terminologies.preferredServerKey(
+          'CodeSystem', 'http://snomed.info/sct|2014-05-06'
+        );
+        const canonicalKey = Terminologies.preferredServerKey(
+          'CodeSystem', 'http://snomed.info/sct|canonical'
+        );
+        expect(Terminologies._getPreferredServer(effectiveKey))
+          .toBe('https://lforms-fhir.nlm.nih.gov/baseR4');
+        expect(Terminologies._getPreferredServer(canonicalKey))
+          .toBeUndefined();
         done();
       })
     });

@@ -104,6 +104,11 @@ function throwAbortError() {
 
 
 class Terminologies {
+  /**
+   * Creates a terminology service client.
+   * @param {string[]} terminologyUrls - terminology server base URLs, in the
+   *  order in which servers should be tried when no preferred server is known.
+   */
   constructor(terminologyUrls) {
     // The ordered list of terminology server base URLs.
     this.terminologyUrls = terminologyUrls;
@@ -243,19 +248,22 @@ class Terminologies {
    *  "preferredServerKey").
    * @param {string} searchType - the resource type to search for (e.g.
    *  "ValueSet", "CodeSystem", "ConceptMap").
-   * @param {string} url - the canonical URL of the artifact to locate,
-   *  optionally suffixed with "|version"; the version is sent as a separate
-   *  "version" search parameter.
+   * @param {string|CanonicalOperationInfo} canonical - either the canonical URL
+   *  of the artifact to locate, optionally suffixed with "|version", or
+   *  normalized canonical operation information. The effective version is sent
+   *  as a separate "version" search parameter.
    * @return {Promise<{baseUrl: string, resource: Object}>} - a promise
    *  resolving to the base URL of the holding server and the located resource.
    *  When no server holds the artifact, the promise rejects (see
    *  "fetchFromServers").
    */
-  locateServer(ctx, key, searchType, url) {
-    // Split "url|version" so the version is matched by the FHIR "version" search
-    // parameter instead of being appended to the "url" value (which the server
-    // would not match against an unversioned canonical).
-    const query = new URLSearchParams(util.splitCanonicalUrl(url)).toString();
+  locateServer(ctx, key, searchType, canonical) {
+    // Normalize "url|version" so the version is matched by the FHIR "version"
+    // search parameter instead of being appended to the "url" value (which the
+    // server would not match against an unversioned canonical).
+    const query = new URLSearchParams(
+      getCanonicalSearchParams(canonical)
+    ).toString();
     return this.fetchFromServers(
       ctx, key,
       (located) => !!located.resource,
@@ -310,7 +318,7 @@ class Terminologies {
    *  one element, which is either a ResourceNode with an actual ValueSet, or
    *  a ResourceNode with a canonical URL reference to a value set, or
    *  a string with a canonical URL reference to a value set.
-   * @param {string} params - a URL encoded string with other parameters for
+   * @param {string} [params] - a URL encoded string with other parameters for
    *  the expand operation (e.g. 'displayLanguage=en&activeOnly=true').
    * @return {Promise<ResourceNode|null>|null} - a ValueSet resource
    *  (https://hl7.org/fhir/valueset.html) with an expansion, or an empty
@@ -330,12 +338,14 @@ class Terminologies {
           valueSet, 'valueSetVersion', params);
         const query = new URLSearchParams({
           url: canonical.url,
-          ...(canonical.version
-            ? {valueSetVersion: canonical.version}
+          ...(canonical.operationVersion
+            ? {valueSetVersion: canonical.operationVersion}
             : {})
         }).toString();
         response = self[0].fetchFromServers(
-          ctx, preferredServerKey('ValueSet', valueSet), 'ValueSet',
+          ctx, preferredServerKey(
+            'ValueSet', getCanonicalPreferenceUrl(canonical)
+          ), 'ValueSet',
           (baseUrl) => util.fetchWithCache(
             `${baseUrl}/ValueSet/$expand?${query}${
               params ? '&' + params : ''
@@ -380,7 +390,7 @@ class Terminologies {
    *  the lookup operation (e.g. 'date=2011-03-04&displayLanguage=en').
    * @return {Promise<ResourceNode|null>|null} - a Parameters resource
    *  (https://build.fhir.org/parameters.html) with the results of
-   *  the validation operation.
+   *  the lookup operation.
    */
   static lookup(self, codedColl, params = '') {
     let response = null;
@@ -463,12 +473,14 @@ class Terminologies {
       if (isActualValueSet || isValueSetUrl) {
         const {isCodeableConcept, isCoding, isCode} = getCodedType(ctx, codedColl);
         if (isCodeableConcept || isCoding || isCode) {
-          const vsKeyUrl = isValueSetUrl ? valueSet : valueSet?.url;
-          const key = preferredServerKey('ValueSet', vsKeyUrl);
           const canonical = isValueSetUrl
             ? splitCanonicalForOperation(
               valueSet, 'valueSetVersion', params)
             : null;
+          const vsKeyUrl = isValueSetUrl
+            ? getCanonicalPreferenceUrl(canonical)
+            : valueSet?.url;
+          const key = preferredServerKey('ValueSet', vsKeyUrl);
           const operationValueSet = canonical?.url ?? valueSet;
 
           // Builds and sends the $validate-code request to "baseUrl". "foundVs"
@@ -482,7 +494,7 @@ class Terminologies {
             //  https://chat.fhir.org/#narrow/stream/179266-fhirpath/topic/Problem.20with.20the.20.22memberOf.22.20function.20and.20R4.20servers
             const resolveSystem = () => foundVs
               ? Promise.resolve(foundVs).then(getSystemFromValueSetResource)
-              : getSystemFromVS(ctx, baseUrl, valueSet);
+              : getSystemFromVS(ctx, baseUrl, valueSet, canonical);
 
             // Use a POST request if the passed valueSet is an actual ValueSet or
             // the passed coded value is a CodeableConcept with more than one
@@ -500,7 +512,7 @@ class Terminologies {
                         operationValueSet
                     },
                     ...makeVersionParameter(
-                      'valueSetVersion', canonical?.version),
+                      'valueSetVersion', canonical?.operationVersion),
                     {
                       name: codedParamName,
                       [paramName2valueXName[codedParamName]]: coded
@@ -521,8 +533,8 @@ class Terminologies {
                 return resolveSystem().then((system) => {
                   const queryParams2 = new URLSearchParams({
                     url: operationValueSet,
-                    ...(canonical?.version
-                      ? {valueSetVersion: canonical.version}
+                    ...(canonical?.operationVersion
+                      ? {valueSetVersion: canonical.operationVersion}
                       : {}),
                     code: coded,
                     system
@@ -541,8 +553,8 @@ class Terminologies {
                 if (codedForReq?.system && codedForReq?.code) {
                   const queryParams = new URLSearchParams({
                     url: operationValueSet,
-                    ...(canonical?.version
-                      ? {valueSetVersion: canonical.version}
+                    ...(canonical?.operationVersion
+                      ? {valueSetVersion: canonical.operationVersion}
                       : {}),
                     system: codedForReq.system,
                     code: codedForReq.code
@@ -562,7 +574,7 @@ class Terminologies {
             // that holds the ValueSet first, then validate only against it
             // (trusting its result), instead of inspecting each response for
             // "not resolved" issues.
-            response = self[0].locateServer(ctx, key, 'ValueSet', valueSet)
+            response = self[0].locateServer(ctx, key, 'ValueSet', canonical)
               .then(located => operate(located.baseUrl, located.resource));
           } else {
             // A single server, or an inline ValueSet that every server can
@@ -580,7 +592,8 @@ class Terminologies {
 
 
   /**
-   * This calls the Terminology Service $validate-code operation on a value set.
+   * This calls the Terminology Service $validate-code operation on a code
+   * system.
    * https://hl7.org/fhir/terminology-service.html#validation
    * https://hl7.org/fhir/codesystem-operation-validate-code.html
    *
@@ -593,7 +606,7 @@ class Terminologies {
    * @param {(ResourceNode|string)[]} codedColl - an array that should have
    *  one element, which is either a ResourceNode with a Coding,
    *  a CodeableConcept, or a code, or a string with a code.
-   * @param {string} params - a URL encoded string with other parameters for
+   * @param {string} [params] - a URL encoded string with other parameters for
    *  the validate-code operation (e.g. 'date=2011-03-04&displayLanguage=en')
    * @return {Promise<ResourceNode|null>|null} - a Parameters resource
    *  (https://build.fhir.org/parameters.html) with the results of
@@ -616,11 +629,13 @@ class Terminologies {
         if (isCodeableConcept || isCoding || isCode) {
           const codeSystem = util.valData(codeSystemColl[0]);
           const coded = util.valData(codedColl[0]);
-          const csKeyUrl = isCodeSystemUrl ? codeSystem : codeSystem?.url;
-          const key = preferredServerKey('CodeSystem', csKeyUrl);
           const canonical = isCodeSystemUrl
             ? splitCanonicalForOperation(codeSystem, 'version', params)
             : null;
+          const csKeyUrl = isCodeSystemUrl
+            ? getCanonicalPreferenceUrl(canonical)
+            : codeSystem?.url;
+          const key = preferredServerKey('CodeSystem', csKeyUrl);
           const operationCodeSystem = canonical?.url ?? codeSystem;
           const codedParamName = isCodeableConcept ?
             'codeableConcept' : isCoding ? 'coding' : 'code';
@@ -632,7 +647,8 @@ class Terminologies {
                 [isActualCodeSystem ? 'resource' : 'valueUri']:
                   operationCodeSystem
               },
-              ...makeVersionParameter('version', canonical?.version),
+              ...makeVersionParameter(
+                'version', canonical?.operationVersion),
               {
                 name: codedParamName,
                 [paramName2valueXName[codedParamName]]: coded
@@ -651,7 +667,9 @@ class Terminologies {
             // Multiple servers and a canonical URL reference: find the server
             // that holds the CodeSystem first, then validate only against it
             // (trusting its result).
-            response = self[0].locateServer(ctx, key, 'CodeSystem', codeSystem)
+            response = self[0].locateServer(
+              ctx, key, 'CodeSystem', canonical
+            )
               .then(located => operate(located.baseUrl));
           } else {
             // A single server, or an inline CodeSystem that every server can
@@ -683,8 +701,8 @@ class Terminologies {
    * @param {(ResourceNode|string)[]} coded2Coll - an array that should have one
    *  element, which is either a ResourceNode with a Coding, or a code, or
    *  a string with a code.
-   * @param {string} params - a URL encoded string with other parameters for
-   *  the validate-code operation (e.g. 'version=2014-05-06').
+   * @param {string} [params] - a URL encoded string with other parameters for
+   *  the subsumes operation (e.g. 'version=2014-05-06').
    * @return {Promise<ResourceNode|null>|null} - a ResourceNode with a code as
    *  specified for the subsumes operation.
    */
@@ -724,7 +742,7 @@ class Terminologies {
                 name: 'system',
                 valueUri: canonical.url
               },
-              ...makeVersionParameter('version', canonical.version),
+              ...makeVersionParameter('version', canonical.operationVersion),
               {
                 name: coded1ParamName,
                 [coded1ValueName]: coded1
@@ -737,7 +755,9 @@ class Terminologies {
             ]
           };
           response = self[0].fetchFromServers(
-            ctx, preferredServerKey('CodeSystem', system), 'Parameters',
+            ctx, preferredServerKey(
+              'CodeSystem', getCanonicalPreferenceUrl(canonical)
+            ), 'Parameters',
             (baseUrl) => util.fetchWithCache(
               `${baseUrl}/CodeSystem/$subsumes`, ctx, {
                 method: "POST",
@@ -770,13 +790,13 @@ class Terminologies {
    * @param {(ResourceNode|string)[]} conceptMapColl - an array that should have
    *  one element, which is either a ResourceNode with an actual ConceptMap, or
    *  a canonical URL reference to a ConceptMap, or a string with a canonical
-   *  URL reference to a code system.
-   * @param {ResourceNode|string} codedColl - the source to translate: an array that
-   *  should have one element, which is either a ResourceNode with
-   *  a CodeableConcept, a Coding, or a code, or a string with a code.
-   * @param {string} params - a URL encoded string with other parameters for
-   * the validate-code operation
-   * (e.g. 'source=http://acme.org/valueset/23&target=http://acme.org/valueset/23')
+   *  URL reference to a ConceptMap.
+   * @param {(ResourceNode|string)[]} codedColl - the source to translate: an
+   *  array that should have one element, which is either a ResourceNode with a
+   *  CodeableConcept, a Coding, or a code, or a string with a code.
+   * @param {string} [params] - a URL encoded string with other parameters for
+   *  the translate operation (e.g.
+   *  'source=http://acme.org/valueset/23&target=http://acme.org/valueset/23').
    * @return {Promise<ResourceNode|null>|null} - a Parameters resource
    *  (https://build.fhir.org/parameters.html) with the results of
    *  the translation operation.
@@ -798,12 +818,14 @@ class Terminologies {
         if (isCoding || isCode) {
           const conceptMap = util.valData(conceptMapColl[0]);
           const coded = util.valData(codedColl[0]);
-          const cmKeyUrl = isConceptMapUrl ? conceptMap : conceptMap?.url;
-          const key = preferredServerKey('ConceptMap', cmKeyUrl);
           const canonical = isConceptMapUrl
             ? splitCanonicalForOperation(
               conceptMap, 'conceptMapVersion', params)
             : null;
+          const cmKeyUrl = isConceptMapUrl
+            ? getCanonicalPreferenceUrl(canonical)
+            : conceptMap?.url;
+          const key = preferredServerKey('ConceptMap', cmKeyUrl);
           const operationConceptMap = canonical?.url ?? conceptMap;
           const m = modelToTranslateSourceParamName[ctx.model.version];
           const codedParamName = isCodeableConcept ?
@@ -817,7 +839,7 @@ class Terminologies {
                   operationConceptMap
               },
               ...makeVersionParameter(
-                'conceptMapVersion', canonical?.version),
+                'conceptMapVersion', canonical?.operationVersion),
               {
                 name: codedParamName,
                 [paramName2valueXName[codedParamName]]: coded
@@ -836,7 +858,9 @@ class Terminologies {
             // Multiple servers and a canonical URL reference: find the server
             // that holds the ConceptMap first, then translate only against it
             // (trusting its result).
-            response = self[0].locateServer(ctx, key, 'ConceptMap', conceptMap)
+            response = self[0].locateServer(
+              ctx, key, 'ConceptMap', canonical
+            )
               .then(located => operate(located.baseUrl));
           } else {
             // A single server, or an inline ConceptMap that every server can
@@ -876,22 +900,79 @@ function checkParams(params) {
 
 
 /**
- * Splits a versioned canonical for use in a terminology operation. A version
- * supplied explicitly in the operation parameters takes precedence over the
- * canonical suffix, preventing duplicate version parameters.
+ * Normalized canonical information for a terminology operation.
+ * "effectiveVersion" identifies the artifact version used for server discovery
+ * and preference tracking. "operationVersion" is present only when the version
+ * must be added separately to the operation request; an explicit version that
+ * is already present in the raw operation parameters is not duplicated.
+ *
+ * @typedef {Object} CanonicalOperationInfo
+ * @property {string} url - canonical URL without a version suffix.
+ * @property {string|undefined} effectiveVersion - version selected by the
+ *  explicit operation parameter or, when absent, by the canonical suffix.
+ * @property {string|undefined} operationVersion - canonical suffix to add to
+ *  the operation request when no explicit version parameter was supplied.
+ */
+
+
+/**
+ * Normalizes a versioned canonical for use in a terminology operation. A
+ * version supplied explicitly in the operation parameters takes precedence
+ * over the canonical suffix, including when the explicit value is empty. Raw
+ * operation parameters are left unchanged.
  *
  * @param {string} canonical - canonical URL, optionally suffixed with a version.
  * @param {string} versionParamName - operation-specific version parameter name.
  * @param {string} params - URL-encoded additional operation parameters.
- * @returns {{url: string, version?: string}}
+ * @returns {CanonicalOperationInfo}
  */
 function splitCanonicalForOperation(canonical, versionParamName, params) {
   const parts = util.splitCanonicalUrl(canonical);
-  if (parts.version &&
-    new URLSearchParams(params).has(versionParamName)) {
-    delete parts.version;
+  const operationParams = new URLSearchParams(params);
+  const hasExplicitVersion = operationParams.has(versionParamName);
+  return {
+    url: parts.url,
+    effectiveVersion: hasExplicitVersion
+      ? operationParams.get(versionParamName)
+      : parts.version,
+    operationVersion: hasExplicitVersion ? undefined : parts.version
+  };
+}
+
+
+/**
+ * Converts a canonical URL or normalized operation information to FHIR search
+ * parameters. The effective version is included whenever it is defined,
+ * including an explicitly empty version.
+ *
+ * @param {string|CanonicalOperationInfo} canonical - canonical URL or normalized
+ *  operation information.
+ * @returns {{url: string, version?: string}}
+ */
+function getCanonicalSearchParams(canonical) {
+  if (typeof canonical === 'string') {
+    return util.splitCanonicalUrl(canonical);
   }
-  return parts;
+  return {
+    url: canonical.url,
+    ...(canonical.effectiveVersion !== undefined
+      ? {version: canonical.effectiveVersion}
+      : {})
+  };
+}
+
+
+/**
+ * Reassembles the effective canonical used for preferred-server cache keys.
+ *
+ * @param {CanonicalOperationInfo} canonical - normalized operation information.
+ * @returns {string} canonical URL, optionally suffixed with its effective
+ *  version.
+ */
+function getCanonicalPreferenceUrl(canonical) {
+  return canonical.effectiveVersion === undefined
+    ? canonical.url
+    : canonical.url + '|' + canonical.effectiveVersion;
 }
 
 
@@ -915,16 +996,20 @@ function makeVersionParameter(name, version) {
  * @param {Object} ctx - object describing the context of expression
  *  evaluation (see the "applyParsedPath" function).
  * @param {string} baseUrl - the base URL of the terminology server to query.
- * @param {Object|string} valueSet -  either an actual ValueSet, or a canonical URL
- *  reference to a value set.
+ * @param {Object|string} valueSet - either an actual ValueSet, or a canonical
+ *  URL reference to a value set.
+ * @param {CanonicalOperationInfo|null} canonical - normalized canonical
+ *  information when "valueSet" is a canonical URL.
  * @return {Promise<string>} - a promise that resolves to the code system.
  */
-function getSystemFromVS(ctx, baseUrl, valueSet) {
+function getSystemFromVS(ctx, baseUrl, valueSet, canonical) {
   return (
     typeof valueSet === 'string' ?
       util.fetchWithCache(
         `${baseUrl}/ValueSet?${
-          new URLSearchParams(util.splitCanonicalUrl(valueSet)).toString()
+          new URLSearchParams(
+            getCanonicalSearchParams(canonical || valueSet)
+          ).toString()
         }`,
         ctx
       ).then(

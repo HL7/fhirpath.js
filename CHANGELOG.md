@@ -31,7 +31,12 @@ This log documents significant changes for each release.  This project follows
   code instead of raising an error. This aligns with the multi-server fallback
   and the "absent artifact yields an empty result" behavior of the
   `%terminologies` functions. Previously a failing request rejected the result.
-  Transient request failures are not cached, so later evaluations can retry.
+  Transient request failures are not stored in the weight cache, so later
+  evaluations can retry.
+- Rejected server requests are no longer retained in the shared
+  `util.fetchWithCache()` request cache. Later `resolve()` and terminology
+  operations can therefore retry transient failures; successful responses
+  continue to be cached.
 - `memberOf`/`validateVS` now return a promise under async evaluation even when
   no request can be built (for example, a coded value with neither a system nor
   a code). Previously such a case could return a synchronous empty result.

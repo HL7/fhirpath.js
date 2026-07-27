@@ -759,4 +759,15 @@ function getQItemByLinkIds(modelVersion, questionnaire, linkIds) {
 }
 
 
+/**
+ * Clears the module-level cache of weight/ordinal scores. Intended for internal
+ * use only (e.g. test isolation); not part of the public FHIRPath API.
+ */
+engine._clearWeightCache = function () {
+  for (const key in weightCache) {
+    delete weightCache[key];
+  }
+};
+
+
 module.exports = engine;

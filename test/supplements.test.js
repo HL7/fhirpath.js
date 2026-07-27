@@ -1434,6 +1434,54 @@ describe("supplements", () => {
       });
 
 
+    it('clears cached scores when restoring the fetch mock', async () => {
+      const system = 'some-system-cache-reset';
+      const code = 'some-code-cache-reset';
+      const requestUrl = 'https://ts-cache-reset.example/CodeSystem?'
+        + `url=${system}`;
+      const resource = {
+        resourceType: 'Observation',
+        valueCodeableConcept: {
+          coding: [{system, code}]
+        }
+      };
+      const options = {
+        async: true,
+        terminologyUrl: 'https://ts-cache-reset.example'
+      };
+      const expression = '%context.value.coding.weight()';
+      const response = (valueDecimal) => ({
+        resourceType: 'Bundle',
+        entry: [{
+          resource: {
+            resourceType: 'CodeSystem',
+            url: system,
+            concept: [{
+              code,
+              extension: [{
+                url: r4_model.score.extensionURI[0],
+                valueDecimal
+              }]
+            }]
+          }
+        }]
+      });
+
+      mockFetchResults([[requestUrl, response(3)]]);
+      await expect(fhirpath.evaluate(
+        resource, expression, null, r4_model, options
+      )).resolves.toStrictEqual([3]);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+
+      mockRestore();
+      mockFetchResults([[requestUrl, response(7)]]);
+      await expect(fhirpath.evaluate(
+        resource, expression, null, r4_model, options
+      )).resolves.toStrictEqual([7]);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+
     it('keeps a shared lookup running for a consumer that has not cancelled',
       async () => {
         let resolveFetch;
