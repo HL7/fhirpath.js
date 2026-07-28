@@ -138,7 +138,7 @@ describe('Async functions', () => {
 
 
     it.each(['ValueSet', 'CodeSystem', 'ConceptMap'])(
-      'locateServer selects a later matching %s entry',
+      'fetchFromLocatedServer selects a later matching %s entry',
       async (searchType) => {
         const canonical = `http://example.org/${searchType}/later-match`;
         const resource = {resourceType: searchType, url: canonical};
@@ -158,9 +158,11 @@ describe('Async functions', () => {
         const term = new Terminologies(
           ['https://ts-a.example', 'https://ts-b.example']);
 
-        await expect(term.locateServer(
+        await expect(term.fetchFromLocatedServer(
           {}, Terminologies.preferredServerKey(searchType, canonical),
-          searchType, canonical
+          searchType, canonical,
+          (located) => !!located?.resource,
+          (baseUrl, located) => ({baseUrl, resource: located})
         )).resolves.toEqual({
           baseUrl: 'https://ts-a.example',
           resource

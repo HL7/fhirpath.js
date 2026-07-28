@@ -196,9 +196,12 @@ class Terminologies {
    *  result.
    */
   fetchFromServers(ctx, key, isFound, buildRequest) {
-    key = scopedPreferredServerKey(
-      key, this.terminologyUrls, ctx.httpHeaders
-    );
+    // Preference tracking only matters when there is more than one server to
+    // choose between; for a single configured server, skip scoping the key
+    // (which serializes the servers and headers) since it would never be used.
+    key = this.terminologyUrls.length > 1
+      ? scopedPreferredServerKey(key, this.terminologyUrls, ctx.httpHeaders)
+      : null;
     const servers = this.orderServers(key);
     const accepts = typeof isFound === 'function'
       ? isFound
@@ -288,39 +291,6 @@ class Terminologies {
     );
   }
 
-
-  /**
-   * Locates the configured terminology server that holds the artifact with the
-   * given canonical URL by searching each server (in preferred-then-configured
-   * order, see "orderServers") for "<searchType>?url=<url>". The first server
-   * whose search returns a matching resource is recorded as the preferred
-   * server (see "fetchFromServers") and its base URL is captured, so the caller
-   * can send the follow-up operation to that same server without an additional
-   * lookup. Intended for the multi-server case; the caller decides when to use
-   * it (e.g. only when more than one server is configured).
-   *
-   * @param {Object} ctx - object describing the context of expression
-   *  evaluation (see the "applyParsedPath" function).
-   * @param {string|null} key - the preferred-server cache key (see
-   *  "preferredServerKey").
-   * @param {string} searchType - the resource type to search for (e.g.
-   *  "ValueSet", "CodeSystem", "ConceptMap").
-   * @param {string|CanonicalOperationInfo} canonical - either the canonical URL
-   *  of the artifact to locate, optionally suffixed with "|version", or
-   *  normalized canonical operation information. The effective version is sent
-   *  as a separate "version" search parameter.
-   * @return {Promise<{baseUrl: string, resource: Object}>} - a promise
-   *  resolving to the base URL of the holding server and the located resource.
-   *  When no server holds the artifact, the promise rejects (see
-   *  "fetchFromServers").
-   */
-  locateServer(ctx, key, searchType, canonical) {
-    return this.fetchFromLocatedServer(
-      ctx, key, searchType, canonical,
-      (located) => !!located?.resource,
-      (baseUrl, resource) => ({baseUrl, resource})
-    );
-  }
 
   // Same as fhirpath.invocationTable, but for %terminologies methods
   static invocationTable = {
@@ -1064,7 +1034,7 @@ function getSystemFromVS(ctx, baseUrl, valueSet, canonical) {
  * Returns the single code system URI shared by all items of the given ValueSet
  * resource. Throws if the value set does not resolve to a single code system.
  * Extracted so that a ValueSet already fetched while locating the terminology
- * server (see "locateServer") can be reused without an extra request.
+ * server (see "fetchFromLocatedServer") can be reused without an extra request.
  *
  * @param {Object|null|undefined} vs - a ValueSet resource.
  * @return {string} - the code system URI.

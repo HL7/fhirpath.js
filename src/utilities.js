@@ -607,7 +607,7 @@ util.fetchWithCache = function(url, ctx, options) {
       rejectFetch = reject;
     });
     const requestPromise = fetchPromise.then(r => {
-      const contentType = r.headers.get('Content-Type');
+      const contentType = r.headers.get('Content-Type') || '';
       const isJson = contentType.includes('application/json') ||
         contentType.includes('application/fhir+json');
       try {
