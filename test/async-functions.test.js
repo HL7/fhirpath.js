@@ -88,7 +88,9 @@ describe('Async functions', () => {
 
         result.then((r) => {
           expect(r).toEqual([true]);
-          expect(Terminologies._getPreferredServer(key))
+          expect(Terminologies._getPreferredServer(
+            key, ['https://ts-a.example', 'https://ts-b.example']
+          ))
             .toBe('https://ts-b.example');
           done();
         }, done);
@@ -506,9 +508,13 @@ describe('Async functions', () => {
         const canonicalKey = Terminologies.preferredServerKey(
           'ValueSet', valueSetUrl + '|canonical'
         );
-        expect(Terminologies._getPreferredServer(effectiveKey))
+        expect(Terminologies._getPreferredServer(
+          effectiveKey, ['https://ts-a.example', 'https://ts-b.example']
+        ))
           .toBe('https://ts-b.example');
-        expect(Terminologies._getPreferredServer(canonicalKey))
+        expect(Terminologies._getPreferredServer(
+          canonicalKey, ['https://ts-a.example', 'https://ts-b.example']
+        ))
           .toBeUndefined();
       });
 
@@ -574,9 +580,13 @@ describe('Async functions', () => {
         const canonicalKey = Terminologies.preferredServerKey(
           'CodeSystem', codeSystemUrl + '|canonical'
         );
-        expect(Terminologies._getPreferredServer(effectiveKey))
+        expect(Terminologies._getPreferredServer(
+          effectiveKey, ['https://ts-a.example', 'https://ts-b.example']
+        ))
           .toBe('https://ts-b.example');
-        expect(Terminologies._getPreferredServer(canonicalKey))
+        expect(Terminologies._getPreferredServer(
+          canonicalKey, ['https://ts-a.example', 'https://ts-b.example']
+        ))
           .toBeUndefined();
       });
 
@@ -641,9 +651,13 @@ describe('Async functions', () => {
         const canonicalKey = Terminologies.preferredServerKey(
           'ConceptMap', conceptMapUrl + '|canonical'
         );
-        expect(Terminologies._getPreferredServer(effectiveKey))
+        expect(Terminologies._getPreferredServer(
+          effectiveKey, ['https://ts-a.example', 'https://ts-b.example']
+        ))
           .toBe('https://ts-b.example');
-        expect(Terminologies._getPreferredServer(canonicalKey))
+        expect(Terminologies._getPreferredServer(
+          canonicalKey, ['https://ts-a.example', 'https://ts-b.example']
+        ))
           .toBeUndefined();
       });
 
@@ -774,6 +788,115 @@ describe('Async functions', () => {
         .toBe('srv-' + max);
     });
 
+
+    it('does not share preferences across HTTP header contexts', async () => {
+      const urls = ['https://ts-a.example', 'https://ts-b.example'];
+      const term = new Terminologies(urls);
+      const key = Terminologies.preferredServerKey(
+        'ValueSet', 'http://example.org/vs/tenant'
+      );
+      const tenantOneHeaders = {
+        [urls[0]]: {Authorization: 'Bearer tenant-one'},
+        [urls[1]]: {Authorization: 'Bearer tenant-one'}
+      };
+      const tenantTwoHeaders = {
+        [urls[0]]: {Authorization: 'Bearer tenant-two'},
+        [urls[1]]: {Authorization: 'Bearer tenant-two'}
+      };
+
+      await term.fetchFromServers(
+        {httpHeaders: tenantOneHeaders}, key, 'ValueSet',
+        baseUrl => baseUrl === urls[1]
+          ? {resourceType: 'ValueSet'}
+          : {resourceType: 'OperationOutcome'}
+      );
+
+      const attempts = [];
+      await term.fetchFromServers(
+        {httpHeaders: tenantTwoHeaders}, key, 'ValueSet',
+        baseUrl => {
+          attempts.push(baseUrl);
+          return {resourceType: 'ValueSet'};
+        }
+      );
+
+      expect(attempts).toEqual([urls[0]]);
+    });
+
+
+    it('shares preferences for equivalently normalized headers', async () => {
+      const urls = ['https://ts-a.example', 'https://ts-b.example'];
+      const term = new Terminologies(urls);
+      const key = Terminologies.preferredServerKey(
+        'ValueSet', 'http://example.org/vs/normalized-headers'
+      );
+      const firstHeaders = {
+        [urls[1]]: {
+          'X-Tenant': 'tenant',
+          Authorization: 'Bearer token'
+        },
+        [urls[0]]: {
+          Authorization: 'Bearer token',
+          'X-Tenant': 'tenant'
+        }
+      };
+      const equivalentHeaders = {
+        [urls[0]]: {
+          'x-tenant': 'tenant',
+          authorization: 'Bearer token'
+        },
+        [urls[1]]: {
+          authorization: 'Bearer token',
+          'x-tenant': 'tenant'
+        }
+      };
+
+      await term.fetchFromServers(
+        {httpHeaders: firstHeaders}, key, 'ValueSet',
+        baseUrl => baseUrl === urls[1]
+          ? {resourceType: 'ValueSet'}
+          : {resourceType: 'OperationOutcome'}
+      );
+
+      const attempts = [];
+      await term.fetchFromServers(
+        {httpHeaders: equivalentHeaders}, key, 'ValueSet',
+        baseUrl => {
+          attempts.push(baseUrl);
+          return {resourceType: 'ValueSet'};
+        }
+      );
+
+      expect(attempts).toEqual([urls[1]]);
+    });
+
+
+    it('does not share preferences across server configurations', async () => {
+      const firstUrls = ['https://ts-a.example', 'https://ts-b.example'];
+      const secondUrls = [...firstUrls, 'https://ts-c.example'];
+      const key = Terminologies.preferredServerKey(
+        'ValueSet', 'http://example.org/vs/server-configuration'
+      );
+
+      await new Terminologies(firstUrls).fetchFromServers(
+        {}, key, 'ValueSet',
+        baseUrl => baseUrl === firstUrls[1]
+          ? {resourceType: 'ValueSet'}
+          : {resourceType: 'OperationOutcome'}
+      );
+
+      const attempts = [];
+      await new Terminologies(secondUrls).fetchFromServers(
+        {}, key, 'ValueSet',
+        baseUrl => {
+          attempts.push(baseUrl);
+          return {resourceType: 'ValueSet'};
+        }
+      );
+
+      expect(attempts).toEqual([secondUrls[0]]);
+    });
+
   })
 
 
@@ -781,8 +904,8 @@ describe('Async functions', () => {
 
     it('does not fall through to a restored fetch during mock teardown',
       async () => {
-        const term = new Terminologies(
-          ['https://ts-a.example', 'https://ts-b.example']);
+        const urls = ['https://ts-a.example', 'https://ts-b.example'];
+        const term = new Terminologies(urls);
         const key = Terminologies.preferredServerKey(
           'ValueSet', 'http://example.org/ValueSet/delayed'
         );
@@ -806,7 +929,7 @@ describe('Async functions', () => {
         try {
           await expect(request).rejects.toHaveProperty('name', 'AbortError');
           expect(replacementFetch).not.toHaveBeenCalled();
-          expect(Terminologies._getPreferredServer(key)).toBeUndefined();
+          expect(Terminologies._getPreferredServer(key, urls)).toBeUndefined();
         } finally {
           replacementFetch.mockRestore();
         }
@@ -1465,9 +1588,15 @@ describe('Async functions', () => {
           const canonicalKey = Terminologies.preferredServerKey(
             'ValueSet', 'http://example.org/vs|canonical'
           );
-          expect(Terminologies._getPreferredServer(effectiveKey))
+          expect(Terminologies._getPreferredServer(effectiveKey, [
+            'https://tx.example',
+            'https://unused.example'
+          ]))
             .toBe('https://tx.example');
-          expect(Terminologies._getPreferredServer(canonicalKey))
+          expect(Terminologies._getPreferredServer(canonicalKey, [
+            'https://tx.example',
+            'https://unused.example'
+          ]))
             .toBeUndefined();
           done();
         }, done);
@@ -2182,9 +2311,15 @@ describe('Async functions', () => {
         const canonicalKey = Terminologies.preferredServerKey(
           'CodeSystem', 'http://snomed.info/sct|canonical'
         );
-        expect(Terminologies._getPreferredServer(effectiveKey))
+        expect(Terminologies._getPreferredServer(effectiveKey, [
+          'https://lforms-fhir.nlm.nih.gov/baseR4',
+          'https://unused.example'
+        ]))
           .toBe('https://lforms-fhir.nlm.nih.gov/baseR4');
-        expect(Terminologies._getPreferredServer(canonicalKey))
+        expect(Terminologies._getPreferredServer(canonicalKey, [
+          'https://lforms-fhir.nlm.nih.gov/baseR4',
+          'https://unused.example'
+        ]))
           .toBeUndefined();
         done();
       })

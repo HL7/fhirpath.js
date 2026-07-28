@@ -14,9 +14,9 @@ const {ResourceNode, TypeInfo} = require('./types');
 // entry is evicted once the cache exceeds "preferredServerCacheMaxSize". A stale
 // preference (a server that no longer has the artifact) is self-correcting:
 // fetchFromServers() falls back to the other servers and re-records whichever
-// now resolves it. The keys are strings of the form
-// "<resourceType>|<canonical URL>" (see "preferredServerKey"); the values are
-// terminology server base URLs.
+// now resolves it. The keys include the artifact key (see
+// "preferredServerKey"), configured servers, and normalized HTTP headers; the
+// values are terminology server base URLs.
 const preferredServerCache = new Map();
 // Maximum number of preferred-server entries to retain before evicting the
 // least-recently-used one.
@@ -34,6 +34,30 @@ const preferredServerCacheMaxSize = 500;
  */
 function preferredServerKey(resourceType, url) {
   return url ? resourceType + '|' + url : null;
+}
+
+
+/**
+ * Scopes an artifact key to the server and authentication configuration used
+ * for the current evaluation.
+ * @param {string|null} key - the artifact preference key.
+ * @param {string[]} terminologyUrls - configured terminology server URLs.
+ * @param {Object|undefined} httpHeaders - headers configured by server URL.
+ * @return {string|null} - the scoped cache key, or null when key is null.
+ */
+function scopedPreferredServerKey(key, terminologyUrls, httpHeaders) {
+  if (!key) {
+    return null;
+  }
+  const normalizedHeaders = Object.entries(httpHeaders || {})
+    .map(([url, headers]) => [
+      url,
+      Object.entries(headers || {})
+        .map(([name, value]) => [name.toLowerCase(), String(value)])
+        .sort(([nameA], [nameB]) => nameA.localeCompare(nameB))
+    ])
+    .sort(([urlA], [urlB]) => urlA.localeCompare(urlB));
+  return util.toJSON([key, terminologyUrls, normalizedHeaders]);
 }
 
 
@@ -172,6 +196,9 @@ class Terminologies {
    *  result.
    */
   fetchFromServers(ctx, key, isFound, buildRequest) {
+    key = scopedPreferredServerKey(
+      key, this.terminologyUrls, ctx.httpHeaders
+    );
     const servers = this.orderServers(key);
     const accepts = typeof isFound === 'function'
       ? isFound
@@ -1311,9 +1338,18 @@ Terminologies._clearPreferredServers = function () {
  * Returns the preferred server for the given cache key (marking it as
  * most-recently-used), or undefined. Intended for internal use only (e.g.
  * tests); not part of the public API.
- * @type {function(string): (string|undefined)}
+ * The optional configuration arguments scope an artifact key in the same way
+ * as "fetchFromServers".
+ * @type {function(string, (string[]|undefined), (Object|undefined)):
+ *  (string|undefined)}
  */
-Terminologies._getPreferredServer = getPreferredServer;
+Terminologies._getPreferredServer = function (
+  key, terminologyUrls, httpHeaders
+) {
+  return getPreferredServer(terminologyUrls
+    ? scopedPreferredServerKey(key, terminologyUrls, httpHeaders)
+    : key);
+};
 
 
 /**
