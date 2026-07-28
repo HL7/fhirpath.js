@@ -49,6 +49,13 @@ This log documents significant changes for each release.  This project follows
   a code). `memberOf` also normalizes a missing validation result to an empty
   collection. Previously such cases could return a synchronous or internal
   undefined result.
+- The TypeScript type of the `httpHeaders` option was corrected from
+  `Record<string, string>` to `Record<string, Record<string, string>>` in
+  `src/fhirpath.d.ts` to match the documented and runtime shape (keys are FHIR
+  server base URLs, values are objects mapping header names to header values).
+  This is a type-declaration correction only - the runtime behavior is
+  unchanged - but TypeScript consumers written against the previous (incorrect)
+  single-level type may need to update to the nested shape.
 
 ### Fixed
 - Versioned non-HTTP(S) canonical URLs (for example `urn:oid:1.2.3|2026`) are
@@ -71,6 +78,14 @@ This log documents significant changes for each release.  This project follows
 - `weight()`/`ordinal()` score-cache entries now include the supplied
   `httpHeaders`, preventing a score obtained with one authorization or tenant
   configuration from being reused by an evaluation with different headers.
+- `%terminologies.subsumes` now derives each operand's parameter name
+  (`codingA`/`codeA`, `codingB`/`codeB`) and `value[x]` field
+  (`valueCoding`/`valueCode`) from that operand's own type. Previously a
+  `Coding` combined with a bare `code` could send `codingB`/`valueCode` for the
+  second operand, producing an invalid `$subsumes` request.
+- `%terminologies.translate` now calls the `/ConceptMap/$translate` operation
+  instead of `/CodeSystem/$translate`, the correct FHIR endpoint for the
+  translate operation.
 
 ## [5.0.0] - 2026-07-13
 ### Added

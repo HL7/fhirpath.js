@@ -773,8 +773,8 @@ class Terminologies {
           const coded1 = util.valData(coded1Coll[0]);
           const coded2 = util.valData(coded2Coll[0]);
           const coded1ParamName = isCoding1 ? 'codingA' : 'codeA';
-          const coded2ParamName = isCoding1 ? 'codingB' : 'codeB';
-          const coded1ValueName = isCoding2 ? 'valueCoding' : 'valueCode';
+          const coded2ParamName = isCoding2 ? 'codingB' : 'codeB';
+          const coded1ValueName = isCoding1 ? 'valueCoding' : 'valueCode';
           const coded2ValueName = isCoding2 ? 'valueCoding' : 'valueCode';
           const parameters = {
             resourceType: 'Parameters',
@@ -889,7 +889,7 @@ class Terminologies {
             ]
           };
           const operate = (baseUrl) => util.fetchWithCache(
-            `${baseUrl}/CodeSystem/$translate`, ctx, {
+            `${baseUrl}/ConceptMap/$translate`, ctx, {
               method: "POST",
               body: util.toJSON(parameters)
             }
@@ -1183,10 +1183,7 @@ const modelToTranslateSourceParamName = {
  * Search parameters for the /CodeSystem/$subsumes operation:
  *   https://hl7.org/fhir/codesystem-operation-subsumes.html
  *   https://hl7.org/fhir/R4/codesystem-operation-subsumes.html
- * Search parameters for the /CodeSystem/$translate operation:
- *   https://hl7.org/fhir/conceptmap-operation-translate.html
- *   https://hl7.org/fhir/R4/conceptmap-operation-translate.html
- * Search parameters for the /CodeSystem/$translate operation:
+ * Search parameters for the /ConceptMap/$translate operation:
  *   https://hl7.org/fhir/conceptmap-operation-translate.html
  *   https://hl7.org/fhir/R4/conceptmap-operation-translate.html
  *

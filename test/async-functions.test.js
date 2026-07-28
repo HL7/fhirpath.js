@@ -466,13 +466,13 @@ describe('Async functions', () => {
           resourceType: 'Bundle',
           entry: [{resource: conceptMap}]
         }],
-        [/^https:\/\/ts-a\.example\/CodeSystem\/\$translate/, null,
+        [/^https:\/\/ts-a\.example\/ConceptMap\/\$translate/, null,
           {resourceType: 'OperationOutcome'}],
         [/^https:\/\/ts-b\.example\/ConceptMap\?url=/, {
           resourceType: 'Bundle',
           entry: [{resource: conceptMap}]
         }],
-        [/^https:\/\/ts-b\.example\/CodeSystem\/\$translate/, {
+        [/^https:\/\/ts-b\.example\/ConceptMap\/\$translate/, {
           resourceType: 'Parameters',
           parameter: [{name: 'result', valueBoolean: true}]
         }]
@@ -667,7 +667,7 @@ describe('Async functions', () => {
             }}]
           }],
           [{
-            url: 'https://ts-b.example/CodeSystem/$translate',
+            url: 'https://ts-b.example/ConceptMap/$translate',
             method: 'POST',
             body: body => {
               const parameters = JSON.parse(body).parameter;
@@ -2408,6 +2408,106 @@ describe('Async functions', () => {
     });
 
 
+    ['R4', 'R5'].forEach((modelName) => {
+      it(
+        `should send codingA/valueCoding and codeB/valueCode for a Coding and `
+        + `a code (${modelName})`,
+        (done) => {
+          mockFetchResults([
+            [{
+              url: 'CodeSystem/$subsumes',
+              body: bodyStr => {
+                const bodyObj = JSON.parse(bodyStr);
+                if (bodyObj.resourceType !== 'Parameters') {
+                  return false;
+                }
+                const parameter = bodyObj.parameter;
+                const system = parameter.find(p => p.name === 'system');
+                const codingA = parameter.find(p => p.name === 'codingA');
+                const codeB = parameter.find(p => p.name === 'codeB');
+                // The first operand is a Coding, the second a bare code, so the
+                // parameter names and value[x] fields must be derived from each
+                // operand's own type (regression test for the operand-type mix
+                // up that emitted codingB/valueCode for a bare code).
+                return system?.valueUri === 'http://snomed.info/sct' &&
+                  codingA?.valueCoding?.code === '27113001' &&
+                  codeB?.valueCode === '235856003' &&
+                  !parameter.some(p => p.name === 'codeA') &&
+                  !parameter.some(p => p.name === 'codingB');
+              }
+            }, {
+              resourceType: 'Parameters',
+              parameter: [{name: 'outcome', valueCode: 'subsumed-by'}]
+            }]
+          ]);
+
+          const result = fhirpath.evaluate(
+            observationResource,
+            "%terminologies.subsumes('http://snomed.info/sct', "
+            + "Observation.code.coding[2], '235856003') = 'subsumed-by'",
+            {},
+            modelName === 'R5' ? modelR5 : modelR4,
+            {async: true, terminologyUrl: 'https://tx.example'}
+          );
+
+          result.then(r => {
+            expect(r).toEqual([true]);
+            done();
+          }, done);
+        });
+    });
+
+
+    ['R4', 'R5'].forEach((modelName) => {
+      it(
+        `should send codeA/valueCode and codingB/valueCoding for a code and a `
+        + `Coding (${modelName})`,
+        (done) => {
+          mockFetchResults([
+            [{
+              url: 'CodeSystem/$subsumes',
+              body: bodyStr => {
+                const bodyObj = JSON.parse(bodyStr);
+                if (bodyObj.resourceType !== 'Parameters') {
+                  return false;
+                }
+                const parameter = bodyObj.parameter;
+                const system = parameter.find(p => p.name === 'system');
+                const codeA = parameter.find(p => p.name === 'codeA');
+                const codingB = parameter.find(p => p.name === 'codingB');
+                // The first operand is a bare code, the second a Coding, so the
+                // parameter names and value[x] fields must be derived from each
+                // operand's own type (regression test for the operand-type mix
+                // up in the reverse ordering of the previous test).
+                return system?.valueUri === 'http://snomed.info/sct' &&
+                  codeA?.valueCode === '235856003' &&
+                  codingB?.valueCoding?.code === '27113001' &&
+                  !parameter.some(p => p.name === 'codingA') &&
+                  !parameter.some(p => p.name === 'codeB');
+              }
+            }, {
+              resourceType: 'Parameters',
+              parameter: [{name: 'outcome', valueCode: 'subsumes'}]
+            }]
+          ]);
+
+          const result = fhirpath.evaluate(
+            observationResource,
+            "%terminologies.subsumes('http://snomed.info/sct', '235856003', "
+            + "Observation.code.coding[2]) = 'subsumes'",
+            {},
+            modelName === 'R5' ? modelR5 : modelR4,
+            {async: true, terminologyUrl: 'https://tx.example'}
+          );
+
+          result.then(r => {
+            expect(r).toEqual([true]);
+            done();
+          }, done);
+        });
+    });
+
+
     it('should throw an error when the async function is not allowed', () => {
       let result = () => fhirpath.evaluate(
         observationResource,
@@ -2431,7 +2531,7 @@ describe('Async functions', () => {
           const isR5 = modelName === 'R5';
           mockFetchResults([
             [{
-              url: 'CodeSystem/$translate',
+              url: 'ConceptMap/$translate',
               body: bodyStr => {
                 let result = false;
                 const bodyObj = JSON.parse(bodyStr);
@@ -2493,7 +2593,7 @@ describe('Async functions', () => {
       (done) => {
         mockFetchResults([
           [{
-            url: 'CodeSystem/$translate',
+            url: 'ConceptMap/$translate',
             body: bodyStr => {
               const parameters = JSON.parse(bodyStr).parameter;
               return parameters.find(p => p.name === 'url')?.valueUri ===
