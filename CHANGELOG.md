@@ -9,10 +9,11 @@ This log documents significant changes for each release.  This project follows
   accepts an array of terminology server URLs in addition to a single URL
   string. The TypeScript declaration also accepts readonly URL arrays and
   tuples. When multiple servers are provided,
-  `validateVS`/`validateCS`/`translate` first locate the server that holds the
+  `validateVS`/`validateCS`/`translate` locate a server that holds the
   referenced ValueSet/CodeSystem/ConceptMap (searching the configured servers in
-  turn) and send the operation only to that server; `expand`/`lookup`/`subsumes`
-  try the servers in order until one responds. The server that resolves a given
+  turn) and send the operation there; if that operation fails, the next holding
+  server is tried. `expand`/`lookup`/`subsumes` try the servers in order until
+  one responds. The server that resolves a given
   artifact is preferred (tried first) for subsequent operations on that
   artifact, and the preference is remembered across evaluations (retained in a
   bounded LRU cache; least-recently-used entries are evicted). When no configured

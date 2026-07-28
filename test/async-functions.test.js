@@ -347,18 +347,60 @@ describe('Async functions', () => {
     });
 
 
-    it('falls back to the next server for validateCS', (done) => {
+    it('falls back when validateVS fails after discovery', async () => {
+      const valueSetUrl = 'http://example.org/ValueSet/operation-fallback';
+      const valueSet = {
+        ...administrativeGenderVS,
+        url: valueSetUrl
+      };
       mockFetchResults([
-        // The first server does not have the code system (its search returns an
-        // empty bundle), so the request falls through to the second server,
-        // which holds it and validates the code.
-        [/^https:\/\/ts-a\.example\/CodeSystem\?url=/, {resourceType: 'Bundle'}],
+        [/^https:\/\/ts-a\.example\/ValueSet\?url=/, {
+          resourceType: 'Bundle',
+          entry: [{resource: valueSet}]
+        }],
+        [/^https:\/\/ts-a\.example\/ValueSet\/\$validate-code/, null,
+          {resourceType: 'OperationOutcome'}],
+        [/^https:\/\/ts-b\.example\/ValueSet\?url=/, {
+          resourceType: 'Bundle',
+          entry: [{resource: valueSet}]
+        }],
+        [/^https:\/\/ts-b\.example\/ValueSet\/\$validate-code/, {
+          resourceType: 'Parameters',
+          parameter: [{name: 'result', valueBoolean: true}]
+        }]
+      ]);
+
+      await expect(fhirpath.evaluate(
+        observationResource,
+        `%terminologies.validateVS('${valueSetUrl}', `
+        + 'Observation.code.coding[0]).parameter.value',
+        {},
+        modelR4,
+        {async: true,
+          terminologyUrl: ['https://ts-a.example', 'https://ts-b.example']}
+      )).resolves.toEqual([true]);
+    });
+
+
+    it('falls back to the next server for validateCS', (done) => {
+      const codeSystemUrl =
+        'http://hl7.org/fhir/administrative-gender';
+      const codeSystem = {
+        resourceType: 'CodeSystem',
+        url: codeSystemUrl
+      };
+      mockFetchResults([
+        // Both servers have the code system, but the operation fails on the
+        // first, so discovery and validation fall through together.
+        [/^https:\/\/ts-a\.example\/CodeSystem\?url=/, {
+          resourceType: 'Bundle',
+          entry: [{resource: codeSystem}]
+        }],
+        [/^https:\/\/ts-a\.example\/CodeSystem\/\$validate-code/, null,
+          {resourceType: 'OperationOutcome'}],
         [/^https:\/\/ts-b\.example\/CodeSystem\?url=/, {
           resourceType: 'Bundle',
-          entry: [{resource: {
-            resourceType: 'CodeSystem',
-            url: 'http://hl7.org/fhir/administrative-gender'
-          }}]
+          entry: [{resource: codeSystem}]
         }],
         [/^https:\/\/ts-b\.example\/CodeSystem\/\$validate-code/, {
           resourceType: 'Parameters',
@@ -368,8 +410,8 @@ describe('Async functions', () => {
 
       const result = fhirpath.evaluate(
         emptyResource,
-        "%terminologies.validateCS('http://hl7.org/fhir/administrative-gender', "
-        + "'Male').parameter.value",
+        `%terminologies.validateCS('${codeSystemUrl}', 'Male')`
+        + '.parameter.value',
         {},
         modelR4,
         { async: true,
@@ -411,17 +453,24 @@ describe('Async functions', () => {
 
 
     it('falls back to the next server for translate', (done) => {
+      const conceptMapUrl =
+        'http://hl7.org/fhir/ConceptMap/example';
+      const conceptMap = {
+        resourceType: 'ConceptMap',
+        url: conceptMapUrl
+      };
       mockFetchResults([
-        // The first server does not have the concept map (its search returns an
-        // empty bundle), so the request falls through to the second server,
-        // which holds it and performs the translation.
-        [/^https:\/\/ts-a\.example\/ConceptMap\?url=/, {resourceType: 'Bundle'}],
+        // Both servers have the concept map, but the operation fails on the
+        // first, so discovery and translation fall through together.
+        [/^https:\/\/ts-a\.example\/ConceptMap\?url=/, {
+          resourceType: 'Bundle',
+          entry: [{resource: conceptMap}]
+        }],
+        [/^https:\/\/ts-a\.example\/CodeSystem\/\$translate/, null,
+          {resourceType: 'OperationOutcome'}],
         [/^https:\/\/ts-b\.example\/ConceptMap\?url=/, {
           resourceType: 'Bundle',
-          entry: [{resource: {
-            resourceType: 'ConceptMap',
-            url: 'http://hl7.org/fhir/ConceptMap/example'
-          }}]
+          entry: [{resource: conceptMap}]
         }],
         [/^https:\/\/ts-b\.example\/CodeSystem\/\$translate/, {
           resourceType: 'Parameters',
@@ -431,7 +480,7 @@ describe('Async functions', () => {
 
       const result = fhirpath.evaluate(
         observationResource,
-        "%terminologies.translate('http://hl7.org/fhir/ConceptMap/example', "
+        `%terminologies.translate('${conceptMapUrl}', `
         + 'Observation.code.coding[0]).parameter.value',
         {},
         modelR4,

@@ -260,6 +260,36 @@ class Terminologies {
 
 
   /**
+   * Searches each server for a canonical artifact and, when found, performs an
+   * operation on that server. If either step fails, the next server is tried.
+   * @param {Object} ctx - evaluation context.
+   * @param {string|null} key - preferred-server cache key.
+   * @param {string} searchType - artifact resource type.
+   * @param {string|CanonicalOperationInfo} canonical - artifact canonical URL.
+   * @param {string|function} isFound - acceptable operation response.
+   * @param {function} operate - operation to perform as
+   *  "(baseUrl, resource) => Promise|Object".
+   * @return {Promise<Object>} - the first acceptable operation response.
+   */
+  fetchFromLocatedServer(
+    ctx, key, searchType, canonical, isFound, operate
+  ) {
+    const query = new URLSearchParams(
+      getCanonicalSearchParams(canonical)
+    ).toString();
+    return this.fetchFromServers(
+      ctx, key, isFound,
+      (baseUrl) => util.fetchWithCache(
+        `${baseUrl}/${searchType}?${query}`, ctx
+      ).then((bundle) => {
+        const resource = findBundleResource(bundle, searchType);
+        return resource ? operate(baseUrl, resource) : null;
+      })
+    );
+  }
+
+
+  /**
    * Locates the configured terminology server that holds the artifact with the
    * given canonical URL by searching each server (in preferred-then-configured
    * order, see "orderServers") for "<searchType>?url=<url>". The first server
@@ -285,23 +315,10 @@ class Terminologies {
    *  "fetchFromServers").
    */
   locateServer(ctx, key, searchType, canonical) {
-    // Normalize "url|version" so the version is matched by the FHIR "version"
-    // search parameter instead of being appended to the "url" value (which the
-    // server would not match against an unversioned canonical).
-    const query = new URLSearchParams(
-      getCanonicalSearchParams(canonical)
-    ).toString();
-    return this.fetchFromServers(
-      ctx, key,
-      (located) => !!located.resource,
-      (baseUrl) => util.fetchWithCache(
-        `${baseUrl}/${searchType}?${query}`, ctx
-      ).then((bundle) => {
-        return {
-          baseUrl,
-          resource: findBundleResource(bundle, searchType)
-        };
-      })
+    return this.fetchFromLocatedServer(
+      ctx, key, searchType, canonical,
+      (located) => !!located?.resource,
+      (baseUrl, resource) => ({baseUrl, resource})
     );
   }
 
@@ -511,9 +528,9 @@ class Terminologies {
           const operationValueSet = canonical?.url ?? valueSet;
 
           // Builds and sends the $validate-code request to "baseUrl". "foundVs"
-          // is the ValueSet resource located on that server (see "locateServer")
-          // and lets us derive the system for a bare code without an extra
-          // request; when it is not provided, getSystemFromVS() is used instead.
+          // is the ValueSet resource located on that server and lets us derive
+          // the system for a bare code without an extra request; when it is not
+          // provided, getSystemFromVS() is used instead.
           const operate = (baseUrl, foundVs) => {
             const requestUrl = `${baseUrl}/ValueSet/$validate-code`;
             // getSystemFromVS()/getSystemFromValueSetResource() are a workaround
@@ -597,12 +614,11 @@ class Terminologies {
           };
 
           if (isValueSetUrl && self[0].terminologyUrls.length > 1) {
-            // Multiple servers and a canonical URL reference: find the server
-            // that holds the ValueSet first, then validate only against it
-            // (trusting its result), instead of inspecting each response for
-            // "not resolved" issues.
-            response = self[0].locateServer(ctx, key, 'ValueSet', canonical)
-              .then(located => operate(located.baseUrl, located.resource));
+            // Treat discovery and validation as one attempt so either failure
+            // falls through to the next server.
+            response = self[0].fetchFromLocatedServer(
+              ctx, key, 'ValueSet', canonical, 'Parameters', operate
+            );
           } else {
             // A single server, or an inline ValueSet that every server can
             // process: send the operation directly (trying servers in order).
@@ -691,13 +707,11 @@ class Terminologies {
           );
 
           if (isCodeSystemUrl && self[0].terminologyUrls.length > 1) {
-            // Multiple servers and a canonical URL reference: find the server
-            // that holds the CodeSystem first, then validate only against it
-            // (trusting its result).
-            response = self[0].locateServer(
-              ctx, key, 'CodeSystem', canonical
-            )
-              .then(located => operate(located.baseUrl));
+            // Treat discovery and validation as one attempt so either failure
+            // falls through to the next server.
+            response = self[0].fetchFromLocatedServer(
+              ctx, key, 'CodeSystem', canonical, 'Parameters', operate
+            );
           } else {
             // A single server, or an inline CodeSystem that every server can
             // process: send the operation directly (trying servers in order).
@@ -882,13 +896,11 @@ class Terminologies {
           );
 
           if (isConceptMapUrl && self[0].terminologyUrls.length > 1) {
-            // Multiple servers and a canonical URL reference: find the server
-            // that holds the ConceptMap first, then translate only against it
-            // (trusting its result).
-            response = self[0].locateServer(
-              ctx, key, 'ConceptMap', canonical
-            )
-              .then(located => operate(located.baseUrl));
+            // Treat discovery and translation as one attempt so either failure
+            // falls through to the next server.
+            response = self[0].fetchFromLocatedServer(
+              ctx, key, 'ConceptMap', canonical, 'Parameters', operate
+            );
           } else {
             // A single server, or an inline ConceptMap that every server can
             // process: send the operation directly (trying servers in order).
