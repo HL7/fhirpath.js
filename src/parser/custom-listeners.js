@@ -261,6 +261,23 @@ for (let p of Object.getOwnPropertyNames(Listener.prototype)) {
         };
         break;
 
+      case "enterInstanceSelector":
+        /**
+         * Handles instance selector nodes (object creation), capturing the
+         * type name from the leading qualifiedIdentifier.
+         * @param {Object} ctx - the ANTLR instanceSelector parser context.
+         * @returns {void}
+         */
+        PathListener.prototype[p] = function (ctx) {
+          let node = this.enterNode(ctx, nodeType);
+          // The first child is the qualifiedIdentifier naming the type to
+          // create (e.g. "Coding" or "FHIR.Identifier").
+          node.text = ctx.children[0].getText();
+          node.start = { line: ctx.start.line, column: ctx.start.column + 1 };
+          node.length = node.text.length;
+        };
+        break;
+
       case "enterBooleanLiteral":
       case "enterStringLiteral":
       case "enterNumberLiteral":

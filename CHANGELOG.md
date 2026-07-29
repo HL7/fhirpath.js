@@ -3,12 +3,70 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [4.11.1] - 2026-07-29
+## [5.0.1] - 2026-07-29
 ### Fixed
 - Fixed a crash (`TypeError: Cannot read properties of undefined`) when an
   environment variable is bound to an array of resource-shaped objects
   (objects with `resourceType` but no path metadata); such items now use the
   current evaluation context, matching the scalar-value code path.
+
+## [5.0.0] - 2026-07-13
+### Added
+- Added support for FHIRPath Instance Selector/Object Creation syntax for
+  constructing FHIR instances, including nested objects, primitive values,
+  collection-valued elements, asynchronous element expressions, and validation
+  of element names against the active FHIR model.
+- Added the CLI `--no-resolveInternalTypes`/`-n` option for inspecting internal
+  `ResourceNode` and `FP_Type` results.
+- Added `path2Repeating` to FHIR model contexts for repeatability-aware object
+  construction.
+- ES module entry points so `fhirpath` and its `fhir-context/*` models load
+  with `import` (default and named exports) as well as `require`; a
+  `package.json` `exports` map, `module` field, and `.d.mts` declarations
+  route ES module and CommonJS consumers to the matching code and types.
+  - Documented entry points (`fhirpath`, `fhirpath/fhir-context/<version>`,
+    and `fhirpath/package.json`) are unchanged, and a wildcard fallback keeps
+    other deep file-path imports working. Because the package now declares
+    `exports`, those deep imports must include the file extension (e.g.
+    `fhirpath/fhir-context/r4/index.js`); extensionless deep paths that
+    previously resolved via Node's directory/extension lookup no longer do.
+  - The `import` build is a pre-bundled, self-contained ES module
+    (`esm/fhirpath.mjs`) that inlines the CommonJS dependencies (`antlr4`,
+    `date-fns`, `decimal.js`, `@lhncbc/ucum-lhc`, and `@loxjs/url-join`), so
+    esbuild-based bundlers (e.g. the Angular CLI) no longer emit
+    "optimization bailout" warnings; the `require` entry point is unchanged.
+  - `import` and `require` load separate copies of the library, so an
+    application should not mix them for the same package — values from one
+    are not `instanceof`-compatible with the other.
+- Type declarations for the exported `util` helpers and the `ucumUtils`
+  instance, so their named (and default-export) usages are typed for both ES
+  module and CommonJS consumers.
+- Explicit type exports for `Model`, `ResourceNode`, `Options`,
+  `OptionVariants`, `Path`, and `UserInvocationTable`, so consumers can import
+  and reference these types by name (e.g.
+  `import type { OptionVariants } from 'fhirpath'`).
+
+### Changed
+- Raw internal `ResourceNode` output now represents absent `_data` as `null` and
+  preserves metadata-only nodes when `resolveInternalTypes` is false; default
+  resolved evaluation output is unchanged.
+- `resolveInternalTypes()` now returns copied arrays and plain objects instead
+  of mutating caller-provided containers. The top-level result array is compacted
+  (nullish entries removed) to match default evaluation output, while arrays
+  nested inside resolved objects keep their entries, preserving FHIR primitive
+  value/"_"-metadata index alignment.
+- `path2Repeating` is now part of model context metadata.
+
+### Fixed
+- Fixed resolved `Long`/`BigInt` values to be JSON-safe strings, avoiding
+  `JSON.stringify()` failures after internal types are resolved.
+- Fixed `resolveInternalTypes()` so metadata-only primitive `ResourceNode`
+  entries resolve consistently with default evaluation output instead of
+  producing `undefined` entries.
+- Fixed base-path resolution in `compile()`/`evaluate()` so a `base` that is
+  itself a FHIR type name (e.g. a root complex type such as `HumanName` or
+  `Coding`) resolves to that type via the model's `availableTypes` instead of
+  being left unresolved by `path2Type`.
 
 ## [4.11.0] - 2026-05-29
 ### Added

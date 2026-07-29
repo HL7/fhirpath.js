@@ -1,7 +1,6 @@
-const ucumUtils = require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance();
 const {roundToMaxPrecision} = require('./numbers');
 const {valDataConverted} = require('./utilities');
-const {FP_Type, FP_Quantity} = require('./types');
+const {FP_Type, FP_Quantity, ucumUtils} = require('./types');
 
 /**
  *  Returns a JSON version of the given object, but with the object's keys

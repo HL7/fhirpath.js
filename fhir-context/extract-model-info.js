@@ -27,6 +27,39 @@ let choiceTypePaths = {};
 let pathsDefinedElsewhere = {};
 let type2Parent = {};
 let path2Type = {};
+let path2MaxRepetition = {};
+
+
+/**
+ * Returns the broadest maximum repetition count from two max values.
+ * @param {string} currentMax - current maximum repetition count.
+ * @param {string} newMax - new maximum repetition count.
+ * @return {string} the broader maximum repetition count.
+ */
+function mergeMaxRepetition(currentMax, newMax) {
+  if (currentMax === '*' || newMax === '*') {
+    return '*';
+  }
+  return String(Math.max(Number(currentMax), Number(newMax)));
+}
+
+
+/**
+ * Adds mapping from property path to its maximum repetition count.
+ * @param {string} path - property path.
+ * @param {string} max - maximum repetition count.
+ */
+function addPath2Repeating(path, max) {
+  if (path.indexOf('.') === -1) {
+    return;
+  }
+
+  const current = path2MaxRepetition[path];
+  path2MaxRepetition[path] = current
+    ? mergeMaxRepetition(current, max)
+    : max;
+}
+
 
 /**
  * Adds mapping from property path to data type.
@@ -73,6 +106,7 @@ function addPath2Type(path, code, typeDesc) {
     }
   }
 }
+
 
 /**
  * Extracts data type code from the type description object.
@@ -154,6 +188,16 @@ for (let f of choiceTypeFiles) {
         }
       }
 
+      // Collecting repeatability information from the "max" field.
+      if (n.path && n.max != null) {
+        const repeatingPath = n.path.match(/\[x\]$/)
+          ? n.path.slice(0, -3)
+          : n.path;
+        if (!pathsDefinedElsewhere[repeatingPath]) {
+          addPath2Repeating(repeatingPath, n.max);
+        }
+      }
+
       // TODO: LF-3344 - To eliminate unnecessary extra data from model, we can
       //  try adding an additional condition:
       //   ... && (!n.base || n.base?.path === n.path)
@@ -166,6 +210,11 @@ for (let f of choiceTypeFiles) {
             const typeCode = getTypeCode(t);
             const suffix = typeCode[0].toUpperCase() + typeCode.slice(1);
             addPath2Type(prefix + suffix, typeCode, t);
+            // Collecting repeatability information for each path of the choice
+            // type field
+            if (n.max != null) {
+              addPath2Repeating(prefix + suffix, n.max);
+            }
             return suffix;
           });
           // Remove the [x] from end of the path and store only unique "types"
@@ -192,6 +241,7 @@ for (let f of choiceTypeFiles) {
   visitNode(fData);
 }
 
+
 // Create a set of resource types that have the "url" search parameter.
 const resourcesWithUrlParam = new Set();
 JSON.parse(fs.readFileSync(path.join(fhirDefDir, 'search-parameters.json')))
@@ -216,5 +266,9 @@ fs.writeFileSync(path.join(outputDir, 'type2Parent.json'),
   JSON.stringify(type2Parent, Object.keys(type2Parent).sort(), 2));
 fs.writeFileSync(path.join(outputDir, 'path2Type.json'),
   JSON.stringify(path2Type, [...Object.keys(path2Type).sort(), 'code', 'refType'], 2));
+fs.writeFileSync(path.join(outputDir, 'path2Repeating.json'),
+  JSON.stringify(Object.keys(path2MaxRepetition).filter(p =>
+    path2MaxRepetition[p] === '*' || Number(path2MaxRepetition[p]) > 1
+  ).sort(), null, 2));
 fs.writeFileSync(path.join(outputDir, 'resourcesWithUrlParam.json'),
   JSON.stringify([...resourcesWithUrlParam.values()].sort(), null, 2));

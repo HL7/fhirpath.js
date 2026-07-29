@@ -3,6 +3,7 @@ node_modules
 downloads
 src/scratch.js
 build
+/esm/
 .DS_Store
 .editorconfig
 .codex

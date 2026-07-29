@@ -5,6 +5,30 @@ const util = require('../src/utilities');
 const fs = require('fs');
 const yaml = require('js-yaml');
 const { Command, Option } = require('commander');
+const { inspect } = require('node:util');
+const { ResourceNode } = require('../src/types');
+
+/**
+ * Custom inspect function for ResourceNode to provide a more readable output
+ * when using console.dir or util.inspect.
+ * @param {number} depth - the depth of the inspection
+ * @param {Object} options - the options for the inspection
+ * @param {Function} inspectValue - the function to inspect the value
+ * @returns {string}
+ */
+ResourceNode.prototype[inspect.custom] = function(depth, options, inspectValue) {
+  return 'ResourceNode ' + inspectValue({
+    path: this.path,
+    fhirNodeDataType: this.fhirNodeDataType,
+    propName: this.propName,
+    index: this.index,
+    data: this.data,
+    _data: this._data,
+    parentPath: this.parentResNode?.path ?? null,
+    ctx: this.ctx ? '[Context omitted]' : null,
+    model: this.model ? '[FHIR model omitted]' : null
+  }, options);
+};
 
 const program = new Command();
 
@@ -21,6 +45,8 @@ program
     .choices(['dstu2', 'stu3', 'r4', 'r5']))
   .addOption(new Option(`-o, --mathMode <mode>`, 'mathematical operations mode.')
     .choices(['native', 'precise']))
+  .addOption(new Option('-n, --no-resolveInternalTypes',
+    'disable converting values of internal types to standard JavaScript types.'))
   .parse(process.argv);
 
 const options = program.opts();
@@ -58,14 +84,18 @@ else {
         async: true,
         ...(options.terminologyUrl ? {terminologyUrl: options.terminologyUrl} : {}),
         ...(options.fhirServerUrl ? {fhirServerUrl : options.fhirServerUrl} : {}),
-        ...(options.mathMode ? {preciseMath : options.mathMode === 'precise'} : {})
+        ...(options.mathMode ? {preciseMath : options.mathMode === 'precise'} : {}),
+        ...(options.resolveInternalTypes === false ? {
+          resolveInternalTypes: false
+        } : {})
       }
     );
 
+    const useCustomInspect = options.resolveInternalTypes === false;
     if (res instanceof Promise) {
-      res.then((r) => printResult(expression, r))
+      res.then((r) => printResult(expression, r, useCustomInspect))
     } else {
-      printResult(expression, res);
+      printResult(expression, res, useCustomInspect);
     }
   }
 }
@@ -74,8 +104,18 @@ else {
  * Prints the result to the console.
  * @param {string} expression - input expression
  * @param {Array} result - result of evaluating the expression
+ * @param {boolean} useCustomInspect - whether to print internal structures
+ *  using console.dir.
  */
-function printResult(expression, result) {
+function printResult(expression, result, useCustomInspect) {
   console.log('fhirpath(' + expression + ') =>');
-  console.log(util.toJSON(result, " "));
+  if (useCustomInspect) {
+    console.dir(result, {
+      depth: null,
+      colors: process.stdout.isTTY,
+      customInspect: true
+    });
+  } else {
+    console.log(util.toJSON(result, " "));
+  }
 }

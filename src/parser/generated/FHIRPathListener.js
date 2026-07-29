@@ -176,6 +176,15 @@ class FHIRPathListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
+	// Enter a parse tree produced by FHIRPathParser#instanceSelectorTerm.
+	enterInstanceSelectorTerm(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#instanceSelectorTerm.
+	exitInstanceSelectorTerm(ctx) {
+	}
+
+
 	// Enter a parse tree produced by FHIRPathParser#nullLiteral.
 	enterNullLiteral(ctx) {
 	}
@@ -335,6 +344,24 @@ class FHIRPathListener extends antlr4.tree.ParseTreeListener {
 
 	// Exit a parse tree produced by FHIRPathParser#paramList.
 	exitParamList(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#instanceSelector.
+	enterInstanceSelector(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#instanceSelector.
+	exitInstanceSelector(ctx) {
+	}
+
+
+	// Enter a parse tree produced by FHIRPathParser#instanceElementSelector.
+	enterInstanceElementSelector(ctx) {
+	}
+
+	// Exit a parse tree produced by FHIRPathParser#instanceElementSelector.
+	exitInstanceElementSelector(ctx) {
 	}
 
 
