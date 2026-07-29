@@ -1,4 +1,9 @@
+const Terminologies = require('../src/terminologies');
+const util = require('../src/utilities');
+const supplements = require('../src/sdc-ig-supplements');
+
 let fetchSpy;
+const pendingFetches = new Set();
 
 
 /**
@@ -77,7 +82,7 @@ function checkObject(obj, condition) {
  */
 function mockFetchResults(results, {timeout = 0} = {}) {
   fetchSpy = jest.spyOn(global, 'fetch').mockImplementation(
-    (url, options) => new Promise((resolve) => {
+    (url, options) => new Promise((resolve, reject) => {
       const mockedItem = results?.find(
         (r) => {
           if (typeof r[0] === 'object' && r[0] !== null && (r[0].url ||
@@ -104,9 +109,42 @@ function mockFetchResults(results, {timeout = 0} = {}) {
       const okResult = mockedItem?.[1];
       const badResult = mockedItem?.[2];
 
-      setTimeout(() => {
+      let timeoutId;
+      let settled = false;
+      const signal = options?.signal;
+
+      const cleanup = () => {
+        pendingFetches.delete(cancel);
+        signal?.removeEventListener('abort', cancel);
+      };
+      const resolveRequest = (response) => {
+        if (!settled) {
+          settled = true;
+          cleanup();
+          resolve(response);
+        }
+      };
+      const cancel = () => {
+        if (!settled) {
+          settled = true;
+          clearTimeout(timeoutId);
+          cleanup();
+          reject(new DOMException(
+            'The mocked request was aborted.', 'AbortError'
+          ));
+        }
+      };
+
+      pendingFetches.add(cancel);
+      signal?.addEventListener('abort', cancel, {once: true});
+      if (signal?.aborted) {
+        cancel();
+        return;
+      }
+
+      timeoutId = setTimeout(() => {
         if(okResult) {
-          resolve({
+          resolveRequest({
             json: () => Promise.resolve(okResult),
             headers: {
               get: (name) => name === 'Content-Type' ? 'application/fhir+json' : undefined
@@ -114,7 +152,7 @@ function mockFetchResults(results, {timeout = 0} = {}) {
             ok: true
           });
         } else if(badResult) {
-          resolve({
+          resolveRequest({
             json: () => Promise.resolve(badResult),
             headers: {
               get: (name) => name === 'Content-Type' ? 'application/json' : undefined
@@ -122,12 +160,23 @@ function mockFetchResults(results, {timeout = 0} = {}) {
             ok: false
           });
         } else {
+          settled = true;
+          cleanup();
           reportError(`"${url}" is not mocked.`);
         }
       }, timeout);
     })
   );
 }
+
+
+/**
+ * Cancels all pending responses created by mockFetchResults.
+ */
+function cancelPendingFetches() {
+  [...pendingFetches].forEach(cancel => cancel());
+}
+
 
 /**
  * Report an error message.
@@ -142,10 +191,16 @@ function reportError(msg) {
 
 
 /**
- * Restore the spy created with mockFetchResults.
+ * Cancels pending responses, clears module-level request, terminology-server,
+ * and weight caches, and restores the spy created with mockFetchResults.
  */
 function mockRestore() {
+  util._clearRequestCache();
+  cancelPendingFetches();
+  Terminologies._clearPreferredServers();
+  supplements._clearWeightCache();
   fetchSpy?.mockRestore();
+  fetchSpy = undefined;
 }
 
 

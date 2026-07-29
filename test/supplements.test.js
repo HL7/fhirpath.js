@@ -29,6 +29,7 @@ describe("supplements", () => {
                   "resourceType": "Bundle",
                   "entry": [{
                     "resource": {
+                      "resourceType": "CodeSystem",
                       "property": [{
                         "code": "itemWeight",
                         "uri": "http://hl7.org/fhir/concept-properties#itemWeight"
@@ -65,6 +66,7 @@ describe("supplements", () => {
                   "resourceType": "Bundle",
                   "entry": [{
                     "resource": {
+                      "resourceType": "CodeSystem",
                       "url": "some-system-1",
                       "concept": [{
                         "code" : "some-code-1",
@@ -1099,5 +1101,632 @@ describe("supplements", () => {
     }
 
   });
+
+
+  describe('weight() with multiple terminology servers', () => {
+
+    afterEach(() => {
+      mockRestore();
+    });
+
+
+    it('falls back when the first server returns an outcome-only search '
+      + 'Bundle', (done) => {
+        mockFetchResults([
+          // A successful search can include an informational outcome without
+          // containing a matching CodeSystem.
+          ['https://ts-a-w.example/CodeSystem?url=some-system-multi', {
+            resourceType: 'Bundle',
+            type: 'searchset',
+            entry: [{
+              resource: {resourceType: 'OperationOutcome'},
+              search: {mode: 'outcome'}
+            }]
+          }],
+          // The second server resolves it and provides the score.
+          ['https://ts-b-w.example/CodeSystem?url=some-system-multi', {
+            resourceType: 'Bundle',
+            entry: [{
+              resource: {
+                resourceType: 'CodeSystem',
+                url: 'some-system-multi',
+                concept: [{
+                  code: 'some-code-multi',
+                  extension: [{
+                    url: r4_model.score.extensionURI[0],
+                    valueDecimal: 7
+                  }]
+                }]
+              }
+            }]
+          }]
+        ]);
+
+        const res = fhirpath.evaluate(
+          {
+            resourceType: 'Observation',
+            valueCodeableConcept: {
+              coding: [{system: 'some-system-multi', code: 'some-code-multi'}]
+            }
+          },
+          '%context.value.coding.weight()',
+          null,
+          r4_model,
+          {
+            async: true,
+            terminologyUrl: [
+              'https://ts-a-w.example', 'https://ts-b-w.example'
+            ]
+          }
+        );
+
+        Promise.resolve(res).then(r => {
+          expect(r).toStrictEqual([7]);
+          done();
+        }, done);
+      });
+
+
+    it('uses a CodeSystem entry that follows an outcome entry', (done) => {
+      mockFetchResults([
+        ['https://ts-a-w.example/CodeSystem?url=some-system-warning'
+          + '&_elements=property', {
+          resourceType: 'Bundle',
+          type: 'searchset',
+          entry: [{
+            resource: {resourceType: 'OperationOutcome'},
+            search: {mode: 'outcome'}
+          }, {
+            resource: {
+              resourceType: 'CodeSystem',
+              property: [{
+                code: 'itemWeight',
+                uri: r5_model.score.propertyURI
+              }]
+            },
+            search: {mode: 'match'}
+          }]
+        }],
+        ['https://ts-a-w.example/CodeSystem/$lookup?'
+          + 'code=some-code-warning&system=some-system-warning'
+          + '&property=itemWeight', {
+          resourceType: 'Parameters',
+          parameter: [{
+            name: 'property',
+            part: [{
+              name: 'code',
+              valueCode: 'itemWeight'
+            }, {
+              name: 'value',
+              valueDecimal: 9
+            }]
+          }]
+        }]
+      ]);
+
+      const res = fhirpath.evaluate(
+        {
+          resourceType: 'Observation',
+          valueCodeableConcept: {
+            coding: [{
+              system: 'some-system-warning',
+              code: 'some-code-warning'
+            }]
+          }
+        },
+        '%context.value.coding.weight()',
+        null,
+        r5_model,
+        {
+          async: true,
+          terminologyUrl: [
+            'https://ts-a-w.example', 'https://ts-b-w.example'
+          ]
+        }
+      );
+
+      Promise.resolve(res).then(r => {
+        expect(r).toStrictEqual([9]);
+        done();
+      }, done);
+    });
+
+
+    it('falls back to the next server when the first responds without the '
+      + 'CodeSystem', (done) => {
+        mockFetchResults([
+          // The first server responds successfully but does not hold the code
+          // system (an empty bundle); this "not found without an error" case
+          // must still fall through to the second server.
+          ['https://ts-a-w.example/CodeSystem?url=some-system-empty',
+            {resourceType: 'Bundle'}],
+          // The second server holds it and provides the score.
+          ['https://ts-b-w.example/CodeSystem?url=some-system-empty', {
+            resourceType: 'Bundle',
+            entry: [{
+              resource: {
+                resourceType: 'CodeSystem',
+                url: 'some-system-empty',
+                concept: [{
+                  code: 'some-code-empty',
+                  extension: [{
+                    url: r4_model.score.extensionURI[0],
+                    valueDecimal: 5
+                  }]
+                }]
+              }
+            }]
+          }]
+        ]);
+
+        const res = fhirpath.evaluate(
+          {
+            resourceType: 'Observation',
+            valueCodeableConcept: {
+              coding: [{system: 'some-system-empty', code: 'some-code-empty'}]
+            }
+          },
+          '%context.value.coding.weight()',
+          null,
+          r4_model,
+          {
+            async: true,
+            terminologyUrl: [
+              'https://ts-a-w.example', 'https://ts-b-w.example'
+            ]
+          }
+        );
+
+        Promise.resolve(res).then(r => {
+          expect(r).toStrictEqual([5]);
+          done();
+        }, done);
+      });
+
+
+    it('returns no score when every server fails', (done) => {
+        mockFetchResults([
+          ['https://ts-a-w.example/CodeSystem?url=some-system-err', null,
+            {resourceType: 'OperationOutcome'}],
+          ['https://ts-b-w.example/CodeSystem?url=some-system-err', null,
+            {resourceType: 'OperationOutcome'}]
+        ]);
+
+        const res = fhirpath.evaluate(
+          {
+            resourceType: 'Observation',
+            valueCodeableConcept: {
+              coding: [{system: 'some-system-err', code: 'some-code-err'}]
+            }
+          },
+          '%context.value.coding.weight()',
+          null,
+          r4_model,
+          {
+            async: true,
+            terminologyUrl: [
+              'https://ts-a-w.example', 'https://ts-b-w.example'
+            ]
+          }
+        );
+
+        Promise.resolve(res).then((r) => {
+          // A failed request on every server means the artifact is treated as
+          // absent, so no score is added rather than the error being propagated.
+          expect(r).toStrictEqual([]);
+          done();
+        }, done);
+      });
+
+  });
+
+
+  describe('weight() with a single server that lacks the CodeSystem', () => {
+
+    afterEach(() => {
+      mockRestore();
+    });
+
+
+    it('adds no score when the CodeSystem search responds with an error',
+      (done) => {
+        mockFetchResults([
+          ['https://ts-single-w.example/CodeSystem?url=some-system-404', null,
+            {resourceType: 'OperationOutcome'}]
+        ]);
+
+        const res = fhirpath.evaluate(
+          {
+            resourceType: 'Observation',
+            valueCodeableConcept: {
+              coding: [{system: 'some-system-404', code: 'some-code-404'}]
+            }
+          },
+          '%context.value.coding.weight()',
+          null,
+          r4_model,
+          {async: true, terminologyUrl: 'https://ts-single-w.example'}
+        );
+
+        Promise.resolve(res).then((r) => {
+          expect(r).toStrictEqual([]);
+          done();
+        }, done);
+      });
+
+
+    it('adds no score when the CodeSystem search returns an empty bundle',
+      (done) => {
+        mockFetchResults([
+          ['https://ts-single-w.example/CodeSystem?url=some-system-empty',
+            {resourceType: 'Bundle'}]
+        ]);
+
+        const res = fhirpath.evaluate(
+          {
+            resourceType: 'Observation',
+            valueCodeableConcept: {
+              coding: [{system: 'some-system-empty', code: 'some-code-empty'}]
+            }
+          },
+          '%context.value.coding.weight()',
+          null,
+          r4_model,
+          {async: true, terminologyUrl: 'https://ts-single-w.example'}
+        );
+
+        Promise.resolve(res).then((r) => {
+          expect(r).toStrictEqual([]);
+          done();
+        }, done);
+      });
+
+
+    it('retries after a transient failure instead of caching no score',
+      async () => {
+        const resource = {
+          resourceType: 'Observation',
+          valueCodeableConcept: {
+            coding: [{
+              system: 'some-system-recovery',
+              code: 'some-code-recovery'
+            }]
+          }
+        };
+        const options = {
+          async: true,
+          terminologyUrl: 'https://ts-recovery.example'
+        };
+
+        mockFetchResults([
+          ['https://ts-recovery.example/CodeSystem?'
+            + 'url=some-system-recovery', null,
+          {resourceType: 'OperationOutcome'}]
+        ]);
+        await expect(fhirpath.evaluate(
+          resource, '%context.value.coding.weight()', null, r4_model, options
+        )).resolves.toStrictEqual([]);
+
+        mockRestore();
+        mockFetchResults([
+          ['https://ts-recovery.example/CodeSystem?'
+            + 'url=some-system-recovery', {
+            resourceType: 'Bundle',
+            entry: [{
+              resource: {
+                resourceType: 'CodeSystem',
+                url: 'some-system-recovery',
+                concept: [{
+                  code: 'some-code-recovery',
+                  extension: [{
+                    url: r4_model.score.extensionURI[0],
+                    valueDecimal: 7
+                  }]
+                }]
+              }
+            }]
+          }]
+        ]);
+
+        await expect(fhirpath.evaluate(
+          resource, '%context.value.coding.weight()', null, r4_model, options
+        )).resolves.toStrictEqual([7]);
+      });
+
+
+    it('clears cached scores when restoring the fetch mock', async () => {
+      const system = 'some-system-cache-reset';
+      const code = 'some-code-cache-reset';
+      const requestUrl = 'https://ts-cache-reset.example/CodeSystem?'
+        + `url=${system}`;
+      const resource = {
+        resourceType: 'Observation',
+        valueCodeableConcept: {
+          coding: [{system, code}]
+        }
+      };
+      const options = {
+        async: true,
+        terminologyUrl: 'https://ts-cache-reset.example'
+      };
+      const expression = '%context.value.coding.weight()';
+      const response = (valueDecimal) => ({
+        resourceType: 'Bundle',
+        entry: [{
+          resource: {
+            resourceType: 'CodeSystem',
+            url: system,
+            concept: [{
+              code,
+              extension: [{
+                url: r4_model.score.extensionURI[0],
+                valueDecimal
+              }]
+            }]
+          }
+        }]
+      });
+
+      mockFetchResults([[requestUrl, response(3)]]);
+      await expect(fhirpath.evaluate(
+        resource, expression, null, r4_model, options
+      )).resolves.toStrictEqual([3]);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+
+      mockRestore();
+      mockFetchResults([[requestUrl, response(7)]]);
+      await expect(fhirpath.evaluate(
+        resource, expression, null, r4_model, options
+      )).resolves.toStrictEqual([7]);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+
+    it('keeps a shared lookup running for a consumer that has not cancelled',
+      async () => {
+        let resolveFetch;
+        let underlyingSignal;
+        const fetchMock = jest.spyOn(global, 'fetch').mockImplementation(
+          (url, options) => {
+            underlyingSignal = options.signal;
+            return new Promise((resolve, reject) => {
+              resolveFetch = () => resolve({
+                ok: true,
+                headers: {get: () => 'application/fhir+json'},
+                json: () => Promise.resolve({
+                  resourceType: 'Bundle',
+                  entry: [{
+                    resource: {
+                      resourceType: 'CodeSystem',
+                      url: 'some-system-shared-weight',
+                      concept: [{
+                        code: 'some-code-shared-weight',
+                        extension: [{
+                          url: r4_model.score.extensionURI[0],
+                          valueDecimal: 8
+                        }]
+                      }]
+                    }
+                  }]
+                })
+              });
+              options.signal.addEventListener(
+                'abort',
+                () => reject(new DOMException('Aborted', 'AbortError')),
+                {once: true}
+              );
+            });
+          }
+        );
+        const resource = {
+          resourceType: 'Observation',
+          valueCodeableConcept: {
+            coding: [{
+              system: 'some-system-shared-weight',
+              code: 'some-code-shared-weight'
+            }]
+          }
+        };
+        const firstController = new AbortController();
+        const secondController = new AbortController();
+
+        try {
+          const first = fhirpath.evaluate(
+            resource,
+            '%context.value.coding.weight()',
+            null,
+            r4_model,
+            {
+              async: true,
+              terminologyUrl: 'https://ts-shared-weight.example',
+              signal: firstController.signal
+            }
+          );
+          const second = fhirpath.evaluate(
+            resource,
+            '%context.value.coding.weight()',
+            null,
+            r4_model,
+            {
+              async: true,
+              terminologyUrl: 'https://ts-shared-weight.example',
+              signal: secondController.signal
+            }
+          );
+          await new Promise(resolve => setImmediate(resolve));
+
+          const firstRejection = expect(first).rejects.toHaveProperty(
+            'name', 'AbortError');
+          firstController.abort();
+          await firstRejection;
+
+          expect(fetchMock).toHaveBeenCalledTimes(1);
+          expect(underlyingSignal.aborted).toBe(false);
+
+          resolveFetch();
+          await expect(second).resolves.toStrictEqual([8]);
+        } finally {
+          fetchMock.mockRestore();
+        }
+      });
+
+  });
+
+
+  describe('weight() score cache', () => {
+    const serverUrl = 'https://ts-weight-cache.example';
+    const system = 'some-system-weight-cache';
+    const code = 'some-code-weight-cache';
+    const requestUrl = `${serverUrl}/CodeSystem?url=${system}`;
+    const resource = {
+      resourceType: 'Observation',
+      valueCodeableConcept: {
+        coding: [{system, code}]
+      }
+    };
+    const expression = '%context.value.coding.weight()';
+    const response = (valueDecimal) => ({
+      resourceType: 'Bundle',
+      entry: [{
+        resource: {
+          resourceType: 'CodeSystem',
+          url: system,
+          concept: [{
+            code,
+            extension: [{
+              url: r4_model.score.extensionURI[0],
+              valueDecimal
+            }]
+          }]
+        }
+      }]
+    });
+    const headersWithToken = token => ({
+      [serverUrl]: {Authorization: `Bearer ${token}`}
+    });
+    const headersWithRedactedJSON = token => {
+      const headers = {Authorization: `Bearer ${token}`};
+      Object.defineProperty(headers, 'toJSON', {
+        value: () => ({Authorization: '[redacted]'})
+      });
+      return {[serverUrl]: headers};
+    };
+    const matchesToken = token => headers =>
+      headers.get('Authorization') === `Bearer ${token}`;
+    const evaluateWeight = httpHeaders => fhirpath.evaluate(
+      resource,
+      expression,
+      null,
+      r4_model,
+      {
+        async: true,
+        terminologyUrl: serverUrl,
+        ...(httpHeaders ? {httpHeaders} : {})
+      }
+    );
+
+
+    afterEach(() => {
+      mockRestore();
+    });
+
+
+    it('partitions scores by HTTP header contents', async () => {
+      mockFetchResults([
+        [{
+          url: requestUrl,
+          headers: matchesToken('tenant-a')
+        }, response(3)],
+        [{
+          url: requestUrl,
+          headers: matchesToken('tenant-b')
+        }, response(7)]
+      ]);
+
+      await expect(
+        evaluateWeight(headersWithToken('tenant-a'))
+      ).resolves.toStrictEqual([3]);
+      await expect(
+        evaluateWeight(headersWithToken('tenant-b'))
+      ).resolves.toStrictEqual([7]);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+
+
+    it('reflects mutations to reused HTTP headers between evaluations',
+      async () => {
+        const httpHeaders = headersWithToken('tenant-a');
+        mockFetchResults([
+          [{
+            url: requestUrl,
+            headers: matchesToken('tenant-a')
+          }, response(11)],
+          [{
+            url: requestUrl,
+            headers: matchesToken('tenant-b')
+          }, response(13)]
+        ]);
+
+        await expect(evaluateWeight(httpHeaders)).resolves.toStrictEqual([11]);
+        httpHeaders[serverUrl].Authorization = 'Bearer tenant-b';
+        await expect(evaluateWeight(httpHeaders)).resolves.toStrictEqual([13]);
+        expect(global.fetch).toHaveBeenCalledTimes(2);
+      });
+
+
+    it('does not let a header toJSON() collapse distinct cache keys',
+      async () => {
+        mockFetchResults([
+          [{
+            url: requestUrl,
+            headers: matchesToken('tenant-a')
+          }, response(23)],
+          [{
+            url: requestUrl,
+            headers: matchesToken('tenant-b')
+          }, response(29)]
+        ]);
+
+        await expect(
+          evaluateWeight(headersWithRedactedJSON('tenant-a'))
+        ).resolves.toStrictEqual([23]);
+        await expect(
+          evaluateWeight(headersWithRedactedJSON('tenant-b'))
+        ).resolves.toStrictEqual([29]);
+        expect(global.fetch).toHaveBeenCalledTimes(2);
+      });
+
+
+    it('shares scores for separate equivalent HTTP header objects',
+      async () => {
+        mockFetchResults([
+          [{
+            url: requestUrl,
+            headers: matchesToken('tenant-a')
+          }, response(17)]
+        ]);
+
+        await expect(
+          evaluateWeight(headersWithToken('tenant-a'))
+        ).resolves.toStrictEqual([17]);
+        fhirpath.util._clearRequestCache();
+        expect(
+          evaluateWeight(headersWithToken('tenant-a'))
+        ).toStrictEqual([17]);
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+      });
+
+
+    it('continues sharing scores when HTTP headers are absent', async () => {
+      mockFetchResults([[requestUrl, response(19)]]);
+
+      await expect(evaluateWeight()).resolves.toStrictEqual([19]);
+      fhirpath.util._clearRequestCache();
+      expect(evaluateWeight()).toStrictEqual([19]);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+  });
+
 
 });

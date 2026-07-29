@@ -30,7 +30,18 @@ FP_Decimal.getDecimal("1.5");
 const modelVersion: string = r4Version;
 void evaluate({}, "Observation.value", {}, stu3Model);
 
+const terminologyUrls = [
+  "https://a.example",
+  "https://b.example"
+] as const;
+void evaluate(
+  {},
+  "Observation.value",
+  {},
+  r4Model,
+  { terminologyUrl: terminologyUrls }
+);
+
 // Reference the values so they are not flagged as unused.
 export const used = [libVersion, modelVersion];
-
 

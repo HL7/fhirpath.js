@@ -3,6 +3,7 @@
 
 let engine = {};
 const util = require("./utilities");
+const Terminologies = require('./terminologies');
 // Cannot use util.hasOwnProperty directly because it triggers the error:
 // "Do not access Object.prototype method 'hasOwnProperty' from target object"
 const { hasOwnProperty } = util;
@@ -262,43 +263,89 @@ function getQuestionnaireItemInfo(ctx, qItem, value, valueType) {
 
 
 // Object for storing received scores
-const weightCache = {};
+const weightCache = new Map();
+// Serialized HTTP headers by evaluation. processedVars is shared by the
+// short-lived context copies created within one evaluation.
+const weightCacheHeaderKeys = new WeakMap();
 // Duration of data storage in cache.
 const cacheStorageTime = 3600000; // 1 hour = 60 * 60 * 1000
 
 
 /**
+ * Returns the serialized HTTP headers for a weight cache key.
+ * @param {Object} ctx - object describing the evaluation context.
+ * @return {string|undefined}
+ */
+function getWeightCacheHeaderKey(ctx) {
+  const evaluationKey = ctx.processedVars;
+  if (!weightCacheHeaderKeys.has(evaluationKey)) {
+    // Convert the supplied header maps to normalized primitive tuples before
+    // serializing. This prevents a user-defined toJSON() on a header object
+    // from redacting distinct values into the same score-cache key.
+    const headerEntries = ctx.httpHeaders && Object.entries(ctx.httpHeaders)
+      .map(([url, headers]) => [
+        url,
+        headers ? Object.entries(headers)
+          .map(([name, value]) => [name.toLowerCase(), String(value)])
+          .sort(([nameA], [nameB]) => nameA.localeCompare(nameB)) : []
+      ])
+      .sort(([urlA], [urlB]) => urlA.localeCompare(urlB));
+    weightCacheHeaderKeys.set(evaluationKey, util.toJSON(headerEntries));
+  }
+  return weightCacheHeaderKeys.get(evaluationKey);
+}
+
+
+/**
+ * Deletes expired scores from the oldest end of the insertion-ordered cache.
+ * @param {number} timestamp - current timestamp.
+ */
+function removeExpiredScores(timestamp) {
+  for (const [key, entry] of weightCache) {
+    if (timestamp - entry.timestamp < cacheStorageTime) {
+      break;
+    }
+    weightCache.delete(key);
+  }
+}
+
+
+/**
  * Caches score.
  * @param {string} key - key to store score in cache.
- * @param {number|Promise} value - value of score or promise of value.
+ * @param {number|undefined} value - settled score value.
  */
 function putScoreToCache(key, value) {
-  weightCache[key] = {
-    timestamp: Date.now(),
+  const timestamp = Date.now();
+  removeExpiredScores(timestamp);
+  // Reinsert an existing key so insertion order continues to match timestamps.
+  weightCache.delete(key);
+  weightCache.set(key, {
+    timestamp,
     value
-  };
+  });
 }
 
 
 /**
  * Checks if there is an unexpired score in the cache.
  * @param {string} key - key to store score in cache.
- * @return {boolean|undefined}
+ * @return {boolean}
  */
 function hasScoreInCache(key) {
-  return weightCache[key] && Date.now() - weightCache[key].timestamp < cacheStorageTime;
+  removeExpiredScores(Date.now());
+  return weightCache.has(key);
 }
 
 
 /**
- * Returns a score or promise of score from the cache. Does not check the
- * expiration time. {@link hasScoreInCache} should be called before this
- * function.
+ * Returns a settled score from the cache. Does not check the expiration time.
+ * {@link hasScoreInCache} should be called before this function.
  * @param {string} key - key to store score in cache.
- * @return {number | Promise}
+ * @return {number|undefined}
  */
 function getScoreFromCache(key) {
-  return weightCache[key].value;
+  return weightCache.get(key).value;
 }
 
 
@@ -321,12 +368,13 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire,
   vsURL, code, system, elem) {
   let score;
   const modelVersion = ctx.model?.version;
-  const cacheKey = [
+  const cacheKey = util.toJSON([
     modelVersion,
     questionnaire?.url || questionnaire?.id,
-    ctx.processedVars.terminologies?.terminologyUrl,
+    ctx.processedVars.terminologies?.terminologyUrls,
+    getWeightCacheHeaderKey(ctx),
     vsURL, code, system
-  ].join('|');
+  ]);
 
   if (hasScoreInCache(cacheKey)) {
     score =  getScoreFromCache(cacheKey);
@@ -362,7 +410,30 @@ function addWeightFromCorrespondingResourcesToResult(res, ctx, questionnaire,
       }
     }
 
-    putScoreToCache(cacheKey, score);
+    if (score instanceof Promise) {
+      // Do not cache an in-flight promise. Each evaluation must register as its
+      // own consumer of fetchWithCache() so cancelling one evaluation does not
+      // cancel or suppress the result for another evaluation. Cache only a
+      // successfully settled score (including a confirmed absence).
+      score = score.then(
+        value => {
+          putScoreToCache(cacheKey, value);
+          return value;
+        },
+        error => {
+          if (error?.name === 'AbortError' || ctx.signal?.aborted) {
+            throw error?.name === 'AbortError' ? error : new DOMException(
+              'Evaluation of the expression was aborted.', 'AbortError');
+          }
+          // A transient request/server failure produces no score for this
+          // evaluation, but is deliberately not cached so a later evaluation
+          // can retry.
+          return undefined;
+        }
+      );
+    } else {
+      putScoreToCache(cacheKey, score);
+    }
   }
 
   if (score !== undefined) {
@@ -427,52 +498,66 @@ function getWeightFromTerminologyCodeSet(ctx, code, system) {
   const scorePropertyUri = ctx.model?.score.propertyURI;
   const codeSystemExt = ctx.model?.score.extensionURI;
 
-  const terminologyUrl = getTerminologyUrl(ctx);
-  return util.fetchWithCache(`${terminologyUrl}/CodeSystem?` + new URLSearchParams({
-    url: system,
-    ...(scorePropertyUri ? {_elements: 'property'}: {})
-  }).toString(), ctx)
-    .then(bundle => {
-      if (scorePropertyUri) {
-        const scorePropertyCode = getPropertyCode(bundle?.entry?.[0]?.resource?.property, scorePropertyUri);
-        if (scorePropertyCode) {
-          return util.fetchWithCache(`${terminologyUrl}/CodeSystem/$lookup?` + new URLSearchParams({
+  const terminologies = getTerminologies(ctx);
+  // Prefer/record the server that provides the CodeSystem so that both the
+  // CodeSystem search and the follow-up $lookup target the same server first.
+  const key = Terminologies.preferredServerKey('CodeSystem', system);
+
+  return terminologies.fetchFromServers(
+    ctx, key, 'CodeSystem',
+    (baseUrl) => util.fetchWithCache(`${baseUrl}/CodeSystem?` + new URLSearchParams({
+      url: system,
+      ...(scorePropertyUri ? {_elements: 'property'}: {})
+    }).toString(), ctx).then(
+      bundle => Terminologies.findBundleResource(bundle, 'CodeSystem')
+    )
+  ).then(resource => {
+    if (scorePropertyUri) {
+      const scorePropertyCode = getPropertyCode(resource?.property, scorePropertyUri);
+      if (scorePropertyCode) {
+        return terminologies.fetchFromServers(
+          ctx, key, 'Parameters',
+          (baseUrl) => util.fetchWithCache(`${baseUrl}/CodeSystem/$lookup?` + new URLSearchParams({
             code, system, property: scorePropertyCode
           }).toString(), ctx)
-            .then((parameters) => {
-              return parameters.parameter
-                .find(p => p.name === 'property' && p.part
-                  .find(part => part.name === 'code' && part.valueCode === scorePropertyCode))
-                ?.part?.find(p => p.name === 'value')?.valueDecimal;
-            });
-        }
-      } else {
-        const item = getCodeSystemItem(bundle?.entry?.[0]?.resource.concept, code);
-        return getScoreExtensionValue(item, codeSystemExt);
+        ).then((parameters) => {
+          return parameters.parameter
+            ?.find(p => p.name === 'property' && p.part
+              ?.find(part => part.name === 'code' && part.valueCode === scorePropertyCode))
+            ?.part?.find(p => p.name === 'value')?.valueDecimal;
+        });
       }
-    });
+    } else {
+      const item = getCodeSystemItem(resource?.concept, code);
+      return getScoreExtensionValue(item, codeSystemExt);
+    }
+    // The CodeSystem was found but it does not define a score for this code.
+    return undefined;
+  });
 }
 
 
 /**
- * Returns the URL of the terminology server.
+ * Returns the Terminologies instance for the current evaluation, throws if
+ * asynchronous functions are not allowed or no terminology server has been
+ * configured.
  * @param {Object} ctx - object describing the context of expression
  *  evaluation (see the "applyParsedPath" function).
- * @return {string}
+ * @return {Terminologies}
  */
-function getTerminologyUrl(ctx) {
+function getTerminologies(ctx) {
   if (!ctx.async) {
     throw new Error('The asynchronous function "weight"/"ordinal" is not allowed. ' +
       'To enable asynchronous functions, use the async=true or async="always"' +
       ' option.');
   }
 
-  const terminologyUrl = ctx.processedVars.terminologies?.terminologyUrl;
-  if (!terminologyUrl) {
+  const terminologies = ctx.processedVars.terminologies;
+  if (!terminologies?.terminologyUrls.length) {
     throw new Error('Option "terminologyUrl" is not specified.');
   }
 
-  return terminologyUrl;
+  return terminologies;
 }
 
 
@@ -720,6 +805,15 @@ function getQItemByLinkIds(modelVersion, questionnaire, linkIds) {
 
   return currentNode;
 }
+
+
+/**
+ * Clears the module-level cache of weight/ordinal scores. Intended for internal
+ * use only (e.g. test isolation); not part of the public FHIRPath API.
+ */
+engine._clearWeightCache = function () {
+  weightCache.clear();
+};
 
 
 module.exports = engine;
