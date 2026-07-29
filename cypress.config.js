@@ -1,6 +1,7 @@
 const { defineConfig } = require("cypress");
 
 module.exports = defineConfig({
+  allowCypressEnv: false,
   watchForFileChanges: false,
   downloadsFolder:	'test/cypress/downloads',
   fixturesFolder: 'test/cypress/fixtures',

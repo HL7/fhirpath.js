@@ -8,7 +8,7 @@ const _ = require('lodash');
 const xml2js = require('xml2js');
 const yaml = require('js-yaml');
 
-const fhir = new (require('fhir').Fhir);
+const fhir = new (require('fhir-tool').Fhir);
 const { calcExpression } = require("../test/test_utils");
 const FP_DateTime = require('../src/types').FP_DateTime;
 const equals = _.isEqual;
