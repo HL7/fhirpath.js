@@ -50,6 +50,16 @@ tests:
           - resourceType: Procedure
             id: p2
       result: [2]
+    - desc: 'Navigate into a variable bound to an array of resource-shaped objects'
+      expression: "%procedures.where(id = 'p2' and $this is Resource).id"
+      model: r4
+      variables:
+        procedures:
+          - resourceType: Procedure
+            id: p1
+          - resourceType: Procedure
+            id: p2
+      result: ['p2']
 
 subject:
   n1: 1

@@ -3,6 +3,13 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [4.11.1] - 2026-07-29
+### Fixed
+- Fixed a crash (`TypeError: Cannot read properties of undefined`) when an
+  environment variable is bound to an array of resource-shaped objects
+  (objects with `resourceType` but no path metadata); such items now use the
+  current evaluation context, matching the scalar-value code path.
+
 ## [4.11.0] - 2026-05-29
 ### Added
 - Added `lowBoundary()` and `highBoundary()` for Decimal, Date, DateTime, and
