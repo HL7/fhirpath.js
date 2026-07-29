@@ -5,6 +5,7 @@ const _ = require('lodash');
 const {
   FP_DateTime, FP_Quantity, FP_Decimal_Native, ResourceNode
 } = require('../src/types');
+const util = require('../src/utilities');
 
 const observationResource = require('./resources/r4/observation-example.json');
 const input = {
@@ -838,6 +839,66 @@ describe('FP_Decimal in evaluate', () => {
       { preciseMath: true }
     );
     expect(result[0].toString()).toBe("0.3 'kg'");
+  });
+
+});
+
+
+describe('util.splitCanonicalUrl', () => {
+
+  it('splits a versioned canonical into url and version', () => {
+    expect(util.splitCanonicalUrl('http://example.org/vs|2.0.0'))
+      .toStrictEqual({url: 'http://example.org/vs', version: '2.0.0'});
+  });
+
+
+  it('returns only the url for an unversioned canonical', () => {
+    expect(util.splitCanonicalUrl('http://example.org/vs'))
+      .toStrictEqual({url: 'http://example.org/vs'});
+  });
+
+
+  it('emits url before version so the query is url=...&version=...', () => {
+    const params = new URLSearchParams(
+      util.splitCanonicalUrl('https://example.org/vs|1.0')
+    ).toString();
+    expect(params).toBe('url=https%3A%2F%2Fexample.org%2Fvs&version=1.0');
+  });
+
+
+  it('splits a versioned non-http(s) absolute URI (urn:oid)', () => {
+    expect(util.splitCanonicalUrl('urn:oid:1.2.3|2026'))
+      .toStrictEqual({url: 'urn:oid:1.2.3', version: '2026'});
+  });
+
+
+  it('returns only the url for an unversioned non-http(s) absolute URI', () => {
+    expect(util.splitCanonicalUrl('urn:oid:1.2.3'))
+      .toStrictEqual({url: 'urn:oid:1.2.3'});
+  });
+
+
+  it('splits a versioned urn:uuid absolute URI', () => {
+    expect(util.splitCanonicalUrl(
+      'urn:uuid:53fefa32-fcbb-4ff8-8a92-55ee120877b7|1.0'
+    )).toStrictEqual({
+      url: 'urn:uuid:53fefa32-fcbb-4ff8-8a92-55ee120877b7', version: '1.0'
+    });
+  });
+
+
+  it('emits url before version for a urn so the query is url=...&version=...',
+    () => {
+      const params = new URLSearchParams(
+        util.splitCanonicalUrl('urn:oid:1.2.3|2026')
+      ).toString();
+      expect(params).toBe('url=urn%3Aoid%3A1.2.3&version=2026');
+    });
+
+
+  it('returns the value unchanged for a relative reference', () => {
+    expect(util.splitCanonicalUrl('ValueSet/123'))
+      .toStrictEqual({url: 'ValueSet/123'});
   });
 
 });

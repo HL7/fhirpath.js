@@ -3,6 +3,90 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [5.1.0] - 2026-07-24
+### Added
+- The `terminologyUrl` option for the `evaluate()` and `compile()` methods now
+  accepts an array of terminology server URLs in addition to a single URL
+  string. The TypeScript declaration also accepts readonly URL arrays and
+  tuples. When multiple servers are provided,
+  `validateVS`/`validateCS`/`translate` locate a server that holds the
+  referenced ValueSet/CodeSystem/ConceptMap (searching the configured servers in
+  turn) and send the operation there; if that operation fails, the next holding
+  server is tried. `expand`/`lookup`/`subsumes` try the servers in order until
+  one responds. The server that resolves a given
+  artifact is preferred (tried first) for subsequent operations on that
+  artifact, and the preference is remembered across evaluations (retained in a
+  bounded LRU cache; least-recently-used entries are evicted). When no configured
+  server holds the artifact, the operation yields an empty result. When the
+  evaluation is aborted (via the `signal` option), the server fallback stops,
+  and the operation rejects with an `AbortError` instead of dispatching requests
+  to the remaining servers. Identical requests are shared across evaluations;
+  cancelling one evaluation rejects only its consumer, and the underlying
+  request is aborted only when all consumers have cancelled. The `fhirpath` CLI
+  `--terminologyUrl`/`-t` option can be repeated to configure multiple servers.
+
+### Changed
+- `weight()`/`ordinal()`: when the score is looked up from a `CodeSystem` on a
+  terminology server and that lookup does not yield a score - because the code
+  system is absent from every configured server, or because a request fails
+  (e.g. a network or server error) - the function now adds no score for that
+  code instead of raising an error. This aligns with the multi-server fallback
+  and the "absent artifact yields an empty result" behavior of the
+  `%terminologies` functions. Previously a failing request rejected the result.
+  Transient request failures are not stored in the weight cache, so later
+  evaluations can retry.
+- Rejected server requests are no longer retained in the shared
+  `util.fetchWithCache()` request cache. Later `resolve()` and terminology
+  operations can therefore retry transient failures; successful responses
+  continue to be cached.
+- Shared server requests that remain pending for one hour now reject
+  with a `TimeoutError`, are removed from the request cache, and abort their
+  underlying fetch when the runtime supports `AbortController`. Terminology
+  operations can then try another configured server, and later evaluations can
+  retry the timed-out request.
+- `memberOf`/`validateVS` now return a promise under async evaluation even when
+  no request can be built (for example, a coded value with neither a system nor
+  a code). `memberOf` also normalizes a missing validation result to an empty
+  collection. Previously such cases could return a synchronous or internal
+  undefined result.
+- The TypeScript type of the `httpHeaders` option was corrected from
+  `Record<string, string>` to `Record<string, Record<string, string>>` in
+  `src/fhirpath.d.ts` to match the documented and runtime shape (keys are FHIR
+  server base URLs, values are objects mapping header names to header values).
+  This is a type-declaration correction only - the runtime behavior is
+  unchanged - but TypeScript consumers written against the previous (incorrect)
+  single-level type may need to update to the nested shape.
+
+### Fixed
+- Versioned non-HTTP(S) canonical URLs (for example `urn:oid:1.2.3|2026`) are
+  now split into separate `url` and `version` search parameters when resolving
+  artifacts (via `resolve()` and the `%terminologies` server-location search).
+  Previously only `http(s)://` canonicals were split, so the `|version` suffix
+  was percent-encoded into the `url` value (e.g. `url=urn:oid:1.2.3%7C2026`),
+  which prevented the artifact from being located.
+- Versioned canonical URLs are also split into the operation-specific URL and
+  version parameters for `expand`, `validateVS`, `validateCS`, `subsumes`, and
+  `translate`, so the operation uses the same artifact version selected during
+  server discovery. `subsumes` now sends the CodeSystem canonical in the
+  standard `system` parameter instead of `url`.
+- Per-server HTTP header matching: `httpHeaders` entries are now applied only to
+  requests whose URL matches the entry's base URL at a path/query boundary, and
+  when several configured base URLs match the most specific (longest) one wins.
+  Previously the first configured header set could be applied to every request
+  regardless of URL, which could leak one terminology server's credentials to
+  another.
+- `weight()`/`ordinal()` score-cache entries now include the supplied
+  `httpHeaders`, preventing a score obtained with one authorization or tenant
+  configuration from being reused by an evaluation with different headers.
+- `%terminologies.subsumes` now derives each operand's parameter name
+  (`codingA`/`codeA`, `codingB`/`codeB`) and `value[x]` field
+  (`valueCoding`/`valueCode`) from that operand's own type. Previously a
+  `Coding` combined with a bare `code` could send `codingB`/`valueCode` for the
+  second operand, producing an invalid `$subsumes` request.
+- `%terminologies.translate` now calls the `/ConceptMap/$translate` operation
+  instead of `/CodeSystem/$translate`, the correct FHIR endpoint for the
+  translate operation.
+
 ## [5.0.0] - 2026-07-13
 ### Added
 - Added support for FHIRPath Instance Selector/Object Creation syntax for

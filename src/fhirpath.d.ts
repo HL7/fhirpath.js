@@ -339,8 +339,13 @@ export interface Options {
   traceFn?: (value: any, label: string) => void;
   /** A user invocation table for replacing or defining custom functions. */
   userInvocationTable?: UserInvocationTable;
-  /** URL of a FHIR Terminology Service for `memberOf` and similar functions. */
-  terminologyUrl?: string;
+  /**
+   * URL(s) of one or more FHIR Terminology Services for `memberOf` and similar
+   * functions. When an array of URLs is provided, the servers are tried in
+   * order and the server that first resolves a given ValueSet/CodeSystem is
+   * preferred for subsequent operations on that artifact.
+   */
+  terminologyUrl?: string | readonly string[];
   /** An AbortSignal for cancelling asynchronous expression evaluation. */
   signal?: AbortSignal;
   /**
@@ -353,7 +358,7 @@ export interface Options {
    * HTTP headers to use when making requests to FHIR servers. Keys are server
    * base URLs, values are objects mapping header names to header values.
    */
-  httpHeaders?: Record<string, string>;
+  httpHeaders?: Record<string, Record<string, string>>;
   /**
    * Whether to use precision-safe decimal arithmetic instead of native
    * JavaScript number arithmetic. Defaults to false.

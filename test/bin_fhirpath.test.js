@@ -83,6 +83,19 @@ describe ('bin/fhirpath', function () {
     );
   });
 
+  it ('should accept the -t option repeated for multiple terminology servers', function() {
+    const output = runFhirpath(
+      "bin/fhirpath -e '%terminologies.terminologyUrls' -r '{}' " +
+      "-t https://ts-a.example -t https://ts-b.example"
+    );
+    const result = JSON.parse(output.split('=>\n')[1]);
+
+    expect(result).toStrictEqual([
+      'https://ts-a.example',
+      'https://ts-b.example'
+    ]);
+  });
+
   it ('should output help without arguments', function() {
     checkOutput("bin/fhirpath", /Options/g);
   });

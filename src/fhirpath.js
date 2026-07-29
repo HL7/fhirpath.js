@@ -1242,9 +1242,12 @@ function parse(path) {
  *     an exception;
  *   - true or similar to true - return Promise only for asynchronous functions;
  *   - "always" - return Promise always.
- * @param {string} [options.terminologyUrl] - a URL that points to a FHIR
- *  RESTful API that is used to create %terminologies that implements
- *  the Terminology Service API.
+ * @param {string|string[]} [options.terminologyUrl] - a URL, or an ordered
+ *  array of URLs, that point to FHIR RESTful API(s) used to create
+ *  %terminologies that implements the Terminology Service API. When multiple
+ *  URLs are provided, they are tried in order and the server that first
+ *  resolves a given ValueSet/CodeSystem is preferred for subsequent operations
+ *  on that artifact.
  * @param {string} [options.fhirServerUrl] - a URL that points to a FHIR
  *  RESTful API that is used to query resources when using `resolve()`.
  * @param {AbortSignal} [options.signal] - an AbortSignal object that allows you
@@ -1317,7 +1320,10 @@ function applyParsedPath(resource, parsedPath, envVars, model, options, baseInfo
     ctx.async = options.async;
   }
   if (options.terminologyUrl) {
-    ctx.processedVars.terminologies = new Terminologies(options.terminologyUrl);
+    const terminologyUrls = util.arraify(options.terminologyUrl);
+    if (terminologyUrls.length > 0) {
+      ctx.processedVars.terminologies = new Terminologies(terminologyUrls);
+    }
   }
   if (options.fhirServerUrl) {
     ctx.processedVars.fhirServerUrl = options.fhirServerUrl;
@@ -1599,9 +1605,12 @@ function resolveInternalTypesImpl(val, pathInfo, isTopLevel = true) {
  *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception,
  *  true or similar to true - return Promise, only for asynchronous functions,
  *  "always" - return Promise always.
- * @param {string} [options.terminologyUrl] - a URL that points to a FHIR
- *  RESTful API that is used to create %terminologies that implements
- *  the Terminology Service API.
+ * @param {string|string[]} [options.terminologyUrl] - a URL, or an ordered
+ *  array of URLs, that point to FHIR RESTful API(s) used to create
+ *  %terminologies that implements the Terminology Service API. When multiple
+ *  URLs are provided, they are tried in order and the server that first
+ *  resolves a given ValueSet/CodeSystem is preferred for subsequent operations
+ *  on that artifact.
  * @param {string} [options.fhirServerUrl] - a URL that points to a FHIR
  *  RESTful API that is used to query resources when using `resolve()`.
  * @param {AbortSignal} [options.signal] - an AbortSignal object that allows you
@@ -1643,9 +1652,12 @@ function evaluate(fhirData, path, envVars, model, options) {
  *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception,
  *  true or similar to true - return Promise, only for asynchronous functions,
  *  "always" - return Promise always.
- * @param {string} [options.terminologyUrl] - a URL that points to a FHIR
- *  RESTful API that is used to create %terminologies that implements
- *  the Terminology Service API.
+ * @param {string|string[]} [options.terminologyUrl] - a URL, or an ordered
+ *  array of URLs, that point to FHIR RESTful API(s) used to create
+ *  %terminologies that implements the Terminology Service API. When multiple
+ *  URLs are provided, they are tried in order and the server that first
+ *  resolves a given ValueSet/CodeSystem is preferred for subsequent operations
+ *  on that artifact.
  * @param {string} [options.fhirServerUrl] - a URL that points to a FHIR
  *  RESTful API that is used to query resources when using `resolve()`.
  * @param {Object} [options.httpHeaders] - an object with HTTP headers to be

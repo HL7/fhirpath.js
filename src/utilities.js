@@ -211,6 +211,31 @@ util.escapeStringForRegExp = function (str) {
 
 
 /**
+ * Splits a canonical URL of the form "url[|version]" into its "url" and
+ * "version" parts, suitable for use as FHIR search parameters (the "version"
+ * search parameter is supported by ValueSet, CodeSystem, and ConceptMap). This
+ * is a pure splitter: it always returns an object with a "url" key (listed
+ * first, so a URLSearchParams built from it emits "url" before "version"), and
+ * adds a "version" key only when a non-empty version is present. Any absolute
+ * URI - one that begins with a scheme such as "http:", "https:", or "urn:" - is
+ * split. A relative reference (e.g. "ValueSet/123") has no scheme and is
+ * returned unchanged as {url: canonical}.
+ * @param {string} canonical - a canonical URL, optionally suffixed with
+ *  "|version".
+ * @returns {{url: string, version?: string}}
+ */
+util.splitCanonicalUrl = function (canonical) {
+  // Match any absolute URI by its RFC 3986 scheme ("scheme:...") up to the
+  // first "|"; a value with no scheme (a relative reference) is left unchanged.
+  const match = /^([a-zA-Z][a-zA-Z0-9+.-]*:[^|]*)(\|(.*))?/.exec(canonical);
+  if (match) {
+    return match[3] ? {url: match[1], version: match[3]} : {url: match[1]};
+  }
+  return {url: canonical};
+};
+
+
+/**
  * Binding to the Array.prototype.push.apply function to define a function to
  * push the contents of the source array to the destination array.
  * @name pushFn
@@ -311,7 +336,7 @@ util.makeChildResNodes = function(ctx, parentResNode, childProperty, model) {
 };
 
 
-// Object for storing fetch promises.
+// Object for storing shared fetch requests and successful responses.
 const requestCache = {};
 // Duration of data storage in cache.
 const requestCacheStorageTime = 3600000; // 1 hour = 60 * 60 * 1000
@@ -324,13 +349,136 @@ const defaultGetHeaders = {
   'Accept': 'application/fhir+json; charset=utf-8'
 };
 
+
+/**
+ * Creates the standardized error returned to a consumer whose request was
+ * cancelled.
+ * @returns {DOMException}
+ */
+function makeAbortError() {
+  return new DOMException('The request was aborted.', 'AbortError');
+}
+
+
+/**
+ * Creates the standardized error returned when a shared request remains
+ * pending beyond its lifetime.
+ * @returns {DOMException}
+ */
+function makeTimeoutError() {
+  return new DOMException(
+    'The request exceeded the one-hour pending request limit.',
+    'TimeoutError'
+  );
+}
+
+
+/**
+ * Removes a shared request from the cache if it is still the current entry for
+ * its key.
+ * @param {string} requestKey - cache key of the shared request.
+ * @param {Object} entry - shared request cache entry.
+ */
+function removeRequestCacheEntry(requestKey, entry) {
+  if (requestCache[requestKey] === entry) {
+    delete requestCache[requestKey];
+  }
+}
+
+
+/**
+ * Stops a pending shared request and rejects its consumers independently of
+ * whether the underlying fetch honors its abort signal.
+ * @param {string} requestKey - cache key of the shared request.
+ * @param {Object} entry - shared request cache entry.
+ * @param {Error|DOMException} error - error with which to reject consumers.
+ */
+function disposePendingRequest(requestKey, entry, error) {
+  if (entry.settled || entry.disposed) {
+    return;
+  }
+
+  entry.disposed = true;
+  removeRequestCacheEntry(requestKey, entry);
+  clearTimeout(entry.timeoutId);
+  entry.timeoutId = null;
+  // Settle the shared promise before aborting. In particular, a timeout must
+  // remain a TimeoutError even when aborting synchronously rejects fetch with
+  // an AbortError.
+  entry.rejectDisposal(error);
+  entry.controller?.abort();
+}
+
+
+/**
+ * Returns a consumer-specific promise for a shared request. Cancelling one
+ * consumer rejects only its promise. The underlying request is cancelled only
+ * after every pending consumer has cancelled it.
+ * @param {string} requestKey - cache key of the shared request.
+ * @param {Object} entry - shared request cache entry.
+ * @param {AbortSignal|undefined} signal - this consumer's cancellation signal.
+ * @returns {Promise<Object|string>}
+ */
+function attachRequestConsumer(requestKey, entry, signal) {
+  if (signal?.aborted) {
+    return Promise.reject(makeAbortError());
+  }
+
+  return new Promise((resolve, reject) => {
+    const consumer = {};
+    let finished = false;
+
+    entry.consumers.add(consumer);
+
+    const cleanup = () => {
+      entry.consumers.delete(consumer);
+      signal?.removeEventListener('abort', onAbort);
+    };
+    const onAbort = () => {
+      if (finished) {
+        return;
+      }
+      finished = true;
+      cleanup();
+      reject(makeAbortError());
+
+      if (!entry.settled && entry.consumers.size === 0) {
+        disposePendingRequest(requestKey, entry, makeAbortError());
+      }
+    };
+
+    signal?.addEventListener('abort', onAbort, {once: true});
+    entry.promise.then(
+      result => {
+        if (!finished) {
+          finished = true;
+          cleanup();
+          resolve(result);
+        }
+      },
+      error => {
+        if (!finished) {
+          finished = true;
+          cleanup();
+          reject(error);
+        }
+      }
+    );
+  });
+}
+
+
 /**
  * Fetches a resource from the given URL with caching and context-based options.
- * Applies context-specific HTTP headers and signal passed to evaluation
- * function (e.g., fhirpath.evaluate() or function that is the result of
- * fhirpath.compile()), merged with the parameters provided in a particular
- * call of the fetchWithCache() function, performs the fetch request, and caches
- * the response for a set duration to avoid redundant network requests.
+ * Applies context-specific HTTP headers and tracks the signal passed to the
+ * evaluation function (e.g., fhirpath.evaluate() or a compiled evaluator) for
+ * this consumer. Identical requests share one underlying fetch; cancelling one
+ * consumer does not cancel the fetch while another consumer remains active.
+ * Request options are merged with the context options, and successful responses
+ * are cached for a set duration to avoid redundant network requests.
+ * A request that remains pending for one hour is removed from the cache, its
+ * consumers reject with a TimeoutError, and its underlying fetch is aborted
+ * when the runtime supports AbortController.
  * Automatically applies default FHIR headers based on the request method.
  * Cleans up expired cache entries before making a new request.
  * Handles JSON and text responses, rejecting on error or non-OK status.
@@ -342,15 +490,41 @@ const defaultGetHeaders = {
  *  resource or rejecting with error/text.
  */
 util.fetchWithCache = function(url, ctx, options) {
+  // Do not place a caller's AbortSignal in the shared request options. Each
+  // caller receives a consumer-specific promise below, while the underlying
+  // fetch uses an internal signal and is aborted only when all consumers cancel.
+  const consumerSignal = ctx.signal;
+  options = options ? {...options} : undefined;
+  if (consumerSignal?.aborted) {
+    return Promise.reject(makeAbortError());
+  }
+
   // Apply the context's HTTP headers if they are provided.
   // The context may have a property "httpHeaders" that is an object
   // with keys as FHIR server URLs and values as objects with HTTP headers.
   // If the URL starts with one of the keys, the corresponding headers will be
   // applied to the request.
   if (ctx.httpHeaders) {
-    const urlWithHeaders = Object.keys(ctx.httpHeaders)
-      .find(i =>
-        (new RegExp('^' + util.escapeStringForRegExp(i) + '\\b').test(i)));
+    // Find the configured base URL (key) that the request URL belongs to. The
+    // key must be a prefix of the request URL at a path/query boundary, so that
+    // when several terminology servers are configured each server receives only
+    // its own headers (e.g. its own Authorization token) instead of another
+    // server's credentials. When more than one configured base URL matches
+    // (e.g. overlapping bases such as "https://x" and "https://x/fhir"), the
+    // longest (most specific) match wins so the selection is deterministic
+    // regardless of key order.
+    let urlWithHeaders;
+    let longestBaseLength = -1;
+    for (const key of Object.keys(ctx.httpHeaders)) {
+      const base = key.endsWith('/') ? key.slice(0, -1) : key;
+      if (url === base || url.startsWith(base + '/') ||
+        url.startsWith(base + '?') || url.startsWith(base + '#')) {
+        if (base.length > longestBaseLength) {
+          longestBaseLength = base.length;
+          urlWithHeaders = key;
+        }
+      }
+    }
 
     if (urlWithHeaders) {
       const commonHeaders = ctx.httpHeaders[urlWithHeaders];
@@ -371,62 +545,147 @@ util.fetchWithCache = function(url, ctx, options) {
     }
   }
 
-  if (ctx.signal) {
-    if (options) {
-      options.signal = ctx.signal;
-    } else {
-      options = { signal: ctx.signal };
-    }
-  }
-
-  const requestKey = [
-    url, options ? util.toJSON(options) : ''
-  ].join('|');
-
   // Apply default headers based on the request method.
   const defaultHeaders = options?.method === 'POST' ?
     defaultPostHeaders : defaultGetHeaders;
+  const headers = new Headers({
+    ...defaultHeaders,
+    ...(options?.headers || {})
+  });
   options = {
     ...options,
-    headers: new Headers({
-      ...defaultHeaders,
-      ...(options?.headers || {})
-    })
+    headers
   };
+  // Build the key from the normalized primitive header entries. Serializing a
+  // caller-provided header object directly would invoke a custom toJSON(),
+  // which could hide values that are still sent with the request.
+  const requestKey = util.toJSON([
+    url,
+    {
+      ...options,
+      headers: Array.from(headers.entries())
+    }
+  ]);
 
   const timestamp = Date.now();
   for (const key in requestCache) {
-    if (timestamp - requestCache[key].timestamp > requestCacheStorageTime) {
-      // Remove responses older than an hour
-      delete requestCache[key];
+    const entry = requestCache[key];
+    if (timestamp - entry.timestamp >= requestCacheStorageTime) {
+      if (entry.settled) {
+        removeRequestCacheEntry(key, entry);
+      } else {
+        // Timers can be throttled in inactive browser tabs. Expire an overdue
+        // pending entry opportunistically before deciding whether to share it.
+        disposePendingRequest(key, entry, makeTimeoutError());
+      }
     }
   }
 
   if (!requestCache[requestKey]) {
-    requestCache[requestKey] = {
+    // AbortController is unavailable in some supported browser runtimes. The
+    // shared promise can still time out and be evicted there; only cancellation
+    // of the underlying network operation becomes best-effort.
+    const controller = typeof AbortController === 'function' ?
+      new AbortController() : null;
+    const entry = {
       timestamp,
-      // In Jest unit tests, a promise returned by 'fetch' is not an instance of
-      // Promise that we have in our application context, so we use Promise.resolve
-      // to do the conversion.
-      promise: Promise.resolve(fetch(url, options))
-        .then(r => {
-          const contentType = r.headers.get('Content-Type');
-          const isJson = contentType.includes('application/json') ||
-            contentType.includes('application/fhir+json');
-          try {
-            if (isJson) {
-              return r.json().then((json) => r.ok ? json : Promise.reject(json));
-            } else {
-              return r.text().then((text) => Promise.reject(text));
-            }
-          } catch (e) {
-            return Promise.reject(new Error(e));
-          }
-        })
+      controller,
+      consumers: new Set(),
+      disposed: false,
+      rejectDisposal: null,
+      settled: false,
+      promise: null,
+      timeoutId: null
     };
+    if (controller) {
+      options.signal = controller.signal;
+    }
+    let resolveFetch;
+    let rejectFetch;
+    const fetchPromise = new Promise((resolve, reject) => {
+      resolveFetch = resolve;
+      rejectFetch = reject;
+    });
+    const requestPromise = fetchPromise.then(r => {
+      const contentType = r.headers.get('Content-Type') || '';
+      const isJson = contentType.includes('application/json') ||
+        contentType.includes('application/fhir+json');
+      try {
+        if (isJson) {
+          return r.json().then((json) => r.ok ? json : Promise.reject(json));
+        } else {
+          return r.text().then((text) => Promise.reject(text));
+        }
+      } catch (e) {
+        return Promise.reject(new Error(e));
+      }
+    });
+    const disposalPromise = new Promise((resolve, reject) => {
+      entry.rejectDisposal = reject;
+    });
+    entry.promise = Promise.race([requestPromise, disposalPromise]);
+    requestCache[requestKey] = entry;
+    entry.timeoutId = setTimeout(() => {
+      disposePendingRequest(requestKey, entry, makeTimeoutError());
+    }, requestCacheStorageTime);
+    entry.timeoutId.unref?.();
+    entry.promise.then(
+      () => {
+        entry.settled = true;
+        clearTimeout(entry.timeoutId);
+        entry.timeoutId = null;
+        // Start the response TTL when the request successfully settles. A
+        // long-running request should not produce an immediately stale result.
+        entry.timestamp = Date.now();
+      },
+      () => {
+        entry.settled = true;
+        clearTimeout(entry.timeoutId);
+        entry.timeoutId = null;
+        // Rejected requests are never cached. In particular, this prevents an
+        // aborted or transiently failed request from poisoning later
+        // evaluations for the full cache storage period.
+        removeRequestCacheEntry(requestKey, entry);
+      }
+    );
+
+    // Attach the first consumer before dispatch so that its cancellation is
+    // observed even by a synchronously behaving fetch implementation.
+    const consumerPromise = attachRequestConsumer(
+      requestKey, entry, consumerSignal
+    );
+    try {
+      // A promise returned by fetch in Jest can come from another realm.
+      // Resolving the local bridge assimilates that promise while invoking the
+      // currently installed fetch implementation before this function returns.
+      resolveFetch(fetch(url, options));
+    } catch (error) {
+      rejectFetch(error);
+    }
+    return consumerPromise;
   }
 
-  return requestCache[requestKey].promise;
+  return attachRequestConsumer(
+    requestKey, requestCache[requestKey], consumerSignal
+  );
+};
+
+
+/**
+ * Clears the module-level fetch response cache used by "fetchWithCache".
+ * Intended for internal use only (e.g. test isolation, to prevent cached
+ * responses from leaking between tests); not part of the public API.
+ */
+util._clearRequestCache = function() {
+  for (const key in requestCache) {
+    const entry = requestCache[key];
+    if (entry.settled) {
+      clearTimeout(entry.timeoutId);
+      removeRequestCacheEntry(key, entry);
+    } else {
+      disposePendingRequest(key, entry, makeAbortError());
+    }
+  }
 };
 
 
