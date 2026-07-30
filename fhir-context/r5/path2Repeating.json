@@ -3672,6 +3672,5 @@
   "unsignedInt.extension",
   "uri.extension",
   "url.extension",
-  "uuid.extension",
-  "xhtml.extension"
+  "uuid.extension"
 ]

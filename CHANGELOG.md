@@ -3,7 +3,7 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
-## [5.1.0] - 2026-07-24
+## [5.1.0] - 2026-07-29
 ### Added
 - The `terminologyUrl` option for the `evaluate()` and `compile()` methods now
   accepts an array of terminology server URLs in addition to a single URL
@@ -86,6 +86,10 @@ This log documents significant changes for each release.  This project follows
 - `%terminologies.translate` now calls the `/ConceptMap/$translate` operation
   instead of `/CodeSystem/$translate`, the correct FHIR endpoint for the
   translate operation.
+- Fixed a crash (`TypeError: Cannot read properties of undefined`) when an
+  environment variable is bound to an array of resource-shaped objects
+  (objects with `resourceType` but no path metadata); such items now use the
+  current evaluation context, matching the scalar-value code path.
 
 ## [5.0.0] - 2026-07-13
 ### Added

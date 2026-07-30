@@ -2011,6 +2011,5 @@
   "time.extension",
   "unsignedInt.extension",
   "uri.extension",
-  "uuid.extension",
-  "xhtml.extension"
+  "uuid.extension"
 ]
