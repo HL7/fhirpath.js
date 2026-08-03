@@ -9,6 +9,9 @@ const observationResource = require('./resources/r4/observation-example.json');
 const administrativeGenderVS = require('./resources/r4/administrative-gender-valueset.json');
 const observationCategoryVS = require('./resources/r4/observation-category-valuset.json');
 const {mockRestore, mockFetchResults} = require('./mock-fetch-results');
+const Terminologies = require('../src/terminologies');
+const util = require('../src/utilities');
+const additional = require('../src/additional');
 
 
 
@@ -16,6 +19,1517 @@ describe('Async functions', () => {
 
   afterEach(() => {
     mockRestore();
+  })
+
+
+  describe('multiple terminology servers', () => {
+
+    it('tries the servers in order and falls back when one fails', (done) => {
+      mockFetchResults([
+        // The first server does not have the value set.
+        ['https://ts-a.example/ValueSet/$expand', null,
+          {resourceType: 'OperationOutcome'}],
+        // The second server resolves it.
+        ['https://ts-b.example/ValueSet/$expand', administrativeGenderVS]
+      ]);
+
+      const result = fhirpath.evaluate(
+        emptyResource,
+        "%terminologies.expand('http://example.org/vs/fallback') is ValueSet",
+        {},
+        modelR4,
+        { async: true,
+          terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'] }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([true]);
+        done();
+      }, done);
+    });
+
+
+    it('falls back when a successful search Bundle only contains an outcome',
+      (done) => {
+        const vsUrl = 'http://example.org/vs/outcome-only';
+        const key = Terminologies.preferredServerKey('ValueSet', vsUrl);
+        mockFetchResults([
+          [/^https:\/\/ts-a\.example\/ValueSet\?url=/, {
+            resourceType: 'Bundle',
+            type: 'searchset',
+            entry: [{
+              resource: {resourceType: 'OperationOutcome'},
+              search: {mode: 'outcome'}
+            }]
+          }],
+          [/^https:\/\/ts-b\.example\/ValueSet\?url=/, {
+            resourceType: 'Bundle',
+            type: 'searchset',
+            entry: [{
+              resource: administrativeGenderVS,
+              search: {mode: 'match'}
+            }]
+          }],
+          [/^https:\/\/ts-b\.example\/ValueSet\/\$validate-code/, {
+            resourceType: 'Parameters',
+            parameter: [{name: 'result', valueBoolean: true}]
+          }]
+        ]);
+
+        const result = fhirpath.evaluate(
+          observationResource,
+          `%terminologies.validateVS('${vsUrl}', `
+          + 'Observation.code.coding[0]).parameter.value',
+          {},
+          modelR4,
+          {async: true,
+            terminologyUrl: ['https://ts-a.example', 'https://ts-b.example']}
+        );
+
+        result.then((r) => {
+          expect(r).toEqual([true]);
+          expect(Terminologies._getPreferredServer(
+            key, ['https://ts-a.example', 'https://ts-b.example']
+          ))
+            .toBe('https://ts-b.example');
+          done();
+        }, done);
+      });
+
+
+    it('uses a matching ValueSet after an outcome entry for a bare code',
+      (done) => {
+        const vsUrl = 'http://example.org/vs/warning-before-match';
+        mockFetchResults([
+          [/^https:\/\/ts-a\.example\/ValueSet\?url=/, {
+            resourceType: 'Bundle',
+            type: 'searchset',
+            entry: [{
+              resource: {resourceType: 'OperationOutcome'},
+              search: {mode: 'outcome'}
+            }, {
+              resource: administrativeGenderVS,
+              search: {mode: 'match'}
+            }]
+          }],
+          [{
+            url: /^https:\/\/ts-a\.example\/ValueSet\/\$validate-code/,
+            method: 'GET'
+          }, {
+            resourceType: 'Parameters',
+            parameter: [{name: 'result', valueBoolean: true}]
+          }]
+        ]);
+
+        const result = fhirpath.evaluate(
+          emptyResource,
+          `%terminologies.validateVS('${vsUrl}', 'male').parameter.value`,
+          {},
+          modelR4,
+          {async: true,
+            terminologyUrl: ['https://ts-a.example', 'https://ts-b.example']}
+        );
+
+        result.then((r) => {
+          expect(r).toEqual([true]);
+          done();
+        }, done);
+      });
+
+
+    it.each(['ValueSet', 'CodeSystem', 'ConceptMap'])(
+      'fetchFromLocatedServer selects a later matching %s entry',
+      async (searchType) => {
+        const canonical = `http://example.org/${searchType}/later-match`;
+        const resource = {resourceType: searchType, url: canonical};
+        mockFetchResults([
+          [`https://ts-a.example/${searchType}?`, {
+            resourceType: 'Bundle',
+            type: 'searchset',
+            entry: [{
+              resource: {resourceType: 'OperationOutcome'},
+              search: {mode: 'outcome'}
+            }, {
+              resource,
+              search: {mode: 'match'}
+            }]
+          }]
+        ]);
+        const term = new Terminologies(
+          ['https://ts-a.example', 'https://ts-b.example']);
+
+        await expect(term.fetchFromLocatedServer(
+          {}, Terminologies.preferredServerKey(searchType, canonical),
+          searchType, canonical,
+          (located) => !!located?.resource,
+          (baseUrl, located) => ({baseUrl, resource: located})
+        )).resolves.toEqual({
+          baseUrl: 'https://ts-a.example',
+          resource
+        });
+      }
+    );
+
+
+    it('prefers the server that first resolved a value set for later ' +
+      'operations', (done) => {
+      let serverACalls = 0;
+      const vsUrl = 'http://example.org/vs/preferred';
+      mockFetchResults([
+        // The first server fails to expand; the second resolves it and becomes
+        // the preferred server for this value set.
+        ['https://ts-a.example/ValueSet/$expand', null,
+          {resourceType: 'OperationOutcome'}],
+        ['https://ts-b.example/ValueSet/$expand', administrativeGenderVS],
+        // Count any request that reaches the first server after the preference
+        // is established; with ts-b preferred they should never happen. (The
+        // earlier ts-a $expand entry above is matched first, so it is not
+        // counted here.)
+        [(url) => {
+          if (/^https:\/\/ts-a\.example\//.test(url)) {
+            serverACalls++;
+            return true;
+          }
+          return false;
+        }, null, {resourceType: 'OperationOutcome'}],
+        // Multi-server validateVS first locates the value set (a search), then
+        // validates against the holding server; the preferred server (ts-b) is
+        // tried first for both requests.
+        [/^https:\/\/ts-b\.example\/ValueSet\?url=/, {
+          resourceType: 'Bundle',
+          entry: [{resource: administrativeGenderVS}]
+        }],
+        [/^https:\/\/ts-b\.example\/ValueSet\/\$validate-code/, {
+          resourceType: 'Parameters',
+          parameter: [{name: 'result', valueBoolean: true}]
+        }]
+      ]);
+
+      const options = { async: true,
+        terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'] };
+
+      fhirpath.evaluate(
+        emptyResource,
+        `%terminologies.expand('${vsUrl}') is ValueSet`,
+        {}, modelR4, options
+      ).then((r1) => {
+        expect(r1).toEqual([true]);
+        return fhirpath.evaluate(
+          observationResource,
+          `%terminologies.validateVS('${vsUrl}', Observation.code.coding[0])`
+          + '.parameter.value',
+          {}, modelR4, options
+        );
+      }).then((r2) => {
+        expect(r2).toEqual([true]);
+        // The preferred server (ts-b) was tried first for both the locate
+        // search and the validate-code, so the first server was never queried.
+        expect(serverACalls).toBe(0);
+        done();
+      }, done);
+    });
+
+
+    it('works with a single terminology server URL passed as a string',
+      (done) => {
+        mockFetchResults([
+          ['https://ts-single.example/ValueSet/$expand', administrativeGenderVS]
+        ]);
+
+        const result = fhirpath.evaluate(
+          emptyResource,
+          "%terminologies.expand('http://example.org/vs/single') is ValueSet",
+          {},
+          modelR4,
+          { async: true, terminologyUrl: 'https://ts-single.example' }
+        );
+        expect(result instanceof Promise).toBe(true);
+        result.then((r) => {
+          expect(r).toEqual([true]);
+          done();
+        }, done);
+      });
+
+
+    it('returns an empty result when all servers fail', (done) => {
+      mockFetchResults([
+        ['https://ts-a.example/ValueSet/$expand', null,
+          {resourceType: 'OperationOutcome'}],
+        ['https://ts-b.example/ValueSet/$expand', null,
+          {resourceType: 'OperationOutcome'}]
+      ]);
+
+      const result = fhirpath.evaluate(
+        emptyResource,
+        "%terminologies.expand('http://example.org/vs/none')",
+        {},
+        modelR4,
+        { async: true,
+          terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'] }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([]);
+        done();
+      }, done);
+    });
+
+
+    it('applies each server\'s own headers to that server\'s requests',
+      (done) => {
+        let authSentToA, authSentToB;
+        mockFetchResults([
+          // The first server fails, forcing a fallback to the second one.
+          [{
+            url: /^https:\/\/ts-a\.example\/ValueSet\/\$expand/,
+            headers: (h) => {
+              authSentToA = h?.get('Authorization');
+              return true;
+            }
+          }, null, {resourceType: 'OperationOutcome'}],
+          [{
+            url: /^https:\/\/ts-b\.example\/ValueSet\/\$expand/,
+            headers: (h) => {
+              authSentToB = h?.get('Authorization');
+              return true;
+            }
+          }, administrativeGenderVS]
+        ]);
+
+        const result = fhirpath.evaluate(
+          emptyResource,
+          "%terminologies.expand('http://example.org/vs/headers') is ValueSet",
+          {},
+          modelR4,
+          {
+            async: true,
+            terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'],
+            httpHeaders: {
+              'https://ts-a.example': {Authorization: 'auth-a'},
+              'https://ts-b.example': {Authorization: 'auth-b'}
+            }
+          }
+        );
+        result.then((r) => {
+          expect(r).toEqual([true]);
+          // Each server must receive only its own Authorization header; with
+          // multiple servers, one server's credentials must not leak to another.
+          expect(authSentToA).toBe('auth-a');
+          expect(authSentToB).toBe('auth-b');
+          done();
+        }, done);
+      });
+
+
+    it('falls back to the next server for lookup', (done) => {
+      mockFetchResults([
+        // The first server returns a non-Parameters response, so the request
+        // falls through to the second server.
+        ['https://ts-a.example/CodeSystem/$lookup',
+          {resourceType: 'OperationOutcome'}],
+        ['https://ts-b.example/CodeSystem/$lookup', {
+          resourceType: 'Parameters',
+          parameter: [{name: 'display', valueString: 'Body weight'}]
+        }]
+      ]);
+
+      const result = fhirpath.evaluate(
+        observationResource,
+        '%terminologies.lookup(Observation.code.coding[0]).parameter.value',
+        {},
+        modelR4,
+        { async: true,
+          terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'] }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual(['Body weight']);
+        done();
+      }, done);
+    });
+
+
+    it('falls back when validateVS fails after discovery', async () => {
+      const valueSetUrl = 'http://example.org/ValueSet/operation-fallback';
+      const valueSet = {
+        ...administrativeGenderVS,
+        url: valueSetUrl
+      };
+      mockFetchResults([
+        [/^https:\/\/ts-a\.example\/ValueSet\?url=/, {
+          resourceType: 'Bundle',
+          entry: [{resource: valueSet}]
+        }],
+        [/^https:\/\/ts-a\.example\/ValueSet\/\$validate-code/, null,
+          {resourceType: 'OperationOutcome'}],
+        [/^https:\/\/ts-b\.example\/ValueSet\?url=/, {
+          resourceType: 'Bundle',
+          entry: [{resource: valueSet}]
+        }],
+        [/^https:\/\/ts-b\.example\/ValueSet\/\$validate-code/, {
+          resourceType: 'Parameters',
+          parameter: [{name: 'result', valueBoolean: true}]
+        }]
+      ]);
+
+      await expect(fhirpath.evaluate(
+        observationResource,
+        `%terminologies.validateVS('${valueSetUrl}', `
+        + 'Observation.code.coding[0]).parameter.value',
+        {},
+        modelR4,
+        {async: true,
+          terminologyUrl: ['https://ts-a.example', 'https://ts-b.example']}
+      )).resolves.toEqual([true]);
+    });
+
+
+    it('falls back to the next server for validateCS', (done) => {
+      const codeSystemUrl =
+        'http://hl7.org/fhir/administrative-gender';
+      const codeSystem = {
+        resourceType: 'CodeSystem',
+        url: codeSystemUrl
+      };
+      mockFetchResults([
+        // Both servers have the code system, but the operation fails on the
+        // first, so discovery and validation fall through together.
+        [/^https:\/\/ts-a\.example\/CodeSystem\?url=/, {
+          resourceType: 'Bundle',
+          entry: [{resource: codeSystem}]
+        }],
+        [/^https:\/\/ts-a\.example\/CodeSystem\/\$validate-code/, null,
+          {resourceType: 'OperationOutcome'}],
+        [/^https:\/\/ts-b\.example\/CodeSystem\?url=/, {
+          resourceType: 'Bundle',
+          entry: [{resource: codeSystem}]
+        }],
+        [/^https:\/\/ts-b\.example\/CodeSystem\/\$validate-code/, {
+          resourceType: 'Parameters',
+          parameter: [{name: 'result', valueBoolean: true}]
+        }]
+      ]);
+
+      const result = fhirpath.evaluate(
+        emptyResource,
+        `%terminologies.validateCS('${codeSystemUrl}', 'Male')`
+        + '.parameter.value',
+        {},
+        modelR4,
+        { async: true,
+          terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'] }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([true]);
+        done();
+      }, done);
+    });
+
+
+    it('falls back to the next server for subsumes', (done) => {
+      mockFetchResults([
+        ['https://ts-a.example/CodeSystem/$subsumes',
+          {resourceType: 'OperationOutcome'}],
+        ['https://ts-b.example/CodeSystem/$subsumes', {
+          resourceType: 'Parameters',
+          parameter: [{name: 'outcome', valueCode: 'subsumed-by'}]
+        }]
+      ]);
+
+      const result = fhirpath.evaluate(
+        observationResource,
+        "%terminologies.subsumes('http://snomed.info/sct', '3738000', "
+        + "'235856003').where($this is FHIR.code) = 'subsumed-by'",
+        {},
+        modelR4,
+        { async: true,
+          terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'] }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([true]);
+        done();
+      }, done);
+    });
+
+
+    it('falls back to the next server for translate', (done) => {
+      const conceptMapUrl =
+        'http://hl7.org/fhir/ConceptMap/example';
+      const conceptMap = {
+        resourceType: 'ConceptMap',
+        url: conceptMapUrl
+      };
+      mockFetchResults([
+        // Both servers have the concept map, but the operation fails on the
+        // first, so discovery and translation fall through together.
+        [/^https:\/\/ts-a\.example\/ConceptMap\?url=/, {
+          resourceType: 'Bundle',
+          entry: [{resource: conceptMap}]
+        }],
+        [/^https:\/\/ts-a\.example\/ConceptMap\/\$translate/, null,
+          {resourceType: 'OperationOutcome'}],
+        [/^https:\/\/ts-b\.example\/ConceptMap\?url=/, {
+          resourceType: 'Bundle',
+          entry: [{resource: conceptMap}]
+        }],
+        [/^https:\/\/ts-b\.example\/ConceptMap\/\$translate/, {
+          resourceType: 'Parameters',
+          parameter: [{name: 'result', valueBoolean: true}]
+        }]
+      ]);
+
+      const result = fhirpath.evaluate(
+        observationResource,
+        `%terminologies.translate('${conceptMapUrl}', `
+        + 'Observation.code.coding[0]).parameter.value',
+        {},
+        modelR4,
+        { async: true,
+          terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'] }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([true]);
+        done();
+      }, done);
+    });
+
+
+    it('uses an explicit ValueSet version for discovery and preference',
+      async () => {
+        const valueSetUrl = 'http://example.org/ValueSet/version-override';
+        const system = 'http://example.org/CodeSystem/effective';
+        const matchesSearch = (requestUrl, origin) => {
+          const parsed = new URL(requestUrl);
+          return parsed.origin === origin &&
+            parsed.pathname === '/ValueSet' &&
+            parsed.searchParams.get('url') === valueSetUrl &&
+            parsed.searchParams.get('version') === 'effective';
+        };
+        mockFetchResults([
+          [{
+            url: url => matchesSearch(url, 'https://ts-a.example'),
+            method: 'GET'
+          }, {resourceType: 'Bundle'}],
+          [{
+            url: url => matchesSearch(url, 'https://ts-b.example'),
+            method: 'GET'
+          }, {
+            resourceType: 'Bundle',
+            entry: [{resource: {
+              resourceType: 'ValueSet',
+              url: valueSetUrl,
+              version: 'effective',
+              compose: {include: [{system}]}
+            }}]
+          }],
+          [{
+            url: url => {
+              const parsed = new URL(url);
+              return parsed.origin === 'https://ts-b.example' &&
+                parsed.pathname === '/ValueSet/$validate-code' &&
+                parsed.searchParams.get('url') === valueSetUrl &&
+                parsed.searchParams.getAll('valueSetVersion')
+                  .toString() === 'effective' &&
+                parsed.searchParams.get('system') === system &&
+                parsed.searchParams.get('code') === 'male';
+            },
+            method: 'GET'
+          }, {
+            resourceType: 'Parameters',
+            parameter: [{name: 'result', valueBoolean: true}]
+          }]
+        ]);
+
+        await expect(fhirpath.evaluate(
+          emptyResource,
+          `%terminologies.validateVS('${valueSetUrl}|canonical', 'male', `
+          + "'valueSetVersion=effective').parameter.value",
+          {},
+          modelR4,
+          {async: true,
+            terminologyUrl: ['https://ts-a.example', 'https://ts-b.example']}
+        )).resolves.toEqual([true]);
+
+        const effectiveKey = Terminologies.preferredServerKey(
+          'ValueSet', valueSetUrl + '|effective'
+        );
+        const canonicalKey = Terminologies.preferredServerKey(
+          'ValueSet', valueSetUrl + '|canonical'
+        );
+        expect(Terminologies._getPreferredServer(
+          effectiveKey, ['https://ts-a.example', 'https://ts-b.example']
+        ))
+          .toBe('https://ts-b.example');
+        expect(Terminologies._getPreferredServer(
+          canonicalKey, ['https://ts-a.example', 'https://ts-b.example']
+        ))
+          .toBeUndefined();
+      });
+
+
+    it('uses an explicit CodeSystem version for discovery and preference',
+      async () => {
+        const codeSystemUrl =
+          'http://example.org/CodeSystem/version-override';
+        const matchesSearch = (requestUrl, origin) => {
+          const parsed = new URL(requestUrl);
+          return parsed.origin === origin &&
+            parsed.pathname === '/CodeSystem' &&
+            parsed.searchParams.get('url') === codeSystemUrl &&
+            parsed.searchParams.get('version') === 'effective';
+        };
+        mockFetchResults([
+          [{
+            url: url => matchesSearch(url, 'https://ts-a.example'),
+            method: 'GET'
+          }, {resourceType: 'Bundle'}],
+          [{
+            url: url => matchesSearch(url, 'https://ts-b.example'),
+            method: 'GET'
+          }, {
+            resourceType: 'Bundle',
+            entry: [{resource: {
+              resourceType: 'CodeSystem',
+              url: codeSystemUrl,
+              version: 'effective'
+            }}]
+          }],
+          [{
+            url: 'https://ts-b.example/CodeSystem/$validate-code',
+            method: 'POST',
+            body: body => {
+              const parameters = JSON.parse(body).parameter;
+              const versions =
+                parameters.filter(p => p.name === 'version');
+              return parameters.find(p => p.name === 'url')?.valueUri ===
+                  codeSystemUrl &&
+                versions.length === 1 &&
+                versions[0].valueString === 'effective';
+            }
+          }, {
+            resourceType: 'Parameters',
+            parameter: [{name: 'result', valueBoolean: true}]
+          }]
+        ]);
+
+        await expect(fhirpath.evaluate(
+          emptyResource,
+          `%terminologies.validateCS('${codeSystemUrl}|canonical', 'male', `
+          + "'version=effective').parameter.value",
+          {},
+          modelR4,
+          {async: true,
+            terminologyUrl: ['https://ts-a.example', 'https://ts-b.example']}
+        )).resolves.toEqual([true]);
+
+        const effectiveKey = Terminologies.preferredServerKey(
+          'CodeSystem', codeSystemUrl + '|effective'
+        );
+        const canonicalKey = Terminologies.preferredServerKey(
+          'CodeSystem', codeSystemUrl + '|canonical'
+        );
+        expect(Terminologies._getPreferredServer(
+          effectiveKey, ['https://ts-a.example', 'https://ts-b.example']
+        ))
+          .toBe('https://ts-b.example');
+        expect(Terminologies._getPreferredServer(
+          canonicalKey, ['https://ts-a.example', 'https://ts-b.example']
+        ))
+          .toBeUndefined();
+      });
+
+
+    it('uses an explicit ConceptMap version for discovery and preference',
+      async () => {
+        const conceptMapUrl = 'http://example.org/ConceptMap/version-override';
+        const matchesSearch = (requestUrl, origin) => {
+          const parsed = new URL(requestUrl);
+          return parsed.origin === origin &&
+            parsed.pathname === '/ConceptMap' &&
+            parsed.searchParams.get('url') === conceptMapUrl &&
+            parsed.searchParams.get('version') === 'effective';
+        };
+        mockFetchResults([
+          [{
+            url: url => matchesSearch(url, 'https://ts-a.example'),
+            method: 'GET'
+          }, {resourceType: 'Bundle'}],
+          [{
+            url: url => matchesSearch(url, 'https://ts-b.example'),
+            method: 'GET'
+          }, {
+            resourceType: 'Bundle',
+            entry: [{resource: {
+              resourceType: 'ConceptMap',
+              url: conceptMapUrl,
+              version: 'effective'
+            }}]
+          }],
+          [{
+            url: 'https://ts-b.example/ConceptMap/$translate',
+            method: 'POST',
+            body: body => {
+              const parameters = JSON.parse(body).parameter;
+              const versions =
+                parameters.filter(p => p.name === 'conceptMapVersion');
+              return parameters.find(p => p.name === 'url')?.valueUri ===
+                  conceptMapUrl &&
+                versions.length === 1 &&
+                versions[0].valueString === 'effective';
+            }
+          }, {
+            resourceType: 'Parameters',
+            parameter: [{name: 'result', valueBoolean: true}]
+          }]
+        ]);
+
+        await expect(fhirpath.evaluate(
+          emptyResource,
+          `%terminologies.translate('${conceptMapUrl}|canonical', `
+          + "'preliminary', 'conceptMapVersion=effective').parameter.value",
+          {},
+          modelR4,
+          {async: true,
+            terminologyUrl: ['https://ts-a.example', 'https://ts-b.example']}
+        )).resolves.toEqual([true]);
+
+        const effectiveKey = Terminologies.preferredServerKey(
+          'ConceptMap', conceptMapUrl + '|effective'
+        );
+        const canonicalKey = Terminologies.preferredServerKey(
+          'ConceptMap', conceptMapUrl + '|canonical'
+        );
+        expect(Terminologies._getPreferredServer(
+          effectiveKey, ['https://ts-a.example', 'https://ts-b.example']
+        ))
+          .toBe('https://ts-b.example');
+        expect(Terminologies._getPreferredServer(
+          canonicalKey, ['https://ts-a.example', 'https://ts-b.example']
+        ))
+          .toBeUndefined();
+      });
+
+
+    it('splits a versioned canonical, searching by url and version separately',
+      (done) => {
+        mockFetchResults([
+          // The locate search must split "|2.0.0" into a separate "version"
+          // search parameter (url first, then version); ts-a lacks this version.
+          ['https://ts-a.example/ValueSet?url=http%3A%2F%2Fexample.org%2Fvs%2F'
+            + 'ver&version=2.0.0', {resourceType: 'Bundle'}],
+          ['https://ts-b.example/ValueSet?url=http%3A%2F%2Fexample.org%2Fvs%2F'
+            + 'ver&version=2.0.0', {
+            resourceType: 'Bundle',
+            entry: [{resource: administrativeGenderVS}]
+          }],
+          [{
+            url: url => {
+              const parsed = new URL(url);
+              return parsed.origin === 'https://ts-b.example' &&
+                parsed.pathname === '/ValueSet/$validate-code' &&
+                parsed.searchParams.get('url') ===
+                  'http://example.org/vs/ver' &&
+                parsed.searchParams.get('valueSetVersion') === '2.0.0' &&
+                parsed.searchParams.get('system') === 'http://loinc.org' &&
+                parsed.searchParams.get('code') === '29463-7';
+            },
+            method: 'GET'
+          }, {
+            resourceType: 'Parameters',
+            parameter: [{name: 'result', valueBoolean: true}]
+          }]
+        ]);
+
+        const result = fhirpath.evaluate(
+          observationResource,
+          "%terminologies.validateVS('http://example.org/vs/ver|2.0.0', "
+          + 'Observation.code.coding[0]).parameter.value',
+          {},
+          modelR4,
+          { async: true,
+            terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'] }
+        );
+        expect(result instanceof Promise).toBe(true);
+        result.then((r) => {
+          expect(r).toEqual([true]);
+          done();
+        }, done);
+      });
+
+
+    it('splits a versioned non-http(s) canonical (urn:oid), searching by url '
+      + 'and version separately',
+      (done) => {
+        mockFetchResults([
+          // The locate search must split "|2.0.0" off the "urn:oid:..."
+          // canonical into a separate "version" search parameter (url first,
+          // then version); ts-a lacks this version.
+          ['https://ts-a.example/ValueSet?url=urn%3Aoid%3A2.16.840.1.113883'
+            + '&version=2.0.0', {resourceType: 'Bundle'}],
+          ['https://ts-b.example/ValueSet?url=urn%3Aoid%3A2.16.840.1.113883'
+            + '&version=2.0.0', {
+            resourceType: 'Bundle',
+            entry: [{resource: administrativeGenderVS}]
+          }],
+          [{
+            url: url => {
+              const parsed = new URL(url);
+              return parsed.origin === 'https://ts-b.example' &&
+                parsed.pathname === '/ValueSet/$validate-code' &&
+                parsed.searchParams.get('url') ===
+                  'urn:oid:2.16.840.1.113883' &&
+                parsed.searchParams.get('valueSetVersion') === '2.0.0' &&
+                parsed.searchParams.get('system') === 'http://loinc.org' &&
+                parsed.searchParams.get('code') === '29463-7';
+            },
+            method: 'GET'
+          }, {
+            resourceType: 'Parameters',
+            parameter: [{name: 'result', valueBoolean: true}]
+          }]
+        ]);
+
+        const result = fhirpath.evaluate(
+          observationResource,
+          "%terminologies.validateVS('urn:oid:2.16.840.1.113883|2.0.0', "
+          + 'Observation.code.coding[0]).parameter.value',
+          {},
+          modelR4,
+          { async: true,
+            terminologyUrl: ['https://ts-a.example', 'https://ts-b.example'] }
+        );
+        expect(result instanceof Promise).toBe(true);
+        result.then((r) => {
+          expect(r).toEqual([true]);
+          done();
+        }, done);
+      });
+
+  })
+
+
+  describe('preferred terminology server cache (LRU)', () => {
+
+    it('evicts the least-recently-used entry beyond the max size and keeps '
+      + 'recently-used entries', () => {
+      Terminologies._clearPreferredServers();
+      const max = Terminologies._preferredServerCacheMaxSize;
+      for (let i = 0; i < max; i++) {
+        Terminologies._rememberPreferredServer('ValueSet|vs-' + i, 'srv-' + i);
+      }
+      expect(Terminologies._preferredServerCacheSize()).toBe(max);
+
+      // Touch the oldest entry so it becomes most-recently-used and survives
+      // the next eviction.
+      expect(Terminologies._getPreferredServer('ValueSet|vs-0')).toBe('srv-0');
+
+      // Inserting one more entry evicts the current least-recently-used entry,
+      // which is now "vs-1" ("vs-0" was just touched above).
+      Terminologies._rememberPreferredServer(
+        'ValueSet|vs-' + max, 'srv-' + max);
+
+      expect(Terminologies._preferredServerCacheSize()).toBe(max);
+      expect(Terminologies._getPreferredServer('ValueSet|vs-1'))
+        .toBeUndefined();
+      expect(Terminologies._getPreferredServer('ValueSet|vs-0')).toBe('srv-0');
+      expect(Terminologies._getPreferredServer('ValueSet|vs-' + max))
+        .toBe('srv-' + max);
+    });
+
+
+    it('does not share preferences across HTTP header contexts', async () => {
+      const urls = ['https://ts-a.example', 'https://ts-b.example'];
+      const term = new Terminologies(urls);
+      const key = Terminologies.preferredServerKey(
+        'ValueSet', 'http://example.org/vs/tenant'
+      );
+      const tenantOneHeaders = {
+        [urls[0]]: {Authorization: 'Bearer tenant-one'},
+        [urls[1]]: {Authorization: 'Bearer tenant-one'}
+      };
+      const tenantTwoHeaders = {
+        [urls[0]]: {Authorization: 'Bearer tenant-two'},
+        [urls[1]]: {Authorization: 'Bearer tenant-two'}
+      };
+
+      await term.fetchFromServers(
+        {httpHeaders: tenantOneHeaders}, key, 'ValueSet',
+        baseUrl => baseUrl === urls[1]
+          ? {resourceType: 'ValueSet'}
+          : {resourceType: 'OperationOutcome'}
+      );
+
+      const attempts = [];
+      await term.fetchFromServers(
+        {httpHeaders: tenantTwoHeaders}, key, 'ValueSet',
+        baseUrl => {
+          attempts.push(baseUrl);
+          return {resourceType: 'ValueSet'};
+        }
+      );
+
+      expect(attempts).toEqual([urls[0]]);
+    });
+
+
+    it('shares preferences for equivalently normalized headers', async () => {
+      const urls = ['https://ts-a.example', 'https://ts-b.example'];
+      const term = new Terminologies(urls);
+      const key = Terminologies.preferredServerKey(
+        'ValueSet', 'http://example.org/vs/normalized-headers'
+      );
+      const firstHeaders = {
+        [urls[1]]: {
+          'X-Tenant': 'tenant',
+          Authorization: 'Bearer token'
+        },
+        [urls[0]]: {
+          Authorization: 'Bearer token',
+          'X-Tenant': 'tenant'
+        }
+      };
+      const equivalentHeaders = {
+        [urls[0]]: {
+          'x-tenant': 'tenant',
+          authorization: 'Bearer token'
+        },
+        [urls[1]]: {
+          authorization: 'Bearer token',
+          'x-tenant': 'tenant'
+        }
+      };
+
+      await term.fetchFromServers(
+        {httpHeaders: firstHeaders}, key, 'ValueSet',
+        baseUrl => baseUrl === urls[1]
+          ? {resourceType: 'ValueSet'}
+          : {resourceType: 'OperationOutcome'}
+      );
+
+      const attempts = [];
+      await term.fetchFromServers(
+        {httpHeaders: equivalentHeaders}, key, 'ValueSet',
+        baseUrl => {
+          attempts.push(baseUrl);
+          return {resourceType: 'ValueSet'};
+        }
+      );
+
+      expect(attempts).toEqual([urls[1]]);
+    });
+
+
+    it('does not share preferences across server configurations', async () => {
+      const firstUrls = ['https://ts-a.example', 'https://ts-b.example'];
+      const secondUrls = [...firstUrls, 'https://ts-c.example'];
+      const key = Terminologies.preferredServerKey(
+        'ValueSet', 'http://example.org/vs/server-configuration'
+      );
+
+      await new Terminologies(firstUrls).fetchFromServers(
+        {}, key, 'ValueSet',
+        baseUrl => baseUrl === firstUrls[1]
+          ? {resourceType: 'ValueSet'}
+          : {resourceType: 'OperationOutcome'}
+      );
+
+      const attempts = [];
+      await new Terminologies(secondUrls).fetchFromServers(
+        {}, key, 'ValueSet',
+        baseUrl => {
+          attempts.push(baseUrl);
+          return {resourceType: 'ValueSet'};
+        }
+      );
+
+      expect(attempts).toEqual([secondUrls[0]]);
+    });
+
+  })
+
+
+  describe('fetchFromServers cancellation', () => {
+
+    it('does not fall through to a restored fetch during mock teardown',
+      async () => {
+        const urls = ['https://ts-a.example', 'https://ts-b.example'];
+        const term = new Terminologies(urls);
+        const key = Terminologies.preferredServerKey(
+          'ValueSet', 'http://example.org/ValueSet/delayed'
+        );
+        mockFetchResults([
+          ['https://ts-a.example/ValueSet/$expand', {
+            resourceType: 'ValueSet'
+          }]
+        ], {timeout: 1000});
+
+        const request = term.fetchFromServers(
+          {}, key, 'ValueSet',
+          baseUrl => util.fetchWithCache(
+            `${baseUrl}/ValueSet/$expand`, {}
+          )
+        );
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+
+        mockRestore();
+        const replacementFetch = jest.spyOn(global, 'fetch')
+          .mockRejectedValue(new Error('replacement fetch was called'));
+        try {
+          await expect(request).rejects.toHaveProperty('name', 'AbortError');
+          expect(replacementFetch).not.toHaveBeenCalled();
+          expect(Terminologies._getPreferredServer(key, urls)).toBeUndefined();
+        } finally {
+          replacementFetch.mockRestore();
+        }
+      });
+
+
+    it('re-throws an AbortError from a server without trying the next one',
+      async () => {
+        const term = new Terminologies(
+          ['https://ts-a.example', 'https://ts-b.example']);
+        let secondServerCalled = false;
+        // ctx has no signal, so detection relies on the AbortError name alone.
+        const buildRequest = (baseUrl) => {
+          if (baseUrl === 'https://ts-a.example') {
+            return Promise.reject(new DOMException('Aborted', 'AbortError'));
+          }
+          secondServerCalled = true;
+          return Promise.resolve({resourceType: 'Parameters'});
+        };
+
+        await expect(
+          term.fetchFromServers({}, null, 'Parameters', buildRequest)
+        ).rejects.toHaveProperty('name', 'AbortError');
+        // Cancellation must not fall through to the remaining server.
+        expect(secondServerCalled).toBe(false);
+      });
+
+
+    it('stops after a rejection when ctx.signal is already aborted, '
+      + 'rejecting with an AbortError', async () => {
+      const term = new Terminologies(
+        ['https://ts-a.example', 'https://ts-b.example']);
+      const abortController = new AbortController();
+      abortController.abort();
+      const ctx = {signal: abortController.signal};
+      let secondServerCalled = false;
+      const buildRequest = (baseUrl) => {
+        if (baseUrl === 'https://ts-a.example') {
+          // A generic rejection (not an AbortError) that coincides with an
+          // aborted signal must stop the fallback and surface as an AbortError.
+          return Promise.reject(new Error('network error'));
+        }
+        secondServerCalled = true;
+        return Promise.resolve({resourceType: 'Parameters'});
+      };
+
+      // The generic error is normalized to a standardized AbortError.
+      await expect(
+        term.fetchFromServers(ctx, null, 'Parameters', buildRequest)
+      ).rejects.toHaveProperty('name', 'AbortError');
+      expect(secondServerCalled).toBe(false);
+    });
+
+
+    it('stops after an unusable response when ctx.signal is already aborted',
+      async () => {
+        const term = new Terminologies(
+          ['https://ts-a.example', 'https://ts-b.example']);
+        const abortController = new AbortController();
+        abortController.abort();
+        const ctx = {signal: abortController.signal};
+        let secondServerCalled = false;
+        const buildRequest = (baseUrl) => {
+          if (baseUrl === 'https://ts-a.example') {
+            // Resolves successfully but is not an accepted "Parameters"
+            // response, which normally triggers a fallback to the next server.
+            return Promise.resolve({resourceType: 'OperationOutcome'});
+          }
+          secondServerCalled = true;
+          return Promise.resolve({resourceType: 'Parameters'});
+        };
+
+        await expect(
+          term.fetchFromServers(ctx, null, 'Parameters', buildRequest)
+        ).rejects.toHaveProperty('name', 'AbortError');
+        expect(secondServerCalled).toBe(false);
+      });
+
+
+    it('still falls back to the next server for a non-cancellation rejection',
+      async () => {
+        const term = new Terminologies(
+          ['https://ts-a.example', 'https://ts-b.example']);
+        let secondServerCalled = false;
+        const buildRequest = (baseUrl) => {
+          if (baseUrl === 'https://ts-a.example') {
+            return Promise.reject(new Error('network error'));
+          }
+          secondServerCalled = true;
+          return Promise.resolve({resourceType: 'Parameters'});
+        };
+
+        const result = await term.fetchFromServers(
+          {}, null, 'Parameters', buildRequest);
+        // Without cancellation, a plain failure still tries the next server.
+        expect(secondServerCalled).toBe(true);
+        expect(result).toEqual({resourceType: 'Parameters'});
+      });
+
+
+    it('falls back after a terminology request exceeds its pending lifetime',
+      async () => {
+        jest.useFakeTimers();
+        let firstSignal;
+        const fetchMock = jest.spyOn(global, 'fetch')
+          .mockImplementationOnce((url, options) => {
+            firstSignal = options.signal;
+            return new Promise(() => {});
+          })
+          .mockResolvedValueOnce({
+            ok: true,
+            headers: {get: () => 'application/fhir+json'},
+            json: () => Promise.resolve({resourceType: 'Parameters'})
+          });
+        const term = new Terminologies(
+          ['https://ts-a.example', 'https://ts-b.example']);
+
+        try {
+          const request = term.fetchFromServers(
+            {}, null, 'Parameters',
+            baseUrl => util.fetchWithCache(
+              `${baseUrl}/Parameters`, {}
+            )
+          );
+          expect(fetchMock).toHaveBeenCalledTimes(1);
+
+          await jest.advanceTimersByTimeAsync(3600000);
+
+          await expect(request).resolves.toEqual({
+            resourceType: 'Parameters'
+          });
+          expect(firstSignal.aborted).toBe(true);
+          expect(fetchMock).toHaveBeenCalledTimes(2);
+        } finally {
+          util._clearRequestCache();
+          fetchMock.mockRestore();
+          jest.useRealTimers();
+        }
+      });
+
+  })
+
+
+  describe('fetchWithCache shared cancellation', () => {
+
+    it('dispatches immediately and evicts a synchronous fetch failure',
+      async () => {
+        let dispatched = false;
+        const fetchMock = jest.spyOn(global, 'fetch')
+          .mockImplementationOnce(() => {
+            dispatched = true;
+            throw new Error('synchronous failure');
+          })
+          .mockResolvedValueOnce({
+            ok: true,
+            headers: {get: () => 'application/fhir+json'},
+            json: () => Promise.resolve({resourceType: 'ValueSet'})
+          });
+
+        try {
+          const first = util.fetchWithCache(
+            'https://sync-failure.example/ValueSet', {}
+          );
+          expect(dispatched).toBe(true);
+          await expect(first).rejects.toThrow('synchronous failure');
+
+          await expect(util.fetchWithCache(
+            'https://sync-failure.example/ValueSet', {}
+          )).resolves.toEqual({resourceType: 'ValueSet'});
+          expect(fetchMock).toHaveBeenCalledTimes(2);
+        } finally {
+          util._clearRequestCache();
+          fetchMock.mockRestore();
+        }
+      });
+
+
+    it('rejects only the cancelled consumer and resolves the other consumer',
+      async () => {
+        let resolveFetch;
+        let underlyingSignal;
+        const fetchMock = jest.spyOn(global, 'fetch').mockImplementation(
+          (url, options) => {
+            underlyingSignal = options.signal;
+            return new Promise((resolve, reject) => {
+              resolveFetch = () => resolve({
+                ok: true,
+                headers: {get: () => 'application/fhir+json'},
+                json: () => Promise.resolve({resourceType: 'ValueSet'})
+              });
+              options.signal.addEventListener(
+                'abort',
+                () => reject(new DOMException('Aborted', 'AbortError')),
+                {once: true}
+              );
+            });
+          }
+        );
+        const firstController = new AbortController();
+        const secondController = new AbortController();
+
+        try {
+          const first = util.fetchWithCache(
+            'https://shared.example/ValueSet',
+            {signal: firstController.signal}
+          );
+          const second = util.fetchWithCache(
+            'https://shared.example/ValueSet',
+            {signal: secondController.signal}
+          );
+          await Promise.resolve();
+
+          const firstRejection = expect(first).rejects.toHaveProperty(
+            'name', 'AbortError');
+          firstController.abort();
+
+          await firstRejection;
+          expect(fetchMock).toHaveBeenCalledTimes(1);
+          expect(underlyingSignal.aborted).toBe(false);
+
+          resolveFetch();
+          await expect(second).resolves.toEqual({
+            resourceType: 'ValueSet'
+          });
+        } finally {
+          fetchMock.mockRestore();
+        }
+      });
+
+
+    it('aborts the shared request only after every consumer cancels',
+      async () => {
+        let underlyingSignal;
+        const fetchMock = jest.spyOn(global, 'fetch').mockImplementation(
+          (url, options) => {
+            underlyingSignal = options.signal;
+            return new Promise((resolve, reject) => {
+              options.signal.addEventListener(
+                'abort',
+                () => reject(new DOMException('Aborted', 'AbortError')),
+                {once: true}
+              );
+            });
+          }
+        );
+        const firstController = new AbortController();
+        const secondController = new AbortController();
+
+        try {
+          const first = util.fetchWithCache(
+            'https://all-cancel.example/ValueSet',
+            {signal: firstController.signal}
+          );
+          const second = util.fetchWithCache(
+            'https://all-cancel.example/ValueSet',
+            {signal: secondController.signal}
+          );
+          await Promise.resolve();
+
+          const firstRejection = expect(first).rejects.toHaveProperty(
+            'name', 'AbortError');
+          firstController.abort();
+          await firstRejection;
+          expect(underlyingSignal.aborted).toBe(false);
+
+          const secondRejection = expect(second).rejects.toHaveProperty(
+            'name', 'AbortError');
+          secondController.abort();
+          await secondRejection;
+          expect(underlyingSignal.aborted).toBe(true);
+          expect(fetchMock).toHaveBeenCalledTimes(1);
+        } finally {
+          fetchMock.mockRestore();
+        }
+      });
+
+
+    it('times out all consumers, evicts the request, and allows a retry',
+      async () => {
+        jest.useFakeTimers();
+        let resolveLateBody;
+        let underlyingSignal;
+        const fetchMock = jest.spyOn(global, 'fetch')
+          .mockImplementationOnce((url, options) => {
+            underlyingSignal = options.signal;
+            return Promise.resolve({
+              ok: true,
+              headers: {get: () => 'application/fhir+json'},
+              json: () => new Promise((resolve) => {
+                resolveLateBody = resolve;
+              })
+            });
+          })
+          .mockResolvedValueOnce({
+            ok: true,
+            headers: {get: () => 'application/fhir+json'},
+            json: () => Promise.resolve({
+              resourceType: 'ValueSet',
+              id: 'replacement'
+            })
+          });
+
+        try {
+          const first = util.fetchWithCache(
+            'https://pending.example/ValueSet', {}
+          );
+          const second = util.fetchWithCache(
+            'https://pending.example/ValueSet', {}
+          );
+          const firstRejection = expect(first).rejects.toHaveProperty(
+            'name', 'TimeoutError');
+          const secondRejection = expect(second).rejects.toHaveProperty(
+            'name', 'TimeoutError');
+
+          expect(fetchMock).toHaveBeenCalledTimes(1);
+          await jest.advanceTimersByTimeAsync(3600000);
+
+          await Promise.all([firstRejection, secondRejection]);
+          expect(underlyingSignal.aborted).toBe(true);
+
+          await expect(util.fetchWithCache(
+            'https://pending.example/ValueSet', {}
+          )).resolves.toEqual({
+            resourceType: 'ValueSet',
+            id: 'replacement'
+          });
+          expect(fetchMock).toHaveBeenCalledTimes(2);
+
+          // A response body that finishes after timeout must not displace the
+          // replacement entry.
+          resolveLateBody({
+            resourceType: 'ValueSet',
+            id: 'late'
+          });
+          await Promise.resolve();
+          await expect(util.fetchWithCache(
+            'https://pending.example/ValueSet', {}
+          )).resolves.toEqual({
+            resourceType: 'ValueSet',
+            id: 'replacement'
+          });
+          expect(fetchMock).toHaveBeenCalledTimes(2);
+        } finally {
+          util._clearRequestCache();
+          fetchMock.mockRestore();
+          jest.useRealTimers();
+        }
+      });
+
+
+    it('clears the pending timer when a request succeeds before the deadline',
+      async () => {
+        jest.useFakeTimers();
+        let resolveFetch;
+        let underlyingSignal;
+        const fetchMock = jest.spyOn(global, 'fetch').mockImplementation(
+          (url, options) => {
+            underlyingSignal = options.signal;
+            return new Promise((resolve) => {
+              resolveFetch = resolve;
+            });
+          }
+        );
+
+        try {
+          const request = util.fetchWithCache(
+            'https://before-timeout.example/ValueSet', {}
+          );
+
+          await jest.advanceTimersByTimeAsync(3599999);
+          resolveFetch({
+            ok: true,
+            headers: {get: () => 'application/fhir+json'},
+            json: () => Promise.resolve({resourceType: 'ValueSet'})
+          });
+          await expect(request).resolves.toEqual({
+            resourceType: 'ValueSet'
+          });
+
+          expect(jest.getTimerCount()).toBe(0);
+          await jest.advanceTimersByTimeAsync(3600000);
+          expect(underlyingSignal.aborted).toBe(false);
+        } finally {
+          util._clearRequestCache();
+          fetchMock.mockRestore();
+          jest.useRealTimers();
+        }
+      });
+
+
+    it('times out and retries when AbortController is unavailable',
+      async () => {
+        jest.useFakeTimers();
+        const savedAbortController = global.AbortController;
+        global.AbortController = undefined;
+        const fetchMock = jest.spyOn(global, 'fetch')
+          .mockImplementationOnce((url, options) => {
+            expect(options.signal).toBeUndefined();
+            return new Promise(() => {});
+          })
+          .mockResolvedValueOnce({
+            ok: true,
+            headers: {get: () => 'application/fhir+json'},
+            json: () => Promise.resolve({
+              resourceType: 'ValueSet',
+              id: 'retry'
+            })
+          });
+
+        try {
+          const request = util.fetchWithCache(
+            'https://no-abort-controller.example/ValueSet', {}
+          );
+          const timeoutRejection = expect(request).rejects.toHaveProperty(
+            'name', 'TimeoutError');
+
+          await jest.advanceTimersByTimeAsync(3600000);
+          await timeoutRejection;
+          await expect(util.fetchWithCache(
+            'https://no-abort-controller.example/ValueSet', {}
+          )).resolves.toEqual({
+            resourceType: 'ValueSet',
+            id: 'retry'
+          });
+          expect(fetchMock).toHaveBeenCalledTimes(2);
+        } finally {
+          util._clearRequestCache();
+          fetchMock.mockRestore();
+          global.AbortController = savedAbortController;
+          jest.useRealTimers();
+        }
+      });
+
+
+    it('evicts and refetches a settled response older than one hour',
+      async () => {
+        let now = 0;
+        const nowSpy = jest.spyOn(Date, 'now')
+          .mockImplementation(() => now);
+        const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({
+          ok: true,
+          headers: {get: () => 'application/fhir+json'},
+          json: () => Promise.resolve({resourceType: 'ValueSet'})
+        });
+
+        try {
+          await expect(util.fetchWithCache(
+            'https://expired.example/ValueSet', {}
+          )).resolves.toEqual({resourceType: 'ValueSet'});
+
+          now = 3600001;
+          await expect(util.fetchWithCache(
+            'https://expired.example/ValueSet', {}
+          )).resolves.toEqual({resourceType: 'ValueSet'});
+          expect(fetchMock).toHaveBeenCalledTimes(2);
+        } finally {
+          util._clearRequestCache();
+          fetchMock.mockRestore();
+          nowSpy.mockRestore();
+        }
+      });
+
+
+    it('evicts a rejected shared request so a later consumer can retry',
+      async () => {
+        const fetchMock = jest.spyOn(global, 'fetch')
+          .mockRejectedValueOnce(new Error('temporary failure'))
+          .mockResolvedValueOnce({
+            ok: true,
+            headers: {get: () => 'application/fhir+json'},
+            json: () => Promise.resolve({resourceType: 'ValueSet'})
+          });
+
+        try {
+          await expect(util.fetchWithCache(
+            'https://retry.example/ValueSet', {}
+          )).rejects.toThrow('temporary failure');
+          await expect(util.fetchWithCache(
+            'https://retry.example/ValueSet', {}
+          )).resolves.toEqual({resourceType: 'ValueSet'});
+          expect(fetchMock).toHaveBeenCalledTimes(2);
+        } finally {
+          fetchMock.mockRestore();
+        }
+      });
+
+  })
+
+
+  describe('fetchWithCache HTTP header selection', () => {
+
+    it('applies the headers of the longest matching base URL regardless of '
+      + 'key order', (done) => {
+      let sentAuth;
+      mockFetchResults([
+        [{
+          url: 'https://x.example/fhir/ValueSet/$expand',
+          headers: (h) => {
+            sentAuth = h?.get('Authorization');
+            return true;
+          }
+        }, {resourceType: 'ValueSet'}]
+      ]);
+
+      // Keys are listed shortest-first; the longer, more specific base URL must
+      // win so header selection is independent of key order.
+      const ctx = {
+        httpHeaders: {
+          'https://x.example': {Authorization: 'short'},
+          'https://x.example/fhir': {Authorization: 'long'}
+        }
+      };
+      util.fetchWithCache(
+        'https://x.example/fhir/ValueSet/$expand', ctx
+      ).then(() => {
+        expect(sentAuth).toBe('long');
+        done();
+      }, done);
+    });
+
+
+    it('does not apply a base URL\'s headers when the match is not at a '
+      + 'path/query boundary', (done) => {
+      let sentAuth;
+      mockFetchResults([
+        [{
+          url: 'https://x.example/fhirELSE/ValueSet/$expand',
+          headers: (h) => {
+            sentAuth = h?.get('Authorization');
+            return true;
+          }
+        }, {resourceType: 'ValueSet'}]
+      ]);
+
+      // "https://x.example/fhir" is a string prefix of the request URL but not a
+      // path/query-boundary match, so its headers must not be applied.
+      const ctx = {
+        httpHeaders: {
+          'https://x.example/fhir': {Authorization: 'fhir'}
+        }
+      };
+      util.fetchWithCache(
+        'https://x.example/fhirELSE/ValueSet/$expand', ctx
+      ).then(() => {
+        expect(sentAuth).toBeNull();
+        done();
+      }, done);
+    });
+
   })
 
 
@@ -59,6 +1573,85 @@ describe('Async functions', () => {
         done();
       })
     });
+
+
+    it('splits a versioned canonical into url and valueSetVersion',
+      (done) => {
+        mockFetchResults([
+          [{
+            url: url => {
+              const parsed = new URL(url);
+              return parsed.pathname.endsWith('/ValueSet/$expand') &&
+                parsed.searchParams.get('url') === 'urn:oid:1.2.3' &&
+                parsed.searchParams.get('valueSetVersion') === '2026';
+            }
+          }, administrativeGenderVS]
+        ]);
+
+        const result = fhirpath.evaluate(
+          emptyResource,
+          "%terminologies.expand('urn:oid:1.2.3|2026') is ValueSet",
+          {},
+          modelR4,
+          {async: true, terminologyUrl: 'https://tx.example'}
+        );
+
+        result.then(r => {
+          expect(r).toEqual([true]);
+          done();
+        }, done);
+      });
+
+
+    it('prefers an explicit valueSetVersion without sending a duplicate',
+      (done) => {
+        mockFetchResults([
+          [{
+            url: url => {
+              const parsed = new URL(url);
+              const versions =
+                parsed.searchParams.getAll('valueSetVersion');
+              return parsed.searchParams.get('url') ===
+                  'http://example.org/vs' &&
+                versions.length === 1 && versions[0] === 'explicit';
+            }
+          }, administrativeGenderVS]
+        ]);
+
+        const result = fhirpath.evaluate(
+          emptyResource,
+          "%terminologies.expand('http://example.org/vs|canonical', "
+          + "'valueSetVersion=explicit') is ValueSet",
+          {},
+          modelR4,
+          {async: true,
+            terminologyUrl: [
+              'https://tx.example',
+              'https://unused.example'
+            ]}
+        );
+
+        result.then(r => {
+          expect(r).toEqual([true]);
+          const effectiveKey = Terminologies.preferredServerKey(
+            'ValueSet', 'http://example.org/vs|explicit'
+          );
+          const canonicalKey = Terminologies.preferredServerKey(
+            'ValueSet', 'http://example.org/vs|canonical'
+          );
+          expect(Terminologies._getPreferredServer(effectiveKey, [
+            'https://tx.example',
+            'https://unused.example'
+          ]))
+            .toBe('https://tx.example');
+          expect(Terminologies._getPreferredServer(canonicalKey, [
+            'https://tx.example',
+            'https://unused.example'
+          ]))
+            .toBeUndefined();
+          done();
+        }, done);
+      });
 
 
     it('should throw an error when the async function is not allowed', () => {
@@ -289,6 +1882,59 @@ describe('Async functions', () => {
     });
 
     
+    it('uses an explicit version for a bare-code ValueSet lookup',
+      async () => {
+        const valueSetUrl =
+          'http://example.org/ValueSet/single-version-override';
+        const system = 'http://example.org/CodeSystem/single-effective';
+        mockFetchResults([
+          [{
+            url: url => {
+              const parsed = new URL(url);
+              return parsed.origin === 'https://tx.example' &&
+                parsed.pathname === '/ValueSet' &&
+                parsed.searchParams.get('url') === valueSetUrl &&
+                parsed.searchParams.get('version') === 'effective';
+            },
+            method: 'GET'
+          }, {
+            resourceType: 'Bundle',
+            entry: [{resource: {
+              resourceType: 'ValueSet',
+              url: valueSetUrl,
+              version: 'effective',
+              compose: {include: [{system}]}
+            }}]
+          }],
+          [{
+            url: url => {
+              const parsed = new URL(url);
+              return parsed.origin === 'https://tx.example' &&
+                parsed.pathname === '/ValueSet/$validate-code' &&
+                parsed.searchParams.get('url') === valueSetUrl &&
+                parsed.searchParams.getAll('valueSetVersion')
+                  .toString() === 'effective' &&
+                parsed.searchParams.get('system') === system &&
+                parsed.searchParams.get('code') === 'male';
+            },
+            method: 'GET'
+          }, {
+            resourceType: 'Parameters',
+            parameter: [{name: 'result', valueBoolean: true}]
+          }]
+        ]);
+
+        await expect(fhirpath.evaluate(
+          emptyResource,
+          `%terminologies.validateVS('${valueSetUrl}|canonical', 'male', `
+          + "'valueSetVersion=effective').parameter.value",
+          {},
+          modelR4,
+          {async: true, terminologyUrl: 'https://tx.example'}
+        )).resolves.toEqual([true]);
+      });
+
+
     it('should work with a code and URL passed as a resource node', (done) => {
       mockFetchResults([
         ['ValueSet?url=http%3A%2F%2Fterminology.hl7.org%2FValueSet%2Fobservation-category', {
@@ -509,6 +2155,58 @@ describe('Async functions', () => {
       expect(result).toThrow('The asynchronous function "validateVS" is not allowed.');
     });
 
+
+    it('trusts a single server result:false even when it reports an error '
+      + 'issue', (done) => {
+      // A unique value set URL and coding keep this request out of the
+      // module-level fetch cache shared with the other validateVS tests.
+      mockFetchResults([
+        // With a single configured server there is no other server to look the
+        // value set up on, so the server's result is trusted as-is: result
+        // false yields [false] (any accompanying issues are ignored).
+        [/code=single-server-code/, {
+          "resourceType": "Parameters",
+          "parameter": [
+            {
+              "name": "result",
+              "valueBoolean": false
+            },
+            {
+              "name": "issues",
+              "resource": {
+                "resourceType": "OperationOutcome",
+                "issue": [{
+                  "severity": "error",
+                  "code": "not-found"
+                }]
+              }
+            }
+          ]
+        }]
+      ]);
+
+      const result = fhirpath.evaluate(
+        {
+          "resourceType": "Observation",
+          "code": {
+            "coding": [{
+              "system": "http://example.org/cs/single-server",
+              "code": "single-server-code"
+            }]
+          }
+        },
+        "%terminologies.validateVS('http://example.org/vs/single-server-not-found', Observation.code.coding[0]).parameter.value",
+        {},
+        modelR4,
+        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+      );
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([false]);
+        done();
+      }, done);
+    });
+
   });
 
 
@@ -560,6 +2258,39 @@ describe('Async functions', () => {
     });
 
 
+    it('splits a versioned canonical into url and version', (done) => {
+      mockFetchResults([
+        [{
+          url: 'CodeSystem/$validate-code',
+          body: bodyStr => {
+            const parameters = JSON.parse(bodyStr).parameter;
+            return parameters.find(p => p.name === 'url')?.valueUri ===
+                'urn:oid:1.2.3' &&
+              parameters.find(p => p.name === 'version')?.valueString ===
+                '2026';
+          }
+        }, {
+          resourceType: 'Parameters',
+          parameter: [{name: 'result', valueBoolean: true}]
+        }]
+      ]);
+
+      const result = fhirpath.evaluate(
+        observationResource,
+        "%terminologies.validateCS('urn:oid:1.2.3|2026', 'Male')"
+        + '.parameter.value',
+        {},
+        modelR4,
+        {async: true, terminologyUrl: 'https://tx.example'}
+      );
+
+      result.then(r => {
+        expect(r).toEqual([true]);
+        done();
+      }, done);
+    });
+
+
     it('should throw an error when the async function is not allowed', () => {
       let result = () => fhirpath.evaluate(
         observationResource,
@@ -584,15 +2315,17 @@ describe('Async functions', () => {
             let result = false;
             const bodyObj = JSON.parse(bodyStr);
             if (bodyObj.resourceType === 'Parameters') {
-              const url = bodyObj.parameter.find(p => p.name === 'url')?.valueUri;
+              const system = bodyObj.parameter.find(p => p.name === 'system')?.valueUri;
               const valueCode1 = bodyObj.parameter.find(p => p.name === 'codeA')?.valueCode;
               const valueCode2 = bodyObj.parameter.find(p => p.name === 'codeB')?.valueCode;
-              const version = bodyObj.parameter.find(p => p.name === 'version')?.valueString;
+              const versions =
+                bodyObj.parameter.filter(p => p.name === 'version');
 
-              result = url === 'http://snomed.info/sct' &&
+              result = system === 'http://snomed.info/sct' &&
                 valueCode1 === '3738000' &&
                 valueCode2 === '235856003' &&
-                version === '2014-05-06';
+                versions.length === 1 &&
+                versions[0].valueString === '2014-05-06';
             }
             return result;
           }
@@ -609,16 +2342,171 @@ describe('Async functions', () => {
 
       let result = fhirpath.evaluate(
         observationResource,
-        "%terminologies.subsumes('http://snomed.info/sct', '3738000', '235856003', 'version=2014-05-06').where($this is FHIR.code) = 'subsumed-by'",
+        "%terminologies.subsumes('http://snomed.info/sct|canonical', "
+        + "'3738000', '235856003', 'version=2014-05-06')"
+        + ".where($this is FHIR.code) = 'subsumed-by'",
         {},
         modelR4,
-        { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
+        {async: true,
+          terminologyUrl: [
+            'https://lforms-fhir.nlm.nih.gov/baseR4',
+            'https://unused.example'
+          ]}
       );
       expect(result instanceof Promise).toBe(true);
       result.then((r) => {
         expect(r).toEqual([true]);
+        const effectiveKey = Terminologies.preferredServerKey(
+          'CodeSystem', 'http://snomed.info/sct|2014-05-06'
+        );
+        const canonicalKey = Terminologies.preferredServerKey(
+          'CodeSystem', 'http://snomed.info/sct|canonical'
+        );
+        expect(Terminologies._getPreferredServer(effectiveKey, [
+          'https://lforms-fhir.nlm.nih.gov/baseR4',
+          'https://unused.example'
+        ]))
+          .toBe('https://lforms-fhir.nlm.nih.gov/baseR4');
+        expect(Terminologies._getPreferredServer(canonicalKey, [
+          'https://lforms-fhir.nlm.nih.gov/baseR4',
+          'https://unused.example'
+        ]))
+          .toBeUndefined();
         done();
       })
+    });
+
+
+    it('splits a versioned canonical into system and version', (done) => {
+      mockFetchResults([
+        [{
+          url: 'CodeSystem/$subsumes',
+          body: bodyStr => {
+            const parameters = JSON.parse(bodyStr).parameter;
+            return parameters.find(p => p.name === 'system')?.valueUri ===
+                'http://snomed.info/sct' &&
+              parameters.find(p => p.name === 'version')?.valueString ===
+                '2026';
+          }
+        }, {
+          resourceType: 'Parameters',
+          parameter: [{name: 'outcome', valueCode: 'subsumed-by'}]
+        }]
+      ]);
+
+      const result = fhirpath.evaluate(
+        observationResource,
+        "%terminologies.subsumes('http://snomed.info/sct|2026', "
+        + "'3738000', '235856003') = 'subsumed-by'",
+        {},
+        modelR4,
+        {async: true, terminologyUrl: 'https://tx.example'}
+      );
+
+      result.then(r => {
+        expect(r).toEqual([true]);
+        done();
+      }, done);
+    });
+
+
+    ['R4', 'R5'].forEach((modelName) => {
+      it(
+        `should send codingA/valueCoding and codeB/valueCode for a Coding and `
+        + `a code (${modelName})`,
+        (done) => {
+          mockFetchResults([
+            [{
+              url: 'CodeSystem/$subsumes',
+              body: bodyStr => {
+                const bodyObj = JSON.parse(bodyStr);
+                if (bodyObj.resourceType !== 'Parameters') {
+                  return false;
+                }
+                const parameter = bodyObj.parameter;
+                const system = parameter.find(p => p.name === 'system');
+                const codingA = parameter.find(p => p.name === 'codingA');
+                const codeB = parameter.find(p => p.name === 'codeB');
+                // The first operand is a Coding, the second a bare code, so the
+                // parameter names and value[x] fields must be derived from each
+                // operand's own type (regression test for the operand-type mix
+                // up that emitted codingB/valueCode for a bare code).
+                return system?.valueUri === 'http://snomed.info/sct' &&
+                  codingA?.valueCoding?.code === '27113001' &&
+                  codeB?.valueCode === '235856003' &&
+                  !parameter.some(p => p.name === 'codeA') &&
+                  !parameter.some(p => p.name === 'codingB');
+              }
+            }, {
+              resourceType: 'Parameters',
+              parameter: [{name: 'outcome', valueCode: 'subsumed-by'}]
+            }]
+          ]);
+
+          const result = fhirpath.evaluate(
+            observationResource,
+            "%terminologies.subsumes('http://snomed.info/sct', "
+            + "Observation.code.coding[2], '235856003') = 'subsumed-by'",
+            {},
+            modelName === 'R5' ? modelR5 : modelR4,
+            {async: true, terminologyUrl: 'https://tx.example'}
+          );
+
+          result.then(r => {
+            expect(r).toEqual([true]);
+            done();
+          }, done);
+        });
+    });
+
+
+    ['R4', 'R5'].forEach((modelName) => {
+      it(
+        `should send codeA/valueCode and codingB/valueCoding for a code and a `
+        + `Coding (${modelName})`,
+        (done) => {
+          mockFetchResults([
+            [{
+              url: 'CodeSystem/$subsumes',
+              body: bodyStr => {
+                const bodyObj = JSON.parse(bodyStr);
+                if (bodyObj.resourceType !== 'Parameters') {
+                  return false;
+                }
+                const parameter = bodyObj.parameter;
+                const system = parameter.find(p => p.name === 'system');
+                const codeA = parameter.find(p => p.name === 'codeA');
+                const codingB = parameter.find(p => p.name === 'codingB');
+                // The first operand is a bare code, the second a Coding, so the
+                // parameter names and value[x] fields must be derived from each
+                // operand's own type (regression test for the operand-type mix
+                // up in the reverse ordering of the previous test).
+                return system?.valueUri === 'http://snomed.info/sct' &&
+                  codeA?.valueCode === '235856003' &&
+                  codingB?.valueCoding?.code === '27113001' &&
+                  !parameter.some(p => p.name === 'codingA') &&
+                  !parameter.some(p => p.name === 'codeB');
+              }
+            }, {
+              resourceType: 'Parameters',
+              parameter: [{name: 'outcome', valueCode: 'subsumes'}]
+            }]
+          ]);
+
+          const result = fhirpath.evaluate(
+            observationResource,
+            "%terminologies.subsumes('http://snomed.info/sct', '235856003', "
+            + "Observation.code.coding[2]) = 'subsumes'",
+            {},
+            modelName === 'R5' ? modelR5 : modelR4,
+            {async: true, terminologyUrl: 'https://tx.example'}
+          );
+
+          result.then(r => {
+            expect(r).toEqual([true]);
+            done();
+          }, done);
+        });
     });
 
 
@@ -645,7 +2533,7 @@ describe('Async functions', () => {
           const isR5 = modelName === 'R5';
           mockFetchResults([
             [{
-              url: 'CodeSystem/$translate',
+              url: 'ConceptMap/$translate',
               body: bodyStr => {
                 let result = false;
                 const bodyObj = JSON.parse(bodyStr);
@@ -703,6 +2591,41 @@ describe('Async functions', () => {
     });
 
 
+    it('splits a versioned canonical into url and conceptMapVersion',
+      (done) => {
+        mockFetchResults([
+          [{
+            url: 'ConceptMap/$translate',
+            body: bodyStr => {
+              const parameters = JSON.parse(bodyStr).parameter;
+              return parameters.find(p => p.name === 'url')?.valueUri ===
+                  'urn:oid:1.2.3' &&
+                parameters.find(
+                  p => p.name === 'conceptMapVersion'
+                )?.valueString === '2026';
+            }
+          }, {
+            resourceType: 'Parameters',
+            parameter: [{name: 'result', valueBoolean: true}]
+          }]
+        ]);
+
+        const result = fhirpath.evaluate(
+          observationResource,
+          "%terminologies.translate('urn:oid:1.2.3|2026', "
+          + "'preliminary').parameter.value",
+          {},
+          modelR4,
+          {async: true, terminologyUrl: 'https://tx.example'}
+        );
+
+        result.then(r => {
+          expect(r).toEqual([true]);
+          done();
+        }, done);
+      });
+
+
     it('should throw an error when the async function is not allowed', () => {
       let result = () => fhirpath.evaluate(
         observationResource,
@@ -719,6 +2642,51 @@ describe('Async functions', () => {
 
 
   describe('memberOf', () => {
+
+    const callMemberOf = validationResult => {
+      const validationSpy = jest.spyOn(Terminologies, 'validateVS')
+        .mockResolvedValue(validationResult);
+      const result = additional.memberOf.call(
+        {
+          async: true,
+          model: modelR4,
+          processedVars: {terminologies: {}}
+        },
+        [{system: 'http://example.org/system', code: 'code'}],
+        ['http://example.org/ValueSet/example']
+      );
+      return {result, validationSpy};
+    };
+
+
+    it('preserves an explicit false validation result', async () => {
+      const {result, validationSpy} = callMemberOf({
+        resourceType: 'Parameters',
+        parameter: [{name: 'result', valueBoolean: false}]
+      });
+
+      try {
+        await expect(result).resolves.toBe(false);
+      } finally {
+        validationSpy.mockRestore();
+      }
+    });
+
+
+    it('normalizes a missing validation result to an empty collection',
+      async () => {
+        const {result, validationSpy} = callMemberOf({
+          resourceType: 'Parameters',
+          parameter: [{name: 'message', valueString: 'No result'}]
+        });
+
+        try {
+          await expect(result).resolves.toEqual([]);
+        } finally {
+          validationSpy.mockRestore();
+        }
+      });
+
 
     it('should work with Codings when async functions are enabled', (done) => {
       mockFetchResults([
@@ -825,7 +2793,7 @@ describe('Async functions', () => {
       })
     });
 
-    it('should work when Coding in a CodeableConcept has no system and code', () => {
+    it('should work when Coding in a CodeableConcept has no system and code', (done) => {
       mockFetchResults([]);
       let result = fhirpath.evaluate(
         {},
@@ -834,7 +2802,16 @@ describe('Async functions', () => {
         modelR4,
         { async: true, terminologyUrl: "https://lforms-fhir.nlm.nih.gov/baseR4" }
       );
-      expect(result).toEqual([]);
+      // The coded value has neither system nor code, so no $validate-code
+      // request can be built. memberOf now always returns a promise for async
+      // evaluation (fetchFromServers rejects when no request can be built, and
+      // the rejection is treated as an empty result) rather than
+      // short-circuiting to a synchronous empty array.
+      expect(result instanceof Promise).toBe(true);
+      result.then((r) => {
+        expect(r).toEqual([]);
+        done();
+      }, done);
     });
 
 
@@ -869,11 +2846,20 @@ describe('Async functions', () => {
 
 
 
-    it('should work with "code" when async functions are enabled', (done) => {
+    it('should work with "code" when a search outcome precedes the ValueSet',
+      (done) => {
       mockFetchResults([
         [/ValueSet\?url=http%3A%2F%2Fhl7\.org%2Ffhir%2FValueSet%2Fobservation-vitalsignresult/, {
           "resourceType": "Bundle",
           "entry": [
+            {
+              "resource": {
+                "resourceType": "OperationOutcome"
+              },
+              "search": {
+                "mode": "outcome"
+              }
+            },
             {
               "resource": {
                 "resourceType": "ValueSet",
@@ -884,6 +2870,9 @@ describe('Async functions', () => {
                     }
                   ]
                 }
+              },
+              "search": {
+                "mode": "match"
               }
             }
           ]
@@ -1102,8 +3091,18 @@ describe('Async functions', () => {
       "resourceType": "Bundle",
       "entry": [{
         "resource": {
+          "resourceType": "OperationOutcome"
+        },
+        "search": {
+          "mode": "outcome"
+        }
+      }, {
+        "resource": {
           "resourceType": "ValueSet",
           "url": "http://some-canonical-value-set-url"
+        },
+        "search": {
+          "mode": "match"
         }
       }]
     };
@@ -1152,6 +3151,7 @@ describe('Async functions', () => {
         }],
         [/https:\/\/some-fhir-server\/ValueSet\?url=http%3A%2F%2Fsome-canonical-value-set-url$/, valueSetResource],
         [/https:\/\/some-fhir-server\/ValueSet\?url=http%3A%2F%2Fsome-canonical-value-set-url&version=1.0$/, valueSetResource],
+        [/https:\/\/some-fhir-server\/ValueSet\?url=urn%3Aoid%3A2\.16\.840\.1\.113883$/, valueSetResource],
         [/https:\/\/some-fhir-server\/Questionnaire\?url=http%3A%2F%2Fsome-canonical-questionnaire-url&version=2.0$/, {
           "resourceType": "Bundle",
           "entry": [{
@@ -1177,16 +3177,30 @@ describe('Async functions', () => {
       // [models, description, resource, expression, expectedResult]
       [
         [modelDSTU2, modelSTU3, modelR4],
-        'String with relative URL',
+        'System.String with relative URL',
         {},
         '\'MedicationDispense/med-106-0\'.resolve().medication.coding.where(system=\'357\').code',
         ['00168022138']
       ],
       [
         [modelDSTU2, modelSTU3, modelR4],
-        'String with absolute URL',
+        'System.String with absolute URL',
         {},
         '\'https://some-fhir-server/MedicationDispense/med-107-0\'.resolve().medication.coding.where(system=\'357\').code',
+        ['00168022138']
+      ],
+      [
+        [modelDSTU2, modelSTU3, modelR4],
+        'FHIR.string with relative URL',
+        {},
+        '%factory.string(\'MedicationDispense/med-106-0\').resolve().medication.coding.where(system=\'357\').code',
+        ['00168022138']
+      ],
+      [
+        [modelDSTU2, modelSTU3, modelR4],
+        'FHIR.string with absolute URL',
+        {},
+        '%factory.string(\'https://some-fhir-server/MedicationDispense/med-107-0\').resolve().medication.coding.where(system=\'357\').code',
         ['00168022138']
       ],
       [
@@ -1237,6 +3251,16 @@ describe('Async functions', () => {
         {
           "resourceType": "CodeSystem",
           "valueSet": "http://some-canonical-value-set-url",
+        },
+        'CodeSystem.valueSet.resolve() is ValueSet',
+        [true]
+      ],
+      [
+        [modelR4, modelR5],
+        'non-http(s) canonical (urn:oid) that resolves to a resource',
+        {
+          "resourceType": "CodeSystem",
+          "valueSet": "urn:oid:2.16.840.1.113883",
         },
         'CodeSystem.valueSet.resolve() is ValueSet',
         [true]
@@ -1363,5 +3387,3 @@ describe('Async functions', () => {
   });
 
 });
-
-

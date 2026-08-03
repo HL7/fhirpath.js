@@ -1,5 +1,10 @@
 tests:
-  - 'group: Paths with choice types':
+  - 'group: 3. Path selection':
+    - expression: Resource.id
+      model: r4
+      result: ["example"]
+
+  - 'group: 3.2 Paths and polymorphic items':
     - desc: 'Observation.value with an R5 FHIR model'
       expression: 'Observation.value'
       result: ["high"]
@@ -110,6 +115,7 @@ tests:
 
 subject:
   resourceType: Observation
+  id: "example"
   CustomField: "test"
   valueString: "high"
   contained:

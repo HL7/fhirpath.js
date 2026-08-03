@@ -20,6 +20,7 @@ const sources = [
   ['input-r4/patient-example.xml', 'resources/r4/patient-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r4/patient-example.xml'],
   ['input-r4/questionnaire-example.xml', 'resources/r4/questionnaire-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r4/questionnaire-example.xml'],
   ['input-r4/valueset-example-expansion.xml', 'resources/r4/valueset-example-expansion.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r4/valueset-example-expansion.xml'],
+  ['input-r4/patient-name-extensions.json', 'resources/r4/patient-name-extensions.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r4/patient-name-extensions.json'],
 
   // FHIR R5 test cases
   ['fhir-r5.xml', 'cases/fhir-r5.yaml', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/fhirpath/tests-fhir-r5.xml', 'r5'],
@@ -36,6 +37,7 @@ const sources = [
   ['input-r5/patient-example-name.xml', 'resources/r5/patient-example-name.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/patient-example-name.xml'],
   ['input-r5/patient-container-example.json', 'resources/r5/patient-container-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/patient-container-example.json'],
   ['input-r5/diagnosticreport-eric.json', 'resources/r5/diagnosticreport-eric.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/diagnosticreport-eric.json'],
+  ['input-r5/patient-name-extensions.json', 'resources/r5/patient-name-extensions.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/patient-name-extensions.json'],
   // Can't convert this one:
   // ['input-r5/ccda.xml', 'resources/r5/ccda.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/ccda.xml'],
 ].map((item) => {
@@ -43,7 +45,7 @@ const sources = [
   return {srcFilename, targetFilename, downloadUrl, model};
 });
 
-const commander = require('commander');
+const { Command, Option } = require('commander');
 const convert = require('../index');
 
 const https = require('https');
@@ -70,12 +72,14 @@ function downloadFile(url, dest) {
   });
 }
 
-commander
-  .option('-s, --skip-download', 'skip downloading sources from FHIRPath repository')
+const program = new Command();
+
+program
+  .addOption(new Option('-s, --skip-download', 'skip downloading sources from FHIRPath repository'))
   .description('Convert xml test cases/resources to yaml/json')
-  .action(async (cmd) => {
+  .action(async (options) => {
     try {
-      if (!cmd.skipDownload) {
+      if (!options.skipDownload) {
         for (let i = 0; i < sources.length; i++) {
           const item = sources[i];
           await downloadFile(item.downloadUrl, sourceDir + item.srcFilename);
@@ -94,7 +98,7 @@ commander
         const item = testFiles[i];
         await convert.testsXmlFileToYamlFile(sourceDir + item.srcFilename, destDir + item.targetFilename, item.model);
       }
-    } catch(e) {
+    } catch (e) {
       console.error(e);
     }
   })

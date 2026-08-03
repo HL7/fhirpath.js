@@ -3,6 +3,314 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [5.1.0] - 2026-07-29
+### Added
+- The `terminologyUrl` option for the `evaluate()` and `compile()` methods now
+  accepts an array of terminology server URLs in addition to a single URL
+  string. The TypeScript declaration also accepts readonly URL arrays and
+  tuples. When multiple servers are provided,
+  `validateVS`/`validateCS`/`translate` locate a server that holds the
+  referenced ValueSet/CodeSystem/ConceptMap (searching the configured servers in
+  turn) and send the operation there; if that operation fails, the next holding
+  server is tried. `expand`/`lookup`/`subsumes` try the servers in order until
+  one responds. The server that resolves a given
+  artifact is preferred (tried first) for subsequent operations on that
+  artifact, and the preference is remembered across evaluations (retained in a
+  bounded LRU cache; least-recently-used entries are evicted). When no configured
+  server holds the artifact, the operation yields an empty result. When the
+  evaluation is aborted (via the `signal` option), the server fallback stops,
+  and the operation rejects with an `AbortError` instead of dispatching requests
+  to the remaining servers. Identical requests are shared across evaluations;
+  cancelling one evaluation rejects only its consumer, and the underlying
+  request is aborted only when all consumers have cancelled. The `fhirpath` CLI
+  `--terminologyUrl`/`-t` option can be repeated to configure multiple servers.
+
+### Changed
+- `weight()`/`ordinal()`: when the score is looked up from a `CodeSystem` on a
+  terminology server and that lookup does not yield a score - because the code
+  system is absent from every configured server, or because a request fails
+  (e.g. a network or server error) - the function now adds no score for that
+  code instead of raising an error. This aligns with the multi-server fallback
+  and the "absent artifact yields an empty result" behavior of the
+  `%terminologies` functions. Previously a failing request rejected the result.
+  Transient request failures are not stored in the weight cache, so later
+  evaluations can retry.
+- Rejected server requests are no longer retained in the shared
+  `util.fetchWithCache()` request cache. Later `resolve()` and terminology
+  operations can therefore retry transient failures; successful responses
+  continue to be cached.
+- Shared server requests that remain pending for one hour now reject
+  with a `TimeoutError`, are removed from the request cache, and abort their
+  underlying fetch when the runtime supports `AbortController`. Terminology
+  operations can then try another configured server, and later evaluations can
+  retry the timed-out request.
+- `memberOf`/`validateVS` now return a promise under async evaluation even when
+  no request can be built (for example, a coded value with neither a system nor
+  a code). `memberOf` also normalizes a missing validation result to an empty
+  collection. Previously such cases could return a synchronous or internal
+  undefined result.
+- The TypeScript type of the `httpHeaders` option was corrected from
+  `Record<string, string>` to `Record<string, Record<string, string>>` in
+  `src/fhirpath.d.ts` to match the documented and runtime shape (keys are FHIR
+  server base URLs, values are objects mapping header names to header values).
+  This is a type-declaration correction only - the runtime behavior is
+  unchanged - but TypeScript consumers written against the previous (incorrect)
+  single-level type may need to update to the nested shape.
+
+### Fixed
+- Versioned non-HTTP(S) canonical URLs (for example `urn:oid:1.2.3|2026`) are
+  now split into separate `url` and `version` search parameters when resolving
+  artifacts (via `resolve()` and the `%terminologies` server-location search).
+  Previously only `http(s)://` canonicals were split, so the `|version` suffix
+  was percent-encoded into the `url` value (e.g. `url=urn:oid:1.2.3%7C2026`),
+  which prevented the artifact from being located.
+- Versioned canonical URLs are also split into the operation-specific URL and
+  version parameters for `expand`, `validateVS`, `validateCS`, `subsumes`, and
+  `translate`, so the operation uses the same artifact version selected during
+  server discovery. `subsumes` now sends the CodeSystem canonical in the
+  standard `system` parameter instead of `url`.
+- Per-server HTTP header matching: `httpHeaders` entries are now applied only to
+  requests whose URL matches the entry's base URL at a path/query boundary, and
+  when several configured base URLs match the most specific (longest) one wins.
+  Previously the first configured header set could be applied to every request
+  regardless of URL, which could leak one terminology server's credentials to
+  another.
+- `weight()`/`ordinal()` score-cache entries now include the supplied
+  `httpHeaders`, preventing a score obtained with one authorization or tenant
+  configuration from being reused by an evaluation with different headers.
+- `%terminologies.subsumes` now derives each operand's parameter name
+  (`codingA`/`codeA`, `codingB`/`codeB`) and `value[x]` field
+  (`valueCoding`/`valueCode`) from that operand's own type. Previously a
+  `Coding` combined with a bare `code` could send `codingB`/`valueCode` for the
+  second operand, producing an invalid `$subsumes` request.
+- `%terminologies.translate` now calls the `/ConceptMap/$translate` operation
+  instead of `/CodeSystem/$translate`, the correct FHIR endpoint for the
+  translate operation.
+- Fixed a crash (`TypeError: Cannot read properties of undefined`) when an
+  environment variable is bound to an array of resource-shaped objects
+  (objects with `resourceType` but no path metadata); such items now use the
+  current evaluation context, matching the scalar-value code path.
+
+## [5.0.0] - 2026-07-13
+### Added
+- Added support for FHIRPath Instance Selector/Object Creation syntax for
+  constructing FHIR instances, including nested objects, primitive values,
+  collection-valued elements, asynchronous element expressions, and validation
+  of element names against the active FHIR model.
+- Added the CLI `--no-resolveInternalTypes`/`-n` option for inspecting internal
+  `ResourceNode` and `FP_Type` results.
+- Added `path2Repeating` to FHIR model contexts for repeatability-aware object
+  construction.
+- ES module entry points so `fhirpath` and its `fhir-context/*` models load
+  with `import` (default and named exports) as well as `require`; a
+  `package.json` `exports` map, `module` field, and `.d.mts` declarations
+  route ES module and CommonJS consumers to the matching code and types.
+  - Documented entry points (`fhirpath`, `fhirpath/fhir-context/<version>`,
+    and `fhirpath/package.json`) are unchanged, and a wildcard fallback keeps
+    other deep file-path imports working. Because the package now declares
+    `exports`, those deep imports must include the file extension (e.g.
+    `fhirpath/fhir-context/r4/index.js`); extensionless deep paths that
+    previously resolved via Node's directory/extension lookup no longer do.
+  - The `import` build is a pre-bundled, self-contained ES module
+    (`esm/fhirpath.mjs`) that inlines the CommonJS dependencies (`antlr4`,
+    `date-fns`, `decimal.js`, `@lhncbc/ucum-lhc`, and `@loxjs/url-join`), so
+    esbuild-based bundlers (e.g. the Angular CLI) no longer emit
+    "optimization bailout" warnings; the `require` entry point is unchanged.
+  - `import` and `require` load separate copies of the library, so an
+    application should not mix them for the same package — values from one
+    are not `instanceof`-compatible with the other.
+- Type declarations for the exported `util` helpers and the `ucumUtils`
+  instance, so their named (and default-export) usages are typed for both ES
+  module and CommonJS consumers.
+- Explicit type exports for `Model`, `ResourceNode`, `Options`,
+  `OptionVariants`, `Path`, and `UserInvocationTable`, so consumers can import
+  and reference these types by name (e.g.
+  `import type { OptionVariants } from 'fhirpath'`).
+
+### Changed
+- Raw internal `ResourceNode` output now represents absent `_data` as `null` and
+  preserves metadata-only nodes when `resolveInternalTypes` is false; default
+  resolved evaluation output is unchanged.
+- `resolveInternalTypes()` now returns copied arrays and plain objects instead
+  of mutating caller-provided containers. The top-level result array is compacted
+  (nullish entries removed) to match default evaluation output, while arrays
+  nested inside resolved objects keep their entries, preserving FHIR primitive
+  value/"_"-metadata index alignment.
+- `path2Repeating` is now part of model context metadata.
+
+### Fixed
+- Fixed resolved `Long`/`BigInt` values to be JSON-safe strings, avoiding
+  `JSON.stringify()` failures after internal types are resolved.
+- Fixed `resolveInternalTypes()` so metadata-only primitive `ResourceNode`
+  entries resolve consistently with default evaluation output instead of
+  producing `undefined` entries.
+- Fixed base-path resolution in `compile()`/`evaluate()` so a `base` that is
+  itself a FHIR type name (e.g. a root complex type such as `HumanName` or
+  `Coding`) resolves to that type via the model's `availableTypes` instead of
+  being left unresolved by `path2Type`.
+
+## [4.11.0] - 2026-05-29
+### Added
+- Added `lowBoundary()` and `highBoundary()` for Decimal, Date, DateTime, and
+  Time values.
+
+### Fixed
+- Fixed `abs()`, `ceiling()`, `floor()`, `round()` and `truncate()` functions to
+  handle `FHIR.Quantity` correctly.
+- Fixed date, dateTime, time, and instant validation to reject invalid
+  calendar dates (e.g. `@2019-02-29`, `@2019-04-31`), out-of-range time
+  components, and timezone offsets outside `-14:00`..`+14:00`. Leap seconds
+  (`:60`) are now accepted per the FHIR spec and normalized to `:59` during
+  comparison and calculation operations since JavaScript does not support leap
+  seconds. Date/dateTime/time literals now throw on invalid values instead of
+  silently producing a bad value.
+
+## [4.10.1] - 2026-05-04
+### Fixed
+- Fixed UCUM conversion handling for special units (`Cel`, `[degF]`, `K`) to
+  use direct conversion values from `ucum-lhc`, as the current implementation in
+  `fhirpath.js` is unable to correctly process these special units.
+
+## [4.10.0] - 2026-04-21
+### Added
+- Added `sort()` support with optional multi-key sort arguments and
+  `asc`/`desc` direction controls, including async sort expressions.
+- Added variadic `coalesce(...)` with short-circuit evaluation for both
+  sync and async arguments.
+- Added `pathname([short])` for returning element paths within the input
+  resource.
+- Added string functions `lastIndexOf()`, `matchesFull()`, `escape()`, and
+  `unescape()`, and added optional flags support to `matches()`.
+- Added date/time component helpers: `yearOf()`, `monthOf()`, `dayOf()`,
+  `hourOf()`, `minuteOf()`, `secondOf()`, `millisecondOf()`,
+  `timezoneOffsetOf()`, `dateOf()`, and `timeOf()`.
+
+### Changed
+- Updated parser grammar and generated parser artifacts for the latest
+  FHIRPath syntax additions used by these features.
+- Updated the unit test scripts to call Jest via a Windows-compatible path.
+
+### Fixed
+- Fixed a rare error that occurred during unit tests when the time value was
+  missing milliseconds.
+
+## [4.9.3] - 2026-03-31
+### Changed
+- Updated package repository metadata in `package.json` to an explicit git
+  repository object.
+- `npm run compare-performance` can now use a local git ref as the baseline,
+  keeps benchmark labels explicit about previous/current results, and includes a
+  dedicated FHIR quantity context benchmark.
+### Fixed
+- String normalization, when determining equivalence, now treats different
+  Unicode whitespace characters and ordinary spaces as identical and does not
+  collapse consecutive spaces.
+- Unicode escape parsing in literals now accepts full hex digits for `\uXXXX`
+  (for example, `\u00e9` and `\u00E9`) in both single-quoted strings and
+  backtick-delimited identifiers.
+- FHIR `Quantity` duration values sourced from resources now preserve their
+  original UCUM code in string output and quantity math while treated as
+  corresponding calendar durations in date/time arithmetic.
+- `toQuantity()` now can convert FHIR-origin duration quantities between their
+  original UCUM code and mapped calendar unit.
+
+## [4.9.2] - 2026-03-23
+### Changed
+- Reworked the benchmark comparison workflow (`npm run compare-performance`) to
+  use Tinybench with CodSpeed plugin integration instead of Benny.
+- Benchmark output now generates a single consolidated HTML report at
+  `test/benchmark/results/compare-performance-report.html` with per-case
+  previous/current visual comparisons.
+- Added speedup trend classification based on confidence interval overlap and
+  colorized trend display in both console output and HTML report.
+- Updated benchmark runtime defaults and Node invocation flags for more
+  consistent benchmark runs.
+- Updated Node.js engine requirement to `>=20.0.0` to match current dependency
+  constraints.
+
+### Fixed
+- `evaluate()` with `{ resolveInternalTypes: false }` now preserves `ResourceNode`
+  instances in results, keeping internal type metadata for downstream use.
+- `ResourceNode.toJSON()` behavior was adjusted for compatibility when
+  `ResourceNode` objects are retained in output.
+- `resolveInternalTypes()` now resolves `FP_Type` values using `toJSON()`
+  instead of `toString()`, preserving JSON-native result types (for example,
+  numberic results now resolve to numbers rather than strings).
+
+## [4.9.1] - 2026-03-11
+### Fixed
+- Delimited identifiers can now have string escapes.
+
+## [4.9.0] - 2026-02-19
+### Added
+- **Precise decimal arithmetic mode** (`preciseMath` option): A new mathematical
+  calculation mode that currently uses the decimal.js library internally to
+  avoid binary floating-point rounding errors (e.g., `0.1 + 0.2` now equals `0.3`
+  exactly). Enabled by passing `{ preciseMath: true }` to evaluate() or
+  compile().
+- **FP_Decimal class** exported from fhirpath.js: Floating-point numbers and
+  integers are now stored internally as this class instances.
+- **`keepDecimalTypes` option**: When true, `FP_Decimal` values are preserved
+  as-is in `evaluate()` results instead of being converted to JavaScript numbers,
+  allowing downstream code to retain full decimal precision.
+- **`FP_Decimal.getDecimal(value)` static method**: Allows precise decimal
+  objects to be constructed from a number or numeric string, enabling lossless
+  JSON parsing workflows (e.g., via lossless-json) when passing high-precision
+  values in FHIR resource data.
+- **`--mathMode` / `-o` CLI option**: The `fhirpath` CLI now accepts
+  `--mathMode precise` or `--mathMode native` to select the math
+  mode from the command line.
+- The function `ceiling()`, `floor()`, `round()`, and `truncate()` now work with
+  `Quantity`.
+- **Improved `Long`(BigInt) interoperability in arithmetic operations** by
+  treating it as a decimal number through implicit conversion. However, if
+  the result of an operation can be represented as an integer, it will be of
+  the `Long`(BigInt) type for improved precision.
+### Fixed
+- Multiplication/division involving calendar units (apart from the special UCUM
+  '1' unit) now returns an empty value.
+- An issue where equivalence was determined incorrectly if one of the operands
+  was an empty collection.
+
+## [4.8.5] - 2026-01-28
+### Fixed
+- Fixed toDate(), toDateTime(), and toTime() conversion functions to support
+  conversion from their corresponding FHIRPath type instances in addition to
+  strings:
+  - toDate() now accepts Date instances (returns as-is) and DateTime
+    instances (extracts date portion)
+  - toDateTime() now accepts DateTime instances (returns as-is) and Date
+    instances (converts to DateTime)
+  - toTime() now accepts Time instances (returns as-is)
+
+## [4.8.4] - 2026-01-27
+### Fixed
+- Root type name support in expression prefixes: now expressions like
+  `Resource.id` or `DomainResource.text` work as expected. We can also evaluate
+  an expression started with type name for a part of the resource, for example,
+  `Coding.code` for values of type `Coding`.
+
+## [4.8.3] - 2026-01-13
+### Changes
+- Applied changes in the specification regarding Quantity comparisons.
+  The new wording is "Calendar durations and definite quantity durations above
+  days (and weeks) are considered un-comparable".
+### Fixed
+- An issue where the `unit` parameter of `toQuantity([unit : String]) : Quantity`
+  was processed incorrectly.
+- An issue that prevented the use of calculated calendar duration in date-time
+  arithmetic. For example, the expressions `@2020-01-01 + (1 day + 1 day)` and
+  `1 day + 1 day + 1 day` now work as expected.
+
+## [4.8.2] - 2025-11-24
+### Fixed
+- the ~(equivalence) operator for quantities (now the comparison is performed
+  after converting the values to the most granular unit).
+
+## [4.8.1] - 2025-11-23
+### Fixed
+- an issue where the resolve() function does not resolve URL in FHIR.string.
+
 ## [4.8.0] - 2025-11-18
 ### Added
 - function `comparable(quantity) : boolean`.
@@ -782,4 +1090,3 @@ Limited support for types (see README.md for details):
 ### Added
 - There is a now a parser and a small script (bin/parseAndDisplay.js) which
   prints out the parse tree of a FHIRPath expression.
-

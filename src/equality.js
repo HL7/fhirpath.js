@@ -1,54 +1,88 @@
-// This file holds code to handle the FHIRPath Math functions.
+// This file holds code to handle the FHIRPath Equality functions.
 
 const util = require("./utilities");
 const { deepEqual } = require('./deep-equal');
-const { FP_Type, FP_DateTime, FP_Quantity } = require('./types');
+const { FP_Type, FP_Quantity, FP_Decimal} = require('./types');
 
-var engine = {};
+const engine = {};
 
-function equality(x,y){
-  if(util.isEmpty(x) || util.isEmpty(y)) { return []; }
-  return deepEqual(x, y);
-}
 
-function equivalence(x,y){
-  if(util.isEmpty(x) && util.isEmpty(y)) { return [true]; }
-  if(util.isEmpty(x) || util.isEmpty(y)) { return []; }
-  return deepEqual(x, y, {fuzzy: true});
-}
-
+/**
+ * Implements the FHIRPath `=` (equals) operator.
+ * See https://hl7.org/fhirpath/#equals
+ * @param {Array} a - the left operand collection.
+ * @param {Array} b - the right operand collection.
+ * @returns {boolean|undefined} the result of equality comparison.
+ */
 engine.equal = function(a, b){
-  return equality(a, b);
+  return deepEqual(this, a, b);
 };
 
+
+/**
+ * Implements the FHIRPath `!=` (not equals) operator.
+ * Returns the logical negation of equality, or undefined if equality
+ * returned empty (null or undefined).
+ * See https://hl7.org/fhirpath/#not-equals
+ * @param {Array} a - the left operand collection.
+ * @param {Array} b - the right operand collection.
+ * @returns {boolean|undefined} the negated result of equality, or
+ *  undefined if equality is indeterminate.
+ */
 engine.unequal = function(a, b){
-  var eq = equality(a, b);
+  const eq = deepEqual(this, a, b);
   return eq === undefined ? undefined : !eq;
 };
 
-engine.equival = function(a, b){
-  return equivalence(a, b);
-};
-
-engine.unequival = function(a, b){
-  return !equivalence(a, b);
-};
 
 /**
- *  Checks that the types of a and b are suitable for comparison in an
- *  inequality expression.
- * @param a the left side of the inequality expression (which should be an array of
- *  one value).
- * @param b the right side of the inequality expression (which should be an array of
- *  one value).
- * @return the singleton values of the arrays a, and b.  If one was an FP_Type
- *  and the other was convertible, the converted value will be returned.
+ * Implements the FHIRPath `~` (equivalent) operator.
+ * See https://hl7.org/fhirpath/#equivalent
+ * @param {Array} a - the left operand collection.
+ * @param {Array} b - the right operand collection.
+ * @returns {boolean} the result of equivalence comparison.
  */
-function typecheck(a, b){
-  util.assertOnlyOne(a, "Singleton was expected");
-  util.assertOnlyOne(b, "Singleton was expected");
-  a = util.valDataConverted(a[0]);
-  b = util.valDataConverted(b[0]);
+engine.equival = function(a, b){
+  return deepEqual(this, a, b, {fuzzy: true});
+};
+
+
+/**
+ * Implements the FHIRPath `!~` (not equivalent) operator.
+ * See https://hl7.org/fhirpath/#not-equivalent
+ * @param {Array} a - the left operand collection.
+ * @param {Array} b - the right operand collection.
+ * @returns {boolean} the negated result of equivalence comparison.
+ */
+engine.unequival = function(a, b){
+  return !deepEqual(this, a, b, {fuzzy: true});
+};
+
+
+/**
+ * Normalizes two scalar operands so they can be compared by FHIRPath
+ * inequality operators (`<`, `>`, `<=`, `>=`) and sort comparators.
+ *
+ * This function:
+ * 1. Resolves wrapped/internal values via `util.valDataConverted(...)`.
+ * 2. Validates comparability using FHIRPath-compatible type rules.
+ * 3. Handles implicit number <-> quantity comparison ordering by optionally
+ *    swapping operands so an `FP_Type` (e.g., `FP_Quantity`) is on the left.
+ *
+ * @param {Object} ctx - FHIRPath evaluation context (reserved for parity with
+ *  other comparison helpers; not currently used directly).
+ * @param {*} a - Left scalar operand (not a collection).
+ * @param {*} b - Right scalar operand (not a collection).
+ * @returns {[*, *, boolean]} A tuple:
+ *  - index 0: normalized left value
+ *  - index 1: normalized right value
+ *  - index 2: `true` if operands were exchanged, otherwise `false`
+ * @throws {Error} If operand types are not comparable under FHIRPath rules.
+ */
+function typecheckScalars(ctx, a, b){
+  a = util.valDataConverted(a);
+  b = util.valDataConverted(b);
+  let exchange;
   if (a != null && b != null) {
     // FP_Date, FP_Instant are extended from FP_DateTime and can be compared
     // in some cases. BigInt can be compared to Number.
@@ -58,17 +92,38 @@ function typecheck(a, b){
       // Implicit conversion of numbers to quantities.
       // See:
       //  https://hl7.org/fhirpath/#conversion
-      if (lClass === Number && rClass === FP_Quantity) {
-        a = new FP_Quantity(a, "'1'");
-      } else if (lClass === FP_Quantity && rClass === Number) {
-        b = new FP_Quantity(b, "'1'");
+      if (lClass === Number && rClass === FP_Type) {
+        exchange = true;
+      } else if (lClass === FP_Type && rClass === Number) {
+        // leave a and b as they are, with the FP_Type on the left, so that
+        // the FP_Type's compare() method will be used.
       } else {
         util.raiseError('Type of "' + a + '" (' + lClass.name + ') did not match type of "' +
           b + '" (' + rClass.name + ')', 'InequalityExpression');
       }
     }
   }
-  return [a, b];
+  return exchange ? [b, a, true] : [a, b, false];
+}
+
+
+/**
+ * Validates singleton collection operands and delegates to `typecheckScalars`.
+ *
+ * This wrapper is used by inequality operators where inputs are expected to be
+ * FHIRPath collections containing exactly one element each.
+ *
+ * @param {Object} ctx - FHIRPath evaluation context.
+ * @param {Array} a - Left operand collection; must contain exactly one item.
+ * @param {Array} b - Right operand collection; must contain exactly one item.
+ * @returns {[*, *, boolean]} Normalized/scalarized comparison tuple from
+ *  `typecheckScalars(...)`.
+ * @throws {Error} If either collection is not a singleton.
+ */
+function typecheck(ctx, a, b){
+  util.assertOnlyOne(a, "Singleton was expected");
+  util.assertOnlyOne(b, "Singleton was expected");
+  return typecheckScalars(ctx, a[0], b[0]);
 }
 
 
@@ -83,55 +138,94 @@ function typecheck(a, b){
  *   - Otherwise, returns the object's constructor.
  */
 function getClassForComparison(obj) {
-  return obj instanceof FP_DateTime ? FP_DateTime
+  return obj instanceof FP_Type ? FP_Type
     : typeof obj === 'bigint' ? Number : obj.constructor;
 }
 
 
+/**
+ * Implements the FHIRPath `<` (less than) operator.
+ * See https://hl7.org/fhirpath/#less-than
+ * @param {Array} a - the left operand collection (singleton).
+ * @param {Array} b - the right operand collection (singleton).
+ * @returns {boolean|Array} true if a < b, false if a >= b, or an empty
+ *   array if either operand is null or comparison is not possible.
+ */
 engine.lt = function(a, b){
-  const [a0, b0] = typecheck(a,b);
+  const ctx = this;
+  const [a0, b0, exchanged] = typecheck(ctx, a, b);
   if (a0 == null || b0 == null) {
     return [];
   }
   if (a0 instanceof FP_Type) {
     const compare = a0.compare(b0);
-    return compare === null ? [] : compare < 0;
+    return compare === null ? [] : (exchanged ? compare > 0 : compare < 0);
   }
   return a0 < b0;
 };
 
+
+/**
+ * Implements the FHIRPath `>` (greater than) operator.
+ * See https://hl7.org/fhirpath/#greater-than
+ * @param {Array} a - the left operand collection (singleton).
+ * @param {Array} b - the right operand collection (singleton).
+ * @returns {boolean|Array} true if a > b, false if a <= b, or an empty
+ *   array if either operand is null or comparison is not possible.
+ */
 engine.gt = function(a, b){
-  const [a0, b0] = typecheck(a,b);
+  const ctx = this;
+  const [a0, b0, exchanged] = typecheck(ctx, a, b);
   if (a0 == null || b0 == null) {
     return [];
   }
   if (a0 instanceof FP_Type) {
     const compare = a0.compare(b0);
-    return compare === null ? [] : compare > 0;
+    return compare === null ? [] : (exchanged ? compare < 0 : compare > 0);
   }
   return a0 > b0;
 };
 
+
+/**
+ * Implements the FHIRPath `<=` (less than or equal) operator.
+ * See https://hl7.org/fhirpath/#less-or-equal
+ * @param {Array} a - the left operand collection (singleton).
+ * @param {Array} b - the right operand collection (singleton).
+ * @returns {boolean|Array} true if a <= b, false if a > b, or an empty
+ *   array if either operand is null or comparison is not possible.
+ */
 engine.lte = function(a, b){
-  const [a0, b0] = typecheck(a,b);
+  const ctx = this;
+  const [a0, b0, exchanged] = typecheck(ctx, a, b);
   if (a0 == null || b0 == null) {
     return [];
   }
   if (a0 instanceof FP_Type) {
     const compare = a0.compare(b0);
-    return compare === null ? [] : compare <= 0;
+    return compare === null ? [] : (exchanged ? compare >= 0 : compare <= 0);
   }
   return  a0 <= b0;
 };
 
+
+/**
+ * Implements the FHIRPath `>=` (greater than or equal) operator.
+ * See https://hl7.org/fhirpath/#greater-or-equal
+ * @param {Array} a - the left operand collection (singleton).
+ * @param {Array} b - the right operand collection (singleton).
+ * @returns {boolean|Array} true if a >= b, false if a < b, or an empty
+ *   array if either operand is null or comparison is not possible.
+ */
 engine.gte = function(a, b){
-  const [a0, b0] = typecheck(a,b);
+  const ctx = this;
+  const [a0, b0, exchanged] = typecheck(ctx, a, b);
   if (a0 == null || b0 == null) {
     return [];
   }
   if (a0 instanceof FP_Type) {
     const compare = a0.compare(b0);
-    return compare === null ? [] : compare >= 0;
+    return compare === null ? [] : (exchanged ? compare <= 0 : compare >= 0);
   }
   return a0 >= b0;
 };
@@ -158,18 +252,20 @@ engine.comparable = function(a, b){
   // See:
   //  https://hl7.org/fhir/fhirpath.html#fn-comparable
   //  https://hl7.org/fhirpath/#conversion
-  if (typeof a0 === 'number') {
-    a0 = new FP_Quantity(a0, "'1'");
-  }
-  if (typeof b0 === 'number') {
-    b0 = new FP_Quantity(b0, "'1'");
+  if ((typeof a0 === 'number' || a0 instanceof FP_Decimal)) {
+    if (b0 instanceof FP_Quantity) {
+      return [b0.comparable(a0)];
+    }
+    return [typeof b0 === 'number' || b0 instanceof FP_Decimal];
   }
 
-  if (a0 instanceof FP_Quantity && b0 instanceof FP_Quantity) {
+  if (a0 instanceof FP_Quantity) {
     return [a0.comparable(b0)];
   }
   return [false];
 };
 
 
+engine.typecheckScalars = typecheckScalars;
+engine.typecheck = typecheck;
 module.exports = engine;

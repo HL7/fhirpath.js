@@ -125,7 +125,61 @@ tests:
     error: [true]
 
 
-  - 'group: toDateTime':
+  - 'group: toDate() : Date':
+      - expression: "'2015-02-04'.toDate()=@2015-02-04"
+        result: [true]
+
+      - expression: "'2015-02'.toDate()=@2015-02"
+        result: [true]
+
+      - expression: "'2015'.toDate()=@2015"
+        result: [true]
+
+      - description: "Date to Date returns same value"
+        expression: "@2015-02-04.toDate()=@2015-02-04"
+        result: [true]
+
+      - description: "DateTime to Date extracts date portion"
+        expression: "@2015-02-04T14:34:28.toDate()=@2015-02-04"
+        result: [true]
+
+      - description: "DateTime with a date that differs from the local time zone to Date"
+        expression: "@2015-02-04T14:34:28+10:00.toDate() = @2015-02-04"
+        result: [true]
+
+      - description: "DateTime with the same date in the local time zone to Date"
+        expression: "@2015-02-04T14:34:28Z.toDate() = @2015-02-04"
+        result: [true]
+
+      - description: "Year-month DateTime to Date preserves precision"
+        expression: "@2015-02.toDate()=@2015-02"
+        result: [true]
+
+      - description: "Invalid date string returns empty"
+        expression: "'not-a-date'.toDate()"
+        result: []
+
+      - description: "Time string cannot convert to Date"
+        expression: "'14:34:28'.toDate()"
+        result: []
+
+      - description: "Empty collection returns empty"
+        expression: "{}.toDate()"
+        result: []
+
+      - description: "Multiple items throws error"
+        expression: "('2015-02-04' | '2015-02-05').toDate()"
+        error: true
+
+      - desc: '** Null to date'
+        expression: Functions.collWithNullsAndTrue[0].toDate()
+        result: []
+
+      - description: "toDate result is a Date type"
+        expression: "'2015-02-04'.toDate() is Date"
+        result: [true]
+
+  - 'group: toDateTime() : DateTime':
     - desc: equality
       expression: "datetime.toDateTime() = @2019-02-06T19:17-05:00"
       result: [true]
@@ -134,11 +188,69 @@ tests:
       expression: "datetime.toDateTime() = @2010-02-06T19:17-05:00"
       result: [false]
 
-  - desc: '** Null to dateTime'
-    expression: Functions.collWithNullsAndTrue[0].toDateTime()
-    result: []
+    - expression: "'2015-02-04T14:34:28'.toDateTime()=@2015-02-04T14:34:28"
+      result: [ true ]
 
-  - 'group: toTime':
+    - expression: "'2015-02-04T14:34:28+10:00'.toDateTime()=@2015-02-04T14:34:28+10:00"
+      result: [ true ]
+
+    - expression: "'2015-02-04T14:34:28Z'.toDateTime()=@2015-02-04T14:34:28Z"
+      result: [ true ]
+
+    - expression: "'2015-02-04'.toDateTime()=@2015-02-04"
+      result: [ true ]
+
+    - expression: "'2015-02'.toDateTime()=@2015-02"
+      result: [ true ]
+
+    - expression: "'2015'.toDateTime()=@2015"
+      result: [ true ]
+
+    - description: "DateTime to DateTime returns same value"
+      expression: "@2015-02-04T14:34:28.toDateTime()=@2015-02-04T14:34:28"
+      result: [ true ]
+
+    - description: "DateTime with timezone to DateTime returns same value"
+      expression: "@2015-02-04T14:34:28+10:00.toDateTime()=@2015-02-04T14:34:28+10:00"
+      result: [ true ]
+
+    - description: "Date to DateTime preserves date value"
+      expression: "@2015-02-04.toDateTime()=@2015-02-04"
+      result: [ true ]
+
+    - description: "Year-month Date to DateTime"
+      expression: "@2015-02.toDateTime()=@2015-02"
+      result: [ true ]
+
+    - description: "Year-only Date to DateTime"
+      expression: "@2015.toDateTime()=@2015"
+      result: [ true ]
+
+    - description: "Invalid datetime string returns empty"
+      expression: "'not-a-datetime'.toDateTime()"
+      result: [ ]
+
+    - description: "Time string cannot convert to DateTime"
+      expression: "'14:34:28'.toDateTime()"
+      result: [ ]
+
+    - description: "Empty collection returns empty"
+      expression: "{}.toDateTime()"
+      result: [ ]
+
+    - description: "Multiple items throws error"
+      expression: "('2015-02-04' | '2015-02-05').toDateTime()"
+      error: true
+
+    - desc: '** Null to dateTime'
+      expression: Functions.collWithNullsAndTrue[0].toDateTime()
+      result: []
+
+    - description: "toDateTime result is a DateTime type"
+      expression: "'2015-02-04T14:34:28'.toDateTime() is DateTime"
+      result: [true]
+
+  - 'group: toTime() : Time':
     - desc: equality
       expression: "time.toTime() = @T19:15"
       result: [true]
@@ -151,13 +263,60 @@ tests:
       expression: "time.toTime() != @T18:15"
       result: [true]
 
-  - desc: '** Null to time'
-    expression: Functions.collWithNullsAndTrue[0].toTime()
-    result: []
+    - expression: "'14:34:28'.toTime()=@T14:34:28"
+      result: [true]
 
-  - desc: '** Null to date'
-    expression: Functions.collWithNullsAndTrue[0].toDate()
-    result: []
+    - expression: "'14:34:28.123'.toTime()=@T14:34:28.123"
+      result: [true]
+
+    - expression: "'14:34'.toTime()=@T14:34"
+      result: [true]
+
+    - expression: "'14'.toTime()=@T14"
+      result: [true]
+
+    - expression: "'T14:34:28'.toTime()=@T14:34:28"
+      result: [true]
+
+    - description: "Time to Time returns same value"
+      expression: "@T14:34:28.toTime()=@T14:34:28"
+      result: [true]
+
+    - description: "Time with milliseconds to Time"
+      expression: "@T14:34:28.123.toTime()=@T14:34:28.123"
+      result: [true]
+
+    - description: "Hour-minute Time to Time"
+      expression: "@T14:34.toTime()=@T14:34"
+      result: [true]
+
+    - description: "Invalid time string returns empty"
+      expression: "'not-a-time'.toTime()"
+      result: []
+
+    - description: "Date string cannot convert to Time"
+      expression: "'2015-02-04'.toTime()"
+      result: []
+
+    - description: "DateTime string cannot convert to Time"
+      expression: "'2015-02-04T14:34:28'.toTime()"
+      result: []
+
+    - description: "Empty collection returns empty"
+      expression: "{}.toTime()"
+      result: []
+
+    - description: "Multiple items throws error"
+      expression: "('14:34:28' | '15:34:28').toTime()"
+      error: true
+
+    - desc: '** Null to time'
+      expression: Functions.collWithNullsAndTrue[0].toTime()
+      result: []
+
+    - description: "toTime result is a Time type"
+      expression: "'14:34:28'.toTime() is Time"
+      result: [true]
 
   - desc: '** Null to boolean'
     expression: Functions.collWithNullsAndTrue[0].toBoolean()
@@ -179,7 +338,7 @@ tests:
     expression: ('0' | '1').toBoolean()
     error: [true]
 
-  - desc: '5.5.4. toString() : string'
+  - 'group: 5.5.4. toString() : string':
 # If the input collection contains a single item, this function will return a single string if:
 # the item in the input collection is a string
 # the item in the input collection is an integer, decimal, time or dateTime the output will contain its string representation
@@ -208,108 +367,123 @@ tests:
 # Note that for partial dates and times, the result will only be specified to the level of precision in the value being converted.
 # In all other cases, the function will return an empty collection.
 
-  - desc: '** bool to string'
-    expression: attrtrue.toString()
-    result: ['true']
+    - desc: '** bool to string'
+      expression: attrtrue.toString()
+      result: ['true']
 
-  - desc: '** bool to string'
-    expression: attrdec.toString()
-    result: ['101.99']
+    - desc: '** bool to string'
+      expression: attrdec.toString()
+      result: ['101.99']
 
-  - desc: '** null to string'
-    inputfile: patient-example-2.json
-    model: r4
-    expression: Patient.name.given[0].toString()
-    result: []
+    - desc: '** null to string'
+      inputfile: patient-example-2.json
+      model: r4
+      expression: Patient.name.given[0].toString()
+      result: []
 
-  - desc: '** null date to string'
-    inputfile: patient-example-2.json
-    model: r4
-    expression: Patient.birthDate.toString()
-    result: []
+    - desc: '** null date to string'
+      inputfile: patient-example-2.json
+      model: r4
+      expression: Patient.birthDate.toString()
+      result: []
 
-  - desc: '** Long to string'
-    expression: 101L.toString() = '101'
-    result: [true]
+    - desc: '** Long to string'
+      expression: 101L.toString() = '101'
+      result: [true]
 
-  - desc: '** collection to string'
-    expression: (5 | 6).toString()
-    error: [true]
+    - desc: '** collection to string'
+      expression: (5 | 6).toString()
+      error: [true]
 
 
-  - desc: '5.5.7. toQuantity([unit:string]) : Quantity'
-  - desc: '** string to Quantity'
-    inputfile: patient-example.json
-    expression: '''1 \''wk\''''.toQuantity() = 7 days'
-    result: []
-  - desc: '** string to Quantity'
-    inputfile: patient-example.json
-    expression: '''1 \''wk\''''.toQuantity(''days'')'
-    result: []
-  - desc: '** string to Quantity'
-    inputfile: patient-example.json
-    expression: "'1 \\'wk\\''.toQuantity('d') = 7 days"
-    result: []
-  - desc: '** string to Quantity - result UCUM unit code must be surrounded with single quotes'
-    inputfile: patient-example.json
-    expression: "'1 \\'wk\\''.toQuantity('d').toString() = '7 \\'d\\''"
-    result:
-      - true
-  - desc: '** calendar duration conversion factor'
-    inputfile: patient-example.json
-    expression: '''1 year''.toQuantity() != 1 ''a'''
-    result:
-      - true
-  - desc: '** calendar duration conversion factor'
-    inputfile: patient-example.json
-    expression: '''1 year''.toQuantity() ~ 1 ''a'''
-    result:
-      - true
-  - desc: '** Duration to Quantity'
-    inputfile: medicationrequest-example.json
-    expression: "MedicationRequest.dispenseRequest.expectedSupplyDuration.toQuantity() = 3 days"
-    model: 'r4'
-    result:
-      - true
-  - desc: '** UCUM units'
-    inputfile: patient-example.json
-    expression: "'1 \\'cm\\''.toQuantity('mm').value = 10"
-    result:
-      - true
-  - desc: '** Invalid conversion'
-    inputfile: patient-example.json
-    expression: "'1 \\'cm\\''.toQuantity('g')"
-    result: []
-  - desc: '** Implicit to quantity + toQuantity'
-    inputfile: observation-example.json
-    model: 'r4'
-    expression: Observation.value.toQuantity('kg') ~ 84 'kg'
-    result:
-      - true
-  - desc: '** Invalid conversion'
-    inputfile: patient-example.json
-    expression: '''1 \''wk\''''.toQuantity(''nonexistent-unit'')'
-    result: []
-  - desc: '** Invalid conversion'
-    inputfile: patient-example.json
-    expression: '''some not quantity string''.toQuantity()'
-    result: []
+  - 'group: 5.5.7. toQuantity([unit:string]) : Quantity':
+    - 'group: string to Quantity':
+      - expression: '''1 \''wk\''''.toQuantity() = 7 days'
+        result: [true]
+      - expression: '''1 \''wk\''''.toQuantity(''days'')'
+        result: ['7 days']
+      - expression: "'1 \\'wk\\''.toQuantity('d') = 7 days"
+        result: [true]
+      - expression: "'1 \\'mo\\''.toQuantity('month')"
+        result: []
+      - expression: "'1 \\'mo\\''.toQuantity('days')"
+        result: []
+      - expression: "'1 nothing'.toQuantity('something')"
+        result: []
+      - expression: "'12 months'.toQuantity('year') = 1 year"
+        result: [true]
+      - desc: '** result UCUM unit code must be surrounded with single quotes'
+        expression: "'1 \\'wk\\''.toQuantity('d').toString() = '7 \\'d\\''"
+        result:
+          - true
+    - 'group: calendar duration conversion factor':
+      - inputfile: patient-example.json
+        expression: '''1 year''.toQuantity() != 1 ''a'''
+        result: []
+      - inputfile: patient-example.json
+        expression: '''1 year''.toQuantity() ~ 1 ''a'''
+        result:
+          - true
+    - desc: '** Duration to Quantity'
+      inputfile: medicationrequest-example.json
+      expression: "MedicationRequest.dispenseRequest.expectedSupplyDuration.toQuantity() = 3 days"
+      model: 'r4'
+      result:
+        - true
+    - desc: '** UCUM units'
+      inputfile: patient-example.json
+      expression: "'1 \\'cm\\''.toQuantity('mm').value = 10"
+      result:
+        - true
+    - desc: '** UCUM special units'
+      inputfile: patient-example.json
+      expression: "'23 \\'Cel\\''.toQuantity('[degF]') ~ 73.4 '[degF]'"
+      result:
+        - true
+    - desc: '** UCUM special units'
+      inputfile: patient-example.json
+      expression: "'73.4 \\'[degF]\\''.toQuantity('Cel') ~ 23 'Cel'"
+      result:
+        - true
+    - desc: '** UCUM special units'
+      inputfile: patient-example.json
+      expression: "'0 \\'Cel\\''.toQuantity('K') = 273.15 'K'"
+      result:
+        - true
+    - desc: '** Invalid conversion'
+      inputfile: patient-example.json
+      expression: "'1 \\'cm\\''.toQuantity('g')"
+      result: []
+    - desc: '** Implicit to quantity + toQuantity'
+      inputfile: observation-example.json
+      model: 'r4'
+      expression: Observation.value.toQuantity('kg') ~ 84 'kg'
+      result:
+        - true
+    - desc: '** Invalid conversion'
+      inputfile: patient-example.json
+      expression: '''1 \''wk\''''.toQuantity(''nonexistent-unit'')'
+      result: []
+    - desc: '** Invalid conversion'
+      inputfile: patient-example.json
+      expression: '''some not quantity string''.toQuantity()'
+      result: []
 
-  - desc: '** Null to Quantity'
-    expression: Functions.collWithNullsAndTrue[0].toQuantity()
-    result: []
+    - desc: '** Null to Quantity'
+      expression: Functions.collWithNullsAndTrue[0].toQuantity()
+      result: []
 
-  - desc: '** integer to Quantity'
-    expression: 1.toQuantity() = 1 '1'
-    result: [ true ]
+    - desc: '** integer to Quantity'
+      expression: 1.toQuantity() = 1 '1'
+      result: [ true ]
 
-  - desc: '** long integer to Quantity is not defined'
-    expression: 1L.toQuantity() = 1 '1'
-    result: []
+    - desc: '** long integer to Quantity is not defined'
+      expression: 1L.toQuantity() = 1 '1'
+      result: []
 
-  - desc: '** collection to Quantity'
-    expression: (5 | 6).toQuantity()
-    error: [true]
+    - desc: '** collection to Quantity'
+      expression: (5 | 6).toQuantity()
+      error: [true]
 
 
 subject:

@@ -54,7 +54,7 @@ function loadResource(filePath) {
   return _.cloneDeep(cacheOfResources[filePath]);
 }
 
-const calcExpression = (expression, test, testResource) => {
+const calcExpression = (expression, test, testResource, preciseMath) => {
   if (_.has(test, 'inputfile')) {
     testResource = loadResource(__dirname + `/resources/${test.model || 'r4'}/` + test.inputfile);
   }
@@ -65,8 +65,10 @@ const calcExpression = (expression, test, testResource) => {
     Object.assign(variables, test.variables);
   return fhirpath.evaluate(
     testResource, expression, variables,
-    getFHIRModel(test.model), {resolveInternalTypes: false}
-  );
+    getFHIRModel(test.model), {
+      resolveInternalTypes: false,
+      ...(preciseMath !== undefined ? { preciseMath } : {})
+    });
 };
 
 module.exports = {

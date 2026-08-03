@@ -27,6 +27,10 @@ const modelInfo = {
    */
   path2Type: require('./path2Type.json'),
   /**
+   * Mapping paths to true for repeating elements.
+   */
+  path2Repeating: arrToHash(require('./path2Repeating.json')),
+  /**
    * A hash with FHIR resource types that support the 'url' search parameter.
    * The data is loaded from the resourcesWithUrlParam.json file.
    */
@@ -37,4 +41,3 @@ const modelInfo = {
 updateWithGeneratedData(modelInfo);
 
 module.exports = modelInfo;
-

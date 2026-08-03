@@ -5,6 +5,12 @@ tests:
   - desc: '** Can take the absolute value of a number'
     expression: Math.d2.abs()
     result: [1.1]
+  - desc: '** Can take the absolute value of a negative long number'
+    expression: (-5L).abs() = 5L
+    result: [true]
+  - desc: '** Can take the absolute value of a positive long number'
+    expression: (5L).abs() = 5L
+    result: [true]
 #  - desc: '** Can return a number equal to the input if input value is a quantity'
 #    expression: Math.quan.abs()
 #    result: [4.5 'mg']
@@ -20,8 +26,8 @@ tests:
   - desc: '** Error taking the absolute value if the input collection contains multiple items'
     expression: Math.arr.abs()
     error: true
-  
-  - desc: '5.7.2 ceiling() : Integer'
+
+  - desc: '5.7.2 ceiling() : Integer | Quantity'
   - desc: '** Can return a number equal to the input'
     expression: Math.n1.ceiling()
     result: [1]
@@ -31,6 +37,9 @@ tests:
   - desc: '** Can round a number upward to its nearest integer'
     expression: Math.d2.ceiling()
     result: [-1]
+  - desc: '** Can round a quantity upward to its nearest integer value while keeping the same unit'
+    expression: 1.1 'kg'.ceiling() = 2 'kg'
+    result: [true]
   - desc: '** Empty result when rounding a number upward to its nearest integer from empty collection'
     expression: Math.n2.ceiling()
     result: []
@@ -48,6 +57,10 @@ tests:
   - desc: '** Can raise e to the input number power'
     expression: Math.n0.exp()
     result: [1]
+  - desc: '** The precision of the exp() operation'
+    expression: (-1.203972804325936).exp()
+    preciseMath: true
+    result: [0.3]
   - desc: '** Empty result for empty degree'
     expression: Math.n2.exp()
     result: []
@@ -71,6 +84,9 @@ tests:
   - desc: '** Can round a number downward to its nearest integer'
     expression: Math.d2.floor()
     result: [-2]
+  - desc: '** Can round a quantity downward to its nearest integer value while keeping the same unit'
+    expression: 2.5 's'.floor() = 2 's'
+    result: [true]
   - desc: '** Empty result when rounding a number downward to its nearest integer from empty collection'
     expression: Math.n2.floor()
     result: []
@@ -94,6 +110,10 @@ tests:
   - desc: '** Empty result when taking logarithm from null'
     expression: Math.arrWithNullsAndVals[0].ln()
     result: []
+  - desc: 'The precision of the ln() operation'
+    expression: 0.3.ln()
+    preciseMath: true
+    result: [-1.203972804325936]
   - desc: '** Error taking logarithm due to too many input parameters'
     expression: Math.n3.ln(n4)
     error: true
@@ -128,6 +148,14 @@ tests:
   - desc: '** Can raise input number to the power of given degree'
     expression: Math.n4.power(2)
     result: [64]
+  - desc: '** The precision of the power() operation'
+    expression: 3.3.power(2)
+    preciseMath: true
+    result: [10.89]
+  - desc: '** The precision of the power() operation with a fractional exponent'
+    expression: 10.89.power(1/2)
+    preciseMath: true
+    result: [3.3]
   - desc: '** Empty result if the power cannot be represented'
     expression: n6.power(1.5)
     result: []
@@ -157,6 +185,9 @@ tests:
   - desc: '** Can round number with a given accuracy'
     expression: Math.d3.round(2)
     result: [13.85]
+  - desc: '** Can round a quantity with a given accuracy while keeping the same unit'
+    expression: 2.315 's'.round(2) = 2.32 's'
+    result: [true]
   - desc: '** Can round a number to the nearest integer if a given accuracy is empty'
     expression: Math.d2.round(n2)
     result: [-1]
@@ -183,6 +214,10 @@ tests:
   - desc: '** Can take square root'
     expression: Math.n5.sqrt()
     result: [4]
+  - desc: '** The precision of the square root operation'
+    expression: 10.89.sqrt()
+    preciseMath: true
+    result: [3.3]
   - desc: '** Empty result when taking square root of a negative number'
     expression: Math.d2.sqrt()
     result: []
@@ -203,6 +238,9 @@ tests:
   - desc: '** Can return the integer part of the number'
     expression: Math.d1.truncate()
     result: [1]
+  - desc: '** Can return the integer part of a negative quantity while keeping the same unit'
+    expression: (-1.56 's').truncate() = -1 's'
+    result: [true]
   - desc: '** Empty result when taking integer part from empty collection'
     expression: Math.n2.truncate()
     result: []

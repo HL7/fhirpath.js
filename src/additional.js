@@ -16,9 +16,9 @@ let engine = {};
  *  CodeableConcept, or code element.
  * @param {(ResourceNode|string)[]} valueSetColl - an array that should have one
  *  element, which is value set URL.
- * @return {Promise<boolean>|[]} - promise of a boolean value indicating that
- *  there is one element in the input collection whose code is a member of the
- *  specified value set.
+ * @return {Promise<boolean|[]>|[]} - a promise resolving to a boolean value
+ *  when validation returns a result, or an empty collection when validation
+ *  fails or returns no result; invalid inputs return an empty collection.
  */
 engine.memberOf = function (coll, valueSetColl ) {
   const ctx = this;
@@ -34,11 +34,13 @@ engine.memberOf = function (coll, valueSetColl ) {
       if (!terminologies) {
         throw new Error('Option "terminologyUrl" is not specified.');
       }
-      return Terminologies.validateVS.call(this,
+      const validation = Terminologies.validateVS.call(this,
         [terminologies], valueSetColl, coll, ''
-      )?.then(params => {
-        return util.valData(params)?.parameter.find((p) => p.name === "result").valueBoolean;
-      }, () => []);
+      );
+      return validation?.then(params => {
+        return util.valData(params)?.parameter
+          ?.find((p) => p.name === "result")?.valueBoolean ?? [];
+      }, () => []) ?? [];
     }
   }
 
@@ -48,7 +50,9 @@ engine.memberOf = function (coll, valueSetColl ) {
 
 /**
  * Requests a FHIR resource by its canonical URL (see
- * https://hl7.org/fhir/references.html#canonical) from the FHIR server.
+ * https://hl7.org/fhir/references.html#canonical) from the FHIR server. The
+ * canonical URL may use any absolute URI scheme (for example "http:", "https:",
+ * or "urn:").
  * To request a resource by a canonical URL of the form "someUrl[|version]",
  * we need to make a request: "<resourceType>?url=<someUrl>[&version=version]"
  * In general, we don't know how to get the resource type from the canonical
@@ -61,25 +65,19 @@ engine.memberOf = function (coll, valueSetColl ) {
  * @param {string} url - The canonical URL of the resource to fetch.
  * @returns {Promise<Object|null>} A promise resolving to the resource object if found, or null.
  */
-function requestResourceByCanonicalUrl(ctx, refType, url) {
+function requestResByCanonicalUrl(ctx, refType, url) {
   const fhirServerUrl = ctx.processedVars.fhirServerUrl;
   if (!fhirServerUrl) {
     throw new Error('Option "fhirServerUrl" is not specified.');
   }
-  const match = /^(https?:\/\/[^|]*)(\|(.*))?/.exec(url);
-  if (refType && match && ctx.model.resourcesWithUrlParam[refType]) {
-    const params = {url: match[1]};
-    if (match[3]) {
-      params.version = match[3];
-    }
-    return  util.fetchWithCache(
+  if (ctx.model.resourcesWithUrlParam[refType]) {
+    return util.fetchWithCache(
       urlJoin(fhirServerUrl, refType) + '?' +
-      new URLSearchParams(params).toString(),
+      new URLSearchParams(util.splitCanonicalUrl(url)).toString(),
       ctx
-    ).then((bundle) => {
-      // Assuming the bundle contains a single resource.
-      return bundle.entry?.[0]?.resource ?? null;
-    });
+    ).then(
+      bundle => Terminologies.findBundleResource(bundle, refType) ?? null
+    );
   }
   return Promise.resolve(null);
 }
@@ -108,11 +106,13 @@ const baseResourceTypes = {Resource: 1, DomainResource: 1};
 
 /**
  * Requests a FHIR resource by its URL, which may be absolute or relative.
- * If the URL is absolute, it is fetched directly. If the fetch fails and
- * a refType is provided, attempts to resolve as a canonical URL. If the URL is
- * relative and starts with a resource type, it is resolved against the FHIR
- * server URL. Returns null if the resource cannot be resolved. If a fragment
- * is specified, it retrieves the contained resource by its ID.
+ * If the URL is an absolute HTTP(S) URL, it is fetched directly; if the fetch
+ * fails and a refType is provided, it attempts to resolve as a canonical URL.
+ * If the URL is an absolute non-HTTP(S) URI (e.g. "urn:oid:..."), it is
+ * resolved as a canonical URL of the provided refType. If the URL is relative
+ * and starts with a resource type, it is resolved against the FHIR server URL.
+ * Returns null if the resource cannot be resolved. If a fragment is specified,
+ * it retrieves the contained resource by its ID.
  *
  * @param {Object} ctx - The execution context containing processedVars and
  *  model information.
@@ -121,8 +121,10 @@ const baseResourceTypes = {Resource: 1, DomainResource: 1};
  *  undefined or null.
  * @param {string} url - The URL of the resource to fetch.
  * @param {boolean} isCanonical - Indicates if the URL is a canonical URL.
- * @returns {Promise<Object|null>} A promise resolving to the resource object
- *  if found, or null.
+ * @returns {Promise<Object|ResourceNode|null>} Resolves to a plain FHIR
+ *  resource object for fetched/lookup results, a ResourceNode when resolving
+ *  a fragment-only reference (for example, "#id") within the current input
+ *  resource, or null when no resource can be resolved.
  */
 function requestResourceByUrl(ctx, node, refType, url, isCanonical) {
   let promiseOfResource = null;
@@ -133,16 +135,23 @@ function requestResourceByUrl(ctx, node, refType, url, isCanonical) {
       // If the reference is a canonical URL of specified type,
       // we can use this type to resolve it.
       if (refType) {
-        promiseOfResource = requestResourceByCanonicalUrl(ctx, refType, url);
+        promiseOfResource = requestResByCanonicalUrl(ctx, refType, url);
       }
     } else if (refType) {
       // If the reference is an absolute URL, we can use it directly.
       promiseOfResource = util.fetchWithCache(url, ctx).catch(
         // If the reference can be a canonical URL of specified type,
         // we can use this type to resolve it.
-        () => requestResourceByCanonicalUrl(ctx, refType, url));
+        () => requestResByCanonicalUrl(ctx, refType, url));
     } else {
       promiseOfResource = util.fetchWithCache(url, ctx);
+    }
+  } else if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url)) {
+    // If the reference is an absolute non-HTTP(S) URI (e.g. "urn:oid:..."), it
+    // cannot be fetched directly; resolve it as a canonical URL of the
+    // specified type when the type is known.
+    if (refType) {
+      promiseOfResource = requestResByCanonicalUrl(ctx, refType, url);
     }
   } else {
     const match = /([A-Za-z]*)\//.exec(url);
@@ -159,7 +168,32 @@ function requestResourceByUrl(ctx, node, refType, url, isCanonical) {
       }
       promiseOfResource = util.fetchWithCache(urlJoin(fhirServerUrl, url), ctx);
     } else if (!url && fragment && node instanceof ResourceNode) {
-      promiseOfResource = Promise.resolve(node.getParentResource());
+      const parentResourceNode = node.getParentResource();
+      const parentResource = util.valData(parentResourceNode);
+      const containedResource = getContainedResource(parentResource, fragment);
+      if (!containedResource) {
+        return Promise.resolve(null);
+      }
+
+      const containedPath = parentResourceNode.path
+        ? parentResourceNode.path + '.contained'
+        : 'contained';
+      const containedIndex = parentResource?.contained?.indexOf(
+        containedResource
+      );
+
+      return Promise.resolve(
+        ResourceNode.makeResNode(
+          ctx,
+          containedResource,
+          parentResourceNode,
+          containedPath,
+          null,
+          null,
+          'contained',
+          containedIndex >= 0 ? containedIndex : null
+        )
+      );
     }
   }
 
@@ -181,9 +215,11 @@ function requestResourceByUrl(ctx, node, refType, url, isCanonical) {
  * Resolves a collection of FHIR references, canonicals, or URIs to their
  * corresponding resources.
  * For each item in the collection:
- * - If it is a Reference, resolves the referenced resource.
- * - If it is a Canonical, resolves the resource by canonical URL.
- * - If it is a URI or string, attempts to resolve as a resource URL.
+ * - If it is a FHIR.Reference, resolves the referenced resource.
+ * - If it is a FHIR.canonical, resolves the resource by canonical URL.
+ * - If it is a FHIR.uri, FHIR.string, or System.String, attempts to resolve as
+ *   a resource URL.
+ *
  * Returns an array of ResourceNode objects for successfully resolved resources.
  *
  * @param {Array} coll - The collection of items to resolve.
@@ -202,15 +238,22 @@ engine.resolveFn = function (coll) {
     if (typeInfo.is(TypeInfo.FhirReference, ctx.model)) {
       const v = util.valData(item);
       if (v?.reference) {
-        // If the item is a Reference, use its reference property.
+        // If the item is a FHIR.Reference, use its reference property to
+        // resolve the resource.
         res = requestResourceByUrl(ctx, item, typeInfo.refType?.length === 1 &&
           typeInfo.refType[0] || v.type, v.reference, false);
       }
-    } else if(typeInfo.is(TypeInfo.FhirCanonical, ctx.model)) {
+    } else if (typeInfo.is(TypeInfo.FhirCanonical, ctx.model)) {
+      // If the item is a FHIR.canonical, resolve the resource by canonical URL.
       res = requestResourceByUrl(ctx, item,typeInfo.refType?.length === 1 &&
         typeInfo.refType[0], util.valData(item), true);
-    } else if(typeInfo.is(TypeInfo.FhirUri, ctx.model) ||
-      typeInfo.is(TypeInfo.SystemString)) {
+    } else if (
+      typeInfo.is(TypeInfo.FhirUri, ctx.model) ||
+      typeInfo.is(TypeInfo.SystemString, ctx.model) ||
+      typeInfo.is(TypeInfo.FhirString, ctx.model)
+    ) {
+      // If the item is a FHIR.uri, FHIR.string, or System.String, attempt to
+      // resolve as a resource URL.
       res = requestResourceByUrl(ctx, item, null, util.valData(item), false);
     }
 
@@ -218,10 +261,17 @@ engine.resolveFn = function (coll) {
     return acc;
   }, [])).then(result => {
     return result.reduce((acc, resItem) => {
-      if (resItem.status === 'fulfilled' && resItem.value?.resourceType) {
-        acc.push(ResourceNode.makeResNode(resItem.value, null, null, null,
-          null, ctx.model));
+      if (resItem.status !== 'fulfilled') {
+        return acc;
       }
+
+      const value = resItem.value;
+      if (value instanceof ResourceNode) {
+        acc.push(value);
+      } else if (value?.resourceType) {
+        acc.push(ResourceNode.makeResNode(ctx, value, null, null, null, null));
+      }
+
       return acc;
     }, []);
   });

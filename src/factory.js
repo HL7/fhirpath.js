@@ -1,10 +1,23 @@
 // This file contains a class that implements the Type Factory API.
 // See https://hl7.org/fhir/fhirpath.html#factory for details.
 const util = require("./utilities");
-const { ResourceNode, TypeInfo, instantRE, timeRE, dateRE, dateTimeRE} = require("./types");
+const { ResourceNode, TypeInfo, instantRE, timeRE, dateRE, dateTimeRE,
+  FP_Decimal } = require("./types");
 
+
+/**
+ * Implements the FHIR Type Factory API (%factory).
+ * Provides static methods for creating FHIR data type instances from within
+ * FHIRPath expressions.
+ * See https://hl7.org/fhir/fhirpath.html#factory for details.
+ */
 class Factory {
-  // Same as fhirpath.invocationTable, but for %factory methods
+  /**
+   * Invocation table mapping factory function names to their implementations
+   * and parameter signatures. Same structure as fhirpath.invocationTable, but
+   * for %factory methods.
+   * @type {Object<string, {fn: Function, arity: Object<number, string[]>}>}
+   */
   static invocationTable = {
     Extension: {fn: Factory.Extension, arity: {2: ['String', 'AnyAtRoot']}},
     Identifier: {
@@ -92,8 +105,16 @@ class Factory {
     }
   };
 
-  // Create functions to create primitive types and add these functions to the
-  // invocationTable.
+
+  /**
+   * Static initializer block that creates factory functions for all FHIR
+   * primitive types (string, integer, decimal, boolean, etc.) and registers
+   * them in the invocation table.
+   * Each generated function validates the input value against the type's
+   * constraints and creates a ResourceNode with optional extensions.
+   * See https://hl7.org/fhir/datatypes.html#primitive for primitive type
+   * descriptions.
+   */
   static {
     [
       {
@@ -107,30 +128,44 @@ class Factory {
       },
       {
         type: 'integer',
-        getValue: (v) => {
-          const n = Number(v);
-          if (Number.isInteger(n)) {
-            return n;
+        getValue: (v, ctx) => {
+          if (typeof v !== 'object') {
+            const n = Number(v);
+            if (Number.isInteger(n)) {
+              return n;
+            }
+          } else if (v instanceof FP_Decimal && v.isInteger()) {
+            return ctx.getDecimal(v);
           }
           throw new Error(`"${v}" is not an integer.` );
         }
       },
       {
         type: 'unsignedInt',
-        getValue: (v) => {
-          const n = Number(v);
-          if (Number.isInteger(n) && n >= 0) {
-            return n;
+        getValue: (v, ctx) => {
+          if (typeof v !== 'object') {
+            const n = Number(v);
+            if (Number.isInteger(n) && n >= 0) {
+              return n;
+            }
+          } else if (v instanceof FP_Decimal && v.isInteger() &&
+            v.compare(0) >= 0) {
+            return ctx.getDecimal(v);
           }
           throw new Error(`"${v}" is not an unsignedInt.` );
         }
       },
       {
         type: 'positiveInt',
-        getValue: (v) => {
-          const n = Number(v);
-          if (Number.isInteger(n) && n > 0) {
-            return n;
+        getValue: (v, ctx) => {
+          if (typeof v !== 'object') {
+            const n = Number(v);
+            if (Number.isInteger(n) && n > 0) {
+              return n;
+            }
+          } else if (v instanceof FP_Decimal && v.isInteger() &&
+            v.compare(0) > 0) {
+            return ctx.getDecimal(v);
           }
           throw new Error(`"${v}" is not a positiveInt.` );
         }
@@ -139,10 +174,14 @@ class Factory {
         type: 'integer64',
         getValue: (v) => {
           try {
-            return BigInt(v);
-          } catch (e) {
-            throw new Error(`"${v}" is not a big integer.` );
-          }
+            if (typeof v !== 'object') {
+              return BigInt(v);
+            } else if (v instanceof FP_Decimal) {
+              return BigInt(v.toString());
+            }
+            /* eslint-disable-next-line no-empty */
+          } catch {}
+          throw new Error(`"${v}" is not a big integer.`);
         }
       },
       {
@@ -221,12 +260,8 @@ class Factory {
       },
       {
         type: 'decimal',
-        getValue(v) {
-          const n = Number(v);
-          if (Number.isNaN(n)) {
-            throw new Error(`"${v}" is not an decimal.` );
-          }
-          return n;
+        getValue(v, ctx) {
+          return ctx.getDecimal(v);
         }
       },
       {
@@ -301,6 +336,7 @@ class Factory {
        */
       Factory[primitiveType] = function (self, valueColl, extensions) {
         let data;
+        const ctx = this;
         if (valueColl.length > 1) {
           throw new Error('Unexpected collection ' + util.toJSON(valueColl) +
             ` as a value for %factory.${primitiveType}(value, extensions)`);
@@ -310,10 +346,8 @@ class Factory {
           const v = util.valData(valueColl[0]);
           if (v == null) {
             data = null;
-          } if (typeof v !== 'object') {
-            data = getValue(v);
           } else {
-            throw new Error(`"${v}" is not a ${primitiveType}` );
+            data = getValue(v, ctx);
           }
         }
 
@@ -331,7 +365,7 @@ class Factory {
           };
         }
 
-        return ResourceNode.makeResNode(data, null, primitiveType, _data, primitiveType);
+        return ResourceNode.makeResNode(ctx, data, null, primitiveType, _data, primitiveType);
       };
 
       Factory.invocationTable[primitiveType] = {
@@ -341,8 +375,9 @@ class Factory {
     });
   }
 
+
   /**
-   * Creates an extension with the given url and value
+   * Creates an extension with the given url and value.
    * @param {Factory[]} self - an array with one element, which is the Factory
    *  class.
    * @param {string} url - a string value that identifies the extension
@@ -362,10 +397,12 @@ class Factory {
           " as a value for %factory.Extension(url, value)");
       }
     } else {
-      return ResourceNode.makeResNode(Factory.createExtensionObject(url, value[0]),
+      const ctx = this;
+      return ResourceNode.makeResNode(ctx, Factory.createExtensionObject(url, value[0]),
         null, 'Extension', null, 'Extension');
     }
   }
+
 
   /**
    * Creates an object to store the extension value.
@@ -382,6 +419,7 @@ class Factory {
       [valuePropertyName]: util.valData(value)
     };
   }
+
 
   /**
    * Creates an identifier with the given properties.
@@ -400,6 +438,7 @@ class Factory {
         " as a type for %factory.Identifier{system, value, use, type)");
     }
     const data = {};
+    const ctx = this;
     if (util.isSome(system)) {
       data.system = system;
     }
@@ -416,15 +455,16 @@ class Factory {
       }
       data.type = typeColl[0];
     }
-    return ResourceNode.makeResNode(data, null, 'Identifier', null,
+    return ResourceNode.makeResNode(ctx, data, null, 'Identifier', null,
       'Identifier');
   }
 
+
   /**
-   * Create a human name with the given properties.
+   * Creates a human name with the given properties.
    * @param {Factory[]} self - an array with one element, which is the Factory
    *  class.
-   * @param {string} family - a string value that goes in HumanName.system.
+   * @param {string} family - a string value that goes in HumanName.family.
    * @param {ResourceNode[]} givenColl - a collection of string values that goes
    *  in HumanName.given.
    * @param {string} prefix - a string value that goes in HumanName.prefix.
@@ -435,6 +475,7 @@ class Factory {
    */
   static HumanName(self, family, givenColl, prefix, suffix, text, use) {
     const data = {};
+    const ctx = this;
     if (util.isSome(family)) {
       data.family = family;
     }
@@ -459,9 +500,10 @@ class Factory {
     if (util.isSome(use)) {
       data.use = use;
     }
-    return ResourceNode.makeResNode(data, null, 'HumanName', null,
+    return ResourceNode.makeResNode(ctx, data, null, 'HumanName', null,
       'HumanName');
   }
+
 
   /**
    * Creates a ContactPoint.
@@ -474,6 +516,7 @@ class Factory {
    */
   static ContactPoint(self, system, value, use) {
     const data = {};
+    const ctx = this;
     if (util.isSome(system)) {
       data.system = system;
     }
@@ -483,12 +526,13 @@ class Factory {
     if (util.isSome(use)) {
       data.use = use;
     }
-    return ResourceNode.makeResNode(data, null, 'ContactPoint', null,
+    return ResourceNode.makeResNode(ctx, data, null, 'ContactPoint', null,
       'ContactPoint');
   }
 
+
   /**
-   * Creates an Address
+   * Creates an Address.
    * @param {Factory[]} self - an array with one element, which is the Factory
    *  class.
    * @param {ResourceNode[]} lineColl - a collection of string values that goes
@@ -503,6 +547,7 @@ class Factory {
    */
   static Address(self, lineColl, city, state, postalCode, country, use, type) {
     const data = {};
+    const ctx = this;
     if (util.isSome(lineColl)) {
       data.line = lineColl.map(line => {
         const v = util.valData(line);
@@ -530,9 +575,10 @@ class Factory {
     if (util.isSome(type)) {
       data.type = type;
     }
-    return ResourceNode.makeResNode(data, null, 'Address', null,
+    return ResourceNode.makeResNode(ctx, data, null, 'Address', null,
       'Address');
   }
+
 
   /**
    * Creates a Quantity.
@@ -547,6 +593,7 @@ class Factory {
    */
   static Quantity(self, system, code, value, unit) {
     const data = {};
+    const ctx = this;
     if (util.isSome(system)) {
       data.system = system;
     }
@@ -559,9 +606,10 @@ class Factory {
     if (util.isSome(unit)) {
       data.unit = unit;
     }
-    return ResourceNode.makeResNode(data, null, 'Quantity', null,
+    return ResourceNode.makeResNode(ctx, data, null, 'Quantity', null,
       'Quantity');
   }
+
 
   /**
    * Creates a Coding.
@@ -575,6 +623,7 @@ class Factory {
    */
   static Coding(self, system, code, display, version) {
     const data = {};
+    const ctx = this;
     if (util.isSome(system)) {
       data.system = system;
     }
@@ -587,9 +636,10 @@ class Factory {
     if (util.isSome(version)) {
       data.version = version;
     }
-    return ResourceNode.makeResNode(data, null, 'Coding', null,
+    return ResourceNode.makeResNode(ctx, data, null, 'Coding', null,
       'Coding');
   }
+
 
   /**
    * Creates a CodeableConcept.
@@ -601,6 +651,7 @@ class Factory {
    * @return {ResourceNode}
    */
   static CodeableConcept(self, valueColl, text) {
+    const ctx = this;
     const data = valueColl?.length > 0 ?
       {
         coding: valueColl.map(coding => {
@@ -618,36 +669,40 @@ class Factory {
       data.text = text;
     }
 
-    return ResourceNode.makeResNode(data, null, 'CodeableConcept', null,
+    return ResourceNode.makeResNode(ctx, data, null, 'CodeableConcept', null,
       'CodeableConcept');
   }
 
+
   /**
-   * Create an instance of the named type.
+   * Creates an instance of the named type.
    * @param {Factory[]} self - an array with one element that refers to
    *  the current Factory instance.
    * @param {TypeInfo} typeInfo - a value that is the type to create.
    * @return {ResourceNode}
    */
   static create(self, typeInfo) {
+    const ctx = this;
     if (typeInfo.namespace === TypeInfo.System) {
       throw new Error('%factory.create(type) doesn\'t support system types.');
     }
-    return ResourceNode.makeResNode(null, null, typeInfo.name, null,
+    return ResourceNode.makeResNode(ctx, null, null, typeInfo.name, null,
       typeInfo.name);
   }
 
+
   /**
-   * Add an extension, and return the new type.
+   * Adds an extension to the given instance and returns a new ResourceNode.
    * @param {Factory[]} self - an array with one element that refers to
    *  the current Factory instance.
    * @param {ResourceNode[]} instanceColl - a collection that should contain the
    *  instance to which the extension is to be added.
    * @param {string} url - a string value that goes in Extension.url.
-   *  specification this could also be an actual ValueSet, but I don't want to
-   *  complicate this example.
    * @param {ResourceNode[]} value - the value of the extension.
-   * @return {ResourceNode|[]}
+   * @return {ResourceNode|Array} the new ResourceNode with the extension added,
+   *  or an empty array if instanceColl is empty.
+   * @throws {Error} if instanceColl or value contains more than one element,
+   *  or if value is empty.
    */
   static withExtension(self, instanceColl, url, value) {
     if (instanceColl.length > 1 ) {
@@ -675,6 +730,7 @@ class Factory {
 
     if (instance instanceof ResourceNode) {
       let data = instance.data;
+      const ctx = this;
       let _data = instance._data;
       if (TypeInfo.isPrimitive(instance.getTypeInfo())) {
         _data = {
@@ -693,22 +749,26 @@ class Factory {
           ]
         };
       }
-      return  ResourceNode.makeResNode(data, null, instance.path, _data,
+      return  ResourceNode.makeResNode(ctx, data, null, instance.path, _data,
         instance.fhirNodeDataType);
     } else {
       throw new Error('Expected a ResourceNode.');
     }
   }
 
+
   /**
-   * Set a property value, and return the new type.
+   * Sets a property value on the given instance and returns a new ResourceNode.
    * @param {Factory[]} self - an array with one element that refers to
    *  the current Factory instance.
    * @param {ResourceNode[]} instanceColl - a collection that should contain the
    *  instance to set the property on.
    * @param {string} name - a string value that identifies the property to set.
-   * @param {string} value - the value of the property
-   * @return {ResourceNode|*[]}
+   * @param {ResourceNode[]} value - the value of the property.
+   * @return {ResourceNode|Array} the new ResourceNode with the property set,
+   *  or an empty array if instanceColl is empty.
+   * @throws {Error} if instanceColl or value contains more than one element,
+   *  or if value is empty.
    */
   static withProperty(self, instanceColl, name, value) {
     if (instanceColl.length > 1 ) {
@@ -736,6 +796,7 @@ class Factory {
 
     if (instance instanceof ResourceNode) {
       let data = instance.data;
+      const ctx = this;
       let _data = instance._data;
       if (TypeInfo.isPrimitive(instance.getTypeInfo())) {
         _data = {
@@ -750,7 +811,7 @@ class Factory {
           ...(value[0]?._data ? { ['_' + name]: value[0]._data } : {})
         };
       }
-      return  ResourceNode.makeResNode(data, null, instance.path, _data,
+      return  ResourceNode.makeResNode(ctx, data, null, instance.path, _data,
         instance.fhirNodeDataType);
     } else {
       throw new Error('Expected a ResourceNode.');

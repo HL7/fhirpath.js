@@ -271,8 +271,12 @@ getVariableLabels().forEach((item, index) => {
 function addVariable(name = null, val = null) {
   const newItem = document.createElement("label");
   newItem.innerHTML =
-    `<li>%<input type="text" value="${name || ''}"></li><button type="button">` +
+    `<li>%<input type="text"></li><button type="button">` +
     "Remove variable</button>";
+  // Assign the variable name via the value property instead of interpolating
+  // it into innerHTML. The name can come from the untrusted "p" URL parameter,
+  // so interpolating it would allow DOM-based XSS.
+  newItem.querySelector('input').value = name || '';
   if (val) {
     newItem.setAttribute("data-json", fhirpath.util.toJSON(val, 2));
   }

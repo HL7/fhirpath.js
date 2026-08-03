@@ -8,7 +8,7 @@ const _ = require('lodash');
 const xml2js = require('xml2js');
 const yaml = require('js-yaml');
 
-const fhir = new (require('fhir').Fhir);
+const fhir = new (require('fhir-tool').Fhir);
 const { calcExpression } = require("../test/test_utils");
 const FP_DateTime = require('../src/types').FP_DateTime;
 const equals = _.isEqual;
@@ -29,7 +29,7 @@ function validateTest(test) {
         return equals(new Date(result[0]), new Date(test.result[0]));
       else
         return equals(JSON.parse(util.toJSON(result)), test.result);
-    } catch (e) {
+    } catch {
       return false;
     }
   }
@@ -173,7 +173,7 @@ module.exports = {
    * Serializes an XML test cases to YAML
    * @param {string} xmlData
    * @param {string} model - model name, e.g. 'r5', 'r4','stu3', 'dstu2'
-   * @returns {string}
+   * @returns {Promise<string>}
    */
   testsXmlStringToYamlString: async (xmlData, model) => {
     const parser = new xml2js.Parser({ explicitCharkey: true });

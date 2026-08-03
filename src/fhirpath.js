@@ -54,17 +54,25 @@ let additional  = require("./additional");
 let logic  = require("./logic");
 const types = require("./types");
 const {
-  FP_Date, FP_DateTime, FP_Time, FP_Quantity,
-  FP_Type, ResourceNode, TypeInfo
+  FP_Date, FP_DateTime, FP_Time, FP_Quantity, ucumUtils,
+  FP_Type, ResourceNode, TypeInfo, FP_Decimal
 } = types;
 let makeResNode = ResourceNode.makeResNode;
 const Terminologies = require('./terminologies');
 const Factory = require('./factory');
+const {
+  getInstanceElementInfo, buildInstanceSelectorResult,
+  prepareInstanceSelectorResultValue
+} = require('./instance-selector');
+
 
 // * fn: handler
-// * arity: is index map with type signature
-//   if type is in array (like [Boolean]) - this means
-//   function accepts value of this type or empty value {}
+// * arity: map of params count to type signature (must be present for
+//   functions with params, even if they also use variadicArity)
+//   if type is in array (like [Boolean]) - this means function accepts
+//   value of this type or empty value {}
+// * variadicArity: optional fallback for variadic functions
+//   {min, type} means params count >= min and every param uses `type`
 // * nullable:  means propagate empty result, i.e. instead
 //   calling function if one of params is  empty return empty
 
@@ -87,6 +95,10 @@ engine.invocationTable = {
   where:        {fn: filtering.whereMacro, arity: {1: ["Expr"]}},
   extension:    {fn: filtering.extension, arity: {1: ["String"]}},
   select:       {fn: filtering.selectMacro, arity: {1: ["Expr"]}},
+  coalesce:     {fn: filtering.coalesce, arity: {1: ["ExprAtCurrent"]},
+    variadicArity: {min: 1, type: "ExprAtCurrent"}},
+  sort:         {fn: filtering.sort, arity: {0: []},
+    variadicArity: {min: 0, type: "SortArgument"}},
   aggregate:    {fn: aggregate.aggregateMacro, arity: {1: ["Expr"], 2: ["Expr", "AnyAtRoot"]}},
   sum:          {fn: aggregate.sumFn},
   min:          {fn: aggregate.minFn},
@@ -122,6 +134,7 @@ engine.invocationTable = {
   toQuantity:   {fn: misc.toQuantity, arity: {0: [], 1: ["String"]}},
   hasValue:     {fn: misc.hasValueFn},
   getValue:     {fn: misc.getValueFn},
+  pathname:     {fn: misc.pathnameFn, arity: {0: [], 1: ["Boolean"]}},
   convertsToBoolean:    {fn: misc.createConvertsToFn(misc.toBoolean, 'boolean')},
   convertsToInteger:    {fn: misc.createConvertsToFn(misc.toInteger, 'number')},
   convertsToLong:       {fn: misc.createConvertsToFn(misc.toLong, 'bigint')},
@@ -133,6 +146,7 @@ engine.invocationTable = {
   convertsToQuantity:   {fn: misc.createConvertsToFn(misc.toQuantity, FP_Quantity)},
 
   indexOf:        {fn: strings.indexOf,          arity: {1: ["String"]}},
+  lastIndexOf:    {fn: strings.lastIndexOf,      arity: {1: ["String"]}},
   substring:      {fn: strings.substring,        arity: {1: ["Integer"], 2: ["Integer","Integer"]}},
   startsWith:     {fn: strings.startsWith,       arity: {1: ["String"]}},
   endsWith:       {fn: strings.endsWith,         arity: {1: ["String"]}},
@@ -140,7 +154,8 @@ engine.invocationTable = {
   upper:          {fn: strings.upper},
   lower:          {fn: strings.lower},
   replace:        {fn: strings.replace,          arity: {2: ["String", "String"]}},
-  matches:        {fn: strings.matches,          arity: {1: ["String"]}},
+  matches:        {fn: strings.matches,          arity: {1: ["String"], 2: ["String", "String"]}},
+  matchesFull:    {fn: strings.matchesFull,      arity: {1: ["String"], 2: ["String", "String"]}},
   replaceMatches: {fn: strings.replaceMatches,   arity: {2: ["String", "String"]}},
   length:         {fn: strings.length },
   toChars:        {fn: strings.toChars },
@@ -150,6 +165,8 @@ engine.invocationTable = {
 
   encode:         {fn: strings.encodeFn,         arity: {1: ["String"]}},
   decode:         {fn: strings.decodeFn,         arity: {1: ["String"]}},
+  escape:         {fn: strings.escapeFn,         arity: {1: ["String"]}},
+  unescape:       {fn: strings.unescapeFn,       arity: {1: ["String"]}},
 
   abs:            {fn: math.abs},
   ceiling:        {fn: math.ceiling},
@@ -158,13 +175,25 @@ engine.invocationTable = {
   ln:             {fn: math.ln},
   log:            {fn: math.log, arity:  {1: ["Number"]}, nullable: true},
   power:          {fn: math.power, arity:  {1: ["Number"]}, nullable: true},
-  round:          {fn: math.round, arity:  {0: [], 1: ["Number"]}},
+  round:          {fn: math.round, arity:  {0: [], 1: ["Integer"]}},
   sqrt:           {fn: math.sqrt},
   truncate:       {fn: math.truncate},
+  lowBoundary:    {fn: math.lowBoundary, arity: {0: [], 1: ["Integer"]}},
+  highBoundary:   {fn: math.highBoundary, arity: {0: [], 1: ["Integer"]}},
 
   now:            {fn: datetime.now },
   today:          {fn: datetime.today },
   timeOfDay:      {fn: datetime.timeOfDay },
+  yearOf:         {fn: datetime.yearOf },
+  monthOf:        {fn: datetime.monthOf },
+  dayOf:          {fn: datetime.dayOf },
+  hourOf:         {fn: datetime.hourOf },
+  minuteOf:       {fn: datetime.minuteOf },
+  secondOf:       {fn: datetime.secondOf },
+  millisecondOf:  {fn: datetime.millisecondOf },
+  timezoneOffsetOf: {fn: datetime.timezoneOffsetOf },
+  dateOf:         {fn: datetime.dateOf },
+  timeOf:         {fn: datetime.timeOf },
 
   repeat:          {fn: filtering.repeatMacro, arity: {1: ["Expr"]}},
   children:        {fn: navigation.children },
@@ -204,16 +233,16 @@ engine.InvocationExpression = function(ctx, parentData, node) {
   }, parentData);
 };
 
+/**
+ * Evaluates a TermExpression node in the FHIRPath AST.
+ *
+ * @param {Object} ctx - The evaluation context containing model information and
+ *  variables.
+ * @param {Array} parentData - The array of data items to evaluate against.
+ * @param {Object} node - The AST node representing the TermExpression.
+ * @returns {Array} - The evaluation result from the child node.
+ */
 engine.TermExpression = function(ctx, parentData, node) {
-  if (parentData) {
-    parentData = parentData.map((x) => {
-      if (x instanceof Object && x.resourceType) {
-        return makeResNode(x, null, null, null, null, ctx.model);
-      }
-      return x;
-    });
-  }
-
   return engine.doEval(ctx,parentData, node.children[0]);
 };
 
@@ -243,9 +272,9 @@ engine.PolarityExpression = function(ctx, parentData, node) {
     if (sign === '-') {
       rtn[0] = -rtn[0];
     }
-  } else  if (rtn[0] instanceof FP_Quantity) {
+  } else  if (rtn[0] instanceof FP_Type) {
     if (sign === '-') {
-      rtn[0] = new FP_Quantity(-rtn[0].value, rtn[0].unit);
+      rtn[0] = rtn[0].negate();
     }
   } else {
     let msg = 'Unary ' + sign + ' can only be applied to a number or Quantity.';
@@ -260,7 +289,7 @@ engine.PolarityExpression = function(ctx, parentData, node) {
 
 engine.TypeSpecifier = function(ctx, parentData, node) {
   let namespace, name;
-  const identifiers = node.text.split('.').map(i => i.replace(/(^`|`$)/g, ""));
+  const identifiers = node.text.split('.').map(getDelimitedIdentifierVal);
   switch (identifiers.length) {
     case 2:
       [namespace, name] = identifiers;
@@ -315,17 +344,17 @@ engine.ExternalConstantTerm = function(ctx, parentData, node) {
     if (Array.isArray(value)) {
       value = value.map(
         i => i?.__path__
-          ? makeResNode(i, i.__path__.parentResNode, i.__path__.path, null,
-            i.__path__.fhirNodeDataType, i.__path__.model)
+          ? makeResNode(i.__path__.ctx, i, i.__path__.parentResNode, i.__path__.path, null,
+            i.__path__.fhirNodeDataType)
           : i?.resourceType
-            ? makeResNode(i, null, null, null, null, ctx.model)
+            ? makeResNode(ctx, i, null, null, null, null)
             : i );
     } else {
       value = value?.__path__
-        ? makeResNode(value, value.__path__.parentResNode, value.__path__.path, null,
-          value.__path__.fhirNodeDataType, value.__path__.model)
+        ? makeResNode(value.__path__.ctx, value, value.__path__.parentResNode, value.__path__.path, null,
+          value.__path__.fhirNodeDataType)
         : value?.resourceType
-          ? makeResNode(value, null, null, null, null, ctx.model)
+          ? makeResNode(ctx, value, null, null, null, null)
           : value;
     }
     ctx.processedVars[varName] = value;
@@ -369,24 +398,10 @@ engine.StringLiteral = function(ctx, parentData, node) {
  * @return {string}
  */
 function getStringLiteralVal(str) {
-  return str.replace(/(^'|'$)/g, "")
-    .replace(/\\(u\d{4}|.)/g, function(match, submatch) {
-      switch(match) {
-        case '\\r':
-          return '\r';
-        case '\\n':
-          return "\n";
-        case '\\t':
-          return '\t';
-        case '\\f':
-          return '\f';
-        default:
-          if (submatch.length > 1)
-            return String.fromCharCode('0x'+submatch.slice(1));
-          else
-            return submatch;
-      }
-    });
+  if (str && str[0] === "'" && str[str.length - 1] === "'") {
+    return handleStringEscapes(str.slice(1, -1));
+  }
+  return str;
 }
 
 engine.BooleanLiteral = function(ctx, parentData, node) {
@@ -397,9 +412,19 @@ engine.BooleanLiteral = function(ctx, parentData, node) {
   }
 };
 
+/**
+ * Evaluates a QuantityLiteral node in the FHIRPath AST.
+ * Converts the node's numeric value and unit into an FP_Quantity instance.
+ *
+ * @param {Object} ctx - The evaluation context.
+ * @param {Array} parentData - The data from the parent node.
+ * @param {Object} node - The AST node representing the QuantityLiteral.
+ * @param {string} node.value - The numeric value of the quantity as a string.
+ * @param {string} node.unit - The unit of the quantity (e.g., 'mg', 'km').
+ * @returns {Array<FP_Quantity>} - An array containing a single FP_Quantity instance.
+ */
 engine.QuantityLiteral = function(ctx, parentData, node) {
-  var value = Number(node.value);
-  return [new FP_Quantity(value, node.unit)];
+  return [new FP_Quantity(ctx, ctx.getDecimal(node.value), node.unit)];
 };
 
 /**
@@ -413,22 +438,34 @@ engine.QuantityLiteral = function(ctx, parentData, node) {
  * @returns {Array} - An array containing a single FP_Date object.
  */
 engine.DateLiteral = function(ctx, parentData, node) {
-  var dateStr = node.text.slice(1); // Remove the @
-  return [new FP_Date(dateStr)];
+  const dateStr = node.text.slice(1); // Remove the @
+  const date = FP_Date.checkString(ctx, dateStr);
+  if (!date) {
+    throw new Error('Invalid date literal: ' + node.text);
+  }
+  return [date];
 };
 
 engine.DateTimeLiteral = function(ctx, parentData, node) {
-  var dateStr = node.text.slice(1); // Remove the @
-  return [new FP_DateTime(dateStr)];
+  const dateStr = node.text.slice(1); // Remove the @
+  const dateTime = FP_DateTime.checkString(ctx, dateStr);
+  if (!dateTime) {
+    throw new Error('Invalid date-time literal: ' + node.text);
+  }
+  return [dateTime];
 };
 
 engine.TimeLiteral = function(ctx, parentData, node) {
-  var timeStr = node.text.slice(1); // Remove the @
-  return [new FP_Time(timeStr)];
+  const timeStr = node.text.slice(1); // Remove the @
+  const time = FP_Time.checkString(ctx, timeStr);
+  if (!time) {
+    throw new Error('Invalid time literal: ' + node.text);
+  }
+  return [time];
 };
 
 engine.NumberLiteral = function(ctx, parentData, node) {
-  return [Number(node.text)];
+  return [ctx.getDecimal(node.text)];
 };
 
 engine.LongNumberLiteral = function(ctx, parentData, node) {
@@ -440,12 +477,49 @@ engine.Identifier = function(ctx, parentData, node) {
 };
 
 /**
- * Removes the beginning and ending back-quotes.
+ * Resolves an identifier value, including delimited identifiers.
  * @param {string} str - identifier string
  * @return {string}
  */
 function getIdentifierVal(str) {
-  return str.replace(/(^`|`$)/g, "");
+  return getDelimitedIdentifierVal(str);
+}
+
+/**
+ * Handles string-style escape sequences.
+ * @param {string} str - string content without surrounding quotes
+ * @return {string}
+ */
+function handleStringEscapes(str) {
+  return str.replace(/\\(u[0-9a-fA-F]{4}|.)/g, function(match, submatch) {
+    switch (match) {
+      case '\\r':
+        return '\r';
+      case '\\n':
+        return "\n";
+      case '\\t':
+        return '\t';
+      case '\\f':
+        return '\f';
+      default:
+        if (submatch.length > 1) {
+          return String.fromCharCode(parseInt(submatch.slice(1), 16));
+        }
+        return submatch;
+    }
+  });
+}
+
+/**
+ * Removes the beginning and ending back-quotes and handles escapes.
+ * @param {string} str - identifier string
+ * @return {string}
+ */
+function getDelimitedIdentifierVal(str) {
+  if (str && str[0] === '`' && str[str.length - 1] === '`') {
+    return handleStringEscapes(str.slice(1, -1));
+  }
+  return str;
 }
 
 engine.InvocationTerm = function(ctx, parentData, node) {
@@ -453,24 +527,88 @@ engine.InvocationTerm = function(ctx, parentData, node) {
 };
 
 
-engine.MemberInvocation = function(ctx, parentData, node ) {
-  const key = engine.doEval(ctx, parentData, node.children[0])[0];
-  const model = ctx.model;
+/**
+ * Evaluates a MemberInvocation node in the FHIRPath AST.
+ *
+ * This function handles member access in FHIRPath expressions (e.g., "code",
+ * "Observation.code"). It supports both regular member access and root-level
+ * type filtering, where expressions can start with a FHIR type name to filter
+ * items by type.
+ *
+ * The function processes each item in parentData and:
+ * 1. Wraps it in a ResourceNode for consistent handling
+ * 2. Checks if it matches a root-level type specification (if astNode.atRoot is set)
+ * 3. Falls back to retrieving child nodes for the specified key
+ *
+ * @param {Object} ctx - The evaluation context containing:
+ *   @param {Object} ctx.model - The FHIR model for type resolution
+ *   @param {*} ctx.$this - The current context item (for root-level checking)
+ *   @param {*} ctx.dataRoot - The root data context (for root-level checking)
+ *   @param {number} [ctx.$index] - Optional index for array iteration
+ * @param {Array} parentData - Array of parent data items to process.
+ *   - a plain JavaScript object (optionally with __path__ metadata)
+ *   - a ResourceNode
+ * @param {Object} astNode - The AST node representing the MemberInvocation
+ *   @param {Array} astNode.children - Child nodes, first child contains the key
+ *   @param {number} [astNode.atRoot] - Indicates root-level invocation:
+ *     - undefined: Regular member access
+ *     - 1: Root-level outside function parameters
+ *     - 2: Root-level inside function parameters
+ *
+ * @returns {Array<ResourceNode>} Array of resolved ResourceNodes, which may be:
+ *   - The parent ResourceNode itself (if type matches at root level)
+ *   - Child ResourceNodes for the specified key
+ *   - Empty array if no matches found
+ */
+engine.MemberInvocation = function(ctx, parentData, astNode ) {
+  // Early return to avoid unnecessary variable declarations
+  if (!parentData) return [];
 
-  if (parentData) {
-    return parentData.reduce(function(acc, res) {
-      res = makeResNode(res, null, res.__path__?.path, null,
-        res.__path__?.fhirNodeDataType, model);
-      if (res.data?.resourceType === key) {
-        acc.push(res);
-      } else {
-        util.pushFn(acc, util.makeChildResNodes(res, key, model));
-      }
-      return acc;
-    }, []);
-  } else {
-    return [];
+  // Extract the member key (property name) from the first child AST node
+  const key = engine.doEval(ctx, parentData, astNode.children[0])[0];
+  const model = ctx.model;
+  const astNodeAtRoot = astNode.atRoot;
+
+  // Prepare TypeInfo for root-level type checking if this is a root invocation
+  const possibleTypeInfo = astNodeAtRoot && new TypeInfo({name: key});
+  const result = [];
+
+  // Process each item in parentData
+  // Use a for loop for performance reasons
+  for (let i = 0; i < parentData.length; i++) {
+    const __path__ = parentData[i]?.__path__;
+
+    // Wrap the data item in a ResourceNode for consistent type handling
+    const res = makeResNode(ctx, parentData[i], null,
+      __path__?.path, null, __path__?.fhirNodeDataType);
+
+    // TODO: refactor after discussing in FHIR chat
+    // LEGACY: Check if the resourceType property matches the key
+    // This maintains backward compatibility with expressions like "Observation"
+    // when the data has resourceType: "Observation"
+    if (res.data?.resourceType === key) {
+      result.push(res);
+    } else if (
+      // ROOT-LEVEL TYPE CHECKING: Check if this is a root-level type filter
+      // This enables expressions like "Observation.code", "Resource.id", or
+      // "select(Coding.code)".
+      // Must be marked as a root-level invocation
+      (astNodeAtRoot === 1 ||
+        // For function parameters (atRoot === 2), verify we're actually at
+        // the root by checking if current context ($this) matches the data root
+        astNodeAtRoot === 2 && (ctx.$index !== undefined ? ctx.dataRoot[ctx.$index] === ctx.$this[0] : ctx.dataRoot === ctx.$this)) &&
+      // Verify the current item's type matches the specified type name
+      res.getTypeInfo().is(possibleTypeInfo, model)
+    ) {
+      // Type matches: return the item itself rather than extracting children
+      result.push(res);
+    } else {
+      // Regular member access: extract child nodes for the specified key
+      util.pushFn(result, util.makeChildResNodes(ctx, res, key, model));
+    }
   }
+
+  return result;
 };
 
 engine.IndexerExpression = function(ctx, parentData, node) {
@@ -492,6 +630,12 @@ engine.IndexerExpression = function(ctx, parentData, node) {
 };
 
 engine.Functn = function(ctx, parentData, node) {
+  // Handle special case for sort function, doesn't pre-evaluate parameters
+  if (getIdentifierVal(node.text) === 'sort') {
+    return ['sort', { children: node.children }];
+  }
+  
+  // Regular function: identifier + paramList
   return node.children.map(function(x) {
     return engine.doEval(ctx, parentData, x);
   });
@@ -529,21 +673,68 @@ function cloneCtx(ctx, $this) {
 
 
 /**
+ * Unwraps parser-level sort argument wrappers for non-sort handlers.
+ *
+ * The sort grammar now emits SortDirectionArgument nodes. These wrappers must
+ * only be interpreted when a function explicitly expects SortArgument (built-in
+ * sort). For user overrides (including replacing sort), argument typing should
+ * behave as documented and operate on the wrapped expression itself.
+ *
+ * @param {string|Array} type - The declared argument type.
+ * @param {Object} param - The AST node for the argument.
+ * @returns {Object} The normalized AST node.
+ */
+function normalizeSortParamNode(type, param) {
+  const baseType = Array.isArray(type) ? type[0] : type;
+  if (baseType === "SortArgument") {
+    return param;
+  }
+  if ((param?.type === "SortDirectionArgument" ||
+    param?.type === "SortArgument") && param?.children?.[0]) {
+    return param.children[0];
+  }
+  return param;
+}
+
+
+/**
  * Prepares and evaluates a parameter for FHIRPath function/operator invocation.
- * Returns the evaluated value, or a function for "Expr" type.
  *
  * @param {Object} ctx - The evaluation context.
  * @param {Array} parentData - The data from the parent node.
  * @param {string|Array} type - The expected type(s) of the parameter.
  * @param {Object} param - The AST node representing the parameter.
- * @returns {*} - The evaluated parameter value, or a function for "Expr" type.
+ * @returns {*} - The evaluated parameter value or a function if the parameter
+ *  type is "Expr" or similar.
  * @throws {Error} - If an Identifier type param is not a TermExpression.
  */
 function makeParam(ctx, parentData, type, param) {
+  param = normalizeSortParamNode(type, param);
+
   if(type === "Expr") {
     return function(data) {
       const $this = util.arraify(data);
       return engine.doEval(cloneCtx(ctx, $this), $this, param);
+    };
+  }
+
+  // The difference between Expr and ExprAtCurrent is that for ExprAtCurrent, we don't change the
+  // context $this when evaluating the parameter expression, while for Expr we set $this to the
+  // data passed in when evaluating the parameter expression.
+  // The coalesce function is currently the only function that works like this.
+  // It is really a late bound evaluation, and they are not evaluated before the function execution,
+  // the function is responsible for when they evaluated, as it will only evaluate parameters till it
+  // gets a non-empty value.
+  if(type === "ExprAtCurrent"){
+    return function(data) {
+      let ctxExpr = {...ctx};
+      if (ctx.definedVars) {
+        // Each parameter subexpression needs its own set of defined variables
+        // (cloned from the parent context). This way, the changes to the variables
+        // are isolated in the subexpression.
+        ctxExpr.definedVars = {...ctx.definedVars};
+      }
+      return engine.doEval(ctxExpr, util.arraify(data), param);
     };
   }
 
@@ -557,6 +748,25 @@ function makeParam(ctx, parentData, type, param) {
 
   if(type === "TypeSpecifier") {
     return engine.TypeSpecifier(ctx, parentData, param);
+  }
+
+  if(type === "SortArgument") {
+    // For sort arguments, we return the processed sort argument with expression and direction
+    const sortArg = engine.doEval(ctx, parentData, param);
+    return {
+      expr: function(data) {
+        let ctxExpr = {...ctx};
+        if (ctx.definedVars) {
+          ctxExpr.definedVars = {...ctx.definedVars};
+        }
+        // sort key selectors do not create an indexed iteration scope
+        ctxExpr.$index = undefined;
+        // Set up $this context for sort expression
+        ctxExpr.$this = data;
+        return engine.doEval(ctxExpr, util.arraify(data), sortArg.expr);
+      },
+      direction: sortArg.direction
+    };
   }
 
   const $this = ctx.$this || ctx.dataRoot;
@@ -581,6 +791,18 @@ function makeParam(ctx, parentData, type, param) {
     misc.singleton(res, type);
 }
 
+
+/**
+ * Invokes a FHIRPath function/operator from user or built-in invocation tables.
+ * Resolves parameters according to arity/type metadata and supports sync/async
+ * execution paths.
+ * @param {Object} ctx - Evaluation context.
+ * @param {string} fnName - Function/operator name to invoke.
+ * @param {Array} data - Current input collection passed as first argument.
+ * @param {Array|null} rawParams - Unevaluated AST parameter nodes.
+ * @returns {Array|Promise<Array>} Invocation result as an array, or a Promise
+ *   resolving to an array when any parameter/function execution is async.
+ */
 function doInvoke(ctx, fnName, data, rawParams){
   var invoc =
     ctx.userInvocationTable
@@ -599,7 +821,7 @@ function doInvoke(ctx, fnName, data, rawParams){
       }
     } else {
       var paramsNumber = rawParams ? rawParams.length : 0;
-      var argTypes = invoc.arity[paramsNumber];
+      var argTypes = getArgTypesForInvocation(invoc, paramsNumber);
       if(argTypes){
         var params = [];
         for(var i = 0; i < paramsNumber; i++){
@@ -622,7 +844,7 @@ function doInvoke(ctx, fnName, data, rawParams){
         res = invoc.fn.apply(ctx, params);
         return util.resolveAndArraify(res);
       } else {
-        console.log(fnName + " wrong arity: got " + paramsNumber );
+        console.warn(fnName + " wrong arity: got " + paramsNumber );
         return [];
       }
     }
@@ -630,6 +852,34 @@ function doInvoke(ctx, fnName, data, rawParams){
     throw new Error("Not implemented: " + fnName);
   }
 }
+
+
+/**
+ * Resolves argument type signatures for a function invocation by arity.
+ * Checks exact arity first, then falls back to variadicArity when present.
+ * @param {Object} invoc - Invocation descriptor from invocationTable.
+ * @param {number} paramsNumber - Number of parameters in the invocation.
+ * @returns {Array|null} Type signature for the given arity, or null if invalid.
+ */
+function getArgTypesForInvocation(invoc, paramsNumber) {
+  const argTypes = invoc.arity[paramsNumber];
+  if (argTypes) {
+    return argTypes;
+  }
+
+  if (!invoc.variadicArity) {
+    return null;
+  }
+
+  const min = invoc.variadicArity.min || 0;
+  if (paramsNumber < min) {
+    return null;
+  }
+
+  return Array(paramsNumber).fill(invoc.variadicArity.type);
+}
+
+
 function isNullable(x) {
   return x === null || x === undefined || util.isEmpty(x);
 }
@@ -661,7 +911,7 @@ function infixInvoke(ctx, fnName, data, rawParams){
       var res = invoc.fn.apply(ctx, params);
       return util.arraify(res);
     } else {
-      console.log(fnName + " wrong arity: got " + paramsNumber );
+      console.warn(fnName + " wrong arity: got " + paramsNumber );
       return [];
     }
   } else {
@@ -722,6 +972,179 @@ engine.ParenthesizedTerm = function(ctx, parentData, node) {
   return engine.doEval(ctx, parentData, node.children[0]);
 };
 
+/**
+ * Evaluates an InstanceSelectorTerm node in the FHIRPath AST.
+ * Delegates to the child InstanceSelector node.
+ *
+ * @param {Object} ctx - The evaluation context.
+ * @param {Array} parentData - The input collection.
+ * @param {Object} node - The AST node representing the InstanceSelectorTerm.
+ * @returns {Array|Promise<Array>} - The created instance wrapped in a
+ *   collection.
+ */
+engine.InstanceSelectorTerm = function(ctx, parentData, node) {
+  return engine.doEval(ctx, parentData, node.children[0]);
+};
+
+
+/**
+ * Evaluates an InstanceSelector node in the FHIRPath AST, implementing the
+ * Instance Selector / Object Creation syntax
+ * (e.g. `Coding { system: 'http://x', code: 'c1' }`).
+ * See https://hl7.org/fhirpath/#instance-selector for details.
+ *
+ * The input collection must contain at most one item: if it contains multiple
+ * items an error is signaled, and if it is empty the result is empty. Each
+ * element selector expression is evaluated against the input collection; an
+ * element whose value evaluates to an empty collection is omitted from the
+ * created object.
+ *
+ * @param {Object} ctx - The evaluation context (provides the model).
+ * @param {Array} parentData - The input collection.
+ * @param {Object} node - The AST node representing the InstanceSelector.
+ *   @param {string} node.text - The (optionally namespaced) type name.
+ *   @param {Array} node.children - The qualifiedIdentifier followed by the
+ *     InstanceElementSelector child nodes. If no namespace is specified, FHIR
+ *     is assumed. Explicit namespaces other than FHIR are rejected.
+ * @returns {Array<ResourceNode>|Promise<Array<ResourceNode>>} - A single-item
+ *   collection with the created instance, or an empty collection if the input
+ *   collection is empty.
+ * @throws {Error} - If the input collection has more than one item, or the type
+ *   name or an element name cannot be resolved to a valid type/model element.
+ */
+engine.InstanceSelector = function(ctx, parentData, node) {
+  if (parentData.length > 1) {
+    let msg = 'Instance selector requires an input collection with at most '
+      + 'one item, but it has ' + parentData.length + ' items.';
+    msg += ' (at ' + node.start.line + ':' + node.start.column + ')';
+    throw new Error(msg);
+  }
+  // If the input collection is empty, the result is empty.
+  if (parentData.length === 0) {
+    return [];
+  }
+
+  const nodeLocation =
+    ' (at ' + node.start.line + ':' + node.start.column + ')';
+
+  // Resolve the type to create from the leading qualifiedIdentifier.
+  let namespace, name;
+  const identifiers = node.text.split('.').map(getDelimitedIdentifierVal);
+  switch (identifiers.length) {
+    case 2:
+      [namespace, name] = identifiers;
+      if (namespace !== TypeInfo.FHIR) {
+        throw new Error('Instance selector only supports the FHIR namespace, ' +
+          'got "' + namespace + '"' + nodeLocation);
+      }
+      break;
+    case 1:
+      [name] = identifiers;
+      namespace = TypeInfo.FHIR;
+      break;
+    default:
+      throw new Error('Invalid type name in instance selector: ' + node.text +
+        nodeLocation);
+  }
+
+  // It is expected that if the model is passed, it contains the necessary
+  // information.
+  if (!ctx.model) {
+    throw new Error('Instance selector requires a FHIR model context' +
+      nodeLocation);
+  }
+
+  const typeInfo = new TypeInfo({ namespace, name });
+  if (!typeInfo.isValid(ctx.model)) {
+    throw new Error('"' + typeInfo +
+      '" cannot be resolved to a valid type identifier' + nodeLocation);
+  }
+
+  const isPrimitive = TypeInfo.isPrimitive(typeInfo) || name === 'xhtml';
+  const selectors = [];
+  const assignedElementPaths = new Set();
+
+  // Skip the leading qualifiedIdentifier; remaining children are selectors.
+  for (let i = 1; i < node.children.length; i++) {
+    const selector = node.children[i];
+    const elName = engine.doEval(ctx, parentData, selector.children[0])[0];
+    const elementInfo = getInstanceElementInfo(
+      ctx, typeInfo, isPrimitive, elName, selector
+    );
+    if (assignedElementPaths.has(elementInfo.path)) {
+      const location = selector.children[0].start;
+      throw new Error('Instance selector element "' + elName +
+        '" is already assigned (at ' + location.line + ':' +
+        location.column + ')');
+    }
+    assignedElementPaths.add(elementInfo.path);
+    selectors.push({
+      selector,
+      elName,
+      elementInfo
+    });
+  }
+
+  const entries = [];
+  const pendingEntries = [];
+  let isAsync = false;
+
+  try {
+    for (let i = 0; i < selectors.length; i++) {
+      const selectorInfo = selectors[i];
+      const valueColl = engine.doEval(
+        ctx, parentData, selectorInfo.selector.children[1]
+      );
+      if (valueColl instanceof Promise) {
+        isAsync = true;
+        const pendingEntry = valueColl.then(
+          resolvedValueColl => ({
+            ...selectorInfo,
+            valueColl: resolvedValueColl
+          })
+        );
+        pendingEntries.push(pendingEntry);
+        entries.push(pendingEntry);
+      } else {
+        entries.push({
+          ...selectorInfo,
+          valueColl
+        });
+      }
+    }
+  } catch (err) {
+    // Consume pending async value rejections before rethrowing the sync error.
+    pendingEntries.forEach(pendingEntry => pendingEntry.catch(() => {}));
+    throw err;
+  }
+
+  if (isAsync) {
+    return Promise.all(entries).then(resolvedEntries =>
+      buildInstanceSelectorResult(
+        ctx, typeInfo, name, isPrimitive, resolvedEntries
+      )
+    );
+  }
+
+  return buildInstanceSelectorResult(ctx, typeInfo, name, isPrimitive, entries);
+};
+
+engine.SortDirectionArgument = function(ctx, parentData, node) {
+  const expr = node.children[0]; // The expression to sort by
+  // Use the direction captured by the parser, defaulting to 'asc'
+  const direction = node.direction || 'asc';
+
+  return {
+    expr: expr, // Return the raw AST node for later processing
+    direction: direction
+  };
+};
+
+engine.SortArgument = function(ctx, parentData, node) {
+  // For compatibility with SortDirectionArgument
+  return engine.SortDirectionArgument(ctx, parentData, node);
+};
+
 
 engine.evalTable = { // not every evaluator is listed if they are defined on engine
   BooleanLiteral: engine.BooleanLiteral,
@@ -740,6 +1163,8 @@ engine.evalTable = { // not every evaluator is listed if they are defined on eng
   EntireExpression: engine.InvocationTerm,
   InvocationTerm: engine.InvocationTerm,
   LiteralTerm: engine.LiteralTerm,
+  InstanceSelectorTerm: engine.InstanceSelectorTerm,
+  InstanceSelector: engine.InstanceSelector,
   MemberInvocation: engine.MemberInvocation,
   NumberLiteral: engine.NumberLiteral,
   ParamList: engine.ParamList,
@@ -753,7 +1178,9 @@ engine.evalTable = { // not every evaluator is listed if they are defined on eng
   OrExpression: engine.OpExpression,
   ImpliesExpression: engine.OpExpression,
   AndExpression: engine.OpExpression,
-  XorExpression: engine.OpExpression
+  XorExpression: engine.OpExpression,
+  SortDirectionArgument: engine.SortDirectionArgument,
+  SortArgument: engine.SortArgument
 };
 
 
@@ -786,58 +1213,100 @@ function parse(path) {
 /**
  *  Applies the given parsed FHIRPath expression to the given resource,
  *  returning the result of doEval.
- * @param {(object|object[])} resource -  FHIR resource, bundle as js object or array of resources
- *  This resource will be modified by this function to add type information.
- * @param {object} parsedPath - a special object created by the parser that describes the structure of a fhirpath expression.
+ * @param {(object|object[])} resource -  FHIR resource, bundle as js object or
+ *  array of resources. This resource will be modified by this function to add
+ *  type information.
+ * @param {object} parsedPath - a special object created by the parser that
+ *  describes the structure of a fhirpath expression.
  * @param {object} envVars - a hash of variable name/value pairs.
  * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  *  For example, you could pass in the result of require("fhirpath/fhir-context/r4");
  * @param {object} options - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
  *  types should be converted to strings, true by default.
- * @param {function} [options.traceFn] - An optional trace function to call when tracing.
+ * @param {boolean} [options.keepDecimalTypes] - when true, FP_Decimal values
+ *  are preserved as-is instead of being converted to JavaScript numbers.
+ *  Defaults to false.
+ * @param {function} [options.traceFn] - An optional trace function to call when
+ *  tracing.
+ * @param {function} [options.debugger] - An optional debugger function to call
+ *  after each evaluation step. The function receives (ctx, parentData, result,
+ *  node) as arguments.
  * @param {object} [options.userInvocationTable] - a user invocation table used
  *  to replace any existing or define new functions.
- * @param {boolean|string} [options.async] - defines how to support asynchronous functions:
- *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception;
- *  true or similar to true - return Promise only for asynchronous functions;
- *  "always" - return Promise always.
- * @param {string} [options.terminologyUrl] - a URL that points to a FHIR
- *   RESTful API that is used to create %terminologies that implements
- *   the Terminology Service API.
+ * @param {boolean} [options.preciseMath] - whether to use precise decimal
+ *  arithmetic instead of native JavaScript number arithmetic, false by default.
+ * @param {boolean|string} [options.async] - defines how to support asynchronous
+ *  functions:
+ *   - false or similar to false, e.g. undefined, null, or 0 (default) - throw
+ *     an exception;
+ *   - true or similar to true - return Promise only for asynchronous functions;
+ *   - "always" - return Promise always.
+ * @param {string|string[]} [options.terminologyUrl] - a URL, or an ordered
+ *  array of URLs, that point to FHIR RESTful API(s) used to create
+ *  %terminologies that implements the Terminology Service API. When multiple
+ *  URLs are provided, they are tried in order and the server that first
+ *  resolves a given ValueSet/CodeSystem is preferred for subsequent operations
+ *  on that artifact.
  * @param {string} [options.fhirServerUrl] - a URL that points to a FHIR
- *   RESTful API that is used to query resources when using `resolve()`.
+ *  RESTful API that is used to query resources when using `resolve()`.
  * @param {AbortSignal} [options.signal] - an AbortSignal object that allows you
- *   to abort the asynchronous FHIRPath expression evaluation.
+ *  to abort the asynchronous FHIRPath expression evaluation.
  * @param {Object} [options.httpHeaders] - an object with HTTP headers to be
- *   used when making requests to the FHIR server. The property names of this
- *   object are server URLs, and the values are objects whose property names are
- *   HTTP header names and whose values are their values.
- * @returns {Array} - an array of results of the FHIRPath expression evaluation.
+ *  used when making requests to the FHIR server. The property names of this
+ *  object are server URLs, and the values are objects whose property names are
+ *  HTTP header names and whose values are their values.
+ * @param {boolean} [options.preciseMath] - if true, use precision-safe math
+ *  operations for decimal calculations. if false, use native math operations.
+ * @param {object} [baseInfo=null] - optional base information for the resource
+ *  node:
+ * @param {string} [baseInfo.path] - the path to the resource node.
+ * @param {string} [baseInfo.fhirNodeDataType] - the FHIR data type of the node.
+ * @param {string} [baseInfo.propName] - the property name of the node.
+ * @returns {Array|Promise<Array>} - an array of results of the FHIRPath
+ *  expression evaluation, or a Promise resolving to such an array if async mode
+ *  is enabled.
  */
-function applyParsedPath(resource, parsedPath, envVars, model, options) {
+function applyParsedPath(resource, parsedPath, envVars, model, options, baseInfo = null) {
   constants.reset();
-  let dataRoot = util.arraify(resource).map(
-    i => i?.__path__
-      ? makeResNode(i, i.__path__.parentResNode, i.__path__.path, null,
-        i.__path__.fhirNodeDataType, model, i.__path__.propName, i.__path__.index)
-      : i?.resourceType
-        ? makeResNode(i, null, null, null, null, model)
-        : i);
   // doEval takes a "ctx" object, and we store things in that as we parse, so we
   // need to put user-provided variable data in a sub-object, ctx.vars.
   // Set up default standard variables, and allow override from the variables.
   // However, we'll keep our own copy of dataRoot for internal processing.
   let ctx = {
-    dataRoot,
-    processedVars: {
-      ucum: 'http://unitsofmeasure.org',
-      context: dataRoot
-    },
     processedUserVarNames: new Set(),
     vars: envVars || {},
+    // Lazily populated with a WeakMap by the instance selector (see
+    // rememberInstanceSelectorType in src/instance-selector.js). Kept as a
+    // declared property so the ctx object shape stays stable; evaluations that
+    // do not construct objects avoid both the WeakMap allocation and the
+    // per-result lookup in prepareEvalResult.
+    instanceSelectorTypeByData: null,
     model
   };
+  let dataRoot;
+  if (baseInfo) {
+    dataRoot = util.arraify(resource).map( i => makeResNode(ctx, i, null, baseInfo.path, null,
+      baseInfo.fhirNodeDataType, baseInfo.propName));
+  } else {
+    dataRoot = util.arraify(resource).map(
+      i => i?.__path__
+        ? makeResNode(i.__path__.ctx, i, i.__path__.parentResNode, i.__path__.path, null,
+          i.__path__.fhirNodeDataType, i.__path__.propName, i.__path__.index)
+        : i?.resourceType
+          ? makeResNode(ctx, i, null, null, null, null)
+          : i);
+  }
+  ctx.dataRoot = dataRoot;
+  ctx.processedVars = {
+    ucum: 'http://unitsofmeasure.org',
+    context: dataRoot
+  };
+
+  ctx.getDecimal = options.preciseMath ?
+    types.FP_Decimal_Precise.getDecimal :
+    types.FP_Decimal_Native.getDecimal;
+
   if (options.traceFn) {
     ctx.customTraceFn = options.traceFn;
   }
@@ -851,7 +1320,10 @@ function applyParsedPath(resource, parsedPath, envVars, model, options) {
     ctx.async = options.async;
   }
   if (options.terminologyUrl) {
-    ctx.processedVars.terminologies = new Terminologies(options.terminologyUrl);
+    const terminologyUrls = util.arraify(options.terminologyUrl);
+    if (terminologyUrls.length > 0) {
+      ctx.processedVars.terminologies = new Terminologies(terminologyUrls);
+    }
   }
   if (options.fhirServerUrl) {
     ctx.processedVars.fhirServerUrl = options.fhirServerUrl;
@@ -883,29 +1355,44 @@ function applyParsedPath(resource, parsedPath, envVars, model, options) {
         return Promise.reject(new DOMException(
           'Evaluation of the expression was aborted.', 'AbortError'));
       } else {
-        return prepareEvalResult(r, model, options);
+        return prepareEvalResult(ctx, r, options);
       }
     })
     : options.async === 'always'
-      ? Promise.resolve(prepareEvalResult(res, model, options))
-      : prepareEvalResult(res, model, options);
+      ? Promise.resolve(prepareEvalResult(ctx, res, options))
+      : prepareEvalResult(ctx, res,options);
 }
+
 
 /**
  * Prepares the result after evaluating an expression.
  * engine.doEval returns array of "ResourceNode" and/or "FP_Type" instances.
  * "ResourceNode" or "FP_Type" instances are not created for sub-items.
- * Resolves any internal "ResourceNode" instances to plain objects and if
- * options.resolveInternalTypes is true, resolve any internal "FP_Type"
- * instances to strings.
+ * If options.resolveInternalTypes is false, keeps "ResourceNode" instances as
+ * internal structures so their type/path metadata remains available for future
+ * evaluations. Otherwise, resolves "ResourceNode" instances to plain objects.
+ * If options.resolveInternalTypes is true, resolves any internal "FP_Type"
+ * instances to standard JavaScript types (unless options.keepDecimalTypes is
+ * true, in which case FP_Decimal instances are preserved). For objects created
+ * by instance selectors, nested FP_Decimal and bigint values are preserved when
+ * options.keepDecimalTypes is true; otherwise they are converted to JSON-safe
+ * values.
+ * @param {object} defContext - the default evaluation context, used when a
+ *  result node does not carry its own context.
  * @param {Array} result - result of expression evaluation.
- * @param {object} model - The "model" data object specific to a domain, e.g. R4.
  * @param {object} options - additional options (see function "applyParsedPath").
  * @return {Array}
  */
-function prepareEvalResult(result, model, options) {
+function prepareEvalResult(defContext, result, options) {
+  const shouldResolveInternalTypes = options.resolveInternalTypes;
   return result
     .reduce((acc, n) => {
+      if (n instanceof ResourceNode && !shouldResolveInternalTypes) {
+        acc.push(n);
+        return acc;
+      }
+
+      let ctx;
       // Path for the data extracted from the resource.
       let path;
       let fhirNodeDataType;
@@ -913,6 +1400,7 @@ function prepareEvalResult(result, model, options) {
       let propName;
       let index;
       if (n instanceof ResourceNode) {
+        ctx = n.ctx || defContext;
         path = n.path;
         fhirNodeDataType = n.fhirNodeDataType;
         parentResNode = n.parentResNode;
@@ -921,9 +1409,20 @@ function prepareEvalResult(result, model, options) {
       }
       n = util.valData(n);
       if (n instanceof FP_Type) {
-        if (options.resolveInternalTypes) {
+        if (shouldResolveInternalTypes) {
+          if (!(options.keepDecimalTypes && n instanceof FP_Decimal)) {
+            n = n.toJSON();
+          }
+        }
+      } else if (typeof n === 'bigint') {
+        if (shouldResolveInternalTypes && !options.keepDecimalTypes) {
           n = n.toString();
         }
+      } else if (
+        shouldResolveInternalTypes &&
+        ctx?.instanceSelectorTypeByData?.has(n)
+      ) {
+        n = prepareInstanceSelectorResultValue(n, options.keepDecimalTypes);
       }
       // Exclude nulls
       if (n != null) {
@@ -932,7 +1431,7 @@ function prepareEvalResult(result, model, options) {
         if (path && typeof n === 'object' && !n.__path__) {
           Object.defineProperty(n, '__path__', {
             value: {
-              path, fhirNodeDataType, parentResNode, model, propName, index
+              ctx, path, fhirNodeDataType, parentResNode, propName, index
             }
           });
         }
@@ -942,26 +1441,141 @@ function prepareEvalResult(result, model, options) {
     }, []);
 }
 
+
 /**
- * Resolves any internal "FP_Type" instances in a result of FHIRPath expression
- * evaluation to standard JavaScript types.
- * @param {any} val - a result of FHIRPath expression evaluation
- * @returns {any} a new object with resolved values.
+ * Resolves internal FHIRPath values in an evaluation result to standard
+ * JavaScript values. ResourceNode values are unwrapped to their data values,
+ * FP_Type values are converted with toJSON(), and BigInt values are converted
+ * to strings for JSON safety. Arrays and plain objects are copied instead of
+ * updated in place; the top-level result array is compacted by removing nullish
+ * resolved entries, while arrays nested inside resolved objects keep all their
+ * entries (including null placeholders that keep FHIR primitive value arrays
+ * aligned with their sibling "_"-metadata arrays). Other object instances are
+ * returned unchanged unless they are known internal FHIRPath types. Hidden
+ * "__path__" metadata is attached only to top-level results (a directly passed
+ * object/ResourceNode or the elements of a top-level array); objects and arrays
+ * nested inside those items do not receive metadata.
+ * @param {any} val - a result of FHIRPath expression evaluation.
+ * @returns {any} the resolved value.
  */
 function resolveInternalTypes(val) {
+  return resolveInternalTypesImpl(val);
+}
+
+
+/**
+ * Checks whether a value is a JSON-like object that should be copied.
+ * @param {*} val - the value to check.
+ * @returns {boolean} true if the value is a plain object.
+ */
+function isPlainObjectLike(val) {
+  if (!val || typeof val !== 'object') {
+    return false;
+  }
+  const proto = Object.getPrototypeOf(val);
+  return proto === Object.prototype || proto === null;
+}
+
+
+/**
+ * Copies hidden path metadata from one container to another when present.
+ * @param {object} source - the source array or plain object.
+ * @param {object} target - the copied array or plain object.
+ * @returns {void}
+ */
+function copyPathMetadata(source, target) {
+  const descriptor = Object.getOwnPropertyDescriptor(source, '__path__');
+  if (descriptor) {
+    Object.defineProperty(target, '__path__', descriptor);
+  }
+}
+
+
+/**
+ * Attaches ResourceNode path metadata to a copied resolved container.
+ * @param {object} target - the copied array or plain object.
+ * @param {object} pathInfo - the ResourceNode path information.
+ * @returns {void}
+ */
+function setPathMetadata(target, pathInfo) {
+  if (pathInfo?.path) {
+    Object.defineProperty(target, '__path__', { value: pathInfo });
+  }
+}
+
+
+/**
+ * Resolves internal FHIRPath values, optionally assigning wrapper path
+ * metadata to the copied root container. Metadata is only attached to
+ * top-level results; objects and arrays nested inside a top-level item are
+ * copied without "__path__" metadata.
+ * @param {any} val - the value to resolve.
+ * @param {object} [pathInfo] - ResourceNode path metadata to assign.
+ * @param {boolean} [isTopLevel] - whether "val" is a top-level result that may
+ *  receive "__path__" metadata.
+ * @returns {any} the resolved value.
+ */
+function resolveInternalTypesImpl(val, pathInfo, isTopLevel = true) {
   if (Array.isArray(val)) {
-    for (let i=0, len=val.length; i<len; ++i)
-      val[i] = resolveInternalTypes(val[i]);
+    const resolved = [];
+    for (let i=0, len=val.length; i<len; ++i) {
+      const item = resolveInternalTypesImpl(val[i], undefined, isTopLevel);
+      // Only the top-level result array is compacted (mirroring
+      // prepareEvalResult). Arrays nested inside a resolved object keep all
+      // their entries, including null placeholders that keep FHIR primitive
+      // value arrays index-aligned with their sibling "_"-metadata arrays.
+      if (!isTopLevel || item != null) {
+        resolved.push(item);
+      }
+    }
+    if (isTopLevel) {
+      if (pathInfo) {
+        setPathMetadata(resolved, pathInfo);
+      } else {
+        copyPathMetadata(val, resolved);
+      }
+    }
+    val = resolved;
+  }
+  else if (val instanceof ResourceNode) {
+    const nodePathInfo = {
+      ctx: val.ctx,
+      path: val.path,
+      fhirNodeDataType: val.fhirNodeDataType,
+      parentResNode: val.parentResNode,
+      propName: val.propName,
+      index: val.index
+    };
+    val = resolveInternalTypesImpl(val.data, nodePathInfo, isTopLevel);
   }
   else if (val instanceof FP_Type) {
+    val = val.toJSON();
+  }
+  else if (typeof val === 'bigint') {
     val = val.toString();
   }
-  else if (typeof val === 'object') {
-    for (let k of Object.keys(val))
-      val[k] = resolveInternalTypes(val[k]);
+  else if (isPlainObjectLike(val)) {
+    const resolved = {};
+    for (let k of Object.keys(val)) {
+      // Skip a "__proto__" own key so a copied plain object cannot have its
+      // prototype re-pointed via the inherited "__proto__" setter.
+      if (k === '__proto__') {
+        continue;
+      }
+      resolved[k] = resolveInternalTypesImpl(val[k], undefined, false);
+    }
+    if (isTopLevel) {
+      if (pathInfo) {
+        setPathMetadata(resolved, pathInfo);
+      } else {
+        copyPathMetadata(val, resolved);
+      }
+    }
+    val = resolved;
   }
   return val;
 }
+
 
 /**
  *  Evaluates the "path" FHIRPath expression on the given resource or part of the resource,
@@ -981,6 +1595,9 @@ function resolveInternalTypes(val) {
  *  types should be converted to standard JavaScript types (true by default).
  *  If false is passed, this conversion can be done later by calling
  *  resolveInternalTypes().
+ * @param {boolean} [options.keepDecimalTypes] - when true, FP_Decimal values
+ *  are preserved as-is instead of being converted to JavaScript numbers.
+ *  Defaults to false.
  * @param {function} [options.traceFn] - An optional trace function to call when tracing.
  * @param {object} [options.userInvocationTable] - a user invocation table used
  *  to replace any existing or define new functions.
@@ -988,17 +1605,22 @@ function resolveInternalTypes(val) {
  *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception,
  *  true or similar to true - return Promise, only for asynchronous functions,
  *  "always" - return Promise always.
- * @param {string} [options.terminologyUrl] - a URL that points to a FHIR
- *   RESTful API that is used to create %terminologies that implements
- *   the Terminology Service API.
+ * @param {string|string[]} [options.terminologyUrl] - a URL, or an ordered
+ *  array of URLs, that point to FHIR RESTful API(s) used to create
+ *  %terminologies that implements the Terminology Service API. When multiple
+ *  URLs are provided, they are tried in order and the server that first
+ *  resolves a given ValueSet/CodeSystem is preferred for subsequent operations
+ *  on that artifact.
  * @param {string} [options.fhirServerUrl] - a URL that points to a FHIR
- *   RESTful API that is used to query resources when using `resolve()`.
+ *  RESTful API that is used to query resources when using `resolve()`.
  * @param {AbortSignal} [options.signal] - an AbortSignal object that allows you
- *   to abort the asynchronous FHIRPath expression evaluation.
+ *  to abort the asynchronous FHIRPath expression evaluation.
  * @param {Object} [options.httpHeaders] - an object with HTTP headers to be
- *   used when making requests to the FHIR server. The property names of this
- *   object are server URLs, and the values are objects whose property names are
- *   HTTP header names and whose values are their values.
+ *  used when making requests to the FHIR server. The property names of this
+ *  object are server URLs, and the values are objects whose property names are
+ *  HTTP header names and whose values are their values.
+ * @param {boolean} [options.preciseMath] - if true, use precision-safe math
+ *  operations for decimal calculations. if false, use native math operations.
  * @returns {Array} - an array of results of the FHIRPath expression evaluation.
  */
 function evaluate(fhirData, path, envVars, model, options) {
@@ -1020,6 +1642,9 @@ function evaluate(fhirData, path, envVars, model, options) {
  * @param {object} [options] - additional options:
  * @param {boolean} [options.resolveInternalTypes] - whether values of internal
  *  types should be converted to strings, true by default.
+ * @param {boolean} [options.keepDecimalTypes] - when true, FP_Decimal values
+ *  are preserved as-is instead of being converted to JavaScript numbers.
+ *  Defaults to false.
  * @param {function} [options.traceFn] - An optional trace function to call when tracing.
  * @param {object} [options.userInvocationTable] - a user invocation table used
  *  to replace any existing or define new functions.
@@ -1027,15 +1652,22 @@ function evaluate(fhirData, path, envVars, model, options) {
  *  false or similar to false, e.g. undefined, null, or 0 (default) - throw an exception,
  *  true or similar to true - return Promise, only for asynchronous functions,
  *  "always" - return Promise always.
- * @param {string} [options.terminologyUrl] - a URL that points to a FHIR
- *   RESTful API that is used to create %terminologies that implements
- *   the Terminology Service API.
+ * @param {string|string[]} [options.terminologyUrl] - a URL, or an ordered
+ *  array of URLs, that point to FHIR RESTful API(s) used to create
+ *  %terminologies that implements the Terminology Service API. When multiple
+ *  URLs are provided, they are tried in order and the server that first
+ *  resolves a given ValueSet/CodeSystem is preferred for subsequent operations
+ *  on that artifact.
  * @param {string} [options.fhirServerUrl] - a URL that points to a FHIR
- *   RESTful API that is used to query resources when using `resolve()`.
+ *  RESTful API that is used to query resources when using `resolve()`.
  * @param {Object} [options.httpHeaders] - an object with HTTP headers to be
- *   used when making requests to the FHIR server. The property names of this
- *   object are server URLs, and the values are objects whose property names are
- *   HTTP header names and whose values are their values.
+ *  used when making requests to the FHIR server. The property names of this
+ *  object are server URLs, and the values are objects whose property names are
+ *  HTTP header names and whose values are their values.
+ * @param {boolean} [options.preciseMath] - if true, use precision-safe math
+ *  operations for decimal calculations. if false, use native math operations.
+ * @returns {Function} - A function that takes FHIR data, environment variables,
+ *  and additional options, and returns the evaluation result.
  */
 function compile(path, model, options) {
   if (options?.signal) {
@@ -1112,20 +1744,23 @@ function _compile(path, model, options) {
         });
       } while(changed);
       basePath = model.pathsDefinedElsewhere[basePath] || basePath;
-      baseFhirNodeDataType = model && model.path2Type[basePath];
+      baseFhirNodeDataType = model.availableTypes.has(basePath) ? basePath
+        : model.path2Type[basePath];
       basePath =
         baseFhirNodeDataType === 'BackboneElement' ||
         baseFhirNodeDataType === 'Element' ?
           basePath : baseFhirNodeDataType || basePath;
     }
     return function (fhirData, envVars, additionalOptions) {
-      if (basePath) {
-        fhirData = makeResNode(fhirData, null, basePath, null,
-          baseFhirNodeDataType, model, path.base);
-      }
       const actualOptions = additionalOptions ?
         {...options, ...additionalOptions} : options;
-      return applyParsedPath(fhirData, node, envVars, model, actualOptions);
+      return applyParsedPath(
+        fhirData, node, envVars, model, actualOptions,
+        basePath ? {
+          path: basePath,
+          fhirNodeDataType: baseFhirNodeDataType,
+          propName: path.base
+        } : null);
     };
   } else {
     const node = parse(path);
@@ -1147,22 +1782,58 @@ function typesFn(fhirpathResult) {
   return util.arraify(fhirpathResult).map(value => {
     const ti = TypeInfo.fromValue(
       value?.__path__
-        ? new ResourceNode(value, value.__path__?.parentResNode,
-          value.__path__?.path, null, value.__path__?.fhirNodeDataType, value.__path__.model)
+        ? new ResourceNode(value.__path__.ctx, value, value.__path__?.parentResNode,
+          value.__path__?.path, null, value.__path__?.fhirNodeDataType)
         : value );
     return `${ti.namespace}.${ti.name}`;
   });
 }
 
 module.exports = {
+  /**
+   * The version string of the fhirpath.js library.
+   */
   version,
+  /**
+   * Parses a FHIRPath expression string into an internal AST representation.
+   */
   parse,
+  /**
+   * Compiles a FHIRPath expression into a reusable evaluator function.
+   * The expression is parsed once and can be applied to multiple resources.
+   */
   compile,
+  /**
+   * Evaluates a FHIRPath expression against the given FHIR data and returns
+   * an array of results (or a Promise when async mode is enabled).
+   */
   evaluate,
+  /**
+   * Converts any internal FHIRPath types in the given value to standard
+   * JavaScript types.
+   */
   resolveInternalTypes,
+  /**
+   * Returns the FHIRPath type of each element in the given evaluation result.
+   * The result must have been obtained from evaluate() with
+   * resolveInternalTypes: false.
+   */
   types: typesFn,
-  // Might as well export the UCUM library, since we are using it.
-  ucumUtils: require('@lhncbc/ucum-lhc').UcumLhcUtils.getInstance(),
-  // Utility functions that can be used to implement custom functions
+  /**
+   * The FP_Decimal class for precise decimal arithmetic. Use
+   * FP_Decimal.getDecimal(value) to create instances from a number or
+   * numeric string, preserving exact decimal precision.
+   */
+  FP_Decimal: FP_Decimal,
+  /**
+   * An instance of the UCUM (Unified Code for Units of Measure) utilities
+   * library, used internally for unit conversions and also exported for
+   * external use.
+   */
+  ucumUtils,
+  /**
+   * Utility functions (e.g. arraify, valData, isEmpty) that can be used to
+   * implement custom user-defined FHIRPath functions.
+   */
   util
 };

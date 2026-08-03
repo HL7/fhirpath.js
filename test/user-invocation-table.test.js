@@ -96,13 +96,85 @@ describe("toString", () => {
   });
 });
 
+
+describe("sort override", () => {
+
+  it("passes evaluated arguments to an overridden sort function", () => {
+    const options = {
+      userInvocationTable: {
+        sort: {
+          fn: (input, param) => [param],
+          arity: {1: ["String"]}
+        }
+      }
+    };
+
+    const result = fhirpath.evaluate(
+      { value: [1, 2] },
+      "value.sort('x')",
+      null,
+      null,
+      options
+    );
+
+    expect(result).toEqual(["x"]);
+  });
+
+
+  it("passes evaluated arguments to an overridden delimited sort function", () => {
+    const options = {
+      userInvocationTable: {
+        sort: {
+          fn: (input, param) => [param],
+          arity: {1: ["String"]}
+        }
+      }
+    };
+
+    const result = fhirpath.evaluate(
+      { value: [1, 2] },
+      "value.`sort`('x')",
+      null,
+      null,
+      options
+    );
+
+    expect(result).toEqual(["x"]);
+  });
+
+
+  it("passes identifier text to an overridden sort function", () => {
+    const options = {
+      userInvocationTable: {
+        sort: {
+          fn: (_input, id) => [id],
+          arity: {1: ["Identifier"]}
+        }
+      }
+    };
+
+    const result = fhirpath.evaluate(
+      { value: [1, 2] },
+      "value.sort(x)",
+      null,
+      null,
+      options
+    );
+
+    expect(result).toEqual(["x"]);
+  });
+
+
+});
+
+
 describe("Not implemented exception", () => {
     it("Fires exception without userInvocationTable", () => {
         try {
             fhirpath.evaluate({ index: 0 }, "index.missing()");
         } catch(e){
             expect(e.message).toEqual('Not implemented: missing');
-        };
+        }
     });
     it("Fires exception with userInvocationTable", () => {
         const options = {
@@ -120,6 +192,6 @@ describe("Not implemented exception", () => {
             );
         } catch (e) {
             expect(e.message).toEqual('Not implemented: missing');
-        };
+        }
     });
 });

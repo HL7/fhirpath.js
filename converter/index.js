@@ -35,7 +35,9 @@ module.exports = {
    */
   testsXmlFileToYamlFile: async (from, to, model) => {
     const fileContent = await readFile(from);
-    const resultYaml = await convert.testsXmlStringToYamlString(fileContent, model);
+    // Convert all LF to CRLF
+    const normalizedContent = fileContent.toString().replace(/(?<!\r)\n/g, "\r\n");
+    const resultYaml = await convert.testsXmlStringToYamlString(normalizedContent, model);
     await writeFile(to, resultYaml);
   }
 };

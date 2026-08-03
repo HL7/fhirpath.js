@@ -3,7 +3,7 @@ const util = require('../src/utilities');
 const fs   = require('fs');
 const _    = require('lodash');
 const { calcExpression } = require("./test_utils");
-const FP_DateTime = require('../src/types').FP_DateTime;
+const { FP_DateTime, ResourceNode } = require('../src/types');
 
 // Get document, or throw exception on error
 // const testcase = yaml.load(fs.readFileSync( __dirname + '/cases/simple.yaml', 'utf8'));
@@ -69,6 +69,25 @@ const endWith = (s, postfix) => {
   return s.length >= postfix.length && s.substr(-postfix.length) === postfix;
 };
 
+
+/**
+ * In the generated YAML tests, just as when generating the result in
+ * `prepareEvalResult` with the `resolveInternalTypes=true` flag (the default),
+ * ResourceNode entries with nullish (`null` or `undefined`) data are ignored.
+ * The default path unwraps the node via `util.valData()` and drops it with a
+ * loose `!= null` check, so metadata-only primitives (e.g. a `date` node whose
+ * `data` is `undefined`, or an `integer64` node whose `data` is `null`) are
+ * excluded here as well.
+ * @param {Array<*>} result - raw result from fhirpath.evaluate().
+ * @returns {Array<*>} result without nullish-valued ResourceNode entries.
+ */
+function filterNullishResourceNodes(result) {
+  return result.filter(item =>
+    !(item instanceof ResourceNode && item.data == null)
+  );
+}
+
+
 const files = items.filter(fileName => endWith(fileName, '.yaml'))
   .map(fileName =>({ fileName, data: yaml.load(fs.readFileSync(__dirname + '/cases/' + fileName, 'utf8')) }));
 
@@ -76,7 +95,7 @@ const generateTest = (test, testResource) => {
   let expressions = Array.isArray(test.expression) ? test.expression : [test.expression];
   const console_log = console.log;
 
-  const getTestData = (expression, done) => {
+  const getTestData = (expression, preciseMath, done) => {
     if (test.disableConsoleLog) {
       console.log = function() {};
     }
@@ -84,7 +103,7 @@ const generateTest = (test, testResource) => {
       let exception = null;
       let result = null;
       try {
-        result = calcExpression(expression, test, testResource);
+        result = calcExpression(expression, test, testResource, preciseMath);
       }
       catch (error) {
         exception = error;
@@ -105,13 +124,24 @@ const generateTest = (test, testResource) => {
   const processTestResult = (test, result, exception, done) => {
     if (!test.error) {
       expect(exception).isNotError();
+      const comparableResult = filterNullishResourceNodes(result);
       // Run the result through JSON so the FP_Type quantities get converted to
-      // strings.  Also , if the result is an FP_DateTime, convert to a Date
-      // object so that timezone differences are handled.
-      if (result.length === 1 && result[0] instanceof FP_DateTime)
-        expect(new Date(result[0])).toEqual(new Date(test.result[0]))
-      else
-        expect(JSON.parse(util.toJSON(result))).toEqual(test.result);
+      // strings.  Also, if the result is an FP_DateTime, use compare() so that
+      // timezone differences and leap seconds are handled.
+      if (
+        comparableResult.length === 1 &&
+        test.result.length === 1 &&
+        comparableResult[0] instanceof FP_DateTime
+      ) {
+        expect(
+          FP_DateTime.checkString(
+            comparableResult[0].ctx,
+            test.result[0]
+          ).compare(comparableResult[0])
+        ).toEqual(0);
+      } else {
+        expect(JSON.parse(util.toJSON(comparableResult))).toEqual(test.result);
+      }
     }
     else if (test.error) {
       expect(exception).isError(result);
@@ -122,21 +152,36 @@ const generateTest = (test, testResource) => {
   };
 
   expressions.forEach(expression => {
-    const expressionText = expression instanceof Object ? util.toJSON(expression) : expression;
-    switch(test.type) {
-    case 'skipped':
-      return it.skip(`Disabled test ${test.desc}`, () => {});
-    case 'focused':
-      return it.only(((test.desc || '') + ': ' + (expressionText|| '')), (done) => getTestData(expression, done));
-    default:
-      return it(((test.desc || '') + ': ' + (expressionText || '')), (done) => getTestData(expression, done));
-    }
+    // Normalize `test.preciseMath` into an iterable list of execution modes.
+    // Supported YAML forms:
+    // - `undefined`  -> run once per default modes: `[false, true]`
+    // - `boolean`    -> run once with the provided mode: `[true]` or `[false]`
+    // - `boolean[]`  -> run once per listed mode (e.g. `[false, true]`)
+    // TODO: At some point, we will be able to reduce the number of tests by
+    //  changing the default value to `[false]`. But first, we need to set
+    //  `preciseMath: [false, true]` for the tests that truly require
+    //  double-checking.
+    ( test.preciseMath === undefined ? [false, true] :
+      (Array.isArray(test.preciseMath) ? test.preciseMath : [test.preciseMath]) )
+      .forEach( preciseMath => {
+        const expressionText = expression instanceof Object ? util.toJSON(expression) : expression;
+        const testName = ((test.desc ? test.desc + ': ' : '') + (expressionText|| '')) + (preciseMath ? ' <--preciseMath': '');
+        switch(test.type) {
+          case 'skipped':
+            return it.skip(`Disabled test ${testName}`, () => {});
+          case 'focused':
+            return it.only(testName, (done) => getTestData(expression, preciseMath, done));
+          default:
+            return it(testName, (done) => getTestData(expression, preciseMath, done));
+        }
+      });
   });
 };
 
 const generateGroup = (group, testResource) => {
-  const groupName = _.first(_.keys(_.omit(group, 'disable')));
-  const getTestGroupData = () => group[groupName].map(test => addType(test)).map(
+  const groupKey = _.first(_.keys(_.omit(group, 'disable')));
+  const groupName = groupKey.replace(/^group:*\s*/g, '');
+  const getTestGroupData = () => group[groupKey].map(test => addType(test)).map(
     test => isGroup(test) ? generateGroup(test, testResource) : generateTest(test, testResource));
   switch (group.type) {
   case 'skipped':
@@ -162,7 +207,7 @@ const addType = (entity) => {
 
 // Tests whether the given test is a group.
 function isGroup(test) {
-  return (_.keys(test).some(key => key.startsWith('group')));
+  return (_.keys(test).some(key => key.startsWith('group:')));
 }
 
 const generateSuite = (fileName, testcase) => {

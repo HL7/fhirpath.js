@@ -1,12 +1,15 @@
 const _ = require('lodash');
 
 /**
- * Prepares 4 suites for a FHIRPath expression with 1 cases each:
+ * Prepares up to 4 suites for a FHIRPath expression with 1 cases each:
  *  1. big items using evaluate()
  *  2. big items using compile()
  *  3. small items using evaluate()
  *  4. small items using compile()
+ * When `desc.options.compileOnly` is set, the evaluate() suites (1 and 3) are
+ * skipped and only the compile() suites (2 and 4) are returned.
  * @param {Object} desc - suite description.
+ * @param {string} desc.name - display name for the suite.
  * @param {string} desc.filename - output filename.
  * @param {string} desc.expression - FHIRPath expression.
  * @param {Array} desc.bigItems - array of big items to use in expression as
@@ -18,15 +21,16 @@ const _ = require('lodash');
  * @param {Array} desc.smallItemsCopy - copy of desc.smallItems in case
  *  expression uses it as "%itemsCopy".
  * @param {Object} desc.options - command line options. See benchmark.js.
- * @param {Object} desc.options.compileOnly - skip test suites that uses evaluate().
+ * @param {boolean} desc.options.compileOnly - skip suites that use evaluate().
  * @return an array of objects describing suites with cases for use in benchmark.js.
  */
 function createSuitesForExpression(desc) {
   const numberOfBigItems = desc.bigItems.length;
   const options = desc.options;
   const numberOfSmallItems = desc.smallItems.length;
+  const skipEvaluate = options.compileOnly;
 
-  return [...(options.compileOnly ? [] : [{
+  const bigItemsEvaluateSuite = {
     name: desc.name,
     filename: desc.filename + '-big-items-evaluate',
     expression: desc.expression,
@@ -43,9 +47,11 @@ function createSuitesForExpression(desc) {
         }
       }
     ]
-  },{
+  };
+
+  const bigItemsCompileSuite = {
     name: desc.name,
-    filename: desc.filename + '-big-items-evaluate',
+    filename: desc.filename + '-big-items-compile',
     expression: desc.expression,
     cases: [
       {
@@ -60,7 +66,9 @@ function createSuitesForExpression(desc) {
         }
       }
     ]
-  }]),{
+  };
+
+  const smallItemsEvaluateSuite = {
     name: desc.name,
     filename: desc.filename + '-small-items-evaluate',
     expression: desc.expression,
@@ -77,7 +85,9 @@ function createSuitesForExpression(desc) {
         }
       }
     ]
-  },{
+  };
+
+  const smallItemsCompileSuite = {
     name: desc.name,
     filename: desc.filename + '-small-items-compile',
     expression: desc.expression,
@@ -94,7 +104,16 @@ function createSuitesForExpression(desc) {
         }
       }
     ]
-  }];
+  };
+
+  // `compileOnly` skips only the evaluate() suites, keeping the compile() ones
+  // for both big and small items. The original interleaved order is preserved.
+  return [
+    ...(skipEvaluate ? [] : [bigItemsEvaluateSuite]),
+    bigItemsCompileSuite,
+    ...(skipEvaluate ? [] : [smallItemsEvaluateSuite]),
+    smallItemsCompileSuite
+  ];
 
 }
 

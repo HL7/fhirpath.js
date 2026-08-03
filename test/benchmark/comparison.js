@@ -1,10 +1,8 @@
-const _ = require('lodash');
-
 module.exports = ({
                     options
                   }) => {
 
-  const expression = "1 < 2";
+  const simpleExpression = "1 < 2";
 
   return [
     ...(options.compileOnly
@@ -12,11 +10,11 @@ module.exports = ({
       : [{
         name: `Do simple comparison 1 < 2 using evaluate()`,
         filename: 'comparison-evaluate',
-        expression,
+        expression: simpleExpression,
         cases: [{
           name: '',
           testFunction: (fhirpath, model) => {
-            return () => fhirpath.evaluate({}, expression, {}, model);
+            return () => fhirpath.evaluate({}, simpleExpression, {}, model);
           }
         }
         ]
@@ -24,7 +22,7 @@ module.exports = ({
     {
       name: `Do simple comparison 1 < 2 using compile()`,
       filename: 'comparison-compile',
-      expression,
+      expression: simpleExpression,
       cases: [
         {
           name: '',

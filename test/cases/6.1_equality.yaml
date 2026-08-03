@@ -85,14 +85,41 @@ tests:
       expression: '0.1 + 0.1 + 0.1 = 0.3'
       result: [true]
 
-    - desc: 'should take into account extensions for decimal values'
-      model: r4
-      expression: >-
-        (%factory.decimal(0.3, %factory.Extension('someExt', 'someString')) =
-         %factory.decimal(0.30000000000000004, %factory.Extension('someExt', 'someString'))) |
-        (%factory.decimal(0.3, %factory.Extension('someExt', 'someString1')) =
-         %factory.decimal(0.30000000000000004, %factory.Extension('someExt', 'someString2')))
-      result: [true, false]
+    - '- group: should take into account extensions for numeric values':
+      - model: r4
+        expression: >-
+          (%factory.decimal(0.3, %factory.Extension('someExt', 'someString')) =
+           %factory.decimal(0.30000000000000004, %factory.Extension('someExt', 'someString')))
+        preciseMath: false
+        result: [true]
+      - model: r4
+        expression: >-
+          (%factory.decimal(0.3, %factory.Extension('someExt', 'someString1')) =
+           %factory.decimal(0.30000000000000004, %factory.Extension('someExt', 'someString2')))
+        preciseMath: false
+        result: [false]
+      - model: r4
+        expression: >-
+          (%factory.integer64(123, %factory.Extension('someExt', 'someString')) =
+           %factory.integer64(123, %factory.Extension('someExt', 'someString')))
+        preciseMath: false
+        result: [true]
+      - model: r4
+        expression: >-
+          (%factory.integer64(123, %factory.Extension('someExt', 'someString')) =
+           %factory.integer64(123, %factory.Extension('someExt', 'someString2')))
+        preciseMath: false
+        result: [false]
+      - model: r4
+        expression: >-
+          (%factory.integer64(456, %factory.Extension('someExt', 'someString')) =
+           %factory.integer(456, %factory.Extension('someExt', 'someString')))
+        result: [true]
+      - model: r4
+        expression: >-
+          (%factory.integer64(456, %factory.Extension('someExt', 'someString')) =
+           %factory.integer(456, %factory.Extension('someExt', 'someString2')))
+        result: [false]
 
     - desc: '* boolean: values must be the same'
 
@@ -120,7 +147,7 @@ tests:
 
     - 'group: Quantity Equality':
       - expression: 1 year != 1 'a'
-        result: [true]
+        result: []
 
       - expression: 12 months = 1 year
         result: [true]
@@ -132,42 +159,51 @@ tests:
         result: [true]
 
       - expression: 1 month != 1 'mo'
-        result: [true]
+        result: []
 
       - expression: 1 month = 30 'd'
+        result: []
+
+      - expression: 1 'mo' = 30 days
         result: []
 
       - expression: 1 month = 30 days
         result: [true]
 
       - expression: 1 week = 1 'wk'
-        result: []
+        result: [true]
 
       - expression: 1 week = 7 days
         result: [true]
 
       - expression: 1 day = 1 'd'
-        result: []
+        result: [true]
 
       - expression: 1 day = 24 hours
         result: [true]
 
       - expression: 1 day = 24 'h'
-        result: []
+        result: [true]
 
       - expression: 1 second = 1 's'
         result: [true]
 
-      - expression: 10 'kg.m/s2' = 5 'kg' * 4 'm' / (2 seconds * 1000 'ms')
+      - expression: 10 'kg.m/s2' = 5 'kg' * 4 'm' / (2 's' * 1000 'ms')
         result: [true]
 
       - expression: 9 = 9 '1'
+        result: [true]
+
+      - expression: 9 = 9 'kg.kg-1'
         result: [true]
 
       - expression: 9 = 8 '1'
         result: [false]
 
       - expression: 2 '1' = 2
+        result: [true]
+
+      - expression: 2 's.s-1' = 2
         result: [true]
 
       - expression: 3 '1' = 2
@@ -431,8 +467,44 @@ tests:
   # For primitives
 
     - desc: '* string: the strings must be the same while ignoring case and normalizing whitespace.'
-      expression: "'ab c' ~ 'Ab  C'"
+      expression: "'ab\tc\t\nd' ~ 'Ab C\n D'"
       result: [true]
+
+    - desc: '** should normalize Unicode whitespace characters during equivalence'
+      expression: "'ab\u00A0c' ~ 'Ab C'"
+      result: [true]
+
+    - desc: '** should not collapse repeated whitespace'
+      expression: "'a   b' ~ 'a b'"
+      result: [false]
+
+    - desc: '** should not trim leading spaces during equivalence'
+      expression: "'  ab c' ~ 'ab c'"
+      result: [false]
+
+    - desc: '** should not trim trailing spaces during equivalence'
+      expression: "'ab c  ' ~ 'ab c'"
+      result: [false]
+
+    - desc: '** should not trim leading tab during equivalence'
+      expression: "'\tab c' ~ 'ab c'"
+      result: [false]
+
+    - desc: '** should not trim trailing tab during equivalence'
+      expression: "'ab c\t' ~ 'ab c'"
+      result: [false]
+
+    - desc: '** should not trim leading newline during equivalence'
+      expression: "'\nab c' ~ 'ab c'"
+      result: [false]
+
+    - desc: '** should not trim trailing newline during equivalence'
+      expression: "'ab c\n' ~ 'ab c'"
+      result: [false]
+
+    - desc: '** should still fail after whitespace normalization when text differs'
+      expression: "'ab\tc\t\nd' ~ 'Ab C\n X'"
+      result: [false]
 
   # integer: exactly equal
 
@@ -489,6 +561,42 @@ tests:
         result: [true]
 
       - expression: 30 days ~ 1 'mo'
+        result: [true]
+
+      - expression: 23 'Cel' ~ 73.4 '[degF]'
+        result: [true]
+
+      - expression: 73.4 '[degF]' ~ 23 'Cel'
+        result: [true]
+
+      - expression: 0 'Cel' ~ 273.15 'K'
+        result: [true]
+
+      - expression: 23 'Cel' !~ 74 '[degF]'
+        result: [true]
+
+      - expression: 4 'g' !~ 4040 'mg'
+        result: [true]
+
+      - expression: 4040 'mg' !~ 4 'g'
+        result: [true]
+
+      - expression: 3.04 'g' ~ 3040 'mg'
+        result: [true]
+
+      - expression: 4040 'mg' ~ 4.0403 'g'
+        result: [true]
+
+      - expression: 4040 'mg' !~ 4.0409 'g'
+        result: [true]
+
+      - expression: 4040 'mg' !~ 4.041 'g'
+        result: [true]
+
+      - expression: 4040.01 'g' ~ 4040.009 'g'
+        result: [true]
+
+      - expression: 4040.01 'g' !~ 4040.1 'g'
         result: [true]
 
   # dateTime and time: values must be equal, except that for partial date/time
@@ -807,10 +915,42 @@ tests:
   # If both operands are collections with a single item:
 
   # For primitives
+    - 'group: strings':
+      - desc: '* should be the same while ignoring case and normalizing whitespace.'
+        expression: "'ab\tc\t\nd' !~ 'Ab C\n D'"
+        result: [false]
 
-    - desc: '* string: the strings must be the same while ignoring case and normalizing whitespace.'
-      expression: "'ab c' !~ 'Ab  C'"
-      result: [false]
+      - desc: '** should invert repeated-space non-equivalence explicitly'
+        expression: "'a   b' !~ 'a b'"
+        result: [true]
+
+      - desc: '** should still succeed after whitespace normalization when text differs'
+        expression: "'ab\tc\t\nd' !~ 'Ab C\n X'"
+        result: [true]
+
+      - desc: '** should not trim leading spaces during not-equivalence'
+        expression: "'  ab c' !~ 'ab c'"
+        result: [true]
+
+      - desc: '** should not trim trailing spaces during not-equivalence'
+        expression: "'ab c  ' !~ 'ab c'"
+        result: [true]
+
+      - desc: '** should not trim leading tab during not-equivalence'
+        expression: "'\tab c' !~ 'ab c'"
+        result: [true]
+
+      - desc: '** should not trim trailing tab during not-equivalence'
+        expression: "'ab c\t' !~ 'ab c'"
+        result: [true]
+
+      - desc: '** should not trim leading newline during not-equivalence'
+        expression: "'\nab c' !~ 'ab c'"
+        result: [true]
+
+      - desc: '** should not trim trailing newline during not-equivalence'
+        expression: "'ab c\n' !~ 'ab c'"
+        result: [true]
 
   # integer: exactly equal
 
@@ -866,4 +1006,3 @@ subject:
       c: str
     d:
       - e: 2
-

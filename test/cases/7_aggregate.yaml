@@ -51,6 +51,11 @@ tests:
         expression: (1|2|3|4|5|6|7|8|9).sum() = 45
         result:
           - true
+      - desc: 'The precision of the sum() function'
+        expression: (0.1|0.2).sum()
+        preciseMath: true
+        result:
+          - 0.3
       - desc: 'sum() function calculates the sum of undefined input collection'
         expression: UndefinedInput.sum()
         result: []

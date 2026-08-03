@@ -3,10 +3,14 @@ node_modules
 downloads
 src/scratch.js
 build
+/esm/
 .DS_Store
 .editorconfig
+.codex
 Makefile
 test/benchmark/prev-fhirpath
+test/benchmark/prev-src
+test/benchmark/.npm-cache
 test/benchmark/results
 test/cypress/screenshots
 test/cypress/videos

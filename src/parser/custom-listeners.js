@@ -59,14 +59,35 @@ class PathListener extends Listener {
   }
 
   /**
-   * Creates and enters a new AST node.
-   * @param {*} ctx - ANTLR context.
-   * @param {string} nodeType - Type of node.
+   * Creates and adds a new abstract syntax tree (AST) node to the list of child
+   * nodes of a previously created parent AST node.
+   * Marks MemberInvocation nodes that appear at the root level of
+   * an InvocationTerm to enable proper type-based filtering during evaluation.
+   *
+   * @param {Object} ctx - ANTLR context.
+   * @param {string} nodeType - The type of node being entered (e.g.,
+   *  'MemberInvocation', 'InvocationTerm').
    * @returns {Object} The new AST node.
+   *
+   * @example
+   * // When parsing "Observation.code", the MemberInvocation for "Observation"
+   * // will be marked with atRoot: 1
+   * // When parsing "select(Coding.code)", the MemberInvocation for "Coding"
+   * // will be marked with atRoot: 2
    */
   enterNode(ctx, nodeType) {
     let parentNode = this.parentStack[this.parentStack.length - 1];
     let node = { type: nodeType };
+    // Mark MemberInvocation nodes at the root level of an InvocationTerm.
+    // This enables type-based filtering when the invocation starts with a type name
+    // (e.g., "Observation.code" or "Coding.code").
+    if (parentNode?.type === 'InvocationTerm' && nodeType === 'MemberInvocation') {
+      // atRoot = 1: MemberInvocation is outside any function ParamList
+      //             (e.g., "Observation.code" at the top level)
+      // atRoot = 2: MemberInvocation is inside a function ParamList
+      //             (e.g., "select(Coding.code)")
+      node.atRoot = this.parentStack.find(item => item.type === 'ParamList') ? 2 : 1;
+    }
     if (!parentNode.children)
       parentNode.children = [];
     parentNode.children.push(node);
@@ -135,6 +156,27 @@ for (let p of Object.getOwnPropertyNames(Listener.prototype)) {
         };
         break;
 
+      case "enterSortDirectionArgument":
+        /**
+         * Handles sort direction argument nodes, capturing the optional asc/desc direction.
+         */
+        PathListener.prototype[p] = function (ctx) {
+          let node = this.enterNode(ctx, nodeType);
+          // ctx.children[0] is the expression, ctx.children[1] (if present) is 'asc' or 'desc'
+          if (ctx.children.length > 1 && ctx.children[1].symbol) {
+            node.direction = ctx.children[1].symbol.text;
+          }
+        };
+        break;
+
+      case "enterFunctn":
+        PathListener.prototype[p] = function (ctx) {
+          let node = this.enterNode(ctx, nodeType);
+          const fSymbol = ctx.children[0];
+          node.text = fSymbol.getText();
+        };
+        break;
+
       case "enterFunctionInvocation":
         /**
          * Handles function invocation nodes.
@@ -144,7 +186,13 @@ for (let p of Object.getOwnPropertyNames(Listener.prototype)) {
           const fSymbol = ctx.children[0].children[0];
           node.text = fSymbol.getText();
           // this is the function name (excluding the `.` if it was present, and excluding the () and arguments)
-          node.start = { line: fSymbol.start.line, column: fSymbol.start.column + 1 };
+          if (fSymbol.start) {
+            node.start = { line: fSymbol.start.line, column: fSymbol.start.column + 1 };
+          }
+          else if (fSymbol.symbol) {
+            // the introduction of the `sort` function creates a new path for this
+            node.start = { line: fSymbol.symbol.line, column: fSymbol.symbol.column + 1 };
+          }
           node.length = node.text.length;
         };
         break;
@@ -210,6 +258,23 @@ for (let p of Object.getOwnPropertyNames(Listener.prototype)) {
             node.end = { line: fRightBraceSymbol.line, column: fRightBraceSymbol.column + 1 };
             node.length = fRightBraceSymbol.stop - fLeftBraceSymbol.start + 1;
           }
+        };
+        break;
+
+      case "enterInstanceSelector":
+        /**
+         * Handles instance selector nodes (object creation), capturing the
+         * type name from the leading qualifiedIdentifier.
+         * @param {Object} ctx - the ANTLR instanceSelector parser context.
+         * @returns {void}
+         */
+        PathListener.prototype[p] = function (ctx) {
+          let node = this.enterNode(ctx, nodeType);
+          // The first child is the qualifiedIdentifier naming the type to
+          // create (e.g. "Coding" or "FHIR.Identifier").
+          node.text = ctx.children[0].getText();
+          node.start = { line: ctx.start.line, column: ctx.start.column + 1 };
+          node.length = node.text.length;
         };
         break;
 
@@ -317,7 +382,8 @@ for (let p of Object.getOwnPropertyNames(Listener.prototype)) {
           // need to read out the text for them
           // Note: doesn't handle the delimited text cases correctly in the engine later on
           if (parent && ctx.ruleIndex === Parser.RULE_expression) {
-            if (ctx.parentCtx?.ruleIndex === Parser.RULE_paramList) {
+            if (ctx.parentCtx?.ruleIndex === Parser.RULE_paramList ||
+              ctx.parentCtx?.ruleIndex === Parser.RULE_sortArgument) {
               parent.text = ctx.getText();
             }
           }
@@ -333,7 +399,8 @@ for (let p of Object.getOwnPropertyNames(Listener.prototype)) {
           // need to read out the text for them
           // Note: doesn't handle the delimited text cases correctly in the engine later on
           if (parent && ctx.ruleIndex === Parser.RULE_expression) {
-            if (ctx.parentCtx?.ruleIndex === Parser.RULE_paramList) {
+            if (ctx.parentCtx?.ruleIndex === Parser.RULE_paramList ||
+              ctx.parentCtx?.ruleIndex === Parser.RULE_sortArgument) {
               if (parent.type === "InvocationExpression") {
                 parent.text = ctx.getText();
               }
