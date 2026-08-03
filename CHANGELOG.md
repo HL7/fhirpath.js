@@ -3,6 +3,11 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [5.1.1] - 2026-08-03
+### Changed
+- Documented how to use the standard `%resource` environment variable with the
+  `evaluate()` method in `README.md`.
+
 ## [5.1.0] - 2026-07-29
 ### Added
 - The `terminologyUrl` option for the `evaluate()` and `compile()` methods now

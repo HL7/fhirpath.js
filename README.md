@@ -170,7 +170,14 @@ pairs:
 fhirpath.evaluate({}, '%a - 1', {a: 5});
 ```
 
-To use the standard `%resource` variable (as described in [FHIRPath supplements](http://hl7.org/fhir/uv/sdc/expressions.html#fhirpath-supplements) and [FHIRPath specification](https://build.fhir.org/fhirpath.html#variables)), pass `"%resource"` as the `fhirPathExpression` and include the resource in `envVars`. Note that the `resource` value in `envVars` should be the same object as what is passed in the `resourceObject` parameter:
+To use the standard `%resource` variable (as described in
+[FHIRPath supplements](http://hl7.org/fhir/uv/sdc/expressions.html#fhirpath-supplements)
+and [FHIRPath specification](https://build.fhir.org/fhirpath.html#variables)),
+pass `"%resource"` as the `fhirPathExpression` and include the resource in
+`envVars`. Unlike `%context`, `%resource` is not set automatically, so
+evaluation throws an "undefined environment variable" error if it is omitted.
+Note that the `resource` value in `envVars` should be the same object as what is
+passed in the `resourceObject` parameter:
 
 ```js
 const my_resource = {"resourceType": "Patient", "name": [{"given": ["John"]}]};
