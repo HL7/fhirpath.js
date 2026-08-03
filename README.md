@@ -172,8 +172,8 @@ fhirpath.evaluate({}, '%a - 1', {a: 5});
 
 To use the FHIR-defined `%resource` variable (as described in
 [FHIRPath supplements](http://hl7.org/fhir/uv/sdc/expressions.html#fhirpath-supplements)
-and [FHIRPath specification](https://build.fhir.org/fhirpath.html#variables)),
-include the resource under the resource key in `envVars`. Unlike `%context`,
+and [FHIRPath specification](https://hl7.org/fhirpath/en/#environment-variables)),
+include the resource under the `resource` key in `envVars`. Unlike `%context`,
 `%resource` is not set automatically, so an expression that references it throws
 an "undefined environment variable" error when it is omitted. When evaluating
 a complete resource, `envVars.resource` will normally be the same resource
