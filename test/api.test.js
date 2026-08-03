@@ -279,6 +279,35 @@ describe('evaluate', () => {
     expect(r).toStrictEqual([]);
   });
 
+  it.each([['without a model', null], ['with a model', r4_model]])(
+    'should find extensions on an untyped root %s', (label, model) => {
+      const resource = {
+        extension: [{
+          url: 'find-me',
+          extension: [{
+            url: 'inner-1',
+            valueString: 'test-1'
+          }]
+        }]
+      };
+
+      const shortcutResult = fhirpath.evaluate(
+        resource,
+        "extension('find-me')",
+        null,
+        model
+      );
+      const explicitResult = fhirpath.evaluate(
+        resource,
+        "extension.where(url = 'find-me')",
+        null,
+        model
+      );
+
+      expect(shortcutResult).toStrictEqual(explicitResult);
+      expect(shortcutResult).toStrictEqual(resource.extension);
+    });
+
   it('should serialize ResourceNode string values without double-encoding', () => {
     const r = fhirpath.evaluate(
       input.quantityExample,
