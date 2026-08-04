@@ -10,6 +10,7 @@ Try it out on the [demo page](https://hl7.github.io/fhirpath.js/).
   * [Server-side (Node.js)](#server-side-nodejs)
   * [Web-browser](#web-browser)
 - [API Usage](#api-usage)
+  * [Using the `%resource` environment variable](#using-the-resource-environment-variable)
   * [Mathematical operations mode](#mathematical-operations-mode)
     + [Passing precise numbers in the input resource](#passing-precise-numbers-in-the-input-resource)
     + [Preserving precise numbers in evaluation results](#preserving-precise-numbers-in-evaluation-results)
@@ -170,24 +171,6 @@ pairs:
 fhirpath.evaluate({}, '%a - 1', {a: 5});
 ```
 
-To use the FHIR-defined `%resource` variable (as described in
-[FHIRPath supplements](http://hl7.org/fhir/uv/sdc/expressions.html#fhirpath-supplements)
-and [FHIRPath specification](https://hl7.org/fhirpath/en/#environment-variables)),
-include the resource under the `resource` key in `envVars`. Unlike `%context`,
-`%resource` is not set automatically, so an expression that references it throws
-an "undefined environment variable" error when it is omitted. When evaluating
-a complete resource, `envVars.resource` will normally be the same resource
-passed as `resourceObject`. When evaluating part of a resource, it should
-instead be the containing resource:
-
-```js
-const resource = {
-  resourceType: "Patient",
-  name: [{given: ["John"]}]
-};
-fhirpath.evaluate(resource, '%resource.name.given', {resource});
-```
-
 To include FHIR model data (for support of choice types), pass in the model data
 object as the fourth argument:
 
@@ -307,6 +290,42 @@ let tracefunction = function (x, label) {
 };
 
 const res = fhirpath.evaluate(contextNode, path, envVars, fhirpath_r4_model, { traceFn: tracefunction });
+```
+
+### Using the `%resource` environment variable
+
+To use the FHIR-defined `%resource` variable (as described in
+[FHIRPath supplements](http://hl7.org/fhir/uv/sdc/en/expressions.html#fhirpath-supplements)
+and [FHIR Specific Variables](https://hl7.org/fhir/fhirpath.html#variables)),
+include the resource under the `resource` key in `envVars`. Unlike `%context`,
+`%resource` is not set automatically, so an expression that references it throws
+an "undefined environment variable" error when it is omitted.
+
+When evaluating a complete resource, `envVars.resource` will normally be
+the same resource passed as `resourceObject`:
+
+```js
+const resource = {
+  resourceType: "Patient",
+  name: [{given: ["John"]}]
+};
+fhirpath.evaluate(resource, '%resource.name.given', {resource});
+```
+
+When evaluating part of a resource, it should instead be the containing resource:
+
+```js
+const resource = {
+  resourceType: "Patient",
+  name: [{given: ["John"]}]
+};
+const resourcePart = resource.name[0];
+fhirpath.evaluate(
+  resourcePart,
+  {base: 'Patient.name', expression: 'given = %resource.name.given'},
+  {resource},
+  fhirpath_r4_model
+);
 ```
 
 ### Mathematical operations mode
