@@ -47,12 +47,18 @@ engine.extension = function(parentData, url) {
 
   return util.flatten(parentData.map((x, i) => {
     this.$index = i;
-    const extensions = (x && (x.data && x.data.extension || x._data && x._data.extension));
+    const parentResNode = ResourceNode.makeResNode(
+      ctx, x, null, null, null, null
+    );
+    const extensions = parentResNode.data?.extension ||
+      parentResNode._data?.extension;
     if (extensions) {
       return extensions.reduce((list, extension, index) => {
         if(extension.url === url) {
-          list.push(ResourceNode.makeResNode(ctx, extension, x, 'Extension', null,
-            'Extension', 'extension', index));
+          list.push(ResourceNode.makeResNode(
+            ctx, extension, parentResNode, 'Extension', null,
+            'Extension', 'extension', index
+          ));
         }
         return list;
       }, []);
