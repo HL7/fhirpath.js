@@ -1,6 +1,6 @@
 {
   "name": "fhirpath",
-  "version": "5.2.0",
+  "version": "5.2.1",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "module": "esm/fhirpath.mjs",

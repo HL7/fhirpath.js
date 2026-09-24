@@ -25,9 +25,11 @@ tests:
     expression: 4 * 2L
     result: ['8']
   - desc: '** Can multiply a long number literal by a decimal literal'
+    preciseMath: [false, true]
     expression: 2L * 4.1
     result: [8.2]
   - desc: '** Can multiply a decimal literal by a long number literal'
+    preciseMath: [false, true]
     expression: 4.1 * 2L
     result: [8.2]
   - desc: '** Can multiplying a long number by a quantity (1)'
@@ -37,12 +39,15 @@ tests:
     expression: 2L * 4 'kg'
     result: ["8 'kg'"]
   - desc: '** Error multiplying string (1)'
+    preciseMath: [false, true]
     expression: s5 * n2
     error: true
   - desc: '** Error multiplying string (2)'
+    preciseMath: [false, true]
     expression: n2 * s5
     error: true
   - desc: '** Error multiplying string (3)'
+    preciseMath: [false, true]
     expression: s5 * s5
     error: true
   - desc: '** Error multiplying multi-valued collection (1)'
@@ -61,6 +66,7 @@ tests:
     expression: n1 * i
     result: []
   - desc: '** Can multiply two quantities'
+    preciseMath: [false, true]
     expression: 2 'kg' * 5 'm' = 10 'kg.m'
     result: [true]
   - desc: '** Can multiply a quantity by a number'
@@ -99,6 +105,7 @@ tests:
       result: []
   - 'group: Compatible duration units in multiplication':
     - expression: 1 'm' * (1 year).toQuantity('seconds').toQuantity('s') = 31536000 'm.s'
+      preciseMath: [false, true]
       result: [true]
     - expression: 1 'a' * 2 'wk' = 38172072960000 's2'
       result: [true]
@@ -112,11 +119,14 @@ tests:
 
   - desc: '6.6.2 division'
   - desc: '** Can divide two numbers'
+    preciseMath: [false, true]
     expression: n2/n1
     result: [2.5]
   - expression: n1/2
+    preciseMath: [false, true]
     result: [1]
   - desc: '** Can divide two number literals'
+    preciseMath: [false, true]
     expression: 5/2
     result: [2.5]
   - desc: '** The precision of dividing a decimal number by a long integer'
@@ -128,48 +138,62 @@ tests:
     preciseMath: true
     result: [10.45]
   - desc: '** Can divide two long number literals'
+    preciseMath: [false, true]
     expression: 2L / 4L
     result: [0.5]
   - desc: '** Can divide a long number literal by a number literal'
+    preciseMath: [false, true]
     expression: 2L / 4
     result: [0.5]
   - desc: '** Can divide a long number literal by a decimal literal'
+    preciseMath: [false, true]
     expression: 9L / 4.5
     result: [2]
   - desc: '** Can divide a decimal literal by a long number literal'
+    preciseMath: [false, true]
     expression: 9 / 4L
     result: [2.25]
   - desc: '** Can dividing a long number by a quantity (1)'
+    preciseMath: [false, true]
     expression: 4L / 2 '1' = 2
     result: [true]
   - desc: '** Can dividing a long number by a quantity (2)'
+    preciseMath: [false, true]
     expression: 4L / 2 'kg' = 2 '1/kg'
     result: [true]
   - desc: '** Can dividing a number by a quantity'
+    preciseMath: [false, true]
     expression: n1 / 2 'kg' = 1 'kg-1'
     result: [true]
   - desc: '** Error dividing a Quantity literal by a long number literal'
+    preciseMath: [false, true]
     expression: 4 '1' / 2L
     result: ["2 '1'"]
   - desc: '** Empty result when one of the operands is null'
     expression: n1 / i
     result: []
   - desc: '** Empty result when dividing by zero (1)'
+    preciseMath: [false, true]
     expression: 1L / 0L
     result: []
   - desc: '** Empty result when dividing by zero (2)'
+    preciseMath: [false, true]
     expression: 1L / 0
     result: []
   - desc: '** Empty result when dividing by zero (3)'
+    preciseMath: [false, true]
     expression: 1 / 0L
     result: []
   - desc: '** Can divide two quantities'
+    preciseMath: [false, true]
     expression: 10 'kg' / 5 'm' = 2 'kg/m'
     result: [true]
   - desc: '** Can divide a quantity by a number'
+    preciseMath: [false, true]
     expression: 20 'kg' / 5 = 4 'kg'
     result: [true]
   - desc: '** Can divide a number by a quantity'
+    preciseMath: [false, true]
     expression: 20 / 5 'kg' = 4 '1/kg'
     result: [true]
   - desc: '** The precision of dividing two quantities'
@@ -202,10 +226,12 @@ tests:
     - expression: 1 month / 1 'mo'
       result: []
     - expression: 1 / 3 months
+      preciseMath: [false, true]
       result: []
     - expression: 3 minutes / 1 's'
       result: []
     - expression: 3 years / 1.5 years
+      preciseMath: [false, true]
       result: []
     - expression: 1 year / 6 months
       result: []
@@ -214,23 +240,21 @@ tests:
     - expression: 1 week / 1 'wk'
       result: []
     - expression: 1 'kg' / (3 months).toQuantity('seconds')
+      preciseMath: [false, true]
       result: []
   - expression: 3 's' / 3 milliseconds
     result: []
   - 'group: Compatible duration units in division':
     - expression: (1 'a') / (1 year).toQuantity('seconds').toQuantity('s') = 1.0006849315068493 # 31557600 's' / (365*24*60*60) seconds
-      preciseMath: false
       result: [true]
     - expression: (1 year).toQuantity('seconds').toQuantity('s') / (1 'a') = 0.999315537303217 # 365*24*60*60 seconds - 31557600 's'
-      preciseMath: false
       result: [true]
     - expression: (1 'mo') / (1 year).toQuantity('seconds').toQuantity('s') = 0.08339041095890411
-      preciseMath: false
       result: [true]
     - expression: (1 year).toQuantity('seconds').toQuantity('s') / (1 'mo') = 11.991786447638603
-      preciseMath: false
       result: [true]
     - expression: 1 year / 2 = 6 months
+      preciseMath: [false, true]
       result: [true]
   - desc: '** Empty result when one of the operands is a calendar duration quantity greater than days(weeks)'
     expression: 1 'kg' / 3 months
@@ -239,6 +263,7 @@ tests:
     expression: 1 year / 0 months
     result: []
   - desc: '** FHIR quantity uses UCUM semantics for quantity division context'
+    preciseMath: [false, true]
     inputfile: observation-example-2.json
     model: r4
     expression: Observation.value / 185 'mo'
@@ -273,15 +298,19 @@ tests:
     expression: n1 + 4L
     result: ['6']
   - desc: '** Can add a decimal literal to a long number literal'
+    preciseMath: [false, true]
     expression: 9L + 4.5
     result: [13.5]
   - desc: '** Adding a long number literal to a Quantity literal'
+    preciseMath: [false, true]
     expression: 4 '1' + 2L = 6
     result: [true]
   - desc: '** Adding a Quantity literal to a long number literal'
+    preciseMath: [false, true]
     expression: 2L + 4 '1' = 6
     result: [true]
   - desc: '** Can add two quantity literals'
+    preciseMath: [false, true]
     expression: 3 'm' + 3 'cm' = 303 'cm'
     result: [true]
   - desc: '** The precision of adding two quantities'
@@ -298,9 +327,11 @@ tests:
     result: [18.0999]
 
   - desc: '** Can add a number to a quantity'
+    preciseMath: [false, true]
     expression: 3 '1' + 2 = 5 '1'
     result: [true]
   - desc: '** Can add a quantity to a number'
+    preciseMath: [false, true]
     expression: 3 + 2 '1' = 5 '1'
     result: [true]
   - desc: '** Error adding array of numbers'
@@ -311,9 +342,11 @@ tests:
     disable: true
     error: true
   - desc: '** Error adding non-matching types'
+    preciseMath: [false, true]
     expression: n1 + s5
     error: true
   - desc: '** Error adding non-matching types (2)'
+    preciseMath: [false, true]
     expression: s5 + n1
     error: true
   - desc: '** Empty result if one or both operands is empty (1)'
@@ -346,41 +379,54 @@ tests:
       result: []
   - 'group: Compatible duration units in addition':
     - expression: (1 'a').toQuantity('s') + (1 year).toQuantity('seconds') = 63093600 's' # 365*24*60*60 seconds + 31557600 's'
+      preciseMath: [false, true]
       result: [true]
     - expression: (1 year).toQuantity('seconds') + (1 'a').toQuantity('s') = 63093600 seconds # 365*24*60*60 seconds + 31557600 's'
+      preciseMath: [false, true]
       result: [true]
     - expression: 1 year - 6 months - 1 year + 18 months = 1 year
+      preciseMath: [false, true]
       result: [true]
   - desc: '** Changing the places of the terms may change the sum because of the year/month conversion factor'
+    preciseMath: [false, true]
     # (1 year + 6 months) = 18 months; 1 year = 365 days;  12 months = 360 days
     expression: (1 year + 6 months).toQuantity('seconds') + (1 'a').toQuantity('s') + (5 days).toQuantity('seconds') = (1 'a').toQuantity('s') + (6 months).toQuantity('seconds') + (1 year).toQuantity('seconds')
     result: [true]
   - desc: '** Changing the places of the terms does not change the sum'
+    preciseMath: [false, true]
     expression: (1 year).toQuantity('seconds') + (6 'mo').toQuantity('s') + (1 'a').toQuantity('s') = (1 'a').toQuantity('s') + (6 'mo').toQuantity('s') + (1 year).toQuantity('seconds')
     result: [true]
   - desc: '** Can add a calendar duration quantity to a calendar duration quantity'
+    preciseMath: [false, true]
     expression: 2 years + 6 months = 2.5 year
     result: [true]
   - desc: '** Can add a UCUM time-valued quantity to an UCUM time-valued quantity'
+    preciseMath: [false, true]
     expression: 2 'a' + 1 'a' = 3 'a'
     result: [true]
   - 'group: Convert to a smaller duration unit when adding two quantities':
     - expression: 7 days + 12 hours
+      preciseMath: [false, true]
       result:
         - 180 hours
     - expression: 12 hours + 7 days
+      preciseMath: [false, true]
       result:
         - 180 hours
     - expression: 7 'd' + 12 'h'
+      preciseMath: [false, true]
       result:
         - 180 'h'
     - expression: 12 'h' + 7 'd'
+      preciseMath: [false, true]
       result:
         - 180 'h'
     - expression: 1 year + 6 months
+      preciseMath: [false, true]
       result:
         - 18 months
     - expression: 1 'a' + 6 'mo'
+      preciseMath: [false, true]
       result:
         - 18 'mo'
 
@@ -412,12 +458,15 @@ tests:
     expression: n1 - 4L
     result: ['-2']
   - desc: '** Can subtract a decimal literal from a long number literal'
+    preciseMath: [false, true]
     expression: 9L - 4.5
     result: [4.5]
   - desc: '** Subtracting a long number literal from a Quantity literal'
+    preciseMath: [false, true]
     expression: 4 '1' - 2L = 2
     result: [true]
   - desc: '** Subtracting a Quantity literal from a long number literal'
+    preciseMath: [false, true]
     expression: 2L - 4 '1' = -2
     result: [true]
   - desc: '** Empty result when one of the operands is empty'
@@ -427,15 +476,19 @@ tests:
     expression: n1 - i
     result: []
   - desc: '** Can subtract two quantity literals'
+    preciseMath: [false, true]
     expression: 3 'm' - 3 'cm' = 297 'cm'
     result: [true]
   - desc: '** Can subtract a quantity from a number'
+    preciseMath: [false, true]
     expression: 3 - 2 '1' = 1 '1'
     result: [true]
   - desc: '** Can subtract a quantity from a number'
+    preciseMath: [false, true]
     expression: 3 - 2 'kg.kg-1' = 1 '1'
     result: [true]
   - desc: '** Can subtract a number from a quantity'
+    preciseMath: [false, true]
     expression: 3 '1' - 2 = 1 '1'
     result: [true]
   - desc: '** The precision of subtracting two quantities'
@@ -472,12 +525,16 @@ tests:
       result: []
   - 'group: Compatible duration units in substraction':
     - expression: (1 'a').toQuantity('s') - (1 year).toQuantity('seconds') = 21600 's' # 31557600 's' - 365*24*60*60 seconds
+      preciseMath: [false, true]
       result: [true]
     - expression: (1 year).toQuantity('seconds') - (1 'a').toQuantity('s') = -21600 seconds  # 365*24*60*60 seconds - 31557600 's'
+      preciseMath: [false, true]
       result: [true]
     - expression: 3 year - 1 year = 2 year
+      preciseMath: [false, true]
       result: [true]
     - expression: 3 'a' - 1 'a' = 2 'a'
+      preciseMath: [false, true]
       result: [true]
 
 
@@ -492,12 +549,15 @@ tests:
     expression: 5L div 2
     result: ['2']
   - desc: '** Can div a long number literal by a decimal literal'
+    preciseMath: [false, true]
     expression: 10L div 4.5
     result: [2]
   - desc: '** Can div a decimal number by a long number'
+    preciseMath: [false, true]
     expression: 12.4 div 4L
     result: [3]
   - desc: '** Can div a negative decimal number by a number'
+    preciseMath: [false, true]
     expression: -5.5 div 2
     result: [-2]
   - desc: '** Dividing a Quantity literal by a long number literal'
@@ -519,6 +579,7 @@ tests:
 
   - desc: '6.6.6 mod'
   - desc: '** Can mod two numbers'
+    preciseMath: [false, true]
     expression: n2 mod n1
     result: [1]
   - desc: '** Can mod two long number literals'
@@ -528,6 +589,7 @@ tests:
     expression: 5L mod 2
     result: ['1']
   - desc: '** Can mod a long number literal by a decimal literal'
+    preciseMath: [false, true]
     expression: 10L mod 4.5
     result: [1]
   - desc: '** The precision of modding two decimal numbers'
@@ -539,9 +601,11 @@ tests:
     preciseMath: true
     result: [0.27]
   - desc: '** Can mod a long number literal by a decimal literal'
+    preciseMath: [false, true]
     expression: 10L mod 4.5
     result: [1]
   - desc: '** Dividing a Quantity literal by a long number literal'
+    preciseMath: [false, true]
     expression: 5 '1' mod 2L = 1
     result: [true]
   - desc: '** Empty result when one of the operands is null'
@@ -605,16 +669,22 @@ tests:
     - expression: "@2018 + 1 year"
       result: ['2019']
     - expression: "@2016 + 364 days"
+      preciseMath: [false, true]
       result: ['2016']
     - expression: "@2016 - 364 days"
+      preciseMath: [false, true]
       result: ['2016']
     - expression: "@2016 + 365 days"
+      preciseMath: [false, true]
       result: ['2017']
     - expression: "@2016 - 365 days"
+      preciseMath: [false, true]
       result: ['2015']
     - expression: "@2016 + 11 months"
+      preciseMath: [false, true]
       result: ['2016']
     - expression: "@2016 + 12 months"
+      preciseMath: [false, true]
       result: ['2017']
     - expression: "@2018 + 2 years"
       result: ['2020']
@@ -625,14 +695,19 @@ tests:
     - expression: "@2018-02 + 2 months"
       result: ['2018-04']
     - expression: "@2016-01 + 29 days"
+      preciseMath: [false, true]
       result: ['2016-01']
     - expression: "@2016-01 + 29 'd'"
+      preciseMath: [false, true]
       result: ['2016-01']
     - expression: "@2016-01 + 30 days"
+      preciseMath: [false, true]
       result: ['2016-02']
     - expression: "@2016-01 + 30 'd'"
+      preciseMath: [false, true]
       result: ['2016-02']
     - expression: "@2016-01 + 1 hour"
+      preciseMath: [false, true]
       result: ['2016-01']
     - expression: "@2018-01-03 + 2 years"
       result: ['2020-01-03']
@@ -665,22 +740,30 @@ tests:
     - expression: "@2016-01-01 + 1 month"
       result: ['2016-02-01']
     - expression: "@2016-01-01 + 24 hours"
+      preciseMath: [false, true]
       result: ['2016-01-02']
     - expression: "@2016-01-01 + 47 hours"
+      preciseMath: [false, true]
       result: ['2016-01-02']
     - expression: "@2018-02-18T12 + 59 minutes = @2018-02-18T12"
+      preciseMath: [false, true]
       result: [true]
     - expression: "@2018-02-18T12 + 60 minutes = @2018-02-18T13"
+      preciseMath: [false, true]
       result: [true]
     - expression: "@2018-02-18T12:00 + 59 seconds = @2018-02-18T12:00"
+      preciseMath: [false, true]
       result: [true]
     - expression: "@2018-02-18T12:00 + 60 seconds = @2018-02-18T12:01"
+      preciseMath: [false, true]
       result: [true]
     - expression: "@T09:45:23 + 2 years"
       error: true
     - expression: "@T09:45 + 120 seconds = @T09:47"
+      preciseMath: [false, true]
       result: [true]
     - expression: "@T09:45 + 59 seconds = @T09:45"
+      preciseMath: [false, true]
       result: [true]
     - expression: "@T09:45:23 + 2 minutes = @T09:47:23.000"
       result: [true]
@@ -691,11 +774,14 @@ tests:
     - expression: "@T23:59:23 + 2 days"
       error: true
     - expression: "@T23:59 + 60000 milliseconds = @T00:00"
+      preciseMath: [false, true]
       result: [true]
     - desc: The quantity value truncated from 2.9 minutes to 2 minutes in operation with 2010-01-01T23:59
+      preciseMath: [false, true]
       expression: "@T23:59 + 2.9 minutes = @T00:01"
       result: [true]
     - desc: The quantity value truncated from -2.9 minutes to -2 minutes in operation with 2010-01-01T23:59
+      preciseMath: [false, true]
       expression: "@T23:59 - 2.9 minutes = @T23:57"
       result: [true]
     - expression: "@T23:59:23 + 5 milliseconds = @T23:59:23.005"
@@ -705,6 +791,7 @@ tests:
     - expression: "@T23:59:23 + 1.5 's' = @T23:59:24.500"
       result: [true]
     - expression: "@T23:59:23 - 1.5 's' = @T23:59:21.500"
+      preciseMath: [false, true]
       result: [true]
     - expression: "@T23:59:23 + 1000 milliseconds = @T23:59:24"
       result: [true]
@@ -720,18 +807,25 @@ tests:
         # portion of the time-valued quantity is ignored, since date/time arithmetic
         # above seconds is performed with calendar duration semantics."
       - expression: "@2016-02-29 + 1.5 year"
+        preciseMath: [false, true]
         result: ['2017-02-28']
       - expression: "@2016-02-28 + 1.5 weeks"
+        preciseMath: [false, true]
         result: ['2016-03-06']
       - expression: "@2016-02-28 - 1.5 weeks"
+        preciseMath: [false, true]
         result: ['2016-02-21']
       - expression: "@2016-02-28 + 1.5 'wk'"
+        preciseMath: [false, true]
         result: ['2016-03-06']
       - expression: "@2016-02-28 + 1.5 day"
+        preciseMath: [false, true]
         result: ['2016-02-29']
       - expression: "@T23:59:23 + 1.5 hours = @T00:59:23"
+        preciseMath: [false, true]
         result: [true]
       - expression: '@2011-01-10 + 1 year + 6 months = @2011-01-10 + (1 year + 6 months)'
+        preciseMath: [false, true]
         result: [true]
     - expression: "Patient.birthDate - 1 day = @1974-12-24"
       model: r4

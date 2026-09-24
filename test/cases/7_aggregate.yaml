@@ -40,10 +40,12 @@ tests:
         result:
           - '-Peter-James'
       - desc: 'aggregate() function with quantity values'
+        preciseMath: [false, true]
         expression: (1 'cm'|3 'cm'|1 'm').aggregate($total + $this, 0 'cm') = 104 'cm'
         result:
           - true
       - desc: 'aggregate() function with incompatible quantity values'
+        preciseMath: [false, true]
         expression: (1 'cm'|3 'cm'|1 'kg'|1 'm').aggregate($total + $this, 0 'cm')
         result: []
     - 'group: Extension functions':
@@ -65,6 +67,7 @@ tests:
         expression: Patient.name.given.sum()
         result: []
       - desc: 'sum() function calculates the sum of quantity values'
+        preciseMath: [false, true]
         expression: (1 'cm'|3 'cm'|1 'm').sum() = 104 'cm'
         result:
           - true
@@ -76,6 +79,7 @@ tests:
         expression: UndefinedInput.min()
         result: []
       - desc: 'min() function returns the minimum quantity from the input collection'
+        preciseMath: [false, true]
         expression: (1 'cm'|3 'cm'|1 'm').min() = 1 'cm'
         result:
           - true
@@ -93,6 +97,7 @@ tests:
         expression: UndefinedInput.max()
         result: []
       - desc: 'max() function returns the maximum quantity from the input collection'
+        preciseMath: [false, true]
         expression: (1 'cm'|3 'cm'|1 'm').max() = 1 'm'
         result:
           - true
@@ -103,10 +108,12 @@ tests:
         expression: Functions.collWithNull2.max()
         result: []
       - desc: 'avg() function calculates the average value for the input collection'
+        preciseMath: [false, true]
         expression: (7|8|9|1|2|3|4|5|6).avg() = 5
         result:
           - true
       - desc: 'avg() function calculates the average quantity for the input collection'
+        preciseMath: [false, true]
         expression: (7 'm' |8 'm'|9 'm'|1 'm'|2 'm'|3 'm'|400 'cm'|5 'm'|6 'm').avg() = 5 'm'
         result:
           - true

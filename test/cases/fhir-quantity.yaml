@@ -32,6 +32,7 @@ tests:
         expression: QuestionnaireResponse.item[0].answer.value != 2 'a'
         result: [false]
       - desc: After converting 'min' to minutes it is equal to minutes
+        preciseMath: [false, true]
         inputfile: quantity-example.json
         model: 'r4'
         expression: QuestionnaireResponse.item[1].answer.value = 3 minutes
@@ -74,6 +75,7 @@ tests:
         expression: Observation.value = 1 year
         result: [true]
       - desc: FHIR quantity in quantity arithmetic keeps UCUM unit
+        preciseMath: [false, true]
         inputfile: observation-quantity-year-ucum.json
         model: 'r4'
         expression: Observation.value + 1 'a' = 2 'a'
@@ -84,11 +86,13 @@ tests:
         expression: Observation.value + 1 year = 2 years
         result: [true]
       - desc: FHIR quantity in UCUM division keeps UCUM unit
+        preciseMath: [false, true]
         inputfile: observation-quantity-year-ucum.json
         model: 'r4'
         expression: 1 'km'/Observation.value = 1 'km'/1 'a'
         result: [true]
       - desc: toQuantity supports mapped calendar year for FHIR-origin quantity
+        preciseMath: [false, true]
         inputfile: observation-quantity-year-ucum.json
         model: 'r4'
         expression: Observation.value.toQuantity('year') = 1 year
@@ -99,26 +103,31 @@ tests:
         expression: Observation.value.toQuantity('a') = 1 'a'
         result: [true]
       - desc: toQuantity converts mapped year to calendar month for FHIR-origin quantity
+        preciseMath: [false, true]
         inputfile: observation-quantity-year-ucum.json
         model: 'r4'
         expression: Observation.value.toQuantity('month') = 12 months
         result: [true]
       - desc: toQuantity converts mapped year to UCUM month code for FHIR-origin quantity
+        preciseMath: [false, true]
         inputfile: observation-quantity-year-ucum.json
         model: 'r4'
         expression: Observation.value.toQuantity('mo') = 12 'mo'
         result: [true]
       - desc: FHIR quantity divided by a number keeps date arithmetic behavior
+        preciseMath: [false, true]
         inputfile: observation-quantity-year-ucum.json
         model: 'r4'
         expression: "@2025-01 + (Observation.value / 2).toQuantity('month') = @2025-07"
         result: [true]
       - desc: FHIR quantity divided by a quantity with the unit of measure '1' keeps date arithmetic behavior
+        preciseMath: [false, true]
         inputfile: observation-quantity-year-ucum.json
         model: 'r4'
         expression: "@2025-01 + (Observation.value / (2).toQuantity()).toQuantity('month') = @2025-07"
         result: [true]
       - desc: FHIR quantity divided by a quantity with the unit of measure '1' keeps date arithmetic behavior
+        preciseMath: [false, true]
         inputfile: observation-quantity-year-ucum.json
         model: 'r4'
         expression: "@2025-01 + (Observation.value / 2 'kg/kg').toQuantity('month') = @2025-07"
@@ -129,11 +138,13 @@ tests:
         expression: "@2025 + Observation.value = @2026"
         result: [true]
       - desc: Date arithmetic with plus-produced FHIR-origin quantity (same UCUM unit) should generate an error
+        preciseMath: [false, true]
         inputfile: observation-quantity-year-ucum.json
         model: 'r4'
         expression: "@2025 + (Observation.value + 1 'a') = @2027"
         error: true
       - desc: Date arithmetic with minus-produced FHIR-origin quantity (same UCUM unit) should generate an error
+        preciseMath: [false, true]
         inputfile: observation-quantity-year-ucum.json
         model: 'r4'
         expression: "@2025 + (Observation.value - 0 'a') = @2026"
@@ -159,21 +170,25 @@ tests:
         expression: "@2025 + (2).toQuantity() * Observation.value = @2027"
         result: [true]
       - desc: FHIR quantity multiplied by a quantity with the unit of measure '1' keeps date arithmetic behavior (2)
+        preciseMath: [false, true]
         inputfile: observation-quantity-year-ucum.json
         model: 'r4'
         expression: "@2025 + Observation.value * (2000 'g' / 1 'kg') = @2027"
         result: [true]
       - desc: FHIR quantity multiplied by a quantity with the unit of measure '1' keeps date arithmetic behavior (3)
+        preciseMath: [false, true]
         inputfile: observation-quantity-year-ucum.json
         model: 'r4'
         expression: "@2025 + Observation.value * (2000 'g/kg') = @2027"
         result: [true]
       - desc: FHIR quantity multiplied by a quantity with the unit of measure '1' keeps date arithmetic behavior (reverse order) (2)
+        preciseMath: [false, true]
         inputfile: observation-quantity-year-ucum.json
         model: 'r4'
         expression: "@2025 + (2000 'g' / 1 'kg') * Observation.value = @2027"
         result: [true]
       - desc: FHIR quantity multiplied by a quantity with the unit of measure '1' keeps date arithmetic behavior (reverse order) (2)
+        preciseMath: [false, true]
         inputfile: observation-quantity-year-ucum.json
         model: 'r4'
         expression: "@2025 + (2000 'g/kg') * Observation.value = @2027"

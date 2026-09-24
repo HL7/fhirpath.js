@@ -2602,6 +2602,30 @@ tests:
         result:
           - '[stop]ONE[stop][stop]TWO[stop][stop][stop]THREE[stop][stop]'
         model: r4
+      - desc: '** testSplit5'
+        inputfile: patient-example.json
+        expression: '''fr-BE''.split(''-'').first() = ''fr'''
+        result:
+          - true
+        model: r4
+      - desc: '** testSplit6'
+        inputfile: patient-example.json
+        expression: '''fr-BE''.split(''-'').last() = ''BE'''
+        result:
+          - true
+        model: r4
+      - desc: '** testSplit7'
+        inputfile: patient-example.json
+        expression: '''a-b-c''.split(''-'').skip(1).first() = ''b'''
+        result:
+          - true
+        model: r4
+      - desc: '** testSplit8'
+        inputfile: patient-example.json
+        expression: '''a-b-c''.split(''-'').take(2).join(''-'') = ''a-b'''
+        result:
+          - true
+        model: r4
   - 'group: testJoin':
       - desc: '** testJoin'
         inputfile: patient-example.json
@@ -2609,6 +2633,11 @@ tests:
         result:
           - Peter,James,Jim,Peter,James
         model: r4
+      - desc: '** testJoinEmpty'
+        inputfile: patient-example.json
+        expression: name.prefix.join(',')
+        model: r4
+        result: []
   - 'group: testTrace':
       - desc: '** testTrace1'
         inputfile: patient-example.json

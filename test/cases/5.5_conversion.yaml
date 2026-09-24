@@ -399,10 +399,13 @@ tests:
   - 'group: 5.5.7. toQuantity([unit:string]) : Quantity':
     - 'group: string to Quantity':
       - expression: '''1 \''wk\''''.toQuantity() = 7 days'
+        preciseMath: [false, true]
         result: [true]
       - expression: '''1 \''wk\''''.toQuantity(''days'')'
+        preciseMath: [false, true]
         result: ['7 days']
       - expression: "'1 \\'wk\\''.toQuantity('d') = 7 days"
+        preciseMath: [false, true]
         result: [true]
       - expression: "'1 \\'mo\\''.toQuantity('month')"
         result: []
@@ -411,8 +414,10 @@ tests:
       - expression: "'1 nothing'.toQuantity('something')"
         result: []
       - expression: "'12 months'.toQuantity('year') = 1 year"
+        preciseMath: [false, true]
         result: [true]
       - desc: '** result UCUM unit code must be surrounded with single quotes'
+        preciseMath: [false, true]
         expression: "'1 \\'wk\\''.toQuantity('d').toString() = '7 \\'d\\''"
         result:
           - true
@@ -421,31 +426,37 @@ tests:
         expression: '''1 year''.toQuantity() != 1 ''a'''
         result: []
       - inputfile: patient-example.json
+        preciseMath: [false, true]
         expression: '''1 year''.toQuantity() ~ 1 ''a'''
         result:
           - true
     - desc: '** Duration to Quantity'
+      preciseMath: [false, true]
       inputfile: medicationrequest-example.json
       expression: "MedicationRequest.dispenseRequest.expectedSupplyDuration.toQuantity() = 3 days"
       model: 'r4'
       result:
         - true
     - desc: '** UCUM units'
+      preciseMath: [false, true]
       inputfile: patient-example.json
       expression: "'1 \\'cm\\''.toQuantity('mm').value = 10"
       result:
         - true
     - desc: '** UCUM special units'
+      preciseMath: [false, true]
       inputfile: patient-example.json
       expression: "'23 \\'Cel\\''.toQuantity('[degF]') ~ 73.4 '[degF]'"
       result:
         - true
     - desc: '** UCUM special units'
+      preciseMath: [false, true]
       inputfile: patient-example.json
       expression: "'73.4 \\'[degF]\\''.toQuantity('Cel') ~ 23 'Cel'"
       result:
         - true
     - desc: '** UCUM special units'
+      preciseMath: [false, true]
       inputfile: patient-example.json
       expression: "'0 \\'Cel\\''.toQuantity('K') = 273.15 'K'"
       result:
@@ -455,6 +466,7 @@ tests:
       expression: "'1 \\'cm\\''.toQuantity('g')"
       result: []
     - desc: '** Implicit to quantity + toQuantity'
+      preciseMath: [false, true]
       inputfile: observation-example.json
       model: 'r4'
       expression: Observation.value.toQuantity('kg') ~ 84 'kg'

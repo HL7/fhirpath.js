@@ -144,6 +144,7 @@ tests:
           - 1.1
 
       - desc: '** create a decimal with an extension'
+        preciseMath: [false, true]
         model: r4
         expression: >-
           %factory.decimal('1.1', %factory.Extension('someExt', 'someString'))
@@ -153,6 +154,7 @@ tests:
           - true
 
       - desc: '** creating a decimal may throw an exception'
+        preciseMath: [false, true]
         model: r4
         expression: >-
           %factory.decimal('sdfds')
@@ -465,6 +467,7 @@ tests:
           - true
 
       - desc: '** create an extension of the decimal data type'
+        preciseMath: [false, true]
         model: r4
         expression: >-
           %factory.Extension('someExt', 11.1).where($this is Extension
@@ -567,6 +570,7 @@ tests:
     - 'group: Quantity':
 
         - desc: '** created a Quantity using a string value'
+          preciseMath: [false, true]
           model: r4
           expression: >-
             %factory.Quantity('http://unitsofmeasure.org', 'mg/dL', '5.03',
@@ -576,6 +580,7 @@ tests:
             - true
 
         - desc: '** created a Quantity using a number value'
+          preciseMath: [false, true]
           model: r4
           expression: >-
             %factory.Quantity('http://unitsofmeasure.org', 'mg/dL', 5.03,

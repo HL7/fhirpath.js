@@ -2884,6 +2884,30 @@ tests:
         result:
           - '[stop]ONE[stop][stop]TWO[stop][stop][stop]THREE[stop][stop]'
         model: r5
+      - desc: '** testSplit5'
+        inputfile: patient-example.json
+        expression: '''fr-BE''.split(''-'').first() = ''fr'''
+        result:
+          - true
+        model: r5
+      - desc: '** testSplit6'
+        inputfile: patient-example.json
+        expression: '''fr-BE''.split(''-'').last() = ''BE'''
+        result:
+          - true
+        model: r5
+      - desc: '** testSplit7'
+        inputfile: patient-example.json
+        expression: '''a-b-c''.split(''-'').skip(1).first() = ''b'''
+        result:
+          - true
+        model: r5
+      - desc: '** testSplit8'
+        inputfile: patient-example.json
+        expression: '''a-b-c''.split(''-'').take(2).join(''-'') = ''a-b'''
+        result:
+          - true
+        model: r5
   - 'group: testJoin':
       - desc: '** testJoin'
         inputfile: patient-example.json
@@ -2891,6 +2915,11 @@ tests:
         result:
           - Peter,James,Jim,Peter,James
         model: r5
+      - desc: '** join() on an empty collection returns empty, not an empty string'
+        inputfile: patient-example.json
+        expression: name.prefix.join(',')
+        model: r5
+        result: []
   - 'group: testTrace':
       - desc: '** testTrace1'
         inputfile: patient-example.json
@@ -6332,6 +6361,75 @@ tests:
           - false
           - true
         model: r5
+  - 'group: FHIR primitive elements that carry extensions but no value (e.g. the data-absent-reason extension). Such an element is present in the tree, but it has no system value, so functions that need the value get an empty collection as input, and return empty (see hasValue()/getValue() in the FHIR spec)':
+      - desc: '** testNoValueExists'
+        inputfile: patient-name-extensions.json
+        expression: Patient.name.given.first().exists()
+        result:
+          - true
+        model: r5
+      - desc: '** testNoValueExistsElement'
+        inputfile: patient-name-extensions.json
+        expression: Patient.name.given.first().exists()
+        result:
+          - true
+        model: r5
+      - desc: '** testNoValueHasValue'
+        inputfile: patient-name-extensions.json
+        expression: Patient.name.given.first().hasValue()
+        result:
+          - false
+        model: r5
+      - desc: '** testNoValueLength'
+        inputfile: patient-name-extensions.json
+        expression: Patient.name.given.first().length()
+        model: r5
+        result: []
+      - desc: '** testNoValueLengthElement'
+        inputfile: patient-name-extensions.json
+        expression: Patient.name.given.first().length()
+        model: r5
+        result: []
+      - desc: '** testValueLength'
+        inputfile: patient-name-extensions.json
+        expression: Patient.name.given.last().length()
+        result:
+          - 5
+        model: r5
+      - desc: '** testNoValueToChars'
+        inputfile: patient-name-extensions.json
+        expression: Patient.name.given.first().toChars()
+        model: r5
+        result: []
+      - desc: '** testNoValueSubstring'
+        inputfile: patient-name-extensions.json
+        expression: Patient.name.given.first().substring(0, 1)
+        model: r5
+        result: []
+      - desc: '** testNoValueUpper'
+        inputfile: patient-name-extensions.json
+        expression: Patient.name.given.first().upper()
+        model: r5
+        result: []
+      - desc: '** testNoValueComparison'
+        inputfile: patient-name-extensions.json
+        expression: Patient.name.given.first() < 'x'
+        model: r5
+        result: []
+      - desc: '** testNoValueInvariant'
+        inputfile: patient-name-extensions.json
+        expression: >-
+          Patient.name.given.first().exists() and
+          Patient.name.given.first().length() = 1
+        model: r5
+        result: []
+      - desc: '** testNoValueInvariantElement'
+        inputfile: patient-name-extensions.json
+        expression: >-
+          Patient.name.given.first().exists() and
+          Patient.name.given.first().length() = 1
+        model: r5
+        result: []
   - 'group: cdaTests':
       - desc: '** testHasTemplateId1'
         inputfile: ccda.json
@@ -6381,3 +6479,29 @@ tests:
           - H
         model: r5
     disable: true
+  - 'group: HTMLChecks':
+      - desc: '** htmlTest01'
+        inputfile: patient-example.json
+        expression: text.div.htmlChecks()
+        result:
+          - true
+        model: r5
+        disable: true
+      - desc: '** htmlTest02'
+        inputfile: parameters-example-html.json
+        expression: '%resource.parameter.where(name=''goodHtml'').value.htmlChecks()'
+        result:
+          - true
+        model: r5
+      - desc: '** htmlTest03'
+        inputfile: parameters-example-html.json
+        expression: '%resource.parameter.where(name=''badHtml'').value.htmlChecks()'
+        result:
+          - false
+        model: r5
+      - desc: '** htmlTest04'
+        inputfile: parameters-example-html.json
+        expression: '%resource.parameter.where(name=''notString'').value.htmlChecks().empty()'
+        result:
+          - true
+        model: r5

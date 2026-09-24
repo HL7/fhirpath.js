@@ -38,6 +38,7 @@ const sources = [
   ['input-r5/patient-container-example.json', 'resources/r5/patient-container-example.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/patient-container-example.json'],
   ['input-r5/diagnosticreport-eric.json', 'resources/r5/diagnosticreport-eric.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/diagnosticreport-eric.json'],
   ['input-r5/patient-name-extensions.json', 'resources/r5/patient-name-extensions.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/patient-name-extensions.json'],
+  ['input-r5/parameters-example-html.xml', 'resources/r5/parameters-example-html.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/parameters-example-html.xml'],
   // Can't convert this one:
   // ['input-r5/ccda.xml', 'resources/r5/ccda.json', 'https://raw.githubusercontent.com/FHIR/fhir-test-cases/refs/heads/master/r5/ccda.xml'],
 ].map((item) => {
