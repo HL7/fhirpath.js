@@ -113,6 +113,7 @@ tests:
         model: r4
       - desc: '** testSimpleFail'
         inputfile: patient-example.json
+        mode: strict
         expression: name.given1
         error: true
         model: r4
@@ -129,6 +130,7 @@ tests:
         model: r4
       - desc: '** testSimpleWithWrongContext'
         inputfile: patient-example.json
+        mode: strict
         expression: Encounter.name.given
         error: true
         model: r4
@@ -142,6 +144,7 @@ tests:
         model: r4
       - desc: '** testPolymorphismB'
         inputfile: observation-example.json
+        mode: strict
         expression: Observation.valueQuantity.unit
         error: true
         model: r4
@@ -183,6 +186,7 @@ tests:
         model: r4
       - desc: '** testPolymorphismAsB'
         inputfile: observation-example.json
+        mode: strict
         expression: (Observation.value as Period).unit
         error: true
         model: r4
@@ -220,6 +224,8 @@ tests:
         result: []
       - desc: '** testDollarOrderNotAllowed'
         inputfile: patient-example.json
+        mode: strict
+        checkOrderedFunctions: 'true'
         expression: Patient.children().skip(1)
         error: true
         model: r4
@@ -648,6 +654,7 @@ tests:
         result: []
       - desc: '** testExpressions'
         inputfile: patient-example.json
+        ordered: 'false'
         expression: Patient.name.select(given | family).distinct()
         result:
           - Peter

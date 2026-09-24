@@ -13,6 +13,11 @@ This log documents significant changes for each release.  This project follows
 - Unit tests now run by default only with `preciseMath` disabled; tests that
   need to be checked in both modes are explicitly marked with
   `preciseMath: [false, true]`. This reduces the number of executed tests.
+- The converter of the official FHIR test suite now keeps the `mode`,
+  `ordered` and `checkOrderedFunctions` test attributes in the generated YAML
+  files, and logs a warning for any other unhandled attribute, so that
+  test-specific conditions from the source XML are no longer silently lost.
+  The R4 and R5 test case files were regenerated accordingly.
 
 ## [5.2.0] - 2026-08-25
 ### Added

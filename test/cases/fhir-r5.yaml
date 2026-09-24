@@ -279,6 +279,7 @@ tests:
         model: r5
       - desc: '** testSimpleFail'
         inputfile: patient-example.json
+        mode: strict
         expression: name.given1
         error: true
         model: r5
@@ -295,6 +296,7 @@ tests:
         model: r5
       - desc: '** testSimpleWithWrongContext'
         inputfile: patient-example.json
+        mode: strict
         expression: Encounter.name.given
         error: true
         model: r5
@@ -308,6 +310,7 @@ tests:
         model: r5
       - desc: '** testPolymorphismB'
         inputfile: observation-example.json
+        mode: strict
         expression: Observation.valueQuantity.unit
         error: true
         result:
@@ -351,6 +354,7 @@ tests:
         model: r5
       - desc: '** testPolymorphismAsB'
         inputfile: observation-example.json
+        mode: strict
         expression: (Observation.value as Period).unit
         error: true
         model: r5
@@ -388,6 +392,8 @@ tests:
         result: []
       - desc: '** testDollarOrderNotAllowed'
         inputfile: patient-example.json
+        mode: strict
+        ordered: 'true'
         expression: Patient.children().skip(1)
         error: true
         model: r5
@@ -816,6 +822,7 @@ tests:
         result: []
       - desc: '** testExpressions'
         inputfile: patient-example.json
+        ordered: 'false'
         expression: Patient.name.select(given | family).distinct()
         result:
           - Peter
@@ -2035,6 +2042,7 @@ tests:
           ** Contested: nothing in the spec about what to do with non-boolean
           criteria - mixed results from engines
         inputfile: patient-example.json
+        mode: strict
         expression: iif('non boolean criteria', 'true-result', 'false-result')
         error: true
         result:
@@ -6148,12 +6156,14 @@ tests:
         model: r5
         disable: true
       - desc: '** testPolymorphicsC'
+        mode: lenient/polymorphics
         inputfile: observation-example.json
         expression: Observation.valueQuantity.exists()
         result:
           - true
         model: r5
       - desc: '** testPolymorphicsD'
+        mode: lenient/polymorphics
         inputfile: observation-example.json
         expression: Observation.valueString.exists()
         result:
@@ -6342,6 +6352,7 @@ tests:
         model: r5
       - desc: '** testMultipleResolve'
         inputfile: diagnosticreport-eric.json
+        mode: element
         expression: "\r\n\t\t\tcomposition.exists() \r\n\t\t\timplies \r\n\t\t\t(\r\n\t\t\t\tcomposition.resolve().section.entry.reference.where(resolve() is Observation)\r\n\t\t\t\t.where($this in (%resource.result.reference | %resource.result.reference.resolve().hasMember.reference)).exists()\r\n\t\t\t)\r\n\t\t\t"
         result:
           - true
@@ -6356,6 +6367,7 @@ tests:
         model: r5
       - desc: '** testPrimitiveExtensionsElement'
         inputfile: patient-name-extensions.json
+        mode: element
         expression: Patient.name.given.select($this.hasValue())
         result:
           - false
@@ -6370,6 +6382,7 @@ tests:
         model: r5
       - desc: '** testNoValueExistsElement'
         inputfile: patient-name-extensions.json
+        mode: element
         expression: Patient.name.given.first().exists()
         result:
           - true
@@ -6387,6 +6400,7 @@ tests:
         result: []
       - desc: '** testNoValueLengthElement'
         inputfile: patient-name-extensions.json
+        mode: element
         expression: Patient.name.given.first().length()
         model: r5
         result: []
@@ -6425,6 +6439,7 @@ tests:
         result: []
       - desc: '** testNoValueInvariantElement'
         inputfile: patient-name-extensions.json
+        mode: element
         expression: >-
           Patient.name.given.first().exists() and
           Patient.name.given.first().length() = 1
@@ -6432,6 +6447,7 @@ tests:
         result: []
   - 'group: cdaTests':
       - desc: '** testHasTemplateId1'
+        mode: cda
         inputfile: ccda.json
         expression: >-
           hasTemplateIdOf('http://hl7.org/cda/us/ccda/StructureDefinition/ContinuityofCareDocumentCCD')
@@ -6439,6 +6455,7 @@ tests:
           - true
         model: r5
       - desc: '** testHasTemplateId2'
+        mode: cda
         inputfile: ccda.json
         expression: >-
           ClinicalDocument.hasTemplateIdOf('http://hl7.org/cda/us/ccda/StructureDefinition/ContinuityofCareDocumentCCD')
@@ -6446,6 +6463,7 @@ tests:
           - true
         model: r5
       - desc: '** testHasTemplateId3'
+        mode: cda
         inputfile: ccda.json
         expression: >-
           recordTarget.patientRole.hasTemplateIdOf('http://hl7.org/cda/us/ccda/StructureDefinition/ContinuityofCareDocumentCCD')
@@ -6455,6 +6473,7 @@ tests:
     disable: true
   - 'group: TerminologyTests':
       - desc: '** txTest01'
+        mode: tx
         inputfile: patient-example.json
         expression: >-
           %terminologies.expand('http://hl7.org/fhir/ValueSet/administrative-gender').expansion.contains.count()
@@ -6462,6 +6481,7 @@ tests:
           - 4
         model: r5
       - desc: '** txTest02'
+        mode: tx
         inputfile: patient-example.json
         expression: >-
           %terminologies.validateVS('http://hl7.org/fhir/ValueSet/administrative-gender',
@@ -6470,6 +6490,7 @@ tests:
           - true
         model: r5
       - desc: '** txTest03'
+        mode: tx
         inputfile: patient-example.json
         expression: >-
           %terminologies.translate('http://hl7.org/fhir/ConceptMap/cm-address-use-v2',
@@ -6481,6 +6502,7 @@ tests:
     disable: true
   - 'group: HTMLChecks':
       - desc: '** htmlTest01'
+        mode: html
         inputfile: patient-example.json
         expression: text.div.htmlChecks()
         result:
@@ -6488,18 +6510,21 @@ tests:
         model: r5
         disable: true
       - desc: '** htmlTest02'
+        mode: html
         inputfile: parameters-example-html.json
         expression: '%resource.parameter.where(name=''goodHtml'').value.htmlChecks()'
         result:
           - true
         model: r5
       - desc: '** htmlTest03'
+        mode: html
         inputfile: parameters-example-html.json
         expression: '%resource.parameter.where(name=''badHtml'').value.htmlChecks()'
         result:
           - false
         model: r5
       - desc: '** htmlTest04'
+        mode: html
         inputfile: parameters-example-html.json
         expression: '%resource.parameter.where(name=''notString'').value.htmlChecks().empty()'
         result:
