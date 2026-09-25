@@ -54,5 +54,13 @@ module.exports = [
           'the collection with .add()/.set() instead.'
       }]
     }
+  },
+  {
+    // The converter runs only in Node.js and is not part of the IE11 browser
+    // build, so the IE11-specific restriction does not apply to it.
+    files: ['converter/**/*.js'],
+    rules: {
+      'no-restricted-syntax': 'off'
+    }
   }
 ];
