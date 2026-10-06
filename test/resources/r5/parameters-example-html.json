@@ -1,0 +1,18 @@
+{
+  "resourceType": "Parameters",
+  "id": "example-html",
+  "parameter": [
+    {
+      "name": "goodHtml",
+      "valueString": "<b>This</b> <i>is</i> valid <code>HTML</code>"
+    },
+    {
+      "name": "badHtml",
+      "valueString": "<b>This</b> <i>is</i> valid <button>HTML</button>"
+    },
+    {
+      "name": "notString",
+      "valueInteger": 5
+    }
+  ]
+}

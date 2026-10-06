@@ -70,18 +70,22 @@ tests:
 
     - desc: '* decimal: values must be equal, trailing zeroes are ignored'
     - desc: '** decimals equal'
+      preciseMath: [false, true]
       expression: "1.01 = 1.01"
       result: [true]
 
     - desc: '** decimals equal, trailing zeroes are ignored'
+      preciseMath: [false, true]
       expression: "0.01 = 00.01"
       result: [true]
 
     - desc: 'decimal not equal'
+      preciseMath: [false, true]
       expression: "1.01 = 1.02"
       result: [false]
 
     - desc: 'decimal values should not be compared beyond the maximum precision'
+      preciseMath: [false, true]
       expression: '0.1 + 0.1 + 0.1 = 0.3'
       result: [true]
 
@@ -90,25 +94,21 @@ tests:
         expression: >-
           (%factory.decimal(0.3, %factory.Extension('someExt', 'someString')) =
            %factory.decimal(0.30000000000000004, %factory.Extension('someExt', 'someString')))
-        preciseMath: false
         result: [true]
       - model: r4
         expression: >-
           (%factory.decimal(0.3, %factory.Extension('someExt', 'someString1')) =
            %factory.decimal(0.30000000000000004, %factory.Extension('someExt', 'someString2')))
-        preciseMath: false
         result: [false]
       - model: r4
         expression: >-
           (%factory.integer64(123, %factory.Extension('someExt', 'someString')) =
            %factory.integer64(123, %factory.Extension('someExt', 'someString')))
-        preciseMath: false
         result: [true]
       - model: r4
         expression: >-
           (%factory.integer64(123, %factory.Extension('someExt', 'someString')) =
            %factory.integer64(123, %factory.Extension('someExt', 'someString2')))
-        preciseMath: false
         result: [false]
       - model: r4
         expression: >-
@@ -153,6 +153,7 @@ tests:
         result: [true]
 
       - expression: 12 'mo' = 1 'a'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 1 year = 1 year
@@ -168,33 +169,42 @@ tests:
         result: []
 
       - expression: 1 month = 30 days
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 1 week = 1 'wk'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 1 week = 7 days
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 1 day = 1 'd'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 1 day = 24 hours
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 1 day = 24 'h'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 1 second = 1 's'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 10 'kg.m/s2' = 5 'kg' * 4 'm' / (2 's' * 1000 'ms')
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 9 = 9 '1'
         result: [true]
 
       - expression: 9 = 9 'kg.kg-1'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 9 = 8 '1'
@@ -204,6 +214,7 @@ tests:
         result: [true]
 
       - expression: 2 's.s-1' = 2
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 3 '1' = 2
@@ -513,6 +524,7 @@ tests:
         to the precision of the least precise operand.
         Trailing zeroes are ignored in  determining precision.
       expression: "1.001 ~ 01.0012"
+      preciseMath: [false, true]
       result: [true]
 
     - desc: '** equivalence of integer and long'
@@ -524,79 +536,106 @@ tests:
 
     - 'group: trailing zeros after decimal':
       - expression: 1.100 ~ 1.1
+        preciseMath: [false, true]
         result: [true]
       - expression: 1.100 ~ 1.101 # rounded, ignoring trailing zeros
+        preciseMath: [false, true]
         result: [true]
       - expression: 1.1 ~ 1.0 # rounded, ignoring trailing zeros
+        preciseMath: [false, true]
         result: [true]
       - expression: 1.1 ~ 1.00 # rounded, ignoring trailing zeros
+        preciseMath: [false, true]
         result: [true]
       - expression: 1.10 ~ 1.00 # rounded, ignoring trailing zeros
+        preciseMath: [false, true]
         result: [true]
       - expression: 11 ~ 10 # digits before decimal are not trailing zeros
         result: [false]
       - expression: 12 ~ 11
         result: [false]
     - expression: 1.1 ~ 1.2
+      preciseMath: [false, true]
       result: [false]
     - expression: 0.00000011 ~ 0.00000012
+      preciseMath: [false, true]
       result: [false]
     - expression: 0.00000011 ~ 0.00000010
+      preciseMath: [false, true]
       result: [true]
     - expression: 0 ~ 0.00000010
+      preciseMath: [false, true]
       result: [true]
     - expression: 1 ~ 0.00000010
+      preciseMath: [false, true]
       result: [false]
     - expression: 0.010 ~ 0.00000010
+      preciseMath: [false, true]
       result: [false]
 
     - 'group: Quantity Equivalence':
       - expression: 1 year ~ 1 'a'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 12 months ~ 1 'a'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 1 month ~ 1 'mo'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 30 days ~ 1 'mo'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 23 'Cel' ~ 73.4 '[degF]'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 73.4 '[degF]' ~ 23 'Cel'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 0 'Cel' ~ 273.15 'K'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 23 'Cel' !~ 74 '[degF]'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 4 'g' !~ 4040 'mg'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 4040 'mg' !~ 4 'g'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 3.04 'g' ~ 3040 'mg'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 4040 'mg' ~ 4.0403 'g'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 4040 'mg' !~ 4.0409 'g'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 4040 'mg' !~ 4.041 'g'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 4040.01 'g' ~ 4040.009 'g'
+        preciseMath: [false, true]
         result: [true]
 
       - expression: 4040.01 'g' !~ 4040.1 'g'
+        preciseMath: [false, true]
         result: [true]
 
   # dateTime and time: values must be equal, except that for partial date/time
@@ -742,14 +781,17 @@ tests:
 
     - desc: '* decimal: values must be equal, trailing zeroes are ignored'
     - desc: '** decimals equal'
+      preciseMath: [false, true]
       expression: "1.01 != 1.01"
       result: [false]
 
     - desc: '** decimals equal, trailing zeroes are ignored'
+      preciseMath: [false, true]
       expression: "0.01 != 00.01"
       result: [false]
 
     - desc: 'decimal not equal'
+      preciseMath: [false, true]
       expression: "1.01 != 1.02"
       result: [true]
 
@@ -959,6 +1001,7 @@ tests:
         to the precision of the least precise operand.
         Trailing zeroes are ignored in  determining precision.
       expression: "1.001 !~ 01.0012"
+      preciseMath: [false, true]
       result: [false]
 
 subject:

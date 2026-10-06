@@ -103,10 +103,19 @@ const transform = (node, model = null) => {
 
       case '$': {
         const value = node[key];
-        const updated = { desc: `** ${node[key].description || node[key].name || 'test'}` };
-        if (_.has(value, 'inputfile')) {
-          updated.inputfile = value.inputfile.replace(/.xml$/, '.json');
-        }
+        const ignoredKeys = new Set(['testing', 'version',
+          'predicate', 'skipStaticCheck']);
+        const updated = { desc: `** ${value.description || value.name || 'test'}` };
+        _.without(_.keys(value), 'description', 'name').forEach(k => {
+          if (k === 'inputfile') {
+            updated[k] = value[k].replace(/.xml$/, '.json');
+          } else if (k === 'mode' || k === 'checkOrderedFunctions' || k === 'ordered') {
+            updated[k] = value[k];
+          } else if (!ignoredKeys.has(k)) {
+            console.warn(`>>> Unhandled attribute: ${k}`);
+          }
+        });
+
         return updated;
       }
       case 'expression': {

@@ -429,6 +429,7 @@ tests:
       - 1 year
 
   - desc: '** should compare quantities for equality (https://hl7.org/fhirpath/#equals)'
+    preciseMath: [false, true]
     expression: (3 'min').combine(180 seconds).distinct()
     result:
       - 3 'min'

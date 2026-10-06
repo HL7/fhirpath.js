@@ -1,6 +1,6 @@
 {
   "name": "fhirpath",
-  "version": "5.2.0",
+  "version": "5.2.1",
   "description": "A FHIRPath engine",
   "main": "src/fhirpath.js",
   "module": "esm/fhirpath.mjs",
@@ -60,7 +60,7 @@
     "./*": "./*"
   },
   "dependencies": {
-    "@lhncbc/ucum-lhc": "^5.0.0",
+    "@lhncbc/ucum-lhc": "^7.1.10",
     "@loxjs/url-join": "^1.0.2",
     "antlr4": "~4.9.3",
     "commander": "^14.0.3",
@@ -86,7 +86,7 @@
     "glob": "^13.0.6",
     "globals": "^17.3.0",
     "jasmine-spec-reporter": "^4.2.1",
-    "jest": "^30.2.0",
+    "jest": "^30.5.2",
     "lodash": "^4.17.23",
     "open": "^8.4.0",
     "rimraf": "^3.0.0",
@@ -101,7 +101,12 @@
     "yargs": "^15.1.0"
   },
   "overrides": {
-    "brace-expansion": "5.0.8",
+    "brace-expansion": "5.0.12",
+    "@istanbuljs/load-nyc-config": {
+      "js-yaml": {
+        "argparse": "^2.0.1"
+      }
+    },
     "lodash": "$lodash"
   },
   "engines": {

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Parameters xmlns="http://hl7.org/fhir" xmlns:f="http://hl7.org/fhir" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://hl7.org/fhir schemas/fhir-single.xsd">
+	<id value="example-html"/>
+	<parameter>
+		<name value="goodHtml"/>
+		<valueString value="&lt;b&gt;This&lt;/b&gt; &lt;i&gt;is&lt;/i&gt; valid &lt;code&gt;HTML&lt;/code&gt;"/>
+	</parameter>
+	<parameter>
+		<name value="badHtml"/>
+		<valueString value="&lt;b&gt;This&lt;/b&gt; &lt;i&gt;is&lt;/i&gt; valid &lt;button&gt;HTML&lt;/button&gt;"/>
+	</parameter>
+	<parameter>
+		<name value="notString"/>
+		<valueInteger value="5"/>
+	</parameter>
+</Parameters>

@@ -817,10 +817,15 @@ Any text enclosed within is ignored
 		<test name="testSplit2" version="2.1.0" inputfile="patient-example.xml"><expression>'A,,C'.split(',').join(',') = 'A,,C'</expression><output type="boolean">true</output></test>
 		<test name="testSplit3" version="2.1.0" inputfile="patient-example.xml"><expression>'[stop]ONE[stop][stop]TWO[stop][stop][stop]THREE[stop][stop]'.split('[stop]').trace('n').count() = 9</expression><output type="boolean">true</output></test>
 		<test name="testSplit4" version="2.1.0" inputfile="patient-example.xml"><expression>'[stop]ONE[stop][stop]TWO[stop][stop][stop]THREE[stop][stop]'.split('[stop]').join('[stop]')</expression><output type="string">[stop]ONE[stop][stop]TWO[stop][stop][stop]THREE[stop][stop]</output></test>
+		<test name="testSplit5" version="2.1.0" inputfile="patient-example.xml"><expression>'fr-BE'.split('-').first() = 'fr'</expression><output type="boolean">true</output></test>
+		<test name="testSplit6" version="2.1.0" inputfile="patient-example.xml"><expression>'fr-BE'.split('-').last() = 'BE'</expression><output type="boolean">true</output></test>
+		<test name="testSplit7" version="2.1.0" inputfile="patient-example.xml"><expression>'a-b-c'.split('-').skip(1).first() = 'b'</expression><output type="boolean">true</output></test>
+		<test name="testSplit8" version="2.1.0" inputfile="patient-example.xml"><expression>'a-b-c'.split('-').take(2).join('-') = 'a-b'</expression><output type="boolean">true</output></test>
   </group>
 
 	<group name="testJoin">
 		<test name="testJoin" version="2.1.0" inputfile="patient-example.xml"><expression>name.given.join(',')</expression><output type="string">Peter,James,Jim,Peter,James</output></test>
+		<test name="testJoinEmpty" version="2.1.0" inputfile="patient-example.xml"><expression>name.prefix.join(',')</expression></test>
 	</group>
 
 	<group name="testTrace">

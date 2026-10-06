@@ -154,18 +154,14 @@ const generateTest = (test, testResource) => {
   expressions.forEach(expression => {
     // Normalize `test.preciseMath` into an iterable list of execution modes.
     // Supported YAML forms:
-    // - `undefined`  -> run once per default modes: `[false, true]`
+    // - `undefined`  -> run once per default modes: `[false]`
     // - `boolean`    -> run once with the provided mode: `[true]` or `[false]`
     // - `boolean[]`  -> run once per listed mode (e.g. `[false, true]`)
-    // TODO: At some point, we will be able to reduce the number of tests by
-    //  changing the default value to `[false]`. But first, we need to set
-    //  `preciseMath: [false, true]` for the tests that truly require
-    //  double-checking.
-    ( test.preciseMath === undefined ? [false, true] :
+    ( test.preciseMath === undefined ? [false] :
       (Array.isArray(test.preciseMath) ? test.preciseMath : [test.preciseMath]) )
       .forEach( preciseMath => {
         const expressionText = expression instanceof Object ? util.toJSON(expression) : expression;
-        const testName = ((test.desc ? test.desc + ': ' : '') + (expressionText|| '')) + (preciseMath ? ' <--preciseMath': '');
+        const testName = ((test.desc ? test.desc + ': ' : '') + (expressionText|| '')) + (preciseMath ? ' [ preciseMath=true ]': '');
         switch(test.type) {
           case 'skipped':
             return it.skip(`Disabled test ${testName}`, () => {});

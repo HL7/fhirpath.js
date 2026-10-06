@@ -8,6 +8,11 @@
   `evaluate`, `resolveInternalTypes`, `types`.
 - `src/fhirpath.js` also exports `version`, `FP_Decimal`, `ucumUtils`, and
   `util` (used by external callers and custom function implementations).
+- ESM entry is `src/fhirpath.mjs`, a thin wrapper that re-exports the CommonJS
+  API as default + named exports. `npm run build:esm` bundles it with esbuild
+  (`scripts/build-esm.mjs`) into `esm/fhirpath.mjs`, which the `import`
+  condition of `package.json` `exports` points to. Model entry points have
+  matching wrappers: `fhir-context/*/index.mjs` + `index.d.mts`.
 - Evaluation flow is `parse()` -> AST -> `_compile()` -> `applyParsedPath()` ->
   `engine.doEval()`; see `src/fhirpath.js` and `src/parser/index.js`.
 - Core behavior is table-driven: `engine.invocationTable` in `src/fhirpath.js`
@@ -54,8 +59,9 @@
 - Additional Jest suites in `test/*.test.js` cover APIs and behaviors outside
   YAML cases (e.g. `test/async-functions.test.js`,
   `test/user-invocation-table.test.js`, `test/bin_fhirpath.test.js`).
-- Many tests run in both math modes automatically (`preciseMath` true/false)
-  unless a case sets `preciseMath` explicitly.
+- YAML tests run only with `preciseMath: false` by default; set
+  `preciseMath: [false, true]` (or `true`) on cases that must also be checked
+  with precise decimal math.
 - `npm run test:unit` runs Jest three times across time zones (`default`,
   `America/New_York`, `Europe/Paris`) to catch datetime regressions.
 - Test helpers in `test/test_utils.js` auto-load models (`r5`, `r4`, `stu3`,
@@ -64,20 +70,31 @@
   `inputfile`, `variables`, `context`, `error`, `result`.
 - Type declaration checks use `npm run test:tsd` with tests in
   `test/typescript/fhirpath.test-d.ts`.
+- Packaging/ESM checks: `npm run test:types-resolution`
+  (`test/typescript/resolution/`, CJS + ESM type resolution via `nodenext`),
+  `npm run test:types-decl` (`test/typescript/decl/`, compiles `.d.mts` with
+  `skipLibCheck: false`), `npm run test:attw` (`attw --pack .`), and
+  `npm run test:esm` (`test/esm/smoke.mjs`, imports `fhirpath` and each
+  `fhirpath/fhir-context/*` by package name; `pretest:esm` rebuilds `esm/`).
 - End-to-end browser checks run via Cypress under `test/cypress/` (script:
   `npm run test:e2e`, which builds the demo first).
 
 ## Build/dev commands you will actually use
 
 - Install: `npm install` (if `node` is missing in this environment, run
-  `source bashrc.fhirpath` and retry).
+  `source bashrc.fhirpath` and retry). Requires Node >= 20 (`engines`);
+  the `prepare` script runs `npm run build:esm` automatically.
 - Lint: `npm run lint` (targets `src/parser/index.js`, `src/*.js`,
-  `converter/`).
+  `src/*.mjs`, `fhir-context/*/index.mjs`, `converter/`).
 - Unit tests: `npm run test:unit`; debugger mode: `npm run test:unit:debug`.
-- Type tests: `npm run test:tsd`.
+- Type tests: `npm run test:tsd`, `npm run test:types-resolution`,
+  `npm run test:types-decl`, `npm run test:attw`.
+- ESM bundle: `npm run build:esm` (outputs `esm/fhirpath.mjs` + `.map`; fails
+  on any unsilenced esbuild warning). ESM smoke test: `npm run test:esm`.
 - Demo build: `npm run build:demo` (`npm run build` + `demo` webpack build).
 - E2E tests: `npm run test:e2e` (builds demo + runs Cypress).
-- Full CI-like local run: `npm test` (lint + tsd + unit + e2e).
+- Full CI-like local run: `npm test` (lint + tsd + types-resolution +
+  types-decl + attw + unit + esm + e2e).
 - Parser regeneration: `npm run generateParser` (uses `src/parser/FHIRPath.g4`,
   `antlr-4.9.3-complete.jar`, then `scripts/fix-parser-imports.js`).
 - Browser artifacts: `npm run build` (webpack outputs in `browser-build/`, plus
@@ -98,7 +115,11 @@
   designs, and treat measurable performance regressions as blockers unless
   explicitly approved.
 - Use CommonJS (`require`/`module.exports`) and 2-space indentation (see
-  `eslint.config.js`).
+  `eslint.config.js`). `.mjs` files are only thin ESM wrappers over CJS
+  modules; keep logic in the `.js` files.
+- The browser build still targets IE11: do not pass an iterable to
+  `new Set(...)`/`new Map(...)` (enforced by `no-restricted-syntax` in
+  `eslint.config.js`); populate via `.add()`/`.set()` instead.
 - When generating code, keep lines to no more than 80 characters when practical.
 - Use modern JavaScript syntax (`const`/`let`, arrow functions, destructuring)
   where it matches existing files.
@@ -125,6 +146,9 @@
   `httpHeaders`, and optional `signal` (see `docs/auth.md`, `docs/abort.md`).
 - If public API signatures or exports change, update `src/fhirpath.d.ts` and
   validate with `npm run test:tsd` (`test/typescript/fhirpath.test-d.ts`).
+  New/renamed exports must also be added to the named-export lists in
+  `src/fhirpath.mjs`, `src/fhirpath.d.mts`, and `test/esm/smoke.mjs` (same
+  for model fields in `fhir-context/*/index.mjs`/`index.d.mts`).
 - Keep behavior standards-compliant with FHIRPath and aligned with the selected
   FHIR model version when model-aware behavior is involved.
 - Contributors **MUST NOT** hand-edit `test/cases/fhir-r4.yaml` or
@@ -133,3 +157,6 @@
   these files are generated by `npm run generateParser`. Change
   `src/parser/FHIRPath.g4`, parser support code, or the generation/fixup scripts
   instead, then regenerate the parser.
+- Contributors **MUST NOT** hand-edit `esm/fhirpath.mjs` (gitignored esbuild
+  output); change `src/` or `scripts/build-esm.mjs` and run
+  `npm run build:esm`.

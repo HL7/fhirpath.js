@@ -32,6 +32,7 @@ tests:
     expression: 2L < 3
     result: [true]
   - desc: less than, with long number and decimal
+    preciseMath: [false, true]
     expression: 3L < 3.1
     result: [true]
 
@@ -66,6 +67,7 @@ tests:
     expression: 3 > 2L
     result: [true]
   - desc: greater than, with long number and decimal
+    preciseMath: [false, true]
     expression: 3.1 > 3L
     result: [true]
 
@@ -100,6 +102,7 @@ tests:
     expression: 3 >= 2L
     result: [true]
   - desc: greater or equal than, with long number and decimal
+    preciseMath: [false, true]
     expression: 3.1 >= 3L
     result: [true]
 
@@ -135,6 +138,7 @@ tests:
     expression: 2L <= 3
     result: [true]
   - desc: less than or equal, with long number and decimal
+    preciseMath: [false, true]
     expression: 3L <= 3.1
     result: [true]
 
@@ -146,6 +150,7 @@ tests:
     - expression: 1 's' > 1 year
       result: []
     - expression: 1 'min' < 2 minutes
+      preciseMath: [false, true]
       result: [true]
     - expression: 1 'kg' < 2 's'
       result: []
@@ -162,26 +167,37 @@ tests:
     - expression: 1 minute < 61 seconds
       result: [true]
     - expression: 1 'min' < 61 seconds
+      preciseMath: [false, true]
       result: [true]
     - expression: 10 seconds > 1 's'
+      preciseMath: [false, true]
       result: [true]
     - expression: 10 seconds < 1 's'
+      preciseMath: [false, true]
       result: [false]
     - expression: 1 's' > 10 seconds
+      preciseMath: [false, true]
       result: [false]
     - expression: 1 's' < 10 seconds
+      preciseMath: [false, true]
       result: [true]
     - expression: 999 'g' < 1 'kg'
+      preciseMath: [false, true]
       result: [true]
     - expression: 999 'g' > 1 'kg'
+      preciseMath: [false, true]
       result: [false]
     - expression: 1001 'g' > 1 'kg'
+      preciseMath: [false, true]
       result: [true]
     - expression: 1001 'g' < 1 'kg'
+      preciseMath: [false, true]
       result: [false]
     - expression: 23 'Cel' > 72 '[degF]'
+      preciseMath: [false, true]
       result: [true]
     - expression: 23 'Cel' < 72 '[degF]'
+      preciseMath: [false, true]
       result: [false]
     - expression: 0 'Cel' >= 273.15 'K'
       result: [true]
@@ -194,8 +210,10 @@ tests:
     - expression: b > 1 '1'
       result: [true]
     - expression: 2 > 1 'kg.kg-1'
+      preciseMath: [false, true]
       result: [true]
     - expression: 2 'kg.kg-1' > 1
+      preciseMath: [false, true]
       result: [true]
     - expression: 2 > 1 'kg'
       result: []
@@ -208,18 +226,22 @@ tests:
     - expression: a < 2 '1'
       result: [true]
     - expression: 1 < 2 'kg.kg-1'
+      preciseMath: [false, true]
       result: [true]
     - expression: 1 'kg.kg-1' < 2
+      preciseMath: [false, true]
       result: [true]
     - expression: 1 < 2 'kg'
       result: []
     - expression: a < 2 'kg'
       result: []
     - expression: 1 'kg'.comparable(999 'g')
+      preciseMath: [false, true]
       result: [true]
     - expression: 1 year.comparable(1 second)
       result: [true]
     - expression: 1 'a'.comparable(1 's')
+      preciseMath: [false, true]
       result: [true]
     - expression: 1 'a'.comparable(1 seconds)
       result: [false]
