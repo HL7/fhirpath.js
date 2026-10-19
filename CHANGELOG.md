@@ -3,6 +3,15 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [5.2.2] - 2026-10-19
+### Fixed
+- The demo page's node modules are now installed by the `build:demo` script,
+  instead of the `preinstall` script. The published package no longer has
+  a `preinstall` install script. The script did nothing for installs from npm,
+  but caused supply-chain scanners to flag fhirpath and the packages that depend
+  on it (see [#190](https://github.com/HL7/fhirpath.js/issues/190)).
+  The `bin/install-demo.js` file was removed.
+
 ## [5.2.1] - 2026-09-24
 ### Added
 - New test cases from the official FHIR test suite for R4 and R5: additional

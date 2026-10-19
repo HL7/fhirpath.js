@@ -801,10 +801,13 @@ the root of the project directory, and then run "npm run generateParser".
 ### Building the demo page
 
 ```sh
-npm install && npm run build
-cd demo
-npm install && npm run build && npm run start
+npm install && npm run build:demo
+npm --prefix demo run start
 ```
+
+`npm run build:demo` builds the browser bundles, installs the demo page's node
+modules (`npm ci` in the `demo` directory), and builds the demo page. The
+root `npm install` does not install the demo page's node modules.
 
 open browser on localhost:8080
 
