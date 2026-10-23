@@ -91,7 +91,9 @@
   `npm run test:types-decl`, `npm run test:attw`.
 - ESM bundle: `npm run build:esm` (outputs `esm/fhirpath.mjs` + `.map`; fails
   on any unsilenced esbuild warning). ESM smoke test: `npm run test:esm`.
-- Demo build: `npm run build:demo` (`npm run build` + `demo` webpack build).
+- Demo build: `npm run build:demo` (`npm run build` + `npm ci` in `demo/` +
+  `demo` webpack build). The root `npm install` does not install the demo's
+  node modules; run `npm run build:demo` before `npm --prefix demo run start`.
 - E2E tests: `npm run test:e2e` (builds demo + runs Cypress).
 - Full CI-like local run: `npm test` (lint + tsd + types-resolution +
   types-decl + attw + unit + esm + e2e).
