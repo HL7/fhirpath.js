@@ -69,6 +69,14 @@ tests:
     expression: Functions.str.attr.substring(5, EmptyLength)
     result: ['string']
 
+  - desc: '** substring with zero length'
+    expression: Functions.str.attr.substring(5, 0)
+    result: ['']
+
+  - desc: '** substring with negative length'
+    expression: Functions.str.attr.substring(5, -2)
+    result: ['']
+
   - desc: '** substring on empty input collection'
     expression: Functions.str.empty.substring(0)
     result: []

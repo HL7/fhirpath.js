@@ -90,7 +90,9 @@ engine.substring = function (coll, start, length) {
   if (length === undefined || util.isEmpty(length)) {
     return str.substring(start);
   }
-  return str.substring(start, start + +length);
+  length = +length;
+  // JavaScript substring() swaps its arguments when the end is before start.
+  return length > 0 ? str.substring(start, start + length) : '';
 };
 
 
