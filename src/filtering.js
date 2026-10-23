@@ -617,7 +617,7 @@ engine.tailFn = function(x) {
  * @returns {Array} the first `n` elements.
  */
 engine.takeFn = function(x, n) {
-  return x.slice(0, n);
+  return n > 0 ? x.slice(0, n) : [];
 };
 
 
@@ -630,7 +630,7 @@ engine.takeFn = function(x, n) {
  * @returns {Array} the remaining elements after skipping.
  */
 engine.skipFn = function(x, num) {
-  return x.slice(num, x.length);
+  return num > 0 ? x.slice(num, x.length) : x;
 };
 
 
