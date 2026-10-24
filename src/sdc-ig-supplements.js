@@ -659,6 +659,23 @@ function getWeightFromVS(ctx, vs, code, system) {
       score = getDecimalPropertyValue(item, scorePropertyCode);
     }
   } else {
+    // R5 expansion properties can be represented by cross-version extensions
+    // in R4 (the SDC 4.0.0 ValueSet profile permits these backports).
+    const property = vs.expansion?.extension?.find(p =>
+      p.url === 'http://hl7.org/fhir/5.0/StructureDefinition/extension-ValueSet.expansion.property'
+      && p.extension?.some(e => e.url === 'uri'
+        && e.valueUri === 'http://hl7.org/fhir/concept-properties#itemWeight'));
+    const propertyCode = property?.extension?.find(e => e.url === 'code')?.valueCode;
+    if (propertyCode) {
+      const expandedItem = getValueSetItem(vs.expansion?.contains, code, system);
+      const value = expandedItem?.extension?.find(p =>
+        p.url === 'http://hl7.org/fhir/5.0/StructureDefinition/extension-ValueSet.expansion.contains.property'
+        && p.extension?.some(e => e.url === 'code' && e.valueCode === propertyCode));
+      const weight = value?.extension?.find(e => e.url === 'value')?.valueDecimal;
+      if (weight != null) {
+        return weight;
+      }
+    }
     // "ValueSet.compose.include.concept" for R4
     const includeExt = ctx.model?.score.extensionURI;
     const include = vs.compose?.include;
