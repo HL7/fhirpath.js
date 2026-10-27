@@ -72,11 +72,14 @@ engine.lastIndexOf = function (coll, substr) {
 
 /**
  * Implements the FHIRPath `substring(start[, length])` function.
+ * Returns an empty string if `length` is zero or negative, and an empty
+ * collection if the input or `start` is empty or `start` is out of range.
  * See https://hl7.org/fhirpath/#substringstart-integer-length-integer-string.
  * @param {Array} coll - input collection.
  * @param {number} start - zero-based starting index.
  * @param {number} [length] - optional substring length.
- * @returns {string|[]} the extracted substring, or an empty collection.
+ * @returns {string|[]} the extracted substring, an empty string if `length`
+ *  is zero or negative, or an empty collection.
  */
 engine.substring = function (coll, start, length) {
   const str = misc.singleton(coll, 'String');

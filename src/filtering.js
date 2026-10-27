@@ -610,11 +610,12 @@ engine.tailFn = function(x) {
 
 /**
  * Implements the FHIRPath `take(num)` function.
- * Returns the first `n` elements from the input collection.
+ * Returns the first `n` elements from the input collection, or an empty
+ * collection if `n` is less than or equal to zero.
  * See https://hl7.org/fhirpath/#takenum-integer-collection
  * @param {Array} x - the input collection.
  * @param {number} n - the number of elements to take.
- * @returns {Array} the first `n` elements.
+ * @returns {Array} the first `n` elements, or an empty array if `n` <= 0.
  */
 engine.takeFn = function(x, n) {
   return n > 0 ? x.slice(0, n) : [];
@@ -623,7 +624,8 @@ engine.takeFn = function(x, n) {
 
 /**
  * Implements the FHIRPath `skip(num)` function.
- * Returns all elements after skipping the first `num` elements.
+ * Returns all elements after skipping the first `num` elements. If `num` is
+ * less than or equal to zero, the input collection itself is returned.
  * See https://hl7.org/fhirpath/#skipnum-integer-collection
  * @param {Array} x - the input collection.
  * @param {number} num - the number of elements to skip.

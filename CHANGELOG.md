@@ -3,6 +3,14 @@
 This log documents significant changes for each release.  This project follows
 [Semantic Versioning](http://semver.org/).
 
+## [5.2.3] - 2026-10-27
+### Fixed
+- `skip()` now returns the input collection and `take()` returns an empty
+  collection when the number of items is negative (previously, negative
+  numbers were counted from the end of the collection).
+- `substring()` with a zero or negative `length` now returns an empty string
+  instead of the characters before `start`.
+
 ## [5.2.2] - 2026-10-19
 ### Fixed
 - The demo page's node modules are now installed by the `build:demo` script,
