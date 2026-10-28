@@ -72,14 +72,28 @@ engine.lastIndexOf = function (coll, substr) {
 
 /**
  * Implements the FHIRPath `substring(start[, length])` function.
- * Returns an empty string if `length` is zero or negative, and an empty
- * collection if the input or `start` is empty or `start` is out of range.
- * See https://hl7.org/fhirpath/#substringstart-integer-length-integer-string.
- * @param {Array} coll - input collection.
- * @param {number} start - zero-based starting index.
- * @param {number} [length] - optional substring length.
- * @returns {string|[]} the extracted substring, an empty string if `length`
- *  is zero or negative, or an empty collection.
+ * Returns the part of the input string that starts at the zero-based index
+ * `start` and contains at most `length` characters. If `length` is omitted
+ * or empty, or extends past the end of the string, the remainder of the
+ * string (from `start`) is returned.
+ *
+ * Special cases (checked in this order):
+ *  * returns an empty collection if the input or `start` is empty.
+ *  * returns an empty collection if `start` is negative or greater than or
+ *    equal to the string length (so `''.substring(0)` is empty).
+ *  * returns an empty string if `length` is zero or negative.
+ *
+ * See https://hl7.org/fhirpath/#substringstart--integer--length--integer--string.
+ * @param {Array} coll - input collection; must be empty or contain a single
+ *   String item, otherwise an error is thrown (see `misc.singleton`).
+ * @param {number|FP_Decimal|[]} start - zero-based start index (an
+ *   integer value, either a plain number or an `FP_Decimal` depending on
+ *   how it was produced), or an empty collection.
+ * @param {number|FP_Decimal|[]|undefined} [length] - optional maximum number of
+ *   characters to return; `undefined` (not passed) or an empty collection
+ *   means "to the end of the string".
+ * @returns {string|[]} the extracted substring (an empty string if `length`
+ *   is zero or negative), or an empty collection.
  */
 engine.substring = function (coll, start, length) {
   const str = misc.singleton(coll, 'String');

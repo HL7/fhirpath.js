@@ -8,8 +8,8 @@ This log documents significant changes for each release.  This project follows
 - `skip()` now returns the input collection and `take()` returns an empty
   collection when the number of items is negative (previously, negative
   numbers were counted from the end of the collection).
-- `substring()` with a zero or negative `length` now returns an empty string
-  instead of the characters before `start`.
+- `substring()` with a negative `length` now returns an empty string when
+  `start` is valid, instead of up to `-length` characters preceding `start`.
 
 ## [5.2.2] - 2026-10-19
 ### Fixed
