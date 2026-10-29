@@ -45,6 +45,7 @@ tests:
   - desc: '5.6.2. substring(start : integer [, length : integer]) : string'
 # If the input collection contains a single item of type string, it returns a collection with the part of the string starting at position start (zero-based). If length is given, will return at most length number of characters from the input string.
 # If start lies outside the length of the string, the function returns an empty collection. If there are less remaining characters in the string than indicated by length, the function returns just the remaining characters.
+# If a negative or zero length is provided, the function returns an empty string ('').
   - desc: '** substring with length'
     expression: Functions.str.attr.substring(5, 3)
     result: ['str']
@@ -68,6 +69,18 @@ tests:
   - desc: '** substring with empty length'
     expression: Functions.str.attr.substring(5, EmptyLength)
     result: ['string']
+
+  - desc: '** substring with zero length'
+    expression: Functions.str.attr.substring(5, 0)
+    result: ['']
+
+  - desc: '** substring with negative length'
+    expression: Functions.str.attr.substring(5, -2)
+    result: ['']
+
+  - desc: '** substring with out-of-range start and negative length'
+    expression: Functions.str.attr.substring(100, -1)
+    result: []
 
   - desc: '** substring on empty input collection'
     expression: Functions.str.empty.substring(0)

@@ -153,6 +153,14 @@ tests:
     expression: Functions.coll1.coll2.attr.skip(6)
     result: []
 
+  - desc: '** skip zero'
+    expression: Functions.coll1.coll2.attr.skip(0)
+    result: [1, 2, 3, 4, 5]
+
+  - desc: '** skip negative'
+    expression: Functions.coll1.coll2.attr.skip(-1)
+    result: [1, 2, 3, 4, 5]
+
   - desc: '** skip for collection with null values'
     expression: Functions.collWithNullsAndTrue.skip(2).id
     result:
@@ -196,6 +204,14 @@ tests:
   - desc: '** take 5'
     expression: Functions.coll1.coll2.attr.take(5)
     result: [1, 2, 3, 4, 5]
+
+  - desc: '** take zero'
+    expression: Functions.coll1.coll2.attr.take(0)
+    result: []
+
+  - desc: '** take negative'
+    expression: Functions.coll1.coll2.attr.take(-1)
+    result: []
 
   - desc: '** take for collection with null values'
     expression: Functions.collWithNullsAndTrue.take(1).id
